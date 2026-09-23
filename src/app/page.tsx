@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package } from "lucide-react";
+import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2 } from "lucide-react";
 
 type Tab = "planificacion" | "agenda" | "herramientas" | "pandaia";
 
@@ -14,14 +14,62 @@ export default function PandaJRApp() {
     { id: 2, date: "28 Oct", rawDate: "2026-10-28", time: "09:00 AM", title: "Exámenes de laboratorio", doctor: "Laboratorio Central" },
   ]);
 
-  const handleAIAddEvent = (title: string, date: string, time: string, doctor: string, rawDate?: string) => {
-    setEvents(prev => [...prev, { id: Date.now(), date, rawDate: rawDate || "", time, title, doctor }]);
-  };
-  
   const [toast, setToast] = useState<{message: string, onUndo: () => void} | null>(null);
   const showToast = (message: string, onUndo: () => void) => {
     setToast({ message, onUndo });
     setTimeout(() => setToast(null), 5000);
+  };
+
+  // Cargar eventos guardados de localStorage y sincronizar si la pareja compartió citas (?sync_events=)
+  useEffect(() => {
+    try {
+      // 1. Cargar citas locales del teléfono
+      const saved = localStorage.getItem("pandajr_events");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setEvents(parsed);
+        }
+      }
+
+      // 2. Revisar si se abrió un enlace de sincronización de la pareja
+      if (typeof window !== "undefined") {
+        const params = new URLSearchParams(window.location.search);
+        const syncData = params.get("sync_events");
+        if (syncData) {
+          try {
+            const decoded = JSON.parse(decodeURIComponent(escape(atob(syncData))));
+            if (Array.isArray(decoded) && decoded.length > 0) {
+              setEvents(decoded);
+              localStorage.setItem("pandajr_events", JSON.stringify(decoded));
+              showToast("¡Agenda sincronizada con tu pareja! 👶", () => {});
+              setActiveTab("agenda");
+              // Limpiar URL sin recargar
+              const cleanUrl = new URL(window.location.href);
+              cleanUrl.searchParams.delete("sync_events");
+              window.history.replaceState({}, "", cleanUrl.pathname);
+            }
+          } catch (err) {
+            console.error("Error al procesar citas compartidas:", err);
+          }
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  // Guardar en localStorage cuando se agreguen o editen citas
+  useEffect(() => {
+    try {
+      localStorage.setItem("pandajr_events", JSON.stringify(events));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [events]);
+
+  const handleAIAddEvent = (title: string, date: string, time: string, doctor: string, rawDate?: string) => {
+    setEvents(prev => [...prev, { id: Date.now(), date, rawDate: rawDate || "", time, title, doctor }]);
   };
 
 
@@ -548,6 +596,28 @@ function AgendaView({ showToast, events, setEvents }: { showToast: any, events: 
     showToast("Sugerencia descartada", () => setSuggestions({ mama: oldMama, papa: oldPapa }));
   };
 
+  const shareWithPartner = () => {
+    try {
+      const dataStr = btoa(unescape(encodeURIComponent(JSON.stringify(events))));
+      const shareUrl = `${window.location.origin}/?sync_events=${dataStr}`;
+      
+      const summary = events.map(e => `• ${e.date} (${e.time}): ${e.title} - ${e.doctor}`).join("\n");
+      const text = `¡Hola amor! Te comparto nuestra agenda médica actualizada de PandaJR:\n\n${summary}\n\n👉 Ábrelo aquí para sincronizarlo en tu teléfono:\n${shareUrl}`;
+
+      if (navigator.share) {
+        navigator.share({
+          title: "Agenda Médica PandaJR",
+          text: text,
+        }).catch(() => {});
+      } else {
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
+      }
+    } catch(err) {
+      console.error(err);
+      if (showToast) showToast("No se pudo generar el enlace de sincronización", () => {});
+    }
+  };
+
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 relative h-full flex flex-col">
       {/* Header destacado */}
@@ -608,8 +678,19 @@ function AgendaView({ showToast, events, setEvents }: { showToast: any, events: 
 
         {/* Citas */}
         <div>
-          <div className="flex justify-between items-end mb-4">
-            <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2"><Calendar className="text-teal-500" size={20}/> Agenda Médica</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+              <Calendar className="text-teal-500" size={20}/> Agenda Médica
+            </h3>
+            {events.length > 0 && (
+              <button
+                onClick={shareWithPartner}
+                className="text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-xl border border-teal-200/60 flex items-center gap-1.5 transition-colors shadow-sm active:scale-95"
+                title="Compartir citas con tu pareja para sincronizarlas"
+              >
+                <Share2 size={13} /> Sincronizar Citas
+              </button>
+            )}
           </div>
           
           <div className="space-y-3">
@@ -730,6 +811,52 @@ function PandaIAView({ showToast, addEvent }: { showToast: any, addEvent: any })
   const [isTyping, setIsTyping] = useState(false);
   const [showContextModal, setShowContextModal] = useState(false);
 
+  const [profile, setProfile] = useState<{
+    role: "papa" | "mama";
+    name: string;
+    week: number;
+    location: string;
+    notes: string;
+  }>({
+    role: "papa",
+    name: "",
+    week: 14,
+    location: "",
+    notes: ""
+  });
+
+  const [editProfile, setEditProfile] = useState(profile);
+
+  // Cargar perfil guardado del dispositivo
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("pandajr_user_profile");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setProfile(parsed);
+        setEditProfile(parsed);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  const openContextModal = () => {
+    setEditProfile(profile);
+    setShowContextModal(true);
+  };
+
+  const handleSaveProfile = (newProfile: typeof profile) => {
+    setProfile(newProfile);
+    try {
+      localStorage.setItem("pandajr_user_profile", JSON.stringify(newProfile));
+      if (showToast) showToast("Perfil actualizado en este teléfono", () => {});
+    } catch (e) {
+      console.error(e);
+    }
+    setShowContextModal(false);
+  };
+
   // Escape key handler for modal
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -764,8 +891,10 @@ function PandaIAView({ showToast, addEvent }: { showToast: any, addEvent: any })
           message: text,
           history: messages.slice(-6),
           context: {
-            currentWeek: 14,
-            userProfile: "Papá primerizo"
+            currentWeek: profile.week || 14,
+            userProfile: profile.role === "papa" ? `Papá${profile.name ? ` (${profile.name})` : ""}` : `Mamá${profile.name ? ` (${profile.name})` : ""}`,
+            location: profile.location || "No especificada",
+            notes: profile.notes || "Embarazo primerizo"
           }
         })
       });
@@ -824,12 +953,18 @@ function PandaIAView({ showToast, addEvent }: { showToast: any, addEvent: any })
           <div>
             <h2 className="font-bold text-gray-800 leading-tight">PandaIA</h2>
             <p className="text-xs font-bold text-teal-600 uppercase tracking-wide flex items-center gap-1">
-              <span className="w-1.5 h-1.5 bg-green-500 rounded-full inline-block animate-pulse"></span> En línea - Entrenado para tu rutina
+              <span className="w-1.5 h-1.5 bg-green-500 rounded-full inline-block animate-pulse"></span>
+              {profile.role === "papa" ? "Modo Papá" : "Modo Mamá"}{profile.name ? ` (${profile.name})` : ""} · Sem {profile.week}
             </p>
           </div>
         </div>
-        <button onClick={() => setShowContextModal(true)} className="p-2 text-teal-600 hover:bg-teal-50 rounded-full transition-colors">
-          <Settings size={20} />
+        <button 
+          onClick={openContextModal} 
+          className="p-2 text-teal-600 hover:bg-teal-50 rounded-xl transition-colors flex items-center gap-1.5 border border-teal-100 shadow-sm"
+          aria-label="Configurar perfil"
+        >
+          <Settings size={18} />
+          <span className="text-xs font-bold">Perfil</span>
         </button>
       </div>
 
@@ -927,45 +1062,124 @@ function PandaIAView({ showToast, addEvent }: { showToast: any, addEvent: any })
         </div>
       </div>
 
-      {/* CONTEXT MODAL (Simulated) */}
+      {/* CONTEXT MODAL (Configuración Editable de Perfil) */}
       {showContextModal && (
         <div className="absolute inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in">
           <div className="bg-white rounded-3xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="bg-teal-600 p-4 flex justify-between items-center text-white">
-              <h3 className="font-bold">Contexto del Asistente</h3>
+              <h3 className="font-bold flex items-center gap-2">
+                <Settings size={18} /> Configurar Perfil
+              </h3>
               <button onClick={() => setShowContextModal(false)} className="text-teal-100 hover:text-white transition-colors">
                 <X size={20} />
               </button>
             </div>
-            <div className="p-5 space-y-4">
-              <p className="text-sm text-gray-500 mb-4">La IA adapta sus respuestas basándose en este perfil:</p>
-              
-              <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
-                <div className="bg-teal-100 text-teal-600 p-2 rounded-full"><MapPin size={18}/></div>
-                <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Ubicación</p>
-                  <p className="font-semibold text-gray-800">Managua, Nicaragua</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
-                <div className="bg-teal-100 text-teal-600 p-2 rounded-full"><Briefcase size={18}/></div>
-                <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Trabajo</p>
-                  <p className="font-semibold text-gray-800">Centro de Operaciones Agrícolas / E-commerce (Pandastore)</p>
+            
+            <div className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
+              <p className="text-xs text-gray-500">
+                Personaliza quién está usando la app en este teléfono. Cada pareja puede guardar su propio perfil independiente:
+              </p>
+
+              {/* Selector de Rol */}
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
+                  Rol activo en este dispositivo
+                </label>
+                <div className="grid grid-cols-2 gap-2 bg-gray-100 p-1 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setEditProfile(p => ({ ...p, role: "papa" }))}
+                    className={`py-2 text-xs font-bold rounded-lg transition-all ${
+                      editProfile.role === "papa" ? "bg-white text-teal-700 shadow-sm" : "text-gray-500"
+                    }`}
+                  >
+                    🧔 Soy el Papá
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditProfile(p => ({ ...p, role: "mama" }))}
+                    className={`py-2 text-xs font-bold rounded-lg transition-all ${
+                      editProfile.role === "mama" ? "bg-white text-teal-700 shadow-sm" : "text-gray-500"
+                    }`}
+                  >
+                    👩 Soy la Mamá
+                  </button>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
-                <div className="bg-teal-100 text-teal-600 p-2 rounded-full"><Baby size={18}/></div>
-                <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Bebé en camino</p>
-                  <p className="font-semibold text-gray-800">Sorpresa (Semana 12)</p>
-                </div>
+              {/* Nombre / Apodo */}
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
+                  Nombre o Apodo (Opcional)
+                </label>
+                <input
+                  type="text"
+                  value={editProfile.name}
+                  onChange={(e) => setEditProfile(p => ({ ...p, name: e.target.value }))}
+                  placeholder="Ej. Carlos o Sofía"
+                  className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                />
+              </div>
+
+              {/* Semana de Gestación */}
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
+                  Semana de Gestación
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={42}
+                  value={editProfile.week}
+                  onChange={(e) => setEditProfile(p => ({ ...p, week: parseInt(e.target.value, 10) || 1 }))}
+                  className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                />
+              </div>
+
+              {/* Ubicación / Ciudad (Opcional) */}
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
+                  Ciudad o País (Opcional)
+                </label>
+                <input
+                  type="text"
+                  value={editProfile.location}
+                  onChange={(e) => setEditProfile(p => ({ ...p, location: e.target.value }))}
+                  placeholder="Ej. Madrid, Santiago, CDMX..."
+                  className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                />
+              </div>
+
+              {/* Notas personales o médicas */}
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
+                  Notas de rutina o preferencias
+                </label>
+                <textarea
+                  rows={2}
+                  value={editProfile.notes}
+                  onChange={(e) => setEditProfile(p => ({ ...p, notes: e.target.value }))}
+                  placeholder="Ej. Trabajo en turnos, cesárea programada, etc."
+                  className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none resize-none"
+                />
               </div>
             </div>
-            <div className="p-4 border-t border-gray-100 bg-gray-50 text-center">
-              <button onClick={() => setShowContextModal(false)} className="text-teal-600 font-bold text-sm w-full py-2 hover:bg-teal-50 rounded-xl transition-colors">Cerrar</button>
+
+            <div className="p-4 border-t border-gray-100 bg-gray-50 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setShowContextModal(false)}
+                className="flex-1 py-2.5 text-sm font-semibold text-gray-500 hover:bg-gray-100 rounded-xl transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSaveProfile(editProfile)}
+                className="flex-1 py-2.5 text-sm font-bold bg-teal-600 hover:bg-teal-700 text-white rounded-xl shadow-md transition-all active:scale-95"
+              >
+                Guardar
+              </button>
             </div>
           </div>
         </div>
