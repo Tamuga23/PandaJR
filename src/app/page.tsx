@@ -747,8 +747,8 @@ function PandaIAView({ showToast, addEvent }: { showToast: any, addEvent: any })
     "¿Qué evalúan en la ecografía de las 12 semanas?"
   ]);
 
-  const handleSend = (text: string) => {
-    if (!text.trim()) return;
+  const handleSend = async (text: string) => {
+    if (!text.trim() || isTyping) return;
     
     const newMsg = { id: Date.now(), sender: "user", text };
     setSmartChips(prev => prev.filter(c => c !== text));
@@ -756,110 +756,59 @@ function PandaIAView({ showToast, addEvent }: { showToast: any, addEvent: any })
     setInputText("");
     setIsTyping(true);
 
-    setTimeout(() => {
-      setIsTyping(false);
-      const lower = text.toLowerCase();
-      
-      // Reconocer intenciones de agendar / cita / recordatorio
-      if (
-        lower.includes("agendar") || 
-        lower.includes("cita") || 
-        lower.includes("recordatorio") || 
-        lower.includes("anotar") || 
-        lower.includes("agregar")
-      ) {
-        let extractedTitle = "Cita Médica";
-        let extractedDate = "Próximamente";
-        let extractedRawDate = new Date().toISOString().split("T")[0];
-        
-        // Detectar fechas comunes en español (ej: "28 de septiembre", "15 de oct", etc.)
-        const dateMatch = text.match(/(\d{1,2})\s*(?:de)?\s*([a-zA-ZáéíóúÁÉÍÓÚ]+)/i);
-        if (dateMatch) {
-          const day = dateMatch[1].padStart(2, "0");
-          const rawMonth = dateMatch[2].toLowerCase();
-          const monthMap: Record<string, string> = {
-            enero: "Ene", ene: "Ene",
-            febrero: "Feb", feb: "Feb",
-            marzo: "Mar", mar: "Mar",
-            abril: "Abr", abr: "Abr",
-            mayo: "May", may: "May",
-            junio: "Jun", jun: "Jun",
-            julio: "Jul", jul: "Jul",
-            agosto: "Ago", ago: "Ago",
-            septiembre: "Sep", sep: "Sep", setiembre: "Sep",
-            octubre: "Oct", oct: "Oct",
-            noviembre: "Nov", nov: "Nov",
-            diciembre: "Dic", dic: "Dic"
-          };
-          const monthNumMap: Record<string, string> = {
-            enero: "01", ene: "01",
-            febrero: "02", feb: "02",
-            marzo: "03", mar: "03",
-            abril: "04", abr: "04",
-            mayo: "05", may: "05",
-            junio: "06", jun: "06",
-            julio: "07", jul: "07",
-            agosto: "08", ago: "08",
-            septiembre: "09", sep: "09", setiembre: "09",
-            octubre: "10", oct: "10",
-            noviembre: "11", nov: "11",
-            diciembre: "12", dic: "12"
-          };
-          const formattedMonth = monthMap[rawMonth] || rawMonth.slice(0, 3);
-          const monthNum = monthNumMap[rawMonth] || "09";
-          extractedDate = `${parseInt(day, 10)} ${formattedMonth}`;
-          const currentYear = new Date().getFullYear();
-          extractedRawDate = `${currentYear}-${monthNum}-${day}`;
-        }
-
-        // Extraer título relevante
-        if (lower.includes("cita de") || lower.includes("cita medica") || lower.includes("cita médica")) {
-          extractedTitle = "Cita Médica";
-        }
-        if (lower.includes("ecografía") || lower.includes("ecografia")) {
-          extractedTitle = "Ecografía Prenatal";
-        } else if (lower.includes("laboratorio") || lower.includes("examen")) {
-          extractedTitle = "Exámenes de Laboratorio";
-        } else if (lower.includes("pediatra")) {
-          extractedTitle = "Consulta Pediatra";
-        } else if (lower.includes("cuna") || lower.includes("cochecito") || lower.includes("comprar")) {
-          extractedTitle = "Compras del Bebé";
-        } else if (text.length < 50) {
-          // Si el texto es corto, usarlo directamente
-          extractedTitle = text.replace(/^(agregar|agendar|recordar|poner)\s*(un|una)?\s*(recordatorio\s*de|cita\s*(medica|médica)?\s*(de|para)?)/i, "").trim();
-          if (!extractedTitle) extractedTitle = "Recordatorio Médico";
-        }
-
-        if (addEvent) {
-          addEvent(extractedTitle, extractedDate, "Por definir", "Generado por PandaIA", extractedRawDate);
-        }
-
-        setMessages(prev => [...prev, {
-          id: Date.now(),
-          sender: "ai",
-          text: `¡Listo! He agendado "${extractedTitle}" para el ${extractedDate} en tu Agenda. Puedes ir a la pestaña "Agenda" para ajustar la hora exacta o el nombre del doctor.`
-        }]);
-        return;
-      }
-
-      if (text === "¿Qué evalúan en la ecografía de las 12 semanas?") {
-        setMessages(prev => [...prev, { 
-          id: Date.now(), 
-          sender: "ai", 
-          text: "¡Es una ecografía muy emocionante e importante! Principalmente se realiza el tamizaje genético o medición de la traslucencia nucal, y se revisa la anatomía básica del bebé.",
-          card: {
-            title: "Ecografía de 12 Semanas 🩺",
-            desc: "Confirma la edad gestacional, revisa el hueso nasal y mide el pliegue nucal para descartar anomalías cromosómicas. ¡Es probable que también escuchen el corazón!"
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: text,
+          history: messages.slice(-6),
+          context: {
+            currentWeek: 14,
+            userProfile: "Papá primerizo"
           }
-        }]);
-      } else {
-        setMessages(prev => [...prev, {
-          id: Date.now(),
-          sender: "ai",
-          text: "¡Excelente pregunta! Entrando a la semana 12 hay muchos cambios y novedades. Recuerda que también puedo agendar citas o recordatorios médicos si me dices 'agendar cita el 28 de septiembre'."
-        }]);
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("HTTP error " + response.status);
       }
-    }, 1200);
+
+      const data = await response.json();
+
+      // Si Gemini detectó y extrajo una cita médica, agendarla en la Agenda
+      if (data.appointment && addEvent) {
+        addEvent(
+          data.appointment.title,
+          data.appointment.date,
+          data.appointment.time || "Por definir",
+          data.appointment.doctor || "Generado por PandaIA",
+          data.appointment.rawDate
+        );
+        if (showToast) {
+          showToast(`Cita agendada: ${data.appointment.title}`, () => {});
+        }
+      }
+
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        sender: "ai",
+        text: data.reply || "He procesado tu consulta.",
+        card: data.card || (data.appointment ? {
+          title: `📅 ${data.appointment.title}`,
+          desc: `Programada para el ${data.appointment.date} (${data.appointment.time || "Hora por definir"}). ¡Revisa la pestaña Agenda!`
+        } : undefined)
+      }]);
+    } catch (err: any) {
+      console.error("Error communicating with PandaIA:", err);
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        sender: "ai",
+        text: "No pude conectar con el asistente en este momento. Por favor revisa tu conexión a internet o verifica tu configuración de Gemini."
+      }]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   return (
