@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2 } from "lucide-react";
+import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2, Bell } from "lucide-react";
 
 type Tab = "planificacion" | "agenda" | "herramientas" | "pandaia";
 
@@ -156,6 +156,544 @@ function ProfileModal({
   );
 }
 
+// --- SISTEMA DE PREPARACIÓN CLÍNICA Y RECORDATORIOS DE CITAS ---
+export interface AppointmentPrepInfo {
+  category: string;
+  badge: string;
+  whatToBring: string[];
+  whatToAsk: string[];
+  tip: string;
+}
+
+export function getAppointmentPrep(title: string): AppointmentPrepInfo {
+  const t = (title || "").toLowerCase();
+
+  if (t.includes("ecograf") || t.includes("ultra") || t.includes("tamizaje") || t.includes("scan") || t.includes("sonograf")) {
+    const isT2 = t.includes("morfo") || t.includes("20") || t.includes("estructural") || t.includes("segundo");
+    const is3D = t.includes("3d") || t.includes("4d") || t.includes("5d") || t.includes("emocional");
+
+    if (isT2) {
+      return {
+        category: "Ecografía Morfológica (Semanas 20-24)",
+        badge: "Anatomía Detallada",
+        whatToBring: [
+          "Ropa de dos piezas (blusa y pantalón holgado para facilitar acceso al vientre)",
+          "Carpeta con todas las ecografías y analíticas del primer trimestre",
+          "Snack ligero o zumo de fruta por si el bebé está dormido y el médico pide que camines 10 min",
+          "Carnet perinatal y documento de identidad"
+        ],
+        whatToAsk: [
+          "¿Se observan bien las 4 cámaras cardíacas y el flujo sanguíneo del corazón?",
+          "¿El crecimiento cerebral, renal y óseo (fémur) concuerda con las semanas?",
+          "¿Dónde está ubicada la placenta? (¿descartamos inserción baja o previa?)",
+          "¿La cantidad de líquido amniótico y longitud cervical son óptimas?",
+          "¿Podemos confirmar el sexo y ver el perfil del rostro?"
+        ],
+        tip: "Esta ecografía es la más minuciosa (dura 30-45 min). No te alarmes si el especialista se queda en silencio varios minutos: está tomando mediciones milimétricas de órganos vitales."
+      };
+    }
+
+    if (is3D) {
+      return {
+        category: "Ecografía Emocional 3D / 4D / 5D",
+        badge: "Visualización Fetal",
+        whatToBring: [
+          "Ropa cómoda de dos piezas",
+          "Tomar un vaso de agua o zumo 20 minutos antes para activar el movimiento fetal",
+          "Móvil con suficiente batería y espacio para guardar fotos y clips en video"
+        ],
+        whatToAsk: [
+          "¿A quién se parece más el perfil o los rasgos faciales?",
+          "¿Tiene las manitas o el cordón cubriéndose la cara?",
+          "¿Cuál es el peso fetal estimado al día de hoy?"
+        ],
+        tip: "Si el bebé está de espaldas, acostarte de lado o caminar unos minutos en la sala suele ayudar a que cambie de postura."
+      };
+    }
+
+    // Default Ecografía / Tamizaje 1er trimestre
+    return {
+      category: "Ecografía de Tamizaje (Semanas 11-14)",
+      badge: "Desarrollo y Genética",
+      whatToBring: [
+        "Ropa cómoda de dos piezas (evita vestidos enteros)",
+        "Vejiga moderadamente llena si lo solicitó el centro (2 vasos de agua 45 min antes)",
+        "Resultados del análisis de sangre prenatal o ADN fetal (si ya se realizó)",
+        "Carnet perinatal y seguro médico"
+      ],
+      whatToAsk: [
+        "¿Cuál es la medida de la Translucencia Nucal (TN) y se visualiza el hueso nasal?",
+        "¿Cuál es la longitud cráneo-caudal (CRL) y la fecha probable de parto recalculada?",
+        "¿A cuántos latidos por minuto (bpm) está latiendo su corazón?",
+        "¿Hay algún indicador que sugiera realizar estudios genéticos complementarios?"
+      ],
+      tip: "Pídele al especialista que les permita escuchar los latidos y grabar un pequeño fragmento si la clínica lo autoriza."
+    };
+  }
+
+  if (t.includes("lab") || t.includes("sangre") || t.includes("orina") || t.includes("glucosa") || t.includes("curva") || t.includes("o'sullivan") || t.includes("analisis")) {
+    const isGlucose = t.includes("glucosa") || t.includes("curva") || t.includes("sullivan") || t.includes("tolerancia");
+    return {
+      category: isGlucose ? "Curva de Glucosa (Test O'Sullivan)" : "Exámenes de Laboratorio",
+      badge: isGlucose ? "Prueba Metabólica" : "Analítica Sanguínea",
+      whatToBring: [
+        "Confirmar horas de ayuno estricto (usualmente 8 a 10 horas de ayuno de comida)",
+        "Botella de agua natural para beber sorbos pequeños si lo permiten",
+        "Limón o toallitas húmedas por si el líquido dulce concentrado produce náuseas",
+        "Libro, podcast o audífonos cargados (la estancia suele ser de 1 a 2 horas entre tomas)",
+        "Merienda o snack nutritivo para comer INMEDIATAMENTE al terminar la última extracción"
+      ],
+      whatToAsk: [
+        "¿Cuánto tardan los resultados y me los entregarán a mí o directo al obstetra?",
+        "¿Si siento mareo o náusea durante la hora de espera, a quién debo avisar?",
+        "¿Debo suspender las vitaminas prenatales o el hierro la mañana de la prueba?"
+      ],
+      tip: "Permanece sentada y tranquila durante la hora de espera tras beber la glucosa. Caminar o hacer esfuerzo altera la metabolización del azúcar."
+    };
+  }
+
+  if (t.includes("parto") || t.includes("monitoreo") || t.includes("correa") || t.includes("anestesi") || t.includes("36") || t.includes("37") || t.includes("38") || t.includes("preparto")) {
+    return {
+      category: "Control Preparto y Monitoreo Fetal",
+      badge: "Recta Final",
+      whatToBring: [
+        "Plan de Parto impreso (2 copias: una para tu carpeta y otra para el equipo obstétrico)",
+        "Historial completo de embarazo, ecografías y analítica del estreptococo grupo B",
+        "Ropa cómoda para monitoreo en camilla con correas abdominales",
+        "Maleta del hospital verificada (por si se decide ingreso)"
+      ],
+      whatToAsk: [
+        "¿En qué posición exacta está el bebé (cefálico anterior/posterior o podálico)?",
+        "¿Hay signos de borramiento o dilatación en el cuello uterino?",
+        "¿A partir de qué frecuencia y duración de contracciones regulares debemos ir a urgencias?",
+        "¿Qué opciones de alivio del dolor (epidural, walking, calor local) están disponibles?",
+        "¿Quién del equipo estará de guardia o asistirá el parto?"
+      ],
+      tip: "Lleva anotadas las dudas de logística: por qué puerta entrar de noche, estacionamiento de urgencias y documentación requerida al llegar."
+    };
+  }
+
+  // Consulta Médica Obstétrica General / Control Mensual
+  return {
+    category: "Consulta Obstétrica de Control",
+    badge: "Chequeo Periódico",
+    whatToBring: [
+      "Carnet de control perinatal",
+      "Registro de presiones arteriales recientes (si te la tomas en casa o farmacia)",
+      "Lista de síntomas o dudas anotadas durante las últimas semanas",
+      "Nombres exactos de cualquier suplemento o vitamina que estés consumiendo"
+    ],
+    whatToAsk: [
+      "¿La ganancia de peso y la altura de fondo uterino van en el percentil esperado?",
+      "¿Los movimientos fetales que percibo son los esperados para esta semana?",
+      "¿Puedo continuar con mi rutina de actividad física o requiere adaptaciones?",
+      "¿Cuáles son los signos de alarma específicos por los que debería acudir a urgencias de inmediato?"
+    ],
+    tip: "Anota tus preguntas en cuanto surjan durante el mes en tu teléfono para no olvidar ninguna en los minutos de consulta."
+  };
+}
+
+export function parseEventDate(ev: { rawDate?: string; date?: string; time?: string }): Date | null {
+  if (ev.rawDate && /^\d{4}-\d{2}-\d{2}$/.test(ev.rawDate)) {
+    const parts = ev.rawDate.split("-");
+    const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    if (ev.time && ev.time !== "Por definir") {
+      const match = ev.time.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+      if (match) {
+        let h = parseInt(match[1], 10);
+        const m = parseInt(match[2], 10);
+        const ampm = match[3]?.toUpperCase();
+        if (ampm === "PM" && h < 12) h += 12;
+        if (ampm === "AM" && h === 12) h = 0;
+        d.setHours(h, m, 0, 0);
+      }
+    }
+    return d;
+  }
+  if (ev.date) {
+    const parts = ev.date.trim().split(" ");
+    if (parts.length >= 2) {
+      const day = parseInt(parts[0], 10);
+      const monthStr = parts[1].toLowerCase().slice(0, 3);
+      const monthMap: Record<string, number> = {
+        ene: 0, feb: 1, mar: 2, abr: 3, may: 4, jun: 5,
+        jul: 6, ago: 7, sep: 8, set: 8, oct: 9, nov: 10, dic: 11
+      };
+      const month = monthMap[monthStr] ?? 8;
+      const year = new Date().getFullYear();
+      const d = new Date(year, month, day);
+      if (ev.time && ev.time !== "Por definir") {
+        const match = ev.time.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+        if (match) {
+          let h = parseInt(match[1], 10);
+          const m = parseInt(match[2], 10);
+          const ampm = match[3]?.toUpperCase();
+          if (ampm === "PM" && h < 12) h += 12;
+          if (ampm === "AM" && h === 12) h = 0;
+          d.setHours(h, m, 0, 0);
+        }
+      }
+      return d;
+    }
+  }
+  return null;
+}
+
+export function getCountdownText(eventDate: Date): { text: string; isClose: boolean; daysLeft: number } {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(eventDate);
+  target.setHours(0, 0, 0, 0);
+
+  const diffMs = target.getTime() - today.getTime();
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) {
+    return { text: "Cita pasada", isClose: false, daysLeft: diffDays };
+  }
+  if (diffDays === 0) {
+    return { text: "¡Es hoy!", isClose: true, daysLeft: 0 };
+  }
+  if (diffDays === 1) {
+    return { text: "¡Es mañana!", isClose: true, daysLeft: 1 };
+  }
+  if (diffDays <= 7) {
+    return { text: `Faltan ${diffDays} días`, isClose: true, daysLeft: diffDays };
+  }
+  return { text: `En ${diffDays} días`, isClose: false, daysLeft: diffDays };
+}
+
+export function downloadIcsCalendar(ev: any, prep: AppointmentPrepInfo) {
+  const parsedDate = parseEventDate(ev) || new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const year = parsedDate.getFullYear();
+  const month = pad(parsedDate.getMonth() + 1);
+  const day = pad(parsedDate.getDate());
+  const hours = pad(parsedDate.getHours() || 10);
+  const mins = pad(parsedDate.getMinutes() || 0);
+
+  const dtStart = `${year}${month}${day}T${hours}${mins}00`;
+  const endDate = new Date(parsedDate.getTime() + 60 * 60 * 1000);
+  const dtEnd = `${year}${pad(endDate.getMonth() + 1)}${pad(endDate.getDate())}T${pad(endDate.getHours())}${pad(endDate.getMinutes())}00`;
+
+  const description = [
+    `CITA MÉDICA: ${ev.title}`,
+    `ESPECIALISTA: ${ev.doctor || "Por definir"}`,
+    "",
+    "🎒 QUÉ LLEVAR:",
+    ...prep.whatToBring.map(item => `• ${item}`),
+    "",
+    "❓ PREGUNTAS CLAVE PARA EL MÉDICO:",
+    ...prep.whatToAsk.map(item => `• ${item}`),
+    "",
+    `💡 CONSEJO PANDAJR: ${prep.tip}`
+  ].join("\\n");
+
+  const icsContent = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//PandaJR//Agenda Prenatal//ES",
+    "CALSCALE:GREGORIAN",
+    "BEGIN:VEVENT",
+    `UID:pandajr-${ev.id}-${Date.now()}@pandajr.app`,
+    `DTSTAMP:${year}${month}${day}T000000Z`,
+    `DTSTART:${dtStart}`,
+    `DTEND:${dtEnd}`,
+    `SUMMARY:👶 Cita Médica: ${ev.title}`,
+    `DESCRIPTION:${description}`,
+    `LOCATION:${ev.doctor || "Consultorio médico"}`,
+    "STATUS:CONFIRMED",
+    "BEGIN:VALARM",
+    "TRIGGER:-P1D",
+    "ACTION:DISPLAY",
+    `DESCRIPTION:Recordatorio PandaJR (24h antes): ${ev.title}. ¡Revisa qué llevar y qué preguntar!`,
+    "END:VALARM",
+    "BEGIN:VALARM",
+    "TRIGGER:-PT2H",
+    "ACTION:DISPLAY",
+    `DESCRIPTION:Recordatorio PandaJR (2h antes): ${ev.title} con ${ev.doctor || "tu médico"}.`,
+    "END:VALARM",
+    "END:VEVENT",
+    "END:VCALENDAR"
+  ].join("\r\n");
+
+  const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", `cita-pandajr-${ev.id}.ics`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+export function openGoogleCalendar(ev: any, prep: AppointmentPrepInfo) {
+  const parsedDate = parseEventDate(ev) || new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const year = parsedDate.getFullYear();
+  const month = pad(parsedDate.getMonth() + 1);
+  const day = pad(parsedDate.getDate());
+  const hours = pad(parsedDate.getHours() || 10);
+  const mins = pad(parsedDate.getMinutes() || 0);
+
+  const startIso = `${year}${month}${day}T${hours}${mins}00`;
+  const endDate = new Date(parsedDate.getTime() + 60 * 60 * 1000);
+  const endIso = `${year}${pad(endDate.getMonth() + 1)}${pad(endDate.getDate())}T${pad(endDate.getHours())}${pad(endDate.getMinutes())}00`;
+
+  const details = [
+    `CITA MÉDICA: ${ev.title}`,
+    `ESPECIALISTA: ${ev.doctor || ""}`,
+    "",
+    "🎒 QUÉ LLEVAR:",
+    ...prep.whatToBring.map(i => `• ${i}`),
+    "",
+    "❓ PREGUNTAS PARA EL DOCTOR:",
+    ...prep.whatToAsk.map(i => `• ${i}`),
+    "",
+    `CONSEJO PANDAJR: ${prep.tip}`
+  ].join("\n");
+
+  const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`👶 Cita: ${ev.title}`)}&dates=${startIso}/${endIso}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(ev.doctor || "")}`;
+  window.open(url, "_blank");
+}
+
+export async function requestBrowserNotification(upcomingEvent?: any): Promise<boolean> {
+  if (typeof window === "undefined" || !("Notification" in window)) {
+    return false;
+  }
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission === "granted") {
+      if (upcomingEvent) {
+        new Notification(`🔔 PandaJR: Recordatorio de Cita`, {
+          body: `Próxima cita: "${upcomingEvent.title}" el ${upcomingEvent.date} a las ${upcomingEvent.time}. ¡Toca para ver qué llevar y qué preguntar!`,
+          icon: "/icon.jpg"
+        });
+      } else {
+        new Notification(`🔔 PandaJR: Recordatorios Activados`, {
+          body: `¡Excelente! Te avisaremos de tus citas médicas y te recordaremos qué llevar y qué preguntar antes de salir.`,
+          icon: "/icon.jpg"
+        });
+      }
+      return true;
+    }
+  } catch(e) {
+    console.error(e);
+  }
+  return false;
+}
+
+function AppointmentPrepModal({
+  event,
+  onClose,
+  onAskPandaIA
+}: {
+  event: any;
+  onClose: () => void;
+  onAskPandaIA?: (question: string) => void;
+}) {
+  const prep = getAppointmentPrep(event.title);
+  const parsedDate = parseEventDate(event);
+  const countdown = parsedDate ? getCountdownText(parsedDate) : null;
+
+  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
+  const [checkedQuestions, setCheckedQuestions] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(`pandajr_prep_${event.id}`);
+      if (saved) {
+        const { items, questions } = JSON.parse(saved);
+        if (items) setCheckedItems(items);
+        if (questions) setCheckedQuestions(questions);
+      }
+    } catch(e) {}
+  }, [event.id]);
+
+  const toggleItem = (item: string) => {
+    setCheckedItems(prev => {
+      const updated = { ...prev, [item]: !prev[item] };
+      try {
+        localStorage.setItem(`pandajr_prep_${event.id}`, JSON.stringify({ items: updated, questions: checkedQuestions }));
+      } catch(e) {}
+      return updated;
+    });
+  };
+
+  const toggleQuestion = (q: string) => {
+    setCheckedQuestions(prev => {
+      const updated = { ...prev, [q]: !prev[q] };
+      try {
+        localStorage.setItem(`pandajr_prep_${event.id}`, JSON.stringify({ items: checkedItems, questions: updated }));
+      } catch(e) {}
+      return updated;
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
+      <div className="bg-white w-full max-h-[92vh] sm:max-w-md sm:rounded-3xl rounded-t-3xl overflow-hidden shadow-2xl flex flex-col animate-in slide-in-from-bottom-6">
+        {/* Header con gradiente */}
+        <div className="bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-600 p-5 text-white shrink-0 relative">
+          <button 
+            onClick={onClose} 
+            className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white p-1.5 rounded-full transition-colors"
+            aria-label="Cerrar"
+          >
+            <X size={18} />
+          </button>
+          
+          <div className="flex items-center gap-2 mb-2">
+            <span className="bg-white/20 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full tracking-wide">
+              {prep.badge}
+            </span>
+            {countdown && (
+              <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${countdown.isClose ? "bg-amber-400 text-amber-950 font-black shadow-xs" : "bg-teal-800/80 text-teal-100"}`}>
+                {countdown.text}
+              </span>
+            )}
+          </div>
+
+          <h3 className="text-xl font-black leading-tight pr-6">{event.title}</h3>
+          
+          <div className="flex items-center gap-4 mt-2.5 text-xs text-teal-100 font-medium">
+            <span className="flex items-center gap-1.5"><Calendar size={14} className="text-teal-300" /> {event.date}</span>
+            <span className="flex items-center gap-1.5"><Clock size={14} className="text-teal-300" /> {event.time}</span>
+            {event.doctor && <span className="line-clamp-1">{event.doctor}</span>}
+          </div>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="p-5 space-y-6 overflow-y-auto flex-1 text-gray-800">
+          
+          {/* Tip destacado */}
+          <div className="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-3.5 flex gap-3 items-start shadow-xs">
+            <Sparkles className="text-amber-500 shrink-0 mt-0.5" size={18} />
+            <p className="text-xs text-amber-900 leading-relaxed font-medium">
+              <strong className="font-bold">Consejo de preparación:</strong> {prep.tip}
+            </p>
+          </div>
+
+          {/* Sección 1: Qué llevar */}
+          <div>
+            <div className="flex items-center justify-between mb-2.5">
+              <h4 className="font-bold text-gray-800 text-sm flex items-center gap-2">
+                <ShoppingBag size={17} className="text-teal-600" /> ¿Qué debes llevar?
+              </h4>
+              <span className="text-[11px] font-semibold text-gray-400">
+                {Object.values(checkedItems).filter(Boolean).length} de {prep.whatToBring.length} listos
+              </span>
+            </div>
+            <div className="space-y-2">
+              {prep.whatToBring.map((item, idx) => {
+                const isChecked = !!checkedItems[item];
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => toggleItem(item)}
+                    className={`w-full text-left p-3 rounded-xl border text-xs leading-relaxed transition-all flex items-start gap-2.5 ${
+                      isChecked 
+                        ? "bg-teal-50/70 border-teal-200 text-teal-900 line-through opacity-80" 
+                        : "bg-white border-gray-100 hover:border-teal-200 text-gray-700 shadow-xs"
+                    }`}
+                  >
+                    <div className={`mt-0.5 shrink-0 transition-colors ${isChecked ? "text-teal-600" : "text-gray-300"}`}>
+                      {isChecked ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+                    </div>
+                    <span className="flex-1">{item}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Sección 2: Qué preguntar al médico */}
+          <div>
+            <div className="flex items-center justify-between mb-2.5">
+              <h4 className="font-bold text-gray-800 text-sm flex items-center gap-2">
+                <ClipboardList size={17} className="text-teal-600" /> Preguntas clave para el doctor
+              </h4>
+              <span className="text-[11px] font-semibold text-gray-400">
+                {Object.values(checkedQuestions).filter(Boolean).length} de {prep.whatToAsk.length} hechas
+              </span>
+            </div>
+            <div className="space-y-2">
+              {prep.whatToAsk.map((q, idx) => {
+                const isChecked = !!checkedQuestions[q];
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => toggleQuestion(q)}
+                    className={`w-full text-left p-3 rounded-xl border text-xs leading-relaxed transition-all flex items-start gap-2.5 ${
+                      isChecked 
+                        ? "bg-emerald-50/70 border-emerald-200 text-emerald-900 line-through opacity-80" 
+                        : "bg-white border-gray-100 hover:border-teal-200 text-gray-700 shadow-xs"
+                    }`}
+                  >
+                    <div className={`mt-0.5 shrink-0 transition-colors ${isChecked ? "text-emerald-600" : "text-gray-300"}`}>
+                      {isChecked ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+                    </div>
+                    <span className="flex-1 font-medium">{q}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Opciones de Recordatorio y Calendario */}
+          <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-3">
+            <p className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+              <Bell size={15} className="text-teal-600" /> Sincronizar Alarmas de Recordatorio
+            </p>
+            <p className="text-[11px] text-gray-500 leading-snug">
+              Añade esta cita a tu calendario del teléfono con 2 alarmas automáticas (24h y 2h antes) y todas estas preguntas guardadas en las notas.
+            </p>
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => downloadIcsCalendar(event, prep)}
+                className="py-2.5 px-3 bg-white hover:bg-gray-100 text-gray-800 font-bold text-xs rounded-xl border border-gray-200 shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all text-center"
+              >
+                <span>📅 Apple / iCal (.ics)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => openGoogleCalendar(event, prep)}
+                className="py-2.5 px-3 bg-white hover:bg-gray-100 text-teal-700 font-bold text-xs rounded-xl border border-teal-200 shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all text-center"
+              >
+                <span>🗓️ Google Calendar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer con botón de consulta a PandaIA */}
+        <div className="p-4 border-t border-gray-100 bg-gray-50 flex gap-2">
+          {onAskPandaIA && (
+            <button
+              type="button"
+              onClick={() => onAskPandaIA(`Tengo una cita de "${event.title}" con ${event.doctor || "mi médico"} el ${event.date}. ¿Qué otros consejos o preparaciones me recomiendas como ${event.title}?`)}
+              className="flex-1 py-3 px-4 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95"
+            >
+              <Bot size={16} /> Consultar con PandaIA
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onClose}
+            className="py-3 px-5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-bold text-xs transition-colors"
+          >
+            Listo
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function PandaJRApp() {
   const [activeTab, setActiveTab] = useState<Tab>("planificacion");
 
@@ -168,6 +706,8 @@ export default function PandaJRApp() {
     notes: ""
   });
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [selectedPrepEvent, setSelectedPrepEvent] = useState<any | null>(null);
+  const [aiInitialQuery, setAiInitialQuery] = useState<string>("");
 
   // Cargar perfil global de localStorage
   useEffect(() => {
@@ -197,6 +737,17 @@ export default function PandaJRApp() {
     { id: 1, date: "15 Oct", rawDate: "2026-10-15", time: "10:30 AM", title: "Ecografía de las 12 Semanas (Tamizaje)", doctor: "Dra. Ramírez" },
     { id: 2, date: "28 Oct", rawDate: "2026-10-28", time: "09:00 AM", title: "Exámenes de laboratorio", doctor: "Laboratorio Central" },
   ]);
+
+  // Próxima cita cronológica más cercana
+  const nextUpcomingEvent = React.useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const parsedList = events
+      .map(e => ({ ...e, parsedDate: parseEventDate(e) }))
+      .filter(e => e.parsedDate !== null && e.parsedDate.getTime() >= today.getTime())
+      .sort((a, b) => a.parsedDate!.getTime() - b.parsedDate!.getTime());
+    return parsedList[0] || (events.length > 0 ? events[0] : null);
+  }, [events]);
 
   const [toast, setToast] = useState<{message: string, onUndo: () => void} | null>(null);
   const showToast = (message: string, onUndo: () => void) => {
@@ -259,7 +810,7 @@ export default function PandaJRApp() {
 
   return (
     <div className="flex flex-col min-h-screen w-full max-w-md mx-auto bg-gray-50 text-gray-900 font-sans relative pb-16 shadow-2xl overflow-x-hidden">
-      {/* Header con Logo y Selector Global de Perfil */}
+      {/* Header con Logo, Alerta de Cita y Selector Global de Perfil */}
       <header className="bg-white px-5 py-2.5 shadow-sm sticky top-0 z-40 w-full flex items-center justify-between">
         <div className="flex items-center">
           <h1 className="sr-only">PandaJR</h1>
@@ -273,16 +824,44 @@ export default function PandaJRApp() {
           />
         </div>
 
-        {/* Botón Global de Perfil / Switcher */}
-        <button
-          onClick={() => setIsProfileModalOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-teal-50 border border-teal-200/70 hover:bg-teal-100 transition-all text-xs font-bold text-teal-700 active:scale-95 shadow-xs"
-          title="Configurar tu rol y perfil en este dispositivo"
-        >
-          <span>{profile.role === "papa" ? "🧔" : "👩"}</span>
-          <span>{profile.name || (profile.role === "papa" ? "Papá" : "Mamá")}</span>
-          <Settings size={13} className="text-teal-500 opacity-70 ml-0.5" />
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Botón Campana de Recordatorio de Cita */}
+          {events.length > 0 && (
+            <button
+              onClick={() => {
+                if (nextUpcomingEvent) {
+                  setSelectedPrepEvent(nextUpcomingEvent);
+                } else {
+                  setSelectedPrepEvent(events[0]);
+                }
+              }}
+              className={`p-2 rounded-full border transition-all active:scale-95 relative ${
+                nextUpcomingEvent ? "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100" : "bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100"
+              }`}
+              title={nextUpcomingEvent ? `Recordatorio de cita: ${nextUpcomingEvent.title}` : "Citas médicas"}
+              aria-label="Recordatorio de citas médicas"
+            >
+              <Bell size={15} />
+              {nextUpcomingEvent && (
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-500 rounded-full animate-ping"></span>
+              )}
+              {nextUpcomingEvent && (
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-500 rounded-full border-2 border-white"></span>
+              )}
+            </button>
+          )}
+
+          {/* Botón Global de Perfil / Switcher */}
+          <button
+            onClick={() => setIsProfileModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-teal-50 border border-teal-200/70 hover:bg-teal-100 transition-all text-xs font-bold text-teal-700 active:scale-95 shadow-xs"
+            title="Configurar tu rol y perfil en este dispositivo"
+          >
+            <span>{profile.role === "papa" ? "🧔" : "👩"}</span>
+            <span>{profile.name || (profile.role === "papa" ? "Papá" : "Mamá")}</span>
+            <Settings size={13} className="text-teal-500 opacity-70 ml-0.5" />
+          </button>
+        </div>
       </header>
 
       {/* Main Content Area */}
@@ -291,13 +870,27 @@ export default function PandaJRApp() {
           <GuiaPapaView showToast={showToast} profile={profile} updateProfile={updateProfile} />
         </div>
         <div className={activeTab === "agenda" ? "block w-full h-full" : "hidden"}>
-          <AgendaView showToast={showToast} events={events} setEvents={setEvents} profile={profile} updateProfile={updateProfile} />
+          <AgendaView 
+            showToast={showToast} 
+            events={events} 
+            setEvents={setEvents} 
+            profile={profile} 
+            updateProfile={updateProfile}
+            onOpenPrep={(ev) => setSelectedPrepEvent(ev)}
+          />
         </div>
         <div className={activeTab === "herramientas" ? "block w-full h-full" : "hidden"}>
           <HerramientasView showToast={showToast} />
         </div>
         <div className={activeTab === "pandaia" ? "block w-full h-full" : "hidden"}>
-          <PandaIAView showToast={showToast} addEvent={handleAIAddEvent} profile={profile} openProfileModal={() => setIsProfileModalOpen(true)} />
+          <PandaIAView 
+            showToast={showToast} 
+            addEvent={handleAIAddEvent} 
+            profile={profile} 
+            openProfileModal={() => setIsProfileModalOpen(true)}
+            initialQuery={aiInitialQuery}
+            clearInitialQuery={() => setAiInitialQuery("")}
+          />
         </div>
       </main>
 
@@ -311,6 +904,19 @@ export default function PandaJRApp() {
             setIsProfileModalOpen(false);
           }}
           onClose={() => setIsProfileModalOpen(false)}
+        />
+      )}
+
+      {/* Modal Guía de Preparación y Recordatorio de Cita */}
+      {selectedPrepEvent && (
+        <AppointmentPrepModal
+          event={selectedPrepEvent}
+          onClose={() => setSelectedPrepEvent(null)}
+          onAskPandaIA={(question) => {
+            setSelectedPrepEvent(null);
+            setAiInitialQuery(question);
+            setActiveTab("pandaia");
+          }}
         />
       )}
 
@@ -703,7 +1309,21 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
 }
 
 // --- VISTA 2: AGENDA ---
-function AgendaView({ showToast, events, setEvents, profile, updateProfile }: { showToast: any, events: any[], setEvents: any, profile: UserProfile, updateProfile: (u: Partial<UserProfile>) => void }) {
+function AgendaView({ 
+  showToast, 
+  events, 
+  setEvents, 
+  profile, 
+  updateProfile,
+  onOpenPrep
+}: { 
+  showToast: any, 
+  events: any[], 
+  setEvents: any, 
+  profile: UserProfile, 
+  updateProfile: (u: Partial<UserProfile>) => void,
+  onOpenPrep: (ev: any) => void
+}) {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [editingEvent, setEditingEvent] = React.useState<any>(null);
   
@@ -834,6 +1454,16 @@ function AgendaView({ showToast, events, setEvents, profile, updateProfile }: { 
     }
   };
 
+  const nextUpcoming = React.useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const parsedList = events
+      .map(e => ({ ...e, parsedDate: parseEventDate(e) }))
+      .filter(e => e.parsedDate !== null && e.parsedDate.getTime() >= today.getTime())
+      .sort((a, b) => a.parsedDate!.getTime() - b.parsedDate!.getTime());
+    return parsedList[0] || null;
+  }, [events]);
+
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 relative h-full flex flex-col">
       {/* Header destacado */}
@@ -848,6 +1478,45 @@ function AgendaView({ showToast, events, setEvents, profile, updateProfile }: { 
 
       <div className="p-5 flex-1 overflow-y-auto space-y-6 pb-20">
         
+        {/* Banner de Recordatorio de Próxima Cita */}
+        {nextUpcoming && (
+          <div 
+            onClick={() => onOpenPrep(nextUpcoming)}
+            className="bg-gradient-to-br from-amber-500/10 via-orange-50 to-white border border-amber-200/90 rounded-3xl p-4 shadow-sm hover:shadow-md cursor-pointer transition-all active:scale-[0.99] group relative overflow-hidden"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div className="bg-amber-100 text-amber-800 p-2.5 rounded-2xl shrink-0 mt-0.5 group-hover:scale-105 transition-transform shadow-xs">
+                  <Bell size={20} className="animate-pulse text-amber-600" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-full">
+                      Recordatorio de Cita
+                    </span>
+                    <span className="text-xs font-bold text-amber-950">
+                      {getCountdownText(parseEventDate(nextUpcoming)!).text}
+                    </span>
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-base mt-1 leading-tight">{nextUpcoming.title}</h4>
+                  <p className="text-xs text-gray-600 mt-1 flex items-center gap-2">
+                    <span>📅 {nextUpcoming.date} ({nextUpcoming.time})</span>
+                    {nextUpcoming.doctor && <span>· {nextUpcoming.doctor}</span>}
+                  </p>
+                </div>
+              </div>
+              <ChevronRight size={18} className="text-amber-500 shrink-0 mt-2 group-hover:translate-x-1 transition-transform" />
+            </div>
+
+            <div className="mt-3.5 pt-2.5 border-t border-amber-200/60 flex items-center justify-between text-xs font-bold">
+              <span className="flex items-center gap-1.5 text-amber-950">
+                <ClipboardList size={13} className="text-amber-700" /> Preparación: ¿Qué llevar y qué preguntar?
+              </span>
+              <span className="text-teal-700 group-hover:underline">Abrir →</span>
+            </div>
+          </div>
+        )}
+
         {/* Toggle Perfil */}
         <div>
           <div className="flex bg-gray-100 rounded-full p-1 mb-3">
@@ -898,15 +1567,28 @@ function AgendaView({ showToast, events, setEvents, profile, updateProfile }: { 
             <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
               <Calendar className="text-teal-500" size={20}/> Agenda Médica
             </h3>
-            {events.length > 0 && (
+            <div className="flex items-center gap-1.5">
               <button
-                onClick={shareWithPartner}
-                className="text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-xl border border-teal-200/60 flex items-center gap-1.5 transition-colors shadow-sm active:scale-95"
-                title="Compartir citas con tu pareja para sincronizarlas"
+                onClick={async () => {
+                  const ok = await requestBrowserNotification(nextUpcoming);
+                  if (ok) showToast("Recordatorios de citas activados en este teléfono 🔔", () => {});
+                  else showToast("Permiso de notificaciones del navegador no concedido", () => {});
+                }}
+                className="text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 px-2.5 py-1.5 rounded-xl border border-teal-200/60 flex items-center gap-1 transition-colors shadow-xs active:scale-95"
+                title="Activar alertas en el teléfono"
               >
-                <Share2 size={13} /> Sincronizar Citas
+                <Bell size={13} /> Alertas
               </button>
-            )}
+              {events.length > 0 && (
+                <button
+                  onClick={shareWithPartner}
+                  className="text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 px-2.5 py-1.5 rounded-xl border border-teal-200/60 flex items-center gap-1 transition-colors shadow-xs active:scale-95"
+                  title="Compartir citas con tu pareja para sincronizarlas"
+                >
+                  <Share2 size={13} /> Sincronizar
+                </button>
+              )}
+            </div>
           </div>
           
           <div className="space-y-3">
@@ -917,22 +1599,34 @@ function AgendaView({ showToast, events, setEvents, profile, updateProfile }: { 
               </div>
             )}
             {events.map(event => (
-              <div key={event.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4 relative group">
+              <div key={event.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-start gap-4 relative group">
                 <button 
                   onClick={() => openEdit(event)}
-                  className="flex-1 flex items-center gap-4 text-left focus:outline-none focus:ring-2 focus:ring-teal-500 rounded-xl"
+                  className="flex-1 flex items-start gap-4 text-left focus:outline-none focus:ring-2 focus:ring-teal-500 rounded-xl"
                   aria-label={`Editar cita: ${event.title}, el ${event.date}`}
                 >
-                  <div className="bg-teal-50 text-teal-700 rounded-xl w-14 h-14 flex flex-col justify-center items-center shrink-0">
+                  <div className="bg-teal-50 text-teal-700 rounded-xl w-14 h-14 flex flex-col justify-center items-center shrink-0 mt-0.5">
                     <span className="text-xs font-bold uppercase">{event.date.split(" ")[1]}</span>
                     <span className="text-xl font-bold leading-none">{event.date.split(" ")[0]}</span>
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-bold text-gray-800 text-base">{event.title}</h4>
+                    <h4 className="font-bold text-gray-800 text-base leading-snug">{event.title}</h4>
                     <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
                       <span className="flex items-center gap-1"><Clock size={14} /> {event.time}</span>
                     </div>
-                    <p className="text-xs text-gray-400 mt-1 line-clamp-1">{event.doctor}</p>
+                    {event.doctor && <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{event.doctor}</p>}
+                    
+                    {/* Botón de Preparación Rápida */}
+                    <div className="flex items-center gap-2 mt-2.5">
+                      <button 
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); onOpenPrep(event); }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-bold border border-teal-200/70 shadow-xs active:scale-95 transition-all"
+                      >
+                        <ClipboardList size={13} className="text-teal-600" />
+                        <span>¿Qué llevar y preguntar?</span>
+                      </button>
+                    </div>
                   </div>
                 </button>
                 <button onClick={() => deleteEvent(event.id)} aria-label={`Eliminar cita: ${event.title}`} className="text-gray-300 hover:text-rose-500 transition-colors p-2 z-10 rounded-lg">
@@ -1019,12 +1713,33 @@ function AgendaView({ showToast, events, setEvents, profile, updateProfile }: { 
 }
 
 // --- VISTA 3: PANDA IA ---
-function PandaIAView({ showToast, addEvent, profile, openProfileModal }: { showToast: any, addEvent: any, profile: UserProfile, openProfileModal: () => void }) {
+function PandaIAView({ 
+  showToast, 
+  addEvent, 
+  profile, 
+  openProfileModal,
+  initialQuery,
+  clearInitialQuery
+}: { 
+  showToast: any, 
+  addEvent: any, 
+  profile: UserProfile, 
+  openProfileModal: () => void,
+  initialQuery?: string,
+  clearInitialQuery?: () => void
+}) {
   const [messages, setMessages] = useState<any[]>([
     { id: 1, sender: "ai", text: "¡Hola! Soy PandaIA. ¿En qué te ayudo hoy?" }
   ]);
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+
+  useEffect(() => {
+    if (initialQuery) {
+      setInputText(initialQuery);
+      if (clearInitialQuery) clearInitialQuery();
+    }
+  }, [initialQuery, clearInitialQuery]);
 
 
     const [smartChips, setSmartChips] = useState([
