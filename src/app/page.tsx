@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2, Bell } from "lucide-react";
+import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2, Bell, RotateCcw, Trash2, PhoneCall, Check, Undo2 } from "lucide-react";
 
 type Tab = "planificacion" | "agenda" | "herramientas" | "pandaia";
 
@@ -2197,103 +2197,555 @@ function HerramientasView({ showToast }: { showToast: any }) {
   );
 }
 
+interface KickRecord {
+  id: number;
+  timeStr: string;
+  intervalSecs: number | null;
+}
+
+interface KickSessionItem {
+  id: number;
+  timestamp: number;
+  dateFormatted: string;
+  count: number;
+  durationSeconds: number;
+  durationFormatted: string;
+  note?: string;
+}
+
 function ContadorPatadas({ showToast }: { showToast: any }) {
   const [count, setCount] = useState(0);
   const [startTime, setStartTime] = useState<number | null>(null);
-  const [elapsed, setElapsed] = useState("00:00");
-  
-  const [sessions, setSessions] = useState([
-      { id: 1, date: "Ayer", count: 10, duration: "25 min" },
-      { id: 2, date: "Antier", count: 10, duration: "18 min" },
-    ]);
-    const deleteSession = (id: number) => {
-    const sessionToRestore = sessions.find(s => s.id === id);
-    setSessions(prev => prev.filter(s => s.id !== id));
-    if(sessionToRestore) showToast("Sesión eliminada", () => setSessions(prev => [sessionToRestore, ...prev].sort((a,b) => b.id - a.id)));
-  };
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [kicks, setKicks] = useState<KickRecord[]>([]);
+  const [showGuide, setShowGuide] = useState(false);
+  const [showTimeline, setShowTimeline] = useState(false);
+  const [completedSession, setCompletedSession] = useState<KickSessionItem | null>(null);
+  const [selectedNote, setSelectedNote] = useState<string>("");
 
+  // Historial con persistencia real en localStorage
+  const [sessions, setSessions] = useState<KickSessionItem[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("pandajr_kick_sessions");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (e) {}
+    }
+    // Sesiones de referencia clínica inicial
+    return [
+      {
+        id: 1,
+        timestamp: Date.now() - 86400000,
+        dateFormatted: "Ayer, 08:30 PM",
+        count: 10,
+        durationSeconds: 1380,
+        durationFormatted: "23 min",
+        note: "En reposo nocturno"
+      },
+      {
+        id: 2,
+        timestamp: Date.now() - 172800000,
+        dateFormatted: "Hace 2 días, 01:15 PM",
+        count: 10,
+        durationSeconds: 1020,
+        durationFormatted: "17 min",
+        note: "Después de almorzar"
+      }
+    ];
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("pandajr_kick_sessions", JSON.stringify(sessions));
+    } catch (e) {}
+  }, [sessions]);
+
+  // Cronómetro activo durante la sesión
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (startTime && count < 10) {
       interval = setInterval(() => {
-        const diff = Math.floor((Date.now() - startTime) / 1000);
-        const m = Math.floor(diff / 60).toString().padStart(2, '0');
-        const s = (diff % 60).toString().padStart(2, '0');
-        setElapsed(`${m}:${s}`);
+        setElapsedSeconds(Math.floor((Date.now() - startTime) / 1000));
       }, 1000);
-    } else if (count === 10 && startTime) {
-      // Finished session
-      const diff = Math.floor((Date.now() - startTime) / 1000);
-      const m = Math.floor(diff / 60);
-      const newSession = { id: Date.now(), date: "Hoy", count: 10, duration: `${m} min` };
-      setSessions(prev => [newSession, ...prev]);
-      setStartTime(null); // Stop timer
     }
     return () => clearInterval(interval);
   }, [startTime, count]);
 
+  const formatTimer = (totalSecs: number) => {
+    const m = Math.floor(totalSecs / 60).toString().padStart(2, '0');
+    const s = (totalSecs % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
+
+  const formatDurationText = (totalSecs: number) => {
+    if (totalSecs < 60) return `${totalSecs} seg`;
+    const mins = Math.floor(totalSecs / 60);
+    const secs = totalSecs % 60;
+    if (secs === 0) return `${mins} min`;
+    return `${mins} min ${secs} seg`;
+  };
+
+  const formatCurrentDate = () => {
+    const now = new Date();
+    const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return `Hoy, ${time}`;
+  };
+
   const handleKick = () => {
-    if (count === 0) setStartTime(Date.now());
-    if (count < 10) setCount(c => c + 1);
+    const now = Date.now();
+    const newCount = count + 1;
+    let actualStart = startTime;
+
+    if (count === 0 || !startTime) {
+      actualStart = now;
+      setStartTime(now);
+      setElapsedSeconds(0);
+    }
+
+    // Vibración táctil si el dispositivo lo soporta (iPhone/Android)
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      try {
+        navigator.vibrate(35);
+      } catch (e) {}
+    }
+
+    const timeStr = new Date(now).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const intervalSecs = kicks.length > 0 && actualStart 
+      ? Math.floor((now - (kicks[kicks.length - 1]?.id || actualStart)) / 1000) 
+      : null;
+
+    setKicks(prev => [...prev, { id: now, timeStr, intervalSecs }]);
+    setCount(newCount);
+
+    if (newCount === 10) {
+      const durSecs = Math.floor((now - (actualStart || now)) / 1000);
+      const newSessionItem: KickSessionItem = {
+        id: now,
+        timestamp: now,
+        dateFormatted: formatCurrentDate(),
+        count: 10,
+        durationSeconds: durSecs,
+        durationFormatted: formatDurationText(durSecs),
+        note: ""
+      };
+      setCompletedSession(newSessionItem);
+      setSessions(prev => [newSessionItem, ...prev]);
+      setStartTime(null);
+      showToast("🎉 ¡Meta de 10 patadas alcanzada! Sesión guardada.", () => {});
+    }
+  };
+
+  const handleUndo = () => {
+    if (count <= 0) return;
+    setCount(prev => prev - 1);
+    setKicks(prev => prev.slice(0, -1));
+    if (count === 1) {
+      setStartTime(null);
+      setElapsedSeconds(0);
+    }
+    showToast("Último movimiento deshecho (-1)", () => {});
   };
 
   const reset = () => {
     setCount(0);
     setStartTime(null);
-    setElapsed("00:00");
+    setElapsedSeconds(0);
+    setKicks([]);
+    setSelectedNote("");
+    setCompletedSession(null);
+    setShowTimeline(false);
   };
 
+  const deleteSession = (id: number) => {
+    const sessionToRestore = sessions.find(s => s.id === id);
+    setSessions(prev => prev.filter(s => s.id !== id));
+    if (sessionToRestore) {
+      showToast("Sesión eliminada del historial", () => {
+        setSessions(prev => [sessionToRestore, ...prev].sort((a, b) => b.timestamp - a.timestamp));
+      });
+    }
+  };
+
+  const saveSessionNote = (noteText: string) => {
+    if (!completedSession) return;
+    setSessions(prev => prev.map(s => s.id === completedSession.id ? { ...s, note: noteText } : s));
+    setSelectedNote(noteText);
+    showToast("Nota de la sesión guardada", () => {});
+  };
+
+  // Estadísticas inteligentes
+  const validSessions = sessions.filter(s => s.count === 10);
+  const avgDurationMinutes = validSessions.length > 0
+    ? Math.round(validSessions.reduce((acc, s) => acc + (s.durationSeconds / 60), 0) / validSessions.length)
+    : null;
+
+  // Alerta de más de 90 min (Cardiff timeout warning)
+  const isOvertime = startTime !== null && elapsedSeconds >= 5400 && count < 10;
+
   return (
-    <div className="flex flex-col py-2 animate-in fade-in duration-300 w-full">
-      <div className="text-center mb-6">
-        <h3 className="text-xl font-bold text-gray-800">Monitor Inteligente</h3>
-        <p className="text-sm text-gray-500">Toca el botón con cada movimiento.</p>
-      </div>
-
-      <div className="relative mb-8 flex justify-center">
-        <div className="absolute inset-0 bg-teal-100 rounded-full animate-ping opacity-30 scale-150 transform origin-center"></div>
-        <button 
-          onClick={handleKick}
-          disabled={count >= 10}
-          className={`relative z-10 w-56 h-56 rounded-full shadow-xl flex flex-col items-center justify-center transition-all duration-300 transform active:scale-95 ${
-            count >= 10 ? "bg-gray-100 text-teal-600 border-4 border-teal-100" : "bg-gradient-to-br from-teal-400 to-teal-600 text-white border-4 border-white"
-          }`}
-        >
-          <span className="text-7xl font-black tracking-tighter mb-1">{count}</span>
-          <span className="text-sm font-bold uppercase tracking-widest opacity-80">{count >= 10 ? "Completado" : "Registrar"}</span>
-        </button>
-      </div>
-
-      <div className="bg-white w-full rounded-2xl shadow-sm border border-gray-100 p-4 flex justify-between items-center mb-6">
-        <div className="flex items-center gap-3">
-          <div className="bg-teal-50 p-2 rounded-full"><Clock className="text-teal-600" size={20}/></div>
-          <div>
-            <p className="text-xs text-teal-700 font-bold uppercase tracking-wider tracking-wider">Sesión Actual</p>
-            <p className="text-2xl font-black text-gray-700">{elapsed}</p>
-          </div>
+    <div className="flex flex-col py-2 animate-in fade-in duration-300 w-full space-y-6">
+      
+      {/* HEADER CON PROTOCOLO CARDIFF Y GUÍA */}
+      <div className="text-center">
+        <div className="inline-flex items-center gap-1.5 bg-teal-50 border border-teal-200/80 px-3 py-1 rounded-full text-xs font-bold text-teal-800 mb-2 shadow-xs">
+          <Baby size={14} className="text-teal-600" /> Protocolo Cardiff (Contar hasta 10)
         </div>
-        <button onClick={reset} className="text-gray-500 font-bold text-xs bg-gray-50 px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors uppercase tracking-wider">
-          Reiniciar
+        <h3 className="text-2xl font-black text-gray-800">Monitor Fetal Inteligente</h3>
+        <p className="text-xs text-gray-500 max-w-xs mx-auto mt-1 leading-relaxed">
+          Monitorea el bienestar del bebé registrando 10 movimientos activos en menos de 2 horas.
+        </p>
+
+        {/* Botón para desplegar guía médica */}
+        <button
+          type="button"
+          onClick={() => setShowGuide(!showGuide)}
+          className="mt-3 text-xs font-bold text-teal-700 hover:text-teal-900 inline-flex items-center gap-1 bg-teal-50/60 hover:bg-teal-100/70 px-3 py-1.5 rounded-xl border border-teal-200/60 transition-colors"
+        >
+          <Info size={14} className="text-teal-600" />
+          <span>{showGuide ? "Ocultar guía clínica" : "¿Cómo y cuándo contar patadas?"}</span>
+          {showGuide ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </button>
       </div>
 
-      <div>
-        <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2"><History size={18} className="text-teal-600"/> Historial de Sesiones</h4>
-        <div className="space-y-3">
-          {sessions.map(s => (
-            <div key={s.id} className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <div className="bg-green-50 text-green-600 p-2 rounded-full"><CheckCircle size={16}/></div>
-                <span className="font-bold text-gray-700">{s.date}</span>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-bold text-gray-800">{s.count} patadas</p>
-                <p className="text-xs text-gray-500">en {s.duration}</p>
+      {/* GUÍA MÉDICA DESPLEGABLE */}
+      {showGuide && (
+        <div className="bg-gradient-to-br from-teal-50/90 to-emerald-50/70 border border-teal-200 rounded-3xl p-5 text-left text-xs text-gray-700 space-y-3 shadow-sm animate-in fade-in slide-in-from-top-2">
+          <h4 className="font-bold text-teal-900 text-sm flex items-center gap-2">
+            <ClipboardList size={16} className="text-teal-700" /> Guía Obstétrica: Protocolo Cardiff
+          </h4>
+          <ul className="space-y-2 leading-relaxed text-gray-600">
+            <li className="flex items-start gap-2">
+              <span className="text-teal-600 font-bold">1.</span>
+              <span><strong>¿Cuándo iniciar?</strong> Recomendado a partir de la semana 28 (o semana 24 si tu médico lo indicó).</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-teal-600 font-bold">2.</span>
+              <span><strong>Mejor momento:</strong> 30 a 60 minutos después de comer o por la noche, cuando el feto recibe más glucosa y la madre está en reposo.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-teal-600 font-bold">3.</span>
+              <span><strong>Postura recomendada:</strong> Recuéstate sobre tu costado izquierdo para maximizar la oxigenación placentaria.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-teal-600 font-bold">4.</span>
+              <span><strong>¿Qué cuenta como movimiento?</strong> Patadas, aleteos, giros o presiones claras. El hipo rítmico no se cuenta como patada voluntaria.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-teal-600 font-bold">5.</span>
+              <span><strong>Meta normal:</strong> Sentir 10 movimientos. La gran mayoría de bebés lo logra en menos de 30 a 45 minutos.</span>
+            </li>
+          </ul>
+        </div>
+      )}
+
+      {/* ALERTA CLÍNICA CARDIFF (>90 MIN) */}
+      {isOvertime && (
+        <div className="bg-amber-50 border-2 border-amber-300 rounded-3xl p-4 text-left shadow-md animate-in fade-in" role="alert">
+          <div className="flex gap-3 items-start">
+            <AlertTriangle className="text-amber-600 shrink-0 mt-0.5" size={22} />
+            <div>
+              <h4 className="font-bold text-amber-950 text-sm">Sesión Prolongada (+90 min sin 10 patadas)</h4>
+              <p className="text-xs text-amber-900 mt-1 leading-relaxed">
+                Si el bebé está inactivo, prueba estos pasos clínicos de estimulación:
+              </p>
+              <ul className="text-xs text-amber-900/90 list-disc list-inside mt-1.5 space-y-0.5">
+                <li>Bebe un vaso de agua muy fría o jugo de frutas natural.</li>
+                <li>Recuéstate 20 minutos sobre tu costado izquierdo en completo silencio.</li>
+                <li>Toca suavemente tu abdomen o pon música suave.</li>
+              </ul>
+              <p className="text-[11px] font-semibold text-rose-800 mt-2">
+                Si tras 2 horas completas el bebé no alcanza 10 movimientos o notas una reducción drástica, contacta a tu equipo médico de inmediato.
+              </p>
+              <div className="mt-3 pt-2.5 border-t border-amber-200 flex gap-2">
+                <a
+                  href="tel:911"
+                  className="inline-flex items-center gap-1.5 bg-rose-600 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-xs hover:bg-rose-700 active:scale-95 transition-all"
+                >
+                  <PhoneCall size={14} /> Llamada al Médico / SOS
+                </a>
               </div>
             </div>
-          ))}
+          </div>
+        </div>
+      )}
+
+      {/* TRACKER VISUAL DE 10 PASOS */}
+      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 space-y-3">
+        <div className="flex items-center justify-between text-xs font-bold">
+          <span className="text-gray-700">Progreso de la Sesión</span>
+          <span className="text-teal-700">{count} de 10 patadas</span>
+        </div>
+
+        {/* 10 Pills Indicadoras */}
+        <div className="grid grid-cols-10 gap-1.5">
+          {Array.from({ length: 10 }).map((_, idx) => {
+            const isDone = idx < count;
+            const isCurrent = idx === count && startTime !== null;
+            return (
+              <div
+                key={idx}
+                className={`h-9 rounded-xl flex items-center justify-center text-xs font-bold transition-all ${
+                  isDone
+                    ? "bg-teal-600 text-white shadow-xs scale-100"
+                    : isCurrent
+                    ? "bg-amber-100 text-amber-800 border-2 border-amber-400 animate-pulse scale-105"
+                    : "bg-gray-100 text-gray-400"
+                }`}
+              >
+                {isDone ? <Check size={14} /> : idx + 1}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Barra de progreso suave */}
+        <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+          <div
+            className="bg-gradient-to-r from-teal-500 to-emerald-500 h-full transition-all duration-300 rounded-full"
+            style={{ width: `${Math.min(100, (count / 10) * 100)}%` }}
+          />
         </div>
       </div>
+
+      {/* BOTÓN PRINCIPAL DE CONTEO ERGONÓMICO */}
+      <div className="relative flex flex-col items-center justify-center py-2">
+        <button 
+          type="button"
+          onClick={handleKick}
+          disabled={count >= 10}
+          aria-label={count >= 10 ? "Meta de 10 patadas completada" : "Registrar movimiento o patada del bebé"}
+          className={`relative z-10 w-60 h-60 rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-200 transform active:scale-95 select-none focus:outline-none focus:ring-4 focus:ring-teal-300 ${
+            count >= 10 
+              ? "bg-gradient-to-br from-emerald-500 to-teal-600 text-white border-4 border-white cursor-default" 
+              : count === 0
+              ? "bg-gradient-to-br from-teal-500 to-teal-700 text-white border-4 border-white hover:shadow-teal-200/80 hover:scale-[1.02]"
+              : "bg-gradient-to-br from-teal-500 via-teal-600 to-emerald-600 text-white border-4 border-white hover:scale-[1.02]"
+          }`}
+        >
+          {count < 10 ? (
+            <>
+              <span className="text-8xl font-black tracking-tighter leading-none">{count}</span>
+              <span className="text-xs font-black uppercase tracking-widest mt-2 bg-white/20 px-3 py-1 rounded-full text-teal-50">
+                {count === 0 ? "Toca para Iniciar" : "Registrar Patada"}
+              </span>
+              <span className="text-[10px] text-teal-100 mt-1 opacity-90 font-medium">
+                {count === 0 ? "1ª patada activa el tiempo" : `Faltan ${10 - count} para la meta`}
+              </span>
+            </>
+          ) : (
+            <>
+              <Sparkles size={40} className="text-amber-300 mb-1 animate-bounce" />
+              <span className="text-4xl font-black tracking-tight leading-tight">¡Meta 10!</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-100 mt-1">Completada con éxito</span>
+            </>
+          )}
+        </button>
+
+        {/* Botón Deshacer (-1) cuando hay conteo activo */}
+        {count > 0 && count < 10 && (
+          <button
+            type="button"
+            onClick={handleUndo}
+            className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-gray-900 bg-white border border-gray-200 hover:bg-gray-50 px-3.5 py-1.5 rounded-full shadow-xs active:scale-95 transition-all"
+            aria-label="Deshacer último movimiento registrado"
+          >
+            <Undo2 size={13} /> Deshacer última patada (-1)
+          </button>
+        )}
+      </div>
+
+      {/* TARJETA DE CRONÓMETRO Y ACCIONES DE SESIÓN */}
+      <div className="bg-white w-full rounded-3xl shadow-sm border border-gray-100 p-4 flex flex-col gap-3">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="bg-teal-50 text-teal-700 p-2.5 rounded-2xl">
+              <Clock size={22} className={startTime ? "animate-pulse text-teal-600" : ""} />
+            </div>
+            <div>
+              <p className="text-[11px] text-teal-700 font-bold uppercase tracking-wider">Tiempo de Sesión</p>
+              <p className="text-2xl font-black text-gray-800 tracking-tight font-mono">{formatTimer(elapsedSeconds)}</p>
+            </div>
+          </div>
+          
+          <button 
+            type="button"
+            onClick={reset} 
+            className="text-gray-500 hover:text-rose-600 font-bold text-xs bg-gray-50 hover:bg-rose-50 px-3.5 py-2 rounded-xl transition-colors uppercase tracking-wider flex items-center gap-1.5 active:scale-95 border border-gray-100"
+            title="Reiniciar conteo y cronómetro"
+          >
+            <RotateCcw size={13} /> Reiniciar
+          </button>
+        </div>
+
+        {/* Desplegable de Ritmo/Timeline de Patadas Registradas */}
+        {kicks.length > 0 && (
+          <div className="pt-2 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={() => setShowTimeline(!showTimeline)}
+              className="w-full flex items-center justify-between text-xs font-bold text-gray-600 hover:text-teal-700 py-1 transition-colors"
+            >
+              <span className="flex items-center gap-1.5">
+                <Activity size={14} className="text-teal-600" />
+                <span>Ver ritmo de movimientos ({kicks.length} registrados)</span>
+              </span>
+              {showTimeline ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+
+            {showTimeline && (
+              <div className="mt-2.5 space-y-1.5 max-h-48 overflow-y-auto no-scrollbar pt-1">
+                {kicks.map((k, idx) => (
+                  <div key={k.id} className="flex justify-between items-center text-xs bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+                    <span className="font-bold text-gray-700">Patada #{idx + 1}</span>
+                    <span className="text-gray-500 font-mono">{k.timeStr}</span>
+                    <span className="text-teal-700 font-semibold text-[11px]">
+                      {k.intervalSecs !== null ? `+${formatDurationText(k.intervalSecs)}` : "Inicio"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* TARJETA DE CELEBRACIÓN Y NOTA AL COMPLETAR */}
+      {completedSession && (
+        <div className="bg-gradient-to-br from-emerald-500 to-teal-700 text-white rounded-3xl p-5 shadow-lg space-y-4 animate-in zoom-in-95 duration-200">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-white/20 p-2.5 rounded-2xl">
+                <Sparkles size={24} className="text-amber-300" />
+              </div>
+              <div>
+                <h4 className="text-lg font-black leading-tight">¡Sesión Exitosa Registrada!</h4>
+                <p className="text-xs text-teal-100 mt-0.5">10 movimientos completados en {completedSession.durationFormatted}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setCompletedSession(null)}
+              className="text-white/80 hover:text-white p-1"
+              aria-label="Cerrar aviso de sesión completada"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          <p className="text-xs text-teal-50 leading-relaxed bg-white/10 p-3 rounded-2xl">
+            ⚡ <strong>Evaluación médica:</strong> Tu bebé mostró un ritmo activo y reactivo saludable. La sesión ya está registrada en el historial.
+          </p>
+
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-teal-200 mb-2">Añadir contexto a la sesión:</p>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                "🍽️ Después de comer",
+                "🛏️ En reposo",
+                "🎶 Con música",
+                "🌙 Por la noche",
+                "☀️ En la mañana",
+                "🚶 Tras caminar"
+              ].map(note => (
+                <button
+                  key={note}
+                  type="button"
+                  onClick={() => saveSessionNote(note)}
+                  className={`text-xs px-3 py-1.5 rounded-xl font-medium transition-all ${
+                    selectedNote === note
+                      ? "bg-white text-teal-800 font-bold shadow-sm"
+                      : "bg-white/15 text-white hover:bg-white/25"
+                  }`}
+                >
+                  {note}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={reset}
+            className="w-full py-3 bg-white text-teal-800 rounded-2xl font-bold text-xs hover:bg-teal-50 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2"
+          >
+            <RotateCcw size={14} /> Iniciar Nueva Sesión
+          </button>
+        </div>
+      )}
+
+      {/* ESTADÍSTICAS INTELIGENTES Y PROMEDIO */}
+      {avgDurationMinutes !== null && (
+        <div className="bg-gradient-to-br from-teal-50/70 to-emerald-50/60 rounded-3xl p-4 border border-teal-100 flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="bg-teal-100 text-teal-700 p-2.5 rounded-2xl">
+              <Trophy size={20} className="text-teal-700" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-gray-800">Promedio Personal (10 Patadas)</p>
+              <p className="text-lg font-black text-teal-700 font-mono">~{avgDurationMinutes} minutos</p>
+            </div>
+          </div>
+          <span className="text-[10px] font-bold text-teal-800 bg-teal-100/80 px-2.5 py-1 rounded-full uppercase tracking-wider">
+            Ritmo Normal
+          </span>
+        </div>
+      )}
+
+      {/* HISTORIAL CLÍNICO DE SESIONES CON PERSISTENCIA */}
+      <div>
+        <div className="flex justify-between items-center mb-3">
+          <h4 className="font-bold text-gray-800 flex items-center gap-2 text-sm">
+            <History size={18} className="text-teal-600"/> Historial Clínico ({sessions.length})
+          </h4>
+          <span className="text-[11px] font-semibold text-gray-500">Guardado automático</span>
+        </div>
+
+        {sessions.length === 0 ? (
+          <div className="bg-gray-50 rounded-2xl p-6 text-center border border-dashed border-gray-200">
+            <Baby className="mx-auto text-gray-300 mb-2" size={32} />
+            <p className="text-gray-500 text-xs font-medium">Aún no hay sesiones guardadas. Completa 10 patadas para archivar tu primer registro.</p>
+          </div>
+        ) : (
+          <div className="space-y-2.5">
+            {sessions.map(s => (
+              <div key={s.id} className="bg-white p-3.5 rounded-2xl border border-gray-100 shadow-xs flex justify-between items-center group hover:border-teal-200 transition-all">
+                <div className="flex items-center gap-3">
+                  <div className="bg-emerald-50 text-emerald-600 p-2 rounded-xl shrink-0">
+                    <CheckCircle size={18}/>
+                  </div>
+                  <div>
+                    <span className="font-bold text-gray-800 text-xs leading-tight block">{s.dateFormatted}</span>
+                    {s.note && (
+                      <span className="text-[10px] font-medium text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md inline-block mt-0.5">
+                        {s.note}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <p className="text-xs font-black text-gray-800">{s.count} patadas</p>
+                    <p className="text-[11px] font-semibold text-gray-500 font-mono">en {s.durationFormatted}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => deleteSession(s.id)}
+                    aria-label={`Eliminar sesión de ${s.dateFormatted}`}
+                    className="text-gray-300 hover:text-rose-500 p-1.5 rounded-lg transition-colors"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
     </div>
   );
 }
