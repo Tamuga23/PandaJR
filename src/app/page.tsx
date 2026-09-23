@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2, Bell, RotateCcw, Trash2, PhoneCall, Check, Undo2, Printer, Copy, Edit3 } from "lucide-react";
+import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, AlertCircle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2, Bell, RotateCcw, Trash2, PhoneCall, Check, Undo2, Printer, Copy, Edit3 } from "lucide-react";
 
 type Tab = "planificacion" | "agenda" | "herramientas" | "pandaia";
 
@@ -1359,12 +1359,20 @@ function AgendaView({
 }) {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [editingEvent, setEditingEvent] = React.useState<any>(null);
-  
   const [newEvent, setNewEvent] = React.useState({ title: "", date: "", time: "", doctor: "" });
+  const [errors, setErrors] = React.useState<{ title?: string; date?: string }>({});
+  const [touched, setTouched] = React.useState<{ title?: boolean; date?: boolean }>({});
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setErrors({});
+    setTouched({});
+    setEditingEvent(null);
+  };
 
   React.useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setIsModalOpen(false);
+      if (e.key === "Escape") closeModal();
     };
     if (isModalOpen) {
       window.addEventListener("keydown", handleEsc);
@@ -1399,7 +1407,19 @@ function AgendaView({
   };
 
   const handleSaveEvent = () => {
-    if (!newEvent.title || !newEvent.date) return;
+    const validationErrors: { title?: string; date?: string } = {};
+    if (!newEvent.title.trim()) {
+      validationErrors.title = "El título o motivo de la consulta es obligatorio.";
+    }
+    if (!newEvent.date) {
+      validationErrors.date = "La fecha de la cita médica es obligatoria.";
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setTouched({ title: true, date: true });
+      return;
+    }
     
     // Parse date (e.g. "2026-09-28" to "28 Sep")
     let displayDate = newEvent.date;
@@ -1417,8 +1437,8 @@ function AgendaView({
       date: displayDate,
       rawDate: newEvent.date,
       time: newEvent.time || "Por definir",
-      title: newEvent.title,
-      doctor: newEvent.doctor
+      title: newEvent.title.trim(),
+      doctor: newEvent.doctor.trim()
     };
 
     if (editingEvent) {
@@ -1427,13 +1447,14 @@ function AgendaView({
       setEvents([...events, eventObj]);
     }
     
-    setIsModalOpen(false);
+    closeModal();
     setNewEvent({ title: "", date: "", time: "", doctor: "" });
-    setEditingEvent(null);
   };
 
   const openEdit = (ev: any) => {
     setEditingEvent(ev);
+    setErrors({});
+    setTouched({});
     setNewEvent({ 
       title: ev.title, 
       date: toInputDateFormat(ev.date, ev.rawDate), 
@@ -1445,6 +1466,8 @@ function AgendaView({
 
   const openNew = () => {
     setEditingEvent(null);
+    setErrors({});
+    setTouched({});
     setNewEvent({ 
       title: "", 
       date: new Date().toISOString().split("T")[0], 
@@ -1713,14 +1736,15 @@ function AgendaView({
           role="dialog"
           aria-modal="true"
           aria-labelledby="agenda-modal-title"
+          onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
           className="absolute inset-0 bg-gray-900/40 z-50 flex items-end sm:items-center justify-center animate-in fade-in duration-200"
         >
           <div className="bg-white w-full max-h-[90%] overflow-y-auto sm:w-[90%] sm:rounded-3xl rounded-t-3xl p-6 pb-12 animate-in slide-in-from-bottom-8">
             <div className="flex justify-between items-center mb-6">
               <h3 id="agenda-modal-title" className="text-xl font-bold text-gray-800">{editingEvent ? "Editar Cita" : "Nueva Cita Médica"}</h3>
               <button 
-                onClick={() => setIsModalOpen(false)} 
-                className="bg-gray-100 p-2 rounded-full text-gray-500 hover:bg-gray-200"
+                onClick={closeModal} 
+                className="bg-gray-100 p-2 rounded-full text-gray-500 hover:bg-gray-200 transition-colors"
                 aria-label="Cerrar modal de cita"
               >
                 <X size={20} />
@@ -1729,30 +1753,78 @@ function AgendaView({
             
             <div className="space-y-4">
               <div>
-                <label htmlFor="event-title" className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Título / Motivo</label>
+                <label htmlFor="event-title" className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex items-center justify-between">
+                  <span>Título / Motivo <span className="text-rose-500">*</span></span>
+                  {touched.title && errors.title && (
+                    <span className="text-rose-500 text-[11px] font-medium lowercase tracking-normal flex items-center gap-1 animate-in fade-in" role="alert">
+                      <AlertCircle size={12} /> {errors.title}
+                    </span>
+                  )}
+                </label>
                 <input 
                   id="event-title"
                   type="text" 
                   value={newEvent.title} 
-                  onChange={e => setNewEvent({...newEvent, title: e.target.value})}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="Ej. Ecografía 3D" 
+                  onChange={e => {
+                    const val = e.target.value;
+                    setNewEvent({...newEvent, title: val});
+                    if (touched.title) {
+                      setErrors(prev => ({ ...prev, title: val.trim() ? undefined : "El título o motivo de la consulta es obligatorio." }));
+                    }
+                  }}
+                  onBlur={() => {
+                    setTouched(t => ({ ...t, title: true }));
+                    if (!newEvent.title.trim()) {
+                      setErrors(prev => ({ ...prev, title: "El título o motivo de la consulta es obligatorio." }));
+                    }
+                  }}
+                  aria-invalid={touched.title && !!errors.title}
+                  className={`w-full bg-gray-50 border rounded-xl px-4 py-3 text-gray-800 transition-colors focus:outline-none focus:ring-2 ${
+                    touched.title && errors.title
+                      ? "border-rose-400 bg-rose-50/20 focus:ring-rose-400"
+                      : "border-gray-200 focus:ring-teal-500"
+                  }`}
+                  placeholder="Ej. Ecografía Morfológica o Control Prenatal" 
                 />
               </div>
               
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <label htmlFor="event-date" className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Fecha</label>
+                  <label htmlFor="event-date" className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex items-center justify-between">
+                    <span>Fecha <span className="text-rose-500">*</span></span>
+                    {touched.date && errors.date && (
+                      <span className="text-rose-500 text-[11px] font-medium lowercase tracking-normal flex items-center gap-1 animate-in fade-in" role="alert">
+                        <AlertCircle size={12} /> Requerida
+                      </span>
+                    )}
+                  </label>
                   <input 
                     id="event-date"
                     type="date" 
                     value={newEvent.date} 
-                    onChange={e => setNewEvent({...newEvent, date: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500" 
+                    onChange={e => {
+                      const val = e.target.value;
+                      setNewEvent({...newEvent, date: val});
+                      if (touched.date) {
+                        setErrors(prev => ({ ...prev, date: val ? undefined : "La fecha de la cita médica es obligatoria." }));
+                      }
+                    }}
+                    onBlur={() => {
+                      setTouched(t => ({ ...t, date: true }));
+                      if (!newEvent.date) {
+                        setErrors(prev => ({ ...prev, date: "La fecha de la cita médica es obligatoria." }));
+                      }
+                    }}
+                    aria-invalid={touched.date && !!errors.date}
+                    className={`w-full bg-gray-50 border rounded-xl px-4 py-3 text-gray-800 transition-colors focus:outline-none focus:ring-2 ${
+                      touched.date && errors.date
+                        ? "border-rose-400 bg-rose-50/20 focus:ring-rose-400"
+                        : "border-gray-200 focus:ring-teal-500"
+                    }`} 
                   />
                 </div>
                 <div className="flex-1">
-                  <label htmlFor="event-time" className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Hora</label>
+                  <label htmlFor="event-time" className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 block">Hora</label>
                   <input 
                     id="event-time"
                     type="time" 
@@ -1764,23 +1836,23 @@ function AgendaView({
               </div>
               
               <div>
-                <label htmlFor="event-doctor" className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Doctor o Clínica</label>
+                <label htmlFor="event-doctor" className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 block">Doctor o Clínica</label>
                 <input 
                   id="event-doctor"
                   type="text" 
                   value={newEvent.doctor} 
                   onChange={e => setNewEvent({...newEvent, doctor: e.target.value})}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="Dra. Ramírez" 
+                  placeholder="Dra. Ramírez / Hospital Los Olivos" 
                 />
               </div>
               
               <button 
+                type="button"
                 onClick={handleSaveEvent}
-                disabled={!newEvent.title || !newEvent.date}
-                className="w-full bg-teal-600 text-white font-bold py-4 rounded-xl mt-4 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-teal-700 transition-colors"
+                className="w-full bg-teal-600 text-white font-bold py-4 rounded-xl mt-4 hover:bg-teal-700 transition-colors shadow-sm active:scale-[0.99]"
               >
-                Guardar Cita
+                {editingEvent ? "Actualizar Cita" : "Guardar Cita"}
               </button>
             </div>
           </div>
@@ -1964,6 +2036,19 @@ function PandaIAView({
       textareaRef.current?.focus();
     }
   }, [initialQuery, clearInitialQuery]);
+
+  // Atajo de teclado: Escape para cerrar el decodificador de ecografías
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsUltrasoundModalOpen(false);
+      }
+    };
+    if (isUltrasoundModalOpen) {
+      window.addEventListener("keydown", handleEsc);
+      return () => window.removeEventListener("keydown", handleEsc);
+    }
+  }, [isUltrasoundModalOpen]);
 
   const copyMessage = (id: number, text: string) => {
     try {
@@ -2323,6 +2408,7 @@ function PandaIAView({
           role="dialog"
           aria-modal="true"
           aria-labelledby="ultrasound-modal-title"
+          onClick={(e) => { if (e.target === e.currentTarget) setIsUltrasoundModalOpen(false); }}
           className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150"
         >
           <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in slide-in-from-bottom-4 duration-200 border border-gray-100">
@@ -2740,6 +2826,29 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
     showToast("Último movimiento deshecho (-1)", () => {});
   };
 
+  // Atajo de teclado: Barra espaciadora para registrar patada
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+         target.tagName === "TEXTAREA" ||
+         target.tagName === "SELECT" ||
+         target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if ((e.code === "Space" || e.key === " ") && count < 10) {
+        e.preventDefault();
+        handleKick();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [count, startTime, kicks]);
+
   const reset = () => {
     setCount(0);
     setStartTime(null);
@@ -2945,6 +3054,16 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
           >
             <Undo2 size={13} /> Deshacer última patada (-1)
           </button>
+        )}
+
+        {/* Atajo de teclado accesible */}
+        {count < 10 && (
+          <div className="mt-3 text-[11px] text-gray-500 font-medium flex items-center gap-1.5 select-none">
+            <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-gray-100 border border-gray-300 rounded text-gray-700 shadow-2xs">
+              Espacio
+            </kbd>
+            <span>en teclado para registrar movimiento</span>
+          </div>
         )}
       </div>
 
