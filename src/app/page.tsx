@@ -1232,12 +1232,12 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
           
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div className="bg-gray-50 rounded-2xl p-3 border border-gray-100">
-              <p className="text-gray-400 text-xs font-semibold mb-1">Longitud</p>
-              <p className="font-bold text-gray-700">{weekData.length}</p>
+              <p className="text-gray-500 text-xs font-bold mb-1">Longitud</p>
+              <p className="font-bold text-gray-800">{weekData.length}</p>
             </div>
             <div className="bg-gray-50 rounded-2xl p-3 border border-gray-100">
-              <p className="text-gray-400 text-xs font-semibold mb-1">Peso est.</p>
-              <p className="font-bold text-gray-700">{weekData.weight}</p>
+              <p className="text-gray-500 text-xs font-bold mb-1">Peso est.</p>
+              <p className="font-bold text-gray-800">{weekData.weight}</p>
             </div>
           </div>
 
@@ -1568,7 +1568,7 @@ function AgendaView({
           </div>
           
           <div className="bg-white rounded-3xl p-5 shadow-sm border border-teal-100 bg-gradient-to-br from-teal-50/50 to-white relative overflow-hidden group">
-            <div className="absolute top-0 right-0 bg-teal-100 text-teal-600 text-[10px] font-bold px-2 py-1 rounded-bl-xl">IA ACTIVA</div>
+            <div className="absolute top-0 right-0 bg-teal-100 text-teal-800 text-[10px] font-bold px-2 py-1 rounded-bl-xl tracking-wider">IA ACTIVA</div>
             
             <div className="flex items-center gap-2 mb-3">
               <div className="bg-teal-100 p-1.5 rounded-full"><Sparkles className="text-teal-600" size={16} /></div>
@@ -2537,7 +2537,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
             </>
           ) : (
             <>
-              <Sparkles size={40} className="text-amber-300 mb-1 animate-bounce" />
+              <Sparkles size={40} className="text-amber-300 mb-1 animate-pulse motion-reduce:animate-none" />
               <span className="text-4xl font-black tracking-tight leading-tight">¡Meta 10!</span>
               <span className="text-xs font-bold uppercase tracking-wider text-emerald-100 mt-1">Completada con éxito</span>
             </>
@@ -2566,14 +2566,14 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
             </div>
             <div>
               <p className="text-[11px] text-teal-700 font-bold uppercase tracking-wider">Tiempo de Sesión</p>
-              <p className="text-2xl font-black text-gray-800 tracking-tight font-mono">{formatTimer(elapsedSeconds)}</p>
+              <p className="text-2xl font-black text-gray-800 tracking-tight font-mono tabular-nums">{formatTimer(elapsedSeconds)}</p>
             </div>
           </div>
           
           <button 
             type="button"
             onClick={reset} 
-            className="text-gray-500 hover:text-rose-600 font-bold text-xs bg-gray-50 hover:bg-rose-50 px-3.5 py-2 rounded-xl transition-colors uppercase tracking-wider flex items-center gap-1.5 active:scale-95 border border-gray-100"
+            className="text-rose-700 hover:text-rose-800 font-bold text-xs bg-rose-50/70 hover:bg-rose-100/80 px-3.5 py-2 rounded-xl transition-colors uppercase tracking-wider flex items-center gap-1.5 active:scale-95 border border-rose-200/60"
             title="Reiniciar conteo y cronómetro"
           >
             <RotateCcw size={13} /> Reiniciar
@@ -3356,9 +3356,13 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
         </div>
 
         {/* Cláusula Introductoria de Respeto Clínico */}
-        <div className="border-l-4 border-teal-600 pl-3 py-1 text-xs text-gray-700 italic bg-gray-50/50">
-          "A la atención del equipo obstétrico y pediátrico: Este plan expresa nuestros deseos y preferencias para el proceso de parto y postparto inmediato, entendiendo siempre que la salud y seguridad de la madre y del bebé priman ante cualquier eventualidad médica imprevista."
-        </div>
+        <blockquote className="bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-xl text-xs text-gray-700 italic flex items-start gap-2.5">
+          <span className="text-teal-700 font-serif text-lg leading-none select-none shrink-0" aria-hidden="true">“</span>
+          <p className="flex-1">
+            A la atención del equipo obstétrico y pediátrico: Este plan expresa nuestros deseos y preferencias para el proceso de parto y postparto inmediato, entendiendo siempre que la salud y seguridad de la madre y del bebé priman ante cualquier eventualidad médica imprevista.
+          </p>
+          <span className="text-teal-700 font-serif text-lg leading-none select-none shrink-0 self-end" aria-hidden="true">”</span>
+        </blockquote>
 
         {/* Secciones y Preferencias Seleccionadas */}
         <div className="space-y-5">
@@ -3571,8 +3575,9 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="font-semibold text-gray-500 block mb-1">Nombre de la Madre:</label>
+                <label htmlFor="plan-mother-name" className="font-semibold text-gray-600 block mb-1">Nombre de la Madre:</label>
                 <input
+                  id="plan-mother-name"
                   type="text"
                   value={patientData.motherName}
                   onChange={e => setPatientData({ ...patientData, motherName: e.target.value })}
@@ -3582,8 +3587,9 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
               </div>
 
               <div>
-                <label className="font-semibold text-gray-500 block mb-1">Acompañante / Pareja:</label>
+                <label htmlFor="plan-partner-name" className="font-semibold text-gray-600 block mb-1">Acompañante / Pareja:</label>
                 <input
+                  id="plan-partner-name"
                   type="text"
                   value={patientData.partnerName}
                   onChange={e => setPatientData({ ...patientData, partnerName: e.target.value })}
@@ -3593,8 +3599,9 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
               </div>
 
               <div>
-                <label className="font-semibold text-gray-500 block mb-1">Hospital / Clínica:</label>
+                <label htmlFor="plan-hospital" className="font-semibold text-gray-600 block mb-1">Hospital / Clínica:</label>
                 <input
+                  id="plan-hospital"
                   type="text"
                   value={patientData.hospital}
                   onChange={e => setPatientData({ ...patientData, hospital: e.target.value })}
@@ -3604,8 +3611,9 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
               </div>
 
               <div>
-                <label className="font-semibold text-gray-500 block mb-1">Obstetra / Matrona:</label>
+                <label htmlFor="plan-doctor" className="font-semibold text-gray-600 block mb-1">Obstetra / Matrona:</label>
                 <input
+                  id="plan-doctor"
                   type="text"
                   value={patientData.doctor}
                   onChange={e => setPatientData({ ...patientData, doctor: e.target.value })}
@@ -3616,8 +3624,9 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
             </div>
 
             <div>
-              <label className="font-semibold text-gray-500 block mb-1 text-xs">Observaciones Especiales o Alergias:</label>
+              <label htmlFor="plan-notes" className="font-semibold text-gray-600 block mb-1 text-xs">Observaciones Especiales o Alergias:</label>
               <textarea
+                id="plan-notes"
                 rows={2}
                 value={patientData.notes}
                 onChange={e => setPatientData({ ...patientData, notes: e.target.value })}

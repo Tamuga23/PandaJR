@@ -13,13 +13,29 @@ colors:
   neutral-text: "#111827"
 typography:
   display:
-    fontFamily: "system-ui, sans-serif"
+    fontFamily: "var(--font-geist-sans), system-ui, sans-serif"
     fontSize: "1.875rem"
     fontWeight: 900
+  headline:
+    fontFamily: "var(--font-geist-sans), system-ui, sans-serif"
+    fontSize: "1.25rem"
+    fontWeight: 700
   body:
-    fontFamily: "system-ui, sans-serif"
+    fontFamily: "var(--font-geist-sans), system-ui, sans-serif"
     fontSize: "1rem"
     fontWeight: 400
+  label:
+    fontFamily: "var(--font-geist-sans), system-ui, sans-serif"
+    fontSize: "0.75rem"
+    fontWeight: 700
+  caption:
+    fontFamily: "var(--font-geist-sans), system-ui, sans-serif"
+    fontSize: "0.6875rem"
+    fontWeight: 600
+  micro:
+    fontFamily: "var(--font-geist-sans), system-ui, sans-serif"
+    fontSize: "0.625rem"
+    fontWeight: 700
 rounded:
   md: "12px"
   lg: "16px"
@@ -71,16 +87,20 @@ La paleta es tranquilizadora pero lo suficientemente vibrante para mantener el e
 
 ## Typography
 
-**Display Font:** System Sans-Serif
-**Body Font:** System Sans-Serif
+**Display Font:** Geist Sans (`var(--font-geist-sans), system-ui, sans-serif`)
+**Body Font:** Geist Sans (`var(--font-geist-sans), system-ui, sans-serif`)
+**Mono Font:** Geist Mono (`var(--font-geist-mono), monospace`)
 
-**Character:** Limpia, nativa y sin distracciones. Al usar la fuente del sistema (San Francisco en iOS, Roboto en Android), la PWA se siente inmediatamente familiar y nativa.
+**Character:** Humanista, geométrica, cálida y de alta legibilidad editorial. Geist fue desarrollada para pantallas de alta densidad, aportando claridad quirúrgica a los números gestacionales y contadores de contracciones, y dignidad tipográfica a los textos de apoyo.
 
-### Hierarchy
-- **Display** (Black/900, 3xl): Usado para grandes contadores numéricos (semanas, temporizadores) donde la lectura rápida a distancia es vital.
-- **Headline** (Bold/700, xl): Títulos de tarjetas y modales.
-- **Body** (Medium/500, base/sm): Descripciones y tareas de checklist.
-- **Label** (Bold/700, xs, uppercase): Pequeños subtítulos descriptivos (`tracking-wider`).
+### Hierarchy & Scale
+- **Display** (Black/900, 3xl / 1.875rem): Grandes contadores numéricos (semanas, temporizadores, patadas).
+- **Headline** (Bold/700, xl / 1.25rem): Títulos principales de tarjetas y modales.
+- **Subheading** (Bold/700, base/sm): Nombres de citas y secciones de herramientas.
+- **Body** (Regular/400 o Medium/500, base/sm): Descripciones, tareas y explicaciones médicas.
+- **Label** (Bold/700, xs / 0.75rem, uppercase): Subtítulos descriptivos (`tracking-wider`).
+- **Caption** (SemiBold/600, 11px / 0.6875rem): Metadatos secundarios de tiempo y fecha.
+- **Micro** (Bold/700, 10px / 0.625rem): Insignias compactas y chips de navegación.
 
 ## Layout
 
