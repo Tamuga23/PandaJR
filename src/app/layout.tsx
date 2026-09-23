@@ -22,8 +22,46 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "PandaJR",
-  description: "Herramienta colaborativa para padres primerizos",
+  metadataBase: new URL("https://panda-jr.vercel.app"),
+  title: "PandaJR - Copiloto para Padres Primerizos",
+  description: "Herramienta colaborativa para padres primerizos: neuro-nutrición, citas médicas, contador de contracciones y asistente con IA.",
+  applicationName: "PandaJR",
+  authors: [{ name: "PandaJR" }],
+  keywords: ["embarazo", "padres primerizos", "bebé", "agenda médica", "contracciones", "IA"],
+  openGraph: {
+    title: "PandaJR - Copiloto para Padres Primerizos",
+    description: "Herramienta colaborativa para padres primerizos: neuro-nutrición, citas médicas, contador de contracciones y asistente con IA.",
+    url: "https://panda-jr.vercel.app",
+    siteName: "PandaJR",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1001,
+        height: 1024,
+        alt: "PandaJR - Logo Oficial",
+        type: "image/jpeg",
+      },
+    ],
+    locale: "es_LA",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "PandaJR - Copiloto para Padres Primerizos",
+    description: "Herramienta colaborativa para padres primerizos: neuro-nutrición, citas médicas y asistente con IA.",
+    images: ["/og-image.jpg"],
+  },
+  icons: {
+    icon: [
+      { url: "/icon.jpg" },
+      { url: "/og-image.jpg" },
+    ],
+    shortcut: "/icon.jpg",
+    apple: [
+      { url: "/apple-icon.jpg" },
+      { url: "/og-image.jpg" },
+    ],
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
