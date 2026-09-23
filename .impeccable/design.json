@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-23T05:25:00Z",
+  "title": "Design System: PandaJR",
+  "extensions": {
+    "colorMeta": {
+      "primary": { "role": "primary", "displayName": "Teal Reasegurador", "canonical": "#0d9488", "tonalRamp": ["#042f2e", "#115e59", "#0f766e", "#0d9488", "#14b8a6", "#2dd4bf", "#5eead4", "#ccfbf1"] },
+      "secondary": { "role": "secondary", "displayName": "Ámbar Energético", "canonical": "#f59e0b", "tonalRamp": ["#78350f", "#92400e", "#b45309", "#d97706", "#f59e0b", "#fbbf24", "#fcd34d", "#fef3c7"] },
+      "tertiary": { "role": "tertiary", "displayName": "Rosa Urgencia", "canonical": "#f43f5e", "tonalRamp": ["#881337", "#9f1239", "#be123c", "#e11d48", "#f43f5e", "#fb7185", "#fda4af", "#ffe4e6"] }
+    },
+    "breakpoints": [
+      { "name": "md", "value": "768px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Checklist Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Botón de tarea accesible con estado completado.",
+      "html": "<button class=\"ds-task\" aria-checked=\"false\">Hacer la maleta</button>",
+      "css": ".ds-task { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px; background: #ffffff; border: 1px solid #f3f4f6; border-radius: 16px; cursor: pointer; transition: border-color 0.2s; font-family: system-ui; font-size: 14px; color: #374151; } .ds-task:hover { border-color: #99f6e4; } .ds-task[aria-checked=\"true\"] { color: #9ca3af; text-decoration: line-through; border-color: #e5e7eb; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "El Copiloto del Papá Primerizo",
+    "overview": "El diseño de PandaJR es empático, tranquilizador y altamente funcional. Prioriza la claridad, los toques lúdicos y la reducción de carga cognitiva.",
+    "keyCharacteristics": [
+      "Interfaces amigables con bordes muy redondeados.",
+      "Uso del color para agrupar semánticamente (Teal para progreso, Amber para compras, Rose para urgencias).",
+      "Interacciones táctiles grandes (Mobile-First)."
+    ],
+    "rules": [
+      { "name": "The Color-Coding Rule", "body": "El color no es decorativo, es semántico. Hospital=Rosa, Compras=Ámbar, Guía=Teal.", "section": "colors" }
+    ],
+    "dos": [
+      "Do usar botones masivos para acciones que pueden ocurrir bajo estrés.",
+      "Do mantener el feedback visual inmediato en cada interacción."
+    ],
+    "donts": [
+      "Don't usar colores vibrantes sin propósito.",
+      "Don't introducir fuentes serif o elementos corporativos."
+    ]
+  }
+}
