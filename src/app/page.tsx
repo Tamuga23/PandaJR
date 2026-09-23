@@ -920,7 +920,6 @@ export default function PandaJRApp() {
             showToast={showToast} 
             addEvent={handleAIAddEvent} 
             profile={profile} 
-            openProfileModal={() => setIsProfileModalOpen(true)}
             initialQuery={aiInitialQuery}
             clearInitialQuery={() => setAiInitialQuery("")}
             setActiveTab={setActiveTab}
@@ -1796,7 +1795,6 @@ function PandaIAView({
   showToast, 
   addEvent, 
   profile, 
-  openProfileModal,
   initialQuery,
   clearInitialQuery,
   setActiveTab
@@ -1804,7 +1802,6 @@ function PandaIAView({
   showToast: any, 
   addEvent: any, 
   profile: UserProfile, 
-  openProfileModal: () => void,
   initialQuery?: string,
   clearInitialQuery?: () => void,
   setActiveTab?: (tab: Tab) => void
@@ -1849,12 +1846,87 @@ function PandaIAView({
     }
   };
 
-  const welcomeText = profile.role === "papa"
-    ? `¡Hola ${profile.name || "Papá"}! 🧔 Soy PandaIA, tu copiloto clínico en esta Semana ${profile.week || 14}.\n\nPregúntame sobre **neuro-nutrición prenatal** (DHA, colina), qué preguntar en la próxima consulta médica, o pídeme que **agende una cita médica** para ustedes directamente en la Agenda.`
-    : `¡Hola ${profile.name || "Mamá"}! 👩 Soy PandaIA, tu espacio de orientación y tranquilidad en esta Semana ${profile.week || 14}.\n\nPuedes consultarme sobre alivio de síntomas, qué esperar en tus controles o pedirme que **registre tus próximas citas médicas**.`;
+  const getUltrasoundItems = (week: number) => {
+    if (week <= 13) {
+      return [
+        {
+          title: "Ecografía 11-14: Traslucencia Nucal (TN)",
+          desc: "Cribado genético del primer trimestre y hueso nasal",
+          prompt: `¿Qué evalúa la Traslucencia Nucal (TN) y el Hueso Nasal en la ecografía de semana ${week} (semanas 11 a 14)?`
+        },
+        {
+          title: `Medidas en Semana ${week}: LCR y DBP`,
+          desc: "Longitud cráneo-raudal y diámetro biparietal del bebé",
+          prompt: `¿Qué significan las medidas LCR (longitud cráneo-raudal) y DBP en mi ecografía de semana ${week}?`
+        },
+        {
+          title: "Frecuencia Cardíaca Fetal y Vitalidad",
+          desc: "Latidos por minuto y flujo en el primer trimestre",
+          prompt: `¿Cuál es el rango normal de latidos cardíacos fetales en la semana ${week} y qué indica la vitalidad?`
+        },
+        {
+          title: "Hematomas Subcoriónicos o Cuello Uterino",
+          desc: "¿Qué significa si el informe menciona hematoma o sangrado?",
+          prompt: `¿Qué significa un hematoma subcoriónico en el primer trimestre (semana ${week}) y qué cuidados se recomiendan?`
+        }
+      ];
+    } else if (week <= 27) {
+      return [
+        {
+          title: "Ecografía Morfológica (Semana 20-22)",
+          desc: "Revisión anatómica completa de órganos, corazón y cerebro",
+          prompt: `¿Qué evalúa la ecografía morfológica de alta resolución en esta etapa (semana ${week})?`
+        },
+        {
+          title: "Medidas Fetales (DBP, LF, CA, CC)",
+          desc: "Diámetros craneales, longitud femoral y perímetro abdominal",
+          prompt: `¿Qué significan las siglas DBP, LF, CA y CC en el informe ecográfico de la semana ${week}?`
+        },
+        {
+          title: "Percentiles de Crecimiento y Peso Fetal",
+          desc: "¿Cómo interpretar si mi bebé está en percentil 25, 50 o 90?",
+          prompt: `¿Qué significa el percentil fetal de crecimiento y peso estimado en la semana ${week}?`
+        },
+        {
+          title: "Doppler de Arterias Uterinas y Placenta",
+          desc: "¿Qué evalúa el Doppler uterino y la madurez placentaria?",
+          prompt: `¿Qué evalúa el Doppler de arterias uterinas y qué significa el grado placentario en la semana ${week}?`
+        }
+      ];
+    } else {
+      return [
+        {
+          title: `Percentil de Peso en 3er Trimestre (Sem ${week})`,
+          desc: "Monitoreo del peso estimado y curvas de crecimiento",
+          prompt: `¿Cómo se evalúa el percentil de peso y crecimiento fetal en la semana ${week}?`
+        },
+        {
+          title: "Índice de Líquido Amniótico (ILA)",
+          desc: "¿Qué significa un índice de líquido amniótico normal o alterado?",
+          prompt: `¿Qué significa el Índice de Líquido Amniótico (ILA) en la semana ${week} y cuáles son sus rangos normales?`
+        },
+        {
+          title: "Doppler Fetal (Arteria Umbilical y Cerebral Media)",
+          desc: "Oxigenación fetal y bienestar hemodinámico",
+          prompt: `¿Qué evalúa el Doppler fetal de arteria umbilical y cerebral media en la semana ${week}?`
+        },
+        {
+          title: "Posición Fetal y Grado Placentario",
+          desc: "¿Está en posición cefálica? Grado II / III de placenta",
+          prompt: `¿Qué significa la posición cefálica o podálica y el grado de madurez placentaria en la semana ${week}?`
+        }
+      ];
+    }
+  };
+
+  const getWelcomeText = (week: number, role: "papa" | "mama", name?: string) => {
+    return role === "papa"
+      ? `¡Hola ${name || "Papá"}! 🧔 Soy PandaIA, tu copiloto clínico en esta Semana ${week}.\n\nPregúntame sobre el **desarrollo del bebé en la semana ${week}**, neuro-nutrición prenatal (DHA, colina), qué preguntar en la próxima consulta médica, o pídeme que **agende una cita médica** para ustedes directamente en la Agenda.`
+      : `¡Hola ${name || "Mamá"}! 👩 Soy PandaIA, tu espacio de orientación y tranquilidad en esta Semana ${week}.\n\nPuedes consultarme sobre los cambios y síntomas de la **semana ${week}**, nutrición o pedirme que **registre tus próximas citas médicas**.`;
+  };
 
   const [messages, setMessages] = useState<any[]>(() => [
-    { id: 1, sender: "ai", text: welcomeText }
+    { id: 1, sender: "ai", text: getWelcomeText(profile.week || 14, profile.role, profile.name) }
   ]);
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -1873,6 +1945,16 @@ function PandaIAView({
   useEffect(() => {
     setSmartChips(getContextualChips(profile.week || 14, profile.role));
   }, [profile.week, profile.role]);
+
+  // Sincronizar mensaje de bienvenida automáticamente con la semana y rol elegidos
+  useEffect(() => {
+    setMessages(prev => {
+      if (prev.length === 1 && prev[0].id === 1) {
+        return [{ id: 1, sender: "ai", text: getWelcomeText(profile.week || 14, profile.role, profile.name) }];
+      }
+      return prev;
+    });
+  }, [profile.week, profile.role, profile.name]);
 
   // Si se envió una consulta desde otra pantalla (ej. modal de preparación)
   useEffect(() => {
@@ -1894,10 +1976,10 @@ function PandaIAView({
 
   const clearChat = () => {
     setMessages([
-      { id: Date.now(), sender: "ai", text: welcomeText }
+      { id: Date.now(), sender: "ai", text: getWelcomeText(profile.week || 14, profile.role, profile.name) }
     ]);
     setSmartChips(getContextualChips(profile.week || 14, profile.role));
-    showToast?.("Conversación reiniciada ✨", () => {});
+    showToast?.(`Conversación reiniciada para la Semana ${profile.week || 14} ✨`, () => {});
   };
 
   const handleUltrasoundSelect = (query: string) => {
@@ -1923,6 +2005,9 @@ function PandaIAView({
           history: messages.slice(-6),
           context: {
             currentWeek: profile.week || 14,
+            trimester: (profile.week || 14) <= 13 ? 1 : (profile.week || 14) <= 27 ? 2 : 3,
+            userRole: profile.role,
+            userName: profile.name || "",
             userProfile: profile.role === "papa" ? `Papá${profile.name ? ` (${profile.name})` : ""}` : `Mamá${profile.name ? ` (${profile.name})` : ""}`,
             location: profile.location || "No especificada",
             notes: profile.notes || "Embarazo primerizo"
@@ -2063,20 +2148,11 @@ function PandaIAView({
           <button 
             type="button"
             onClick={clearChat}
-            className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all active:scale-95"
-            title="Iniciar nueva consulta"
+            className="p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-all active:scale-95"
+            title="Reiniciar conversación con la semana actual"
             aria-label="Reiniciar conversación"
           >
             <RotateCcw size={16} />
-          </button>
-          <button 
-            type="button"
-            onClick={openProfileModal} 
-            className="px-3 py-1.5 text-teal-700 hover:bg-teal-50 rounded-xl transition-all flex items-center gap-1 border border-teal-200/80 shadow-xs text-xs font-bold active:scale-95"
-            aria-label="Configurar perfil"
-          >
-            <Settings size={14} className="text-teal-600" />
-            <span>Perfil</span>
           </button>
         </div>
       </div>
@@ -2279,33 +2355,7 @@ function PandaIAView({
                 Selecciona una consulta frecuente para que PandaIA te explique los valores clínicos con calma:
               </p>
 
-              {[
-                {
-                  title: "Medidas Fetales (DBP, LF, CA, CC)",
-                  desc: "¿Qué significan y qué evalúan las siglas en el informe?",
-                  prompt: "¿Qué significan las siglas DBP (diámetro biparietal), LF (longitud de fémur) y CA (circunferencia abdominal) en mi ecografía?"
-                },
-                {
-                  title: "Percentiles de Crecimiento y Peso",
-                  desc: "¿Cómo interpretar si mi bebé está en percentil 25, 50 o 90?",
-                  prompt: "¿Qué significa el percentil fetal de crecimiento y peso estimado en la ecografía?"
-                },
-                {
-                  title: "Doppler Uterino y Placenta",
-                  desc: "¿Qué evalúa el Doppler y la madurez placentaria?",
-                  prompt: "¿Qué evalúa el Doppler de arterias uterinas y qué significa el grado de madurez de la placenta?"
-                },
-                {
-                  title: "Ecografía 11-14: Traslucencia Nucal (TN)",
-                  desc: "Interpretación del cribado genético del primer trimestre",
-                  prompt: "¿Qué evalúa la Traslucencia Nucal (TN) y el Hueso Nasal en la ecografía de semana 11 a 14?"
-                },
-                {
-                  title: "Líquido Amniótico (ILA)",
-                  desc: "¿Qué significa un índice de líquido amniótico normal?",
-                  prompt: "¿Qué significa el Índice de Líquido Amniótico (ILA) y cuáles son sus rangos normales?"
-                }
-              ].map((item, idx) => (
+              {getUltrasoundItems(profile.week || 14).map((item, idx) => (
                 <button
                   key={idx}
                   type="button"
