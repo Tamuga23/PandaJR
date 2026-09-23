@@ -560,10 +560,10 @@ function AppointmentPrepModal({
         <div className="bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-600 p-5 text-white shrink-0 relative">
           <button 
             onClick={onClose} 
-            className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white p-1.5 rounded-full transition-colors"
+            className="absolute top-3.5 right-3.5 bg-white/20 hover:bg-white/30 text-white min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full transition-colors active:scale-95"
             aria-label="Cerrar guía de preparación"
           >
-            <X size={18} />
+            <X size={20} />
           </button>
           
           <div className="flex items-center gap-2 mb-2">
@@ -829,11 +829,22 @@ export default function PandaJRApp() {
     setEvents(prev => [...prev, { id: Date.now(), date, rawDate: rawDate || "", time, title, doctor }]);
   };
 
+  // Atajo de teclado: tecla Escape para cerrar modales abiertos
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (isProfileModalOpen) setIsProfileModalOpen(false);
+        if (selectedPrepEvent) setSelectedPrepEvent(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isProfileModalOpen, selectedPrepEvent]);
 
   return (
     <div className="flex flex-col min-h-screen w-full max-w-md mx-auto bg-gray-50 text-gray-900 font-sans relative pb-16 shadow-2xl overflow-x-hidden">
       {/* Header con Logo, Alerta de Cita y Selector Global de Perfil */}
-      <header className="bg-white px-5 py-2.5 shadow-sm sticky top-0 z-40 w-full flex items-center justify-between">
+      <header className="bg-white px-4 sm:px-5 py-2.5 shadow-sm sticky top-0 z-40 w-full flex items-center justify-between">
         <div className="flex items-center">
           <h1 className="sr-only">PandaJR</h1>
           <Image 
@@ -857,18 +868,18 @@ export default function PandaJRApp() {
                   setSelectedPrepEvent(events[0]);
                 }
               }}
-              className={`p-2 rounded-full border transition-all active:scale-95 relative ${
+              className={`min-w-[44px] min-h-[44px] p-2.5 rounded-full border transition-all active:scale-95 relative flex items-center justify-center ${
                 nextUpcomingEvent ? "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100" : "bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100"
               }`}
               title={nextUpcomingEvent ? `Recordatorio de cita: ${nextUpcomingEvent.title}` : "Citas médicas"}
               aria-label="Recordatorio de citas médicas"
             >
-              <Bell size={15} />
+              <Bell size={16} />
               {nextUpcomingEvent && (
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-500 rounded-full animate-ping"></span>
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-500 rounded-full animate-ping"></span>
               )}
               {nextUpcomingEvent && (
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-500 rounded-full border-2 border-white"></span>
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-500 rounded-full border-2 border-white"></span>
               )}
             </button>
           )}
@@ -876,10 +887,10 @@ export default function PandaJRApp() {
           {/* Botón Global de Perfil / Switcher */}
           <button
             onClick={() => setIsProfileModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-teal-50 border border-teal-200/70 hover:bg-teal-100 transition-all text-xs font-bold text-teal-700 active:scale-95 shadow-xs"
+            className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-full bg-teal-50 border border-teal-200/70 hover:bg-teal-100 transition-all text-xs font-bold text-teal-700 active:scale-95 shadow-xs"
             title="Configurar tu rol y perfil en este dispositivo"
           >
-            <span>{profile.role === "papa" ? "🧔" : "👩"}</span>
+            <span className="text-base">{profile.role === "papa" ? "🧔" : "👩"}</span>
             <span>{profile.name || (profile.role === "papa" ? "Papá" : "Mamá")}</span>
             <Settings size={13} className="text-teal-500 opacity-70 ml-0.5" />
           </button>
@@ -1453,6 +1464,7 @@ function AgendaView({
       { id: "p2", text: "Sugerencia: Bloquear agenda para acompañar a la ecografía de las 12 semanas." }
     ]
   });
+  const [isSuggestionsOpen, setIsSuggestionsOpen] = React.useState(false);
 
   const dismissSuggestion = (id: string) => {
     const oldMama = [...suggestions.mama];
@@ -1550,49 +1562,61 @@ function AgendaView({
           </button>
         )}
 
-        {/* Toggle Perfil */}
-        <div>
-          <div className="flex bg-gray-100 rounded-full p-1 mb-3">
-            <button 
-              onClick={() => updateProfile({ role: "mama" })}
-              className={`flex-1 py-1.5 text-sm font-bold rounded-full transition-colors ${profile.role === "mama" ? "bg-white text-teal-600 shadow-sm" : "text-gray-500"}`}
+        {/* Acordeón Compacto de Sugerencias del Copiloto IA */}
+        {((profile.role === "mama" ? suggestions.mama : suggestions.papa).length > 0 || isSuggestionsOpen) && (
+          <div className="bg-white rounded-2xl shadow-xs border border-teal-100 overflow-hidden transition-all">
+            <button
+              type="button"
+              onClick={() => setIsSuggestionsOpen(prev => !prev)}
+              className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-teal-50/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+              aria-expanded={isSuggestionsOpen}
             >
-              Perfil: Mamá
-            </button>
-            <button 
-              onClick={() => updateProfile({ role: "papa" })}
-              className={`flex-1 py-1.5 text-sm font-bold rounded-full transition-colors ${profile.role === "papa" ? "bg-white text-teal-600 shadow-sm" : "text-gray-500"}`}
-            >
-              Perfil: Papá
-            </button>
-          </div>
-          
-          <div className="bg-white rounded-3xl p-5 shadow-sm border border-teal-100 bg-gradient-to-br from-teal-50/50 to-white relative overflow-hidden group">
-            <div className="absolute top-0 right-0 bg-teal-100 text-teal-800 text-[10px] font-bold px-2 py-1 rounded-bl-xl tracking-wider">IA ACTIVA</div>
-            
-            <div className="flex items-center gap-2 mb-3">
-              <div className="bg-teal-100 p-1.5 rounded-full"><Sparkles className="text-teal-600" size={16} /></div>
-              <h3 className="font-bold text-gray-800 text-sm">Sugeridas para ti</h3>
-            </div>
-            
-            <div className="space-y-2">
-              {(profile.role === "mama" ? suggestions.mama : suggestions.papa).map((s) => (
-                <div key={s.id} className="flex gap-2 items-start group/item">
-                  <div className="mt-1 flex-shrink-0 w-4 h-4 bg-teal-100 rounded-full flex items-center justify-center">
-                    <CheckCircle2 size={10} className="text-teal-600" />
-                  </div>
-                  <p className="text-sm text-gray-600 leading-snug flex-1">{s.text}</p>
-                  <button onClick={() => dismissSuggestion(s.id)} aria-label="Descartar sugerencia" className="text-gray-400 hover:text-gray-600 p-1.5 rounded-full bg-gray-50 opacity-0 group-hover/item:opacity-100 focus:opacity-100 transition-opacity">
-                    <X size={14} />
-                  </button>
+              <div className="flex items-center gap-2.5">
+                <div className="bg-teal-100 text-teal-800 p-1.5 rounded-xl">
+                  <Sparkles size={16} />
                 </div>
-              ))}
-              {(profile.role === "mama" ? suggestions.mama : suggestions.papa).length === 0 && (
-                <p className="text-sm text-gray-500 italic text-center py-2">No hay más sugerencias por ahora.</p>
-              )}
-            </div>
+                <div>
+                  <span className="text-xs font-bold text-gray-800 block">
+                    Sugerencias del Copiloto IA ({(profile.role === "mama" ? suggestions.mama : suggestions.papa).length})
+                  </span>
+                  <span className="text-[11px] text-gray-500 block">
+                    {isSuggestionsOpen ? "Toca para ocultar" : "Toca para ver recomendaciones para ti"}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-teal-800 bg-teal-100 px-2 py-0.5 rounded-full tracking-wider uppercase">
+                  {profile.role === "mama" ? "Mamá" : "Papá"}
+                </span>
+                <ChevronDown size={16} className={`text-gray-400 transition-transform duration-200 ${isSuggestionsOpen ? "rotate-180" : ""}`} />
+              </div>
+            </button>
+
+            {isSuggestionsOpen && (
+              <div className="p-4 pt-1 space-y-2 border-t border-teal-50/80 animate-in fade-in">
+                {(profile.role === "mama" ? suggestions.mama : suggestions.papa).map((s) => (
+                  <div key={s.id} className="flex gap-2.5 items-start p-2.5 rounded-xl bg-gray-50 border border-gray-100">
+                    <div className="mt-0.5 flex-shrink-0 w-4 h-4 bg-teal-100 rounded-full flex items-center justify-center">
+                      <CheckCircle2 size={11} className="text-teal-700" />
+                    </div>
+                    <p className="text-xs text-gray-700 leading-snug flex-1 font-medium">{s.text}</p>
+                    <button 
+                      type="button"
+                      onClick={() => dismissSuggestion(s.id)} 
+                      aria-label="Descartar sugerencia" 
+                      className="text-gray-400 hover:text-gray-700 p-1 rounded-lg hover:bg-gray-200/60 transition-colors flex items-center justify-center"
+                    >
+                      <X size={15} />
+                    </button>
+                  </div>
+                ))}
+                {(profile.role === "mama" ? suggestions.mama : suggestions.papa).length === 0 && (
+                  <p className="text-xs text-gray-400 italic text-center py-2">No hay más sugerencias por ahora.</p>
+                )}
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
         {/* Citas */}
         <div>
@@ -2754,14 +2778,30 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
   const [isRecording, setIsRecording] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [currentDuration, setCurrentDuration] = useState(0);
-  
-  // Dummy history tailored to show the 5-1-1 rule alert
-  const [history, setHistory] = useState<{ id: number, start: number, duration: number, interval: number | null }[]>([
-    { id: 1, start: Date.now() - 300000, duration: 60, interval: 300 }, // 5 mins ago, lasted 60s
-    { id: 2, start: Date.now() - 600000, duration: 58, interval: 310 }, // 10 mins ago, lasted 58s
-    { id: 3, start: Date.now() - 900000, duration: 62, interval: 290 }, // 15 mins ago, lasted 62s
-  ]);
+  const [lastEndedAt, setLastEndedAt] = useState<number | null>(null);
+  const [restSeconds, setRestSeconds] = useState(0);
 
+  // Historial con persistencia en localStorage sin alarmas falsas en la primera carga
+  const [history, setHistory] = useState<{ id: number, start: number, duration: number, interval: number | null }[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("pandajr_contractions_history");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch (e) {}
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("pandajr_contractions_history", JSON.stringify(history));
+    } catch (e) {}
+  }, [history]);
+
+  // Cronómetro de contracción activa
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isRecording && startTime) {
@@ -2772,6 +2812,17 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
     return () => clearInterval(interval);
   }, [isRecording, startTime]);
 
+  // Cronómetro de intervalo de descanso entre contracciones
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (!isRecording && lastEndedAt) {
+      interval = setInterval(() => {
+        setRestSeconds(Math.floor((Date.now() - lastEndedAt) / 1000));
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isRecording, lastEndedAt]);
+
   const toggleRecording = () => {
     const now = Date.now();
     if (!isRecording) {
@@ -2780,7 +2831,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
       setIsRecording(true);
     } else {
       if (startTime) {
-        const durationSecs = Math.floor((now - startTime) / 1000);
+        const durationSecs = Math.max(1, Math.floor((now - startTime) / 1000));
         let intervalSecs: number | null = null;
         if (history.length > 0) {
           const lastStart = history[0].start;
@@ -2792,11 +2843,25 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
           duration: durationSecs,
           interval: intervalSecs
         }, ...prev]);
+        setLastEndedAt(now);
+        setRestSeconds(0);
       }
       setIsRecording(false);
       setStartTime(null);
     }
   };
+
+  // Atajo de teclado: Barra espaciadora para iniciar/detener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Space" && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
+        e.preventDefault();
+        toggleRecording();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isRecording, startTime, history]);
 
   const formatTime = (secs: number) => {
     if (secs < 60) return `${secs}s`;
@@ -2805,25 +2870,43 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
     return `${m}m ${s}s`;
   };
 
-  // Calculations for averages
+  const clearHistory = () => {
+    if (history.length === 0) return;
+    const backup = [...history];
+    setHistory([]);
+    setLastEndedAt(null);
+    setRestSeconds(0);
+    showToast("Historial de contracciones reiniciado", () => setHistory(backup));
+  };
+
+  const deleteItem = (id: number) => {
+    const backup = [...history];
+    setHistory(prev => prev.filter(h => h.id !== id));
+    showToast("Contracción eliminada", () => setHistory(backup));
+  };
+
+  // Cálculos de promedios
   const avgDuration = history.length > 0 ? Math.round(history.reduce((acc, h) => acc + h.duration, 0) / history.length) : 0;
   const intervals = history.filter(h => h.interval !== null);
   const avgInterval = intervals.length > 0 ? Math.round(intervals.reduce((acc, h) => acc + (h.interval || 0), 0) / intervals.length) : 0;
 
-  // 5-1-1 Rule: Freq ~5m (300s), Duration ~1m (60s). Using rough ranges.
+  // Regla 5-1-1: Frecuencia <= 5-6 min (360s), Duración >= 45s, al menos 3 consecutivas
   const is511 = history.length >= 3 && avgDuration >= 45 && avgInterval > 0 && avgInterval <= 360;
 
   return (
-    <div className="flex flex-col py-2 animate-in fade-in duration-300 w-full">
+    <div className="flex flex-col py-2 animate-in fade-in duration-300 w-full space-y-4">
       
+      {/* Alerta de Parto Activo (Regla 5-1-1) */}
       {is511 && (
-        <div className="bg-rose-50 border border-rose-200 p-4 rounded-2xl mb-6 shadow-md" role="alert" aria-live="assertive">
+        <div className="bg-rose-50 border border-rose-200 p-4 rounded-3xl shadow-md animate-in slide-in-from-top-3" role="alert" aria-live="assertive">
           <div className="flex gap-3">
-            <AlertTriangle className="text-rose-600 shrink-0 mt-0.5" size={24}/>
+            <div className="bg-rose-100 text-rose-600 p-2.5 rounded-2xl shrink-0">
+              <AlertTriangle size={24} />
+            </div>
             <div>
-              <h4 className="font-bold text-rose-900 text-sm">¡Regla 5-1-1 Detectada! (Parto Activo)</h4>
-              <p className="text-rose-700 text-xs mt-1 leading-snug">
-                Tus contracciones vienen cada 5 min y duran 1 min. ¡Es momento de ir al hospital o contactar a tu equipo obstétrico!
+              <h4 className="font-bold text-rose-950 text-sm">¡Regla 5-1-1 Detectada! (Parto Activo)</h4>
+              <p className="text-rose-800 text-xs mt-1 leading-snug">
+                Tus contracciones vienen cada ~{Math.round(avgInterval / 60)} min y duran ~{avgDuration}s. Es momento de acudir al hospital o contactar a tu obstetra o matrona.
               </p>
             </div>
           </div>
@@ -2838,7 +2921,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
               href="https://maps.google.com/?q=hospital+maternidad"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 bg-white hover:bg-rose-100/50 active:scale-95 border border-rose-300 text-rose-800 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all text-center"
+              className="flex-1 bg-white hover:bg-rose-100/50 active:scale-95 border border-rose-300 text-rose-900 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all text-center"
             >
               📍 Ruta al Hospital
             </a>
@@ -2846,44 +2929,133 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col items-center justify-center">
-          <p className="text-xs text-teal-700 font-bold uppercase tracking-wider tracking-wider mb-1">Duración Prom.</p>
-          <p className="text-xl font-black text-teal-600">{formatTime(avgDuration)}</p>
+      {/* Tarjetas de Promedios */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+          <p className="text-xs text-teal-800 font-bold uppercase tracking-wider mb-1">Duración Promedio</p>
+          <p className="text-xl font-black text-teal-700 tabular-nums">{history.length > 0 ? formatTime(avgDuration) : "—"}</p>
         </div>
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col items-center justify-center">
-          <p className="text-xs text-teal-700 font-bold uppercase tracking-wider tracking-wider mb-1">Frecuencia Prom.</p>
-          <p className="text-xl font-black text-rose-500">{avgInterval ? formatTime(avgInterval) : "—"}</p>
+        <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+          <p className="text-xs text-rose-800 font-bold uppercase tracking-wider mb-1">Frecuencia Promedio</p>
+          <p className="text-xl font-black text-rose-600 tabular-nums">{avgInterval ? formatTime(avgInterval) : "—"}</p>
         </div>
       </div>
       
+      {/* Botón Principal del Cronómetro */}
       <button 
+        type="button"
         onClick={toggleRecording}
-        className={`w-full py-6 rounded-3xl shadow-xl text-white font-bold text-xl flex flex-col items-center justify-center gap-3 transition-all duration-300 transform active:scale-95 ${
-          isRecording ? "bg-rose-500 hover:bg-rose-600" : "bg-teal-600 hover:bg-teal-700"
+        className={`w-full py-7 rounded-3xl shadow-xl text-white font-bold text-xl flex flex-col items-center justify-center gap-2 transition-all duration-300 transform active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-teal-400 ${
+          isRecording 
+            ? "bg-rose-500 hover:bg-rose-600 ring-4 ring-rose-200" 
+            : "bg-teal-600 hover:bg-teal-700"
         }`}
+        aria-label={isRecording ? "Detener registro de contracción" : "Iniciar registro de contracción"}
       >
-        {isRecording ? <Square size={36} /> : <Play size={36} />}
-        {isRecording ? `Detener (${formatTime(currentDuration)})` : "Iniciar Contracción"}
+        <div className="flex items-center gap-2">
+          {isRecording ? <Square size={32} /> : <Play size={32} />}
+          <span className="text-2xl font-black tracking-tight tabular-nums">
+            {isRecording ? formatTime(currentDuration) : "Iniciar Contracción"}
+          </span>
+        </div>
+        <span className="text-xs font-medium opacity-90">
+          {isRecording ? "Toca o presiona Espacio al terminar" : "Toca o presiona Espacio al sentir que inicia"}
+        </span>
       </button>
 
-      {history.length > 0 && (
-        <div className="mt-8">
-          <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2"><Activity size={18} className="text-teal-600"/> Historial (Timeline)</h4>
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="grid grid-cols-3 bg-gray-50 p-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
+      {/* MODO RECUPERACIÓN Y RESPIRACIÓN GUIADA ENTRE CONTRACCIONES */}
+      {!isRecording && history.length > 0 && (
+        <div className="bg-gradient-to-br from-teal-50/80 via-emerald-50/50 to-white rounded-3xl p-5 border border-teal-200/80 shadow-xs space-y-4 animate-in fade-in">
+          <div className="flex items-center justify-between border-b border-teal-100 pb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+              <h4 className="text-xs font-bold text-teal-950 uppercase tracking-wider">Intervalo de Descanso Activo</h4>
+            </div>
+            <span className="text-xs font-bold text-teal-800 font-mono tabular-nums">
+              Descanso: {formatTime(restSeconds)}
+            </span>
+          </div>
+
+          {/* Pacer Visual de Respiración */}
+          <div className="flex flex-col items-center justify-center py-2 text-center">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-teal-400/20 to-emerald-400/30 border-2 border-teal-500 flex items-center justify-center animate-pulse motion-reduce:animate-none">
+              <HeartPulse size={32} className="text-teal-600" />
+            </div>
+            <p className="font-bold text-gray-800 text-sm mt-3">Inhala lento en 4s ... Exhala suave en 6s</p>
+            <p className="text-xs text-gray-500 max-w-xs mt-0.5">
+              Suelta mandíbula y hombros para relajar la musculatura del suelo pélvico.
+            </p>
+          </div>
+
+          {/* Guía Rápida para el Acompañante */}
+          <div className="bg-white/90 rounded-2xl p-3 border border-teal-100/90 text-xs space-y-1">
+            <p className="font-bold text-teal-900 flex items-center gap-1">
+              <span>🤝 Acompañamiento del Papá / Pareja:</span>
+            </p>
+            <p className="text-gray-600 leading-relaxed">• Ofrece un sorbo pequeño de agua fresca o bálsamo labial.</p>
+            <p className="text-gray-600 leading-relaxed">• Aplica contrapresión firme con el talón de la mano en el sacro (espalda baja).</p>
+            <p className="text-gray-600 leading-relaxed">• Recuérdale con voz serena: <em>"Respira profundo, lo estás haciendo genial."</em></p>
+          </div>
+        </div>
+      )}
+
+      {/* Historial o Estado Inicial */}
+      {history.length === 0 ? (
+        <div className="bg-white rounded-3xl p-6 border border-dashed border-gray-200 text-center shadow-xs">
+          <div className="bg-teal-50 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 text-teal-600">
+            <HeartPulse size={24} />
+          </div>
+          <h4 className="font-bold text-gray-800 text-sm mb-1">Sin contracciones registradas</h4>
+          <p className="text-xs text-gray-500 max-w-xs mx-auto leading-relaxed">
+            Cuando sientas que tu abdomen se tensa o empiece una contracción, toca el botón grande. El sistema calculará la duración, el intervalo y te avisará si cumples la regla 5-1-1 para acudir al hospital.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <h4 className="font-bold text-gray-800 text-sm flex items-center gap-2">
+              <Activity size={18} className="text-teal-600"/> Historial ({history.length})
+            </h4>
+            <button
+              type="button"
+              onClick={clearHistory}
+              className="text-[11px] font-bold text-gray-400 hover:text-rose-600 transition-colors"
+            >
+              Reiniciar historial
+            </button>
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="grid grid-cols-4 bg-gray-50 p-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
               <div>Hora</div>
               <div>Duración</div>
               <div>Frecuencia</div>
+              <div>Quitar</div>
             </div>
-            <div className="divide-y divide-gray-50">
+            <div className="divide-y divide-gray-50 text-xs text-center">
               {history.map((item) => (
-                <div key={item.id} className="grid grid-cols-3 p-4 text-sm text-center items-center hover:bg-gray-50 transition-colors">
-                  <div className="text-gray-500 font-medium">
+                <div key={item.id} className="grid grid-cols-4 p-3.5 items-center hover:bg-gray-50/70 transition-colors">
+                  <div className="text-gray-600 font-medium">
                     {new Date(item.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
-                  <div className="font-bold text-teal-600 bg-teal-50 py-1 px-2 rounded-lg inline-block mx-auto">{formatTime(item.duration)}</div>
-                  <div className="font-bold text-rose-500">{item.interval ? formatTime(item.interval) : "—"}</div>
+                  <div>
+                    <span className="font-bold text-teal-700 bg-teal-50 py-1 px-2 rounded-lg inline-block tabular-nums">
+                      {formatTime(item.duration)}
+                    </span>
+                  </div>
+                  <div className="font-bold text-rose-600 tabular-nums">
+                    {item.interval ? formatTime(item.interval) : "—"}
+                  </div>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => deleteItem(item.id)}
+                      aria-label="Eliminar contracción"
+                      className="text-gray-300 hover:text-rose-500 p-1.5 rounded-lg transition-colors"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -2973,9 +3145,19 @@ function VotadorNombres({ showToast }: { showToast: any }) {
   const pendingNames = names.filter(n => n.status === "pending" && (genderFilter === "todos" || n.gender === genderFilter));
   const current = pendingNames[0];
   const matches = names.filter(n => n.status === "liked" && n.partnerLiked);
+  const [lastVotedId, setLastVotedId] = useState<number | null>(null);
 
   const vote = (id: number, status: "liked" | "disliked") => {
+    setLastVotedId(id);
     setNames(prev => prev.map(n => n.id === id ? { ...n, status } : n));
+  };
+
+  const undoLastVote = () => {
+    if (lastVotedId !== null) {
+      setNames(prev => prev.map(n => n.id === lastVotedId ? { ...n, status: "pending" } : n));
+      setLastVotedId(null);
+      showToast("Último voto deshecho", () => {});
+    }
   };
 
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -3019,7 +3201,7 @@ function VotadorNombres({ showToast }: { showToast: any }) {
             type="button"
             onClick={handleRequestMoreNames}
             disabled={isLoadingMore}
-            className="text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-full border border-teal-200/70 flex items-center gap-1.5 transition-colors disabled:opacity-60 shadow-xs"
+            className="text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 min-h-[38px] rounded-full border border-teal-200/70 flex items-center gap-1.5 transition-colors disabled:opacity-60 shadow-xs active:scale-95"
             title="Pedir más nombres a PandaIA"
           >
             {isLoadingMore ? (
@@ -3032,16 +3214,29 @@ function VotadorNombres({ showToast }: { showToast: any }) {
         </div>
       </div>
 
-      <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar pb-1">
-        {["todos", "niña", "niño", "neutro"].map(f => (
-          <button 
-            key={f}
-            onClick={() => setGenderFilter(f as any)}
-            className={`px-3 py-1 rounded-full text-xs font-bold uppercase transition-colors whitespace-nowrap ${genderFilter === f ? "bg-teal-600 text-white" : "bg-gray-100 text-gray-500"}`}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+          {["todos", "niña", "niño", "neutro"].map(f => (
+            <button 
+              key={f}
+              onClick={() => setGenderFilter(f as any)}
+              className={`px-3.5 py-2 min-h-[40px] rounded-full text-xs font-bold uppercase transition-colors whitespace-nowrap active:scale-95 ${genderFilter === f ? "bg-teal-600 text-white shadow-xs" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+
+        {lastVotedId !== null && (
+          <button
+            type="button"
+            onClick={undoLastVote}
+            className="text-xs font-bold text-gray-600 hover:text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 px-3 py-2 min-h-[40px] rounded-full shadow-xs active:scale-95 transition-all flex items-center gap-1 shrink-0 ml-2"
+            title="Deshacer el último voto de nombre"
           >
-            {f}
+            <Undo2 size={13} /> Deshacer
           </button>
-        ))}
+        )}
       </div>
       
       {current ? (
@@ -3475,9 +3670,9 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                   type="button"
                   onClick={() => setStep(s.id)}
                   aria-label={`Ir al paso ${s.id}: ${s.category}`}
-                  className="flex-1 focus:outline-none"
+                  className="flex-1 py-2 min-h-[40px] flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded-full"
                 >
-                  <div className={`h-2 rounded-full transition-all duration-300 ${
+                  <div className={`h-2 w-full rounded-full transition-all duration-300 ${
                     isPast ? "bg-teal-600" : isCurrent ? "bg-teal-500 ring-2 ring-teal-200" : "bg-gray-200"
                   }`} />
                 </button>
