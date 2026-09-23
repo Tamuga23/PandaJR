@@ -2443,22 +2443,86 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
 }
 
 function VotadorNombres({ showToast }: { showToast: any }) {
-  const [names, setNames] = useState([
-    { id: 1, text: "Valentina", origin: "Latín", meaning: "Valerosa, vigorosa.", status: "pending", partnerLiked: true, gender: "niña" },
-    { id: 2, text: "Mateo", origin: "Hebreo", meaning: "El gran regalo de Dios.", status: "pending", partnerLiked: false, gender: "niño" },
-    { id: 3, text: "Noa", origin: "Hebreo", meaning: "Delicia, descanso.", status: "pending", partnerLiked: true, gender: "neutro" },
-    { id: 4, text: "Emilio", origin: "Latín", meaning: "El que se esfuerza.", status: "pending", partnerLiked: true, gender: "niño" },
-    { id: 5, text: "Lucía", origin: "Latín", meaning: "La que nació a la luz del día.", status: "pending", partnerLiked: false, gender: "niña" },
-    { id: 6, text: "Alex", origin: "Griego", meaning: "Defensor/a.", status: "pending", partnerLiked: true, gender: "neutro" },
-  ]);
+  const [names, setNames] = useState<any[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("pandajr_baby_names");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (e) {}
+    }
+    return [
+      { id: 1, text: "Valentina", origin: "Latín", meaning: "Valerosa, vigorosa.", status: "pending", partnerLiked: true, gender: "niña" },
+      { id: 2, text: "Mateo", origin: "Hebreo", meaning: "El gran regalo de Dios.", status: "pending", partnerLiked: false, gender: "niño" },
+      { id: 3, text: "Noa", origin: "Hebreo", meaning: "Delicia, descanso.", status: "pending", partnerLiked: true, gender: "neutro" },
+      { id: 4, text: "Emilio", origin: "Latín", meaning: "El que se esfuerza.", status: "pending", partnerLiked: true, gender: "niño" },
+      { id: 5, text: "Lucía", origin: "Latín", meaning: "La que nació a la luz del día.", status: "pending", partnerLiked: false, gender: "niña" },
+      { id: 6, text: "Alex", origin: "Griego", meaning: "Defensor/a.", status: "pending", partnerLiked: true, gender: "neutro" },
+    ];
+  });
 
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [genderFilter, setGenderFilter] = useState<"todos"|"niño"|"niña"|"neutro">("todos");
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("pandajr_baby_names", JSON.stringify(names));
+    } catch (e) {}
+  }, [names]);
+
+  const handleRequestMoreNames = async () => {
+    if (isLoadingMore) return;
+    setIsLoadingMore(true);
+
+    try {
+      const existingNames = names.map(n => n.text);
+      const res = await fetch("/api/names", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          gender: genderFilter,
+          existingNames,
+          count: 6
+        })
+      });
+
+      if (!res.ok) throw new Error("Error en servidor al generar nombres");
+      const data = await res.json();
+
+      if (Array.isArray(data.names) && data.names.length > 0) {
+        const formatted = data.names.map((item: any, idx: number) => ({
+          id: Date.now() + idx,
+          text: item.text,
+          origin: item.origin || "Inspiración",
+          meaning: item.meaning || "Significado especial",
+          gender: item.gender || (genderFilter === "todos" ? "neutro" : genderFilter),
+          status: "pending",
+          partnerLiked: Math.random() > 0.45
+        }));
+
+        setNames(prev => [...prev, ...formatted]);
+        const msg = data.source === "gemini" 
+          ? `¡PandaIA generó ${formatted.length} nuevos nombres únicos con IA! ✨` 
+          : `¡${formatted.length} nuevos nombres únicos listos para votar! 👶`;
+        showToast(msg, () => {});
+      } else {
+        showToast("No hay más nombres disponibles para este filtro.", () => {});
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("No se pudo conectar con PandaIA. Intenta nuevamente.", () => {});
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   const pendingNames = names.filter(n => n.status === "pending" && (genderFilter === "todos" || n.gender === genderFilter));
   const current = pendingNames[0];
   const matches = names.filter(n => n.status === "liked" && n.partnerLiked);
 
-    const vote = (id: number, status: "liked" | "disliked") => {
+  const vote = (id: number, status: "liked" | "disliked") => {
     setNames(prev => prev.map(n => n.id === id ? { ...n, status } : n));
   };
 
@@ -2493,11 +2557,27 @@ function VotadorNombres({ showToast }: { showToast: any }) {
           <h3 className="text-xl font-bold text-gray-800">Nombres del Bebé</h3>
           <p className="text-xs text-gray-500">¿Hará match con tu pareja?</p>
         </div>
-        {matches.length > 0 && (
-          <div className="bg-rose-100 text-rose-600 font-bold px-3 py-1 rounded-full text-xs flex items-center gap-1 animate-pulse">
-            <Heart size={12} fill="currentColor"/> {matches.length} Matches
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {matches.length > 0 && (
+            <div className="bg-rose-100 text-rose-600 font-bold px-3 py-1 rounded-full text-xs flex items-center gap-1 animate-pulse">
+              <Heart size={12} fill="currentColor"/> {matches.length} Matches
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={handleRequestMoreNames}
+            disabled={isLoadingMore}
+            className="text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-full border border-teal-200/70 flex items-center gap-1.5 transition-colors disabled:opacity-60 shadow-xs"
+            title="Pedir más nombres a PandaIA"
+          >
+            {isLoadingMore ? (
+              <div className="w-3 h-3 border-2 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <Sparkles size={12} className="text-amber-500" />
+            )}
+            <span>+ Nombres</span>
+          </button>
+        </div>
       </div>
 
       <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar pb-1">
@@ -2561,30 +2641,30 @@ function VotadorNombres({ showToast }: { showToast: any }) {
             </p>
             <button 
               type="button"
-              onClick={() => {
-                const newSuggestions = [
-                  { id: Date.now() + 1, text: "Sofía", origin: "Griego", meaning: "Sabiduría y gracia", status: "pending", partnerLiked: true, gender: "niña" },
-                  { id: Date.now() + 2, text: "Lucas", origin: "Latín", meaning: "Luminoso y resplandeciente", status: "pending", partnerLiked: true, gender: "niño" },
-                  { id: Date.now() + 3, text: "Emma", origin: "Germánico", meaning: "Universal, entera y fuerte", status: "pending", partnerLiked: true, gender: "niña" },
-                  { id: Date.now() + 4, text: "Liam", origin: "Irlandés", meaning: "Protector decidido y valiente", status: "pending", partnerLiked: true, gender: "niño" },
-                  { id: Date.now() + 5, text: "Maya", origin: "Griego / Sánscrito", meaning: "Ilusión o madre protectora", status: "pending", partnerLiked: true, gender: "niña" },
-                  { id: Date.now() + 6, text: "Gael", origin: "Celta", meaning: "Hombre generoso y hospitalario", status: "pending", partnerLiked: true, gender: "niño" },
-                ];
-                setNames(prev => [...prev, ...newSuggestions]);
-                showToast("¡6 nuevos nombres sugeridos por PandaIA listos para votar! 👶", () => {});
-              }}
-              className="bg-teal-600 text-white font-bold py-3 px-6 rounded-full shadow-md hover:bg-teal-700 transition-colors flex items-center gap-2 active:scale-95"
+              disabled={isLoadingMore}
+              onClick={handleRequestMoreNames}
+              className="bg-teal-600 text-white font-bold py-3.5 px-6 rounded-full shadow-md hover:bg-teal-700 transition-colors flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60 w-full max-w-xs"
             >
-              <Bot size={18} /> Pedir más ideas a PandaIA
+              {isLoadingMore ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Buscando nombres únicos...</span>
+                </>
+              ) : (
+                <>
+                  <Bot size={18} /> Pedir más ideas a PandaIA
+                </>
+              )}
             </button>
             <button 
               type="button"
               onClick={() => {
                  setNames(prev => prev.map(n => ({...n, status: "pending"})));
+                 showToast("Nombres restablecidos a pendientes para volver a votar", () => {});
               }}
               className="mt-4 text-xs font-bold text-gray-500 hover:text-gray-700 uppercase tracking-wider transition-colors focus:outline-none"
             >
-              Volver a votar
+              Volver a votar los anteriores
             </button>
           </div>
         )}
