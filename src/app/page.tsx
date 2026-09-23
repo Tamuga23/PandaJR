@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2, Bell, RotateCcw, Trash2, PhoneCall, Check, Undo2 } from "lucide-react";
+import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2, Bell, RotateCcw, Trash2, PhoneCall, Check, Undo2, Printer, Copy, Edit3 } from "lucide-react";
 
 type Tab = "planificacion" | "agenda" | "herramientas" | "pandaia";
 
@@ -902,7 +902,7 @@ export default function PandaJRApp() {
           />
         </div>
         <div className={activeTab === "herramientas" ? "block w-full h-full" : "hidden"}>
-          <HerramientasView showToast={showToast} />
+          <HerramientasView showToast={showToast} profile={profile} />
         </div>
         <div className={activeTab === "pandaia" ? "block w-full h-full" : "hidden"}>
           <PandaIAView 
@@ -2145,7 +2145,7 @@ function SOSSintomas() {
   );
 }
 
-function HerramientasView({ showToast }: { showToast: any }) {
+function HerramientasView({ showToast, profile }: { showToast: any, profile?: UserProfile }) {
 
   const [activeTool, setActiveTool] = useState<any>("sos");
 
@@ -2191,7 +2191,7 @@ function HerramientasView({ showToast }: { showToast: any }) {
         <div className={activeTool === "patadas" ? "block w-full" : "hidden"}><ContadorPatadas showToast={showToast} /></div>
         <div className={activeTool === "contracciones" ? "block w-full" : "hidden"}><ContadorContracciones showToast={showToast} /></div>
         <div className={activeTool === "nombres" ? "block w-full" : "hidden"}><VotadorNombres showToast={showToast} /></div>
-        <div className={activeTool === "parto" ? "block w-full h-full" : "hidden"}><PlanParto /></div>
+        <div className={activeTool === "parto" ? "block w-full h-full" : "hidden"}><PlanParto profile={profile} showToast={showToast} /></div>
       </div>
     </div>
   );
@@ -3138,100 +3138,575 @@ function VotadorNombres({ showToast }: { showToast: any }) {
   );
 }
 
-function PlanParto() {
+interface PlanOption {
+  id: string;
+  label: string;
+  desc: string;
+  checked: boolean;
+}
+
+interface PlanSection {
+  id: number;
+  category: string;
+  title: string;
+  subtitle: string;
+  options: PlanOption[];
+}
+
+const DEFAULT_PLAN_SECTIONS: PlanSection[] = [
+  {
+    id: 1,
+    category: "Ambiente",
+    title: "1. Acompañamiento y Ambiente de Parto",
+    subtitle: "Tus preferencias para un entorno sereno, seguro y respetado.",
+    options: [
+      { id: "a1", label: "Acompañante continuo en todo momento", desc: "Deseo que mi pareja o acompañante esté presente en dilatación, expulsivo y recuperación sin interrupción.", checked: true },
+      { id: "a2", label: "Ambiente con luz tenue y silencioso", desc: "Reducir la iluminación artificial y el ruido en la sala para favorecer la producción de oxitocina natural.", checked: true },
+      { id: "a3", label: "Música propia y ropa cómoda", desc: "Llevaré mi propia lista de música relajante y ropa personal en lugar de la bata institucional abierta.", checked: true },
+      { id: "a4", label: "Libertad de movimiento y esferodinamia", desc: "Poder caminar, cambiar de postura libremente y utilizar pelota de pilates durante la fase de dilatación.", checked: true },
+      { id: "a5", label: "Hidratación y líquidos claros", desc: "Poder beber agua, infusiones o caldos ligeros para mantener energía durante el trabajo de parto.", checked: true },
+      { id: "a6", label: "Acceso a ducha o hidroterapia con agua caliente", desc: "Uso del agua tibia como método fisiológico y natural para el alivio del dolor de las contracciones.", checked: true }
+    ]
+  },
+  {
+    id: 2,
+    category: "Dolor y Procedimientos",
+    title: "2. Manejo del Dolor y Procedimientos Médicos",
+    subtitle: "Intervenciones farmacológicas y monitoreo clínico informado.",
+    options: [
+      { id: "d1", label: "Alivio no farmacológico primero", desc: "Masajes lumbares por mi acompañante, técnicas de respiración guiada, compresas y libertad postural.", checked: true },
+      { id: "d2", label: "Anestesia Epidural a demanda informada", desc: "Deseo que la epidural esté disponible y se aplique cuando yo lo solicite expresamente, sin apresurar.", checked: true },
+      { id: "d3", label: "Rotura espontánea de bolsa amniótica", desc: "Permitir que las membranas rompan de forma fisiológica; evitar la amniotomía artificial rutinaria.", checked: true },
+      { id: "d4", label: "Uso de Oxitocina sintética solo con justificación", desc: "No administrar goteo de oxitocina de rutina para acelerar el parto, salvo necesidad médica justificada.", checked: true },
+      { id: "d5", label: "Mínimo número de tactos vaginales", desc: "Realizar exploraciones vaginales únicamente cuando sea indispensable y avisando previamente con delicadeza.", checked: true }
+    ]
+  },
+  {
+    id: 3,
+    category: "Expulsivo",
+    title: "3. Periodo Expulsivo y Nacimiento",
+    subtitle: "Cómo deseas vivir el momento exacto en que nace tu bebé.",
+    options: [
+      { id: "e1", label: "Libertad de postura para dar a luz", desc: "Poder parir en la postura más instintiva y cómoda (semisentada, cuclillas, lateral o cuatro apoyos), evitando litotomía forzada.", checked: true },
+      { id: "e2", label: "Pujos espontáneos y fisiológicos", desc: "Pujar al compás natural de mis contracciones corporales en vez de pujos dirigidos en apnea forzada.", checked: true },
+      { id: "e3", label: "Protección perineal (No episiotomía de rutina)", desc: "Aplicación de compresas tibias y masajes perineales; realizar episiotomía solo ante riesgo fetal inminente.", checked: true },
+      { id: "e4", label: "Corte del cordón por el padre / acompañante", desc: "Deseo que mi acompañante tenga la oportunidad de cortar el cordón umbilical guiado por la matrona.", checked: true },
+      { id: "e5", label: "Contacto visual o tocar la cabecita al coronar", desc: "Deseo poder ver con espejo o tocar suavemente a mi bebé cuando empiece a coronar.", checked: false }
+    ]
+  },
+  {
+    id: 4,
+    category: "Recién Nacido",
+    title: "4. Cuidados Inmediatos del Recién Nacido (Hora Dorada)",
+    subtitle: "Apego temprano, corte de cordón y alimentación inicial.",
+    options: [
+      { id: "n1", label: "Corte tardío del cordón umbilical", desc: "Esperar al menos 2 a 3 minutos o hasta que el cordón deje de pulsar para maximizar el aporte de hierro y células madre.", checked: true },
+      { id: "n2", label: "Contacto Piel con Piel inmediato e ininterrumpido", desc: "Colocar al bebé directamente sobre mi pecho desnudo al nacer durante la primera hora de vida (Hora Dorada).", checked: true },
+      { id: "n3", label: "Retrasar procedimientos de rutina no urgentes", desc: "Pesar, medir, bañar y administrar gotas/vitamina K solo después de la primera hora de apego sobre el pecho.", checked: true },
+      { id: "n4", label: "Inicio precoz de Lactancia Materna", desc: "Facilitar el primer agarre espontáneo al pecho durante los primeros 60 minutos de vida con apoyo de matrona.", checked: true },
+      { id: "n5", label: "No suministrar suero, fórmula ni chupetes", desc: "Alimentación exclusiva al pecho salvo prescripción médica estricta y previamente consensuada con los padres.", checked: true }
+    ]
+  },
+  {
+    id: 5,
+    category: "Cesárea y Notas",
+    title: "5. En caso de Cesárea y Cuidados Especiales",
+    subtitle: "Cesárea humanizada y notas médicas particulares.",
+    options: [
+      { id: "c1", label: "Acompañante presente en quirófano", desc: "Que mi pareja esté a mi lado en todo momento durante la cesárea y en la sala de recuperación postoperatoria.", checked: true },
+      { id: "c2", label: "Piel con piel inmediato en quirófano o con el padre", desc: "Si la madre no puede por la intervención, que el padre realice el contacto piel con piel sin separarse del bebé.", checked: true },
+      { id: "c3", label: "Bajar pantalla en el alumbramiento", desc: "Permitirnos ver el momento exacto en que sacan al bebé si las condiciones quirúrgicas lo permiten.", checked: true },
+      { id: "c4", label: "Co-alojamiento conjunto 24 horas en habitación", desc: "Que el recién nacido permanezca en todo momento en la habitación con la madre, sin traslados rutinarios a nido.", checked: true }
+    ]
+  }
+];
+
+function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: any }) {
   const [step, setStep] = useState(1);
-  
-  const steps = [
-    {
-      id: 1, title: "Ambiente", 
-      options: [
-        { id: "a1", label: "Luz tenue", desc: "Ayuda a la relajación", checked: true },
-        { id: "a2", label: "Música propia", desc: "Llevaré mi playlist", checked: false },
-      ]
-    },
-    {
-      id: 2, title: "Manejo del Dolor", 
-      options: [
-        { id: "d1", label: "Epidural", desc: "Aplicar cuando se solicite", checked: true },
-        { id: "d2", label: "Pelota de pilates", desc: "Uso durante dilatación", checked: true },
-      ]
-    },
-    {
-      id: 3, title: "Post-Parto", 
-      options: [
-        { id: "p1", label: "Corte tardío del cordón", desc: "Esperar a que deje de latir", checked: true },
-        { id: "p2", label: "Piel a Piel inmediato", desc: "Contacto al nacer sin interrumpir", checked: true },
-      ]
+  const [viewMode, setViewMode] = useState<"wizard" | "document">("wizard");
+
+  // Datos del paciente editables y guardados
+  const [patientData, setPatientData] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("pandajr_birth_plan_patient");
+        if (saved) return JSON.parse(saved);
+      } catch (e) {}
     }
-  ];
+    return {
+      motherName: profile?.role === "mama" ? profile.name : "",
+      partnerName: profile?.role === "papa" ? profile.name : "",
+      hospital: profile?.location || "Hospital / Clínica de Maternidad",
+      week: profile?.week || 36,
+      doctor: "",
+      notes: profile?.notes || ""
+    };
+  });
 
-  const nextStep = () => setStep(s => Math.min(3, s + 1));
-  const prevStep = () => setStep(s => Math.max(1, s - 1));
+  // Secciones y opciones guardadas en localStorage
+  const [sections, setSections] = useState<PlanSection[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("pandajr_birth_plan_sections");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length === DEFAULT_PLAN_SECTIONS.length) return parsed;
+        }
+      } catch (e) {}
+    }
+    return DEFAULT_PLAN_SECTIONS;
+  });
 
-  const currentStepData = steps.find(s => s.id === step);
+  // Guardar cambios en localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem("pandajr_birth_plan_patient", JSON.stringify(patientData));
+      localStorage.setItem("pandajr_birth_plan_sections", JSON.stringify(sections));
+    } catch (e) {}
+  }, [patientData, sections]);
+
+  const toggleOption = (sectionId: number, optionId: string) => {
+    setSections(prev => prev.map(sec => {
+      if (sec.id !== sectionId) return sec;
+      return {
+        ...sec,
+        options: sec.options.map(opt => opt.id === optionId ? { ...opt, checked: !opt.checked } : opt)
+      };
+    }));
+  };
+
+  const handlePrint = () => {
+    showToast("Generando vista de impresión para PDF... 📄", () => {});
+    setTimeout(() => {
+      window.print();
+    }, 150);
+  };
+
+  const sharePlanWhatsApp = () => {
+    try {
+      const checkedOptions = sections.flatMap(sec => 
+        sec.options.filter(o => o.checked).map(o => `• [${sec.category}] ${o.label}`)
+      );
+
+      const text = [
+        `📋 *PLAN DE PARTO Y NACIMIENTO PANDAJR*`,
+        `🤰 *Madre:* ${patientData.motherName || "Gestante"}`,
+        `🧔 *Acompañante:* ${patientData.partnerName || "Pareja"}`,
+        `🏥 *Centro Médico:* ${patientData.hospital}`,
+        `📅 *Semana de Gestación:* ${patientData.week}`,
+        patientData.doctor ? `🩺 *Especialista:* ${patientData.doctor}` : "",
+        "",
+        `✨ *PREFERENCIAS Y CLÁUSULAS ACTIVAS (${checkedOptions.length}):*`,
+        ...checkedOptions,
+        "",
+        patientData.notes ? `📝 *Notas Especiales:* ${patientData.notes}\n` : "",
+        `👉 *Documento generado y coordinado con PandaJR*`
+      ].filter(Boolean).join("\n");
+
+      if (navigator.share) {
+        navigator.share({
+          title: "Plan de Parto PandaJR",
+          text: text
+        }).catch(() => {});
+      } else {
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
+      }
+    } catch(err) {
+      console.error(err);
+      showToast("No se pudo abrir el compartidor", () => {});
+    }
+  };
+
+  const resetToDefaults = () => {
+    setSections(DEFAULT_PLAN_SECTIONS);
+    showToast("Plan restablecido a los valores clínicos recomendados", () => {});
+  };
+
+  const currentSection = sections.find(s => s.id === step);
+  const totalCheckedCount = sections.reduce((acc, s) => acc + s.options.filter(o => o.checked).length, 0);
 
   return (
-    <div className="flex flex-col py-2 animate-in fade-in duration-300 h-full w-full">
-      <div className="text-center mb-6">
-        <h3 className="text-xl font-bold text-gray-800">Plan de Parto (Wizard)</h3>
-        <p className="text-sm text-gray-500">Paso {step} de 3</p>
+    <div className="flex flex-col py-2 animate-in fade-in duration-300 w-full">
+
+      {/* DOCUMENTO CLINICO IMPRESO (SOLO VISIBLE AL IMPRIMIR CON WINDOW.PRINT) */}
+      <div className="hidden print:block text-black bg-white p-8 max-w-4xl mx-auto space-y-6 text-sm">
+        <div className="border-b-2 border-teal-800 pb-4 flex justify-between items-end">
+          <div>
+            <h1 className="text-2xl font-black tracking-tight text-teal-900">PLAN DE PARTO Y NACIMIENTO INFORMADO</h1>
+            <p className="text-xs text-gray-600 mt-0.5">Expresión de voluntades y preferencias clínicas para la atención del parto y recién nacido</p>
+          </div>
+          <div className="text-right text-xs text-gray-500 font-mono">
+            <p>PandaJR Copiloto Fetal</p>
+            <p>Fecha: {new Date().toLocaleDateString("es-ES")}</p>
+          </div>
+        </div>
+
+        {/* Ficha de Identificación de Pacientes */}
+        <div className="grid grid-cols-2 gap-4 bg-gray-50 border border-gray-200 p-4 rounded-xl text-xs">
+          <div>
+            <p><strong>Madre Gestante:</strong> {patientData.motherName || "Por definir"}</p>
+            <p className="mt-1"><strong>Acompañante / Pareja:</strong> {patientData.partnerName || "Por definir"}</p>
+            <p className="mt-1"><strong>Semana Gestacional:</strong> Semana {patientData.week}</p>
+          </div>
+          <div>
+            <p><strong>Hospital / Clínica:</strong> {patientData.hospital || "Centro de maternidad"}</p>
+            <p className="mt-1"><strong>Obstetra / Matrona:</strong> {patientData.doctor || "Equipo de guardia"}</p>
+            {patientData.notes && <p className="mt-1"><strong>Observaciones:</strong> {patientData.notes}</p>}
+          </div>
+        </div>
+
+        {/* Cláusula Introductoria de Respeto Clínico */}
+        <div className="border-l-4 border-teal-600 pl-3 py-1 text-xs text-gray-700 italic bg-gray-50/50">
+          "A la atención del equipo obstétrico y pediátrico: Este plan expresa nuestros deseos y preferencias para el proceso de parto y postparto inmediato, entendiendo siempre que la salud y seguridad de la madre y del bebé priman ante cualquier eventualidad médica imprevista."
+        </div>
+
+        {/* Secciones y Preferencias Seleccionadas */}
+        <div className="space-y-5">
+          {sections.map(sec => {
+            const activeOpts = sec.options.filter(o => o.checked);
+            if (activeOpts.length === 0) return null;
+            return (
+              <div key={sec.id} className="space-y-1.5 break-inside-avoid">
+                <h3 className="font-bold text-teal-950 text-sm border-b border-gray-200 pb-1 uppercase tracking-wider">{sec.title}</h3>
+                <ul className="space-y-1 text-xs text-gray-800 pt-1">
+                  {activeOpts.map(opt => (
+                    <li key={opt.id} className="flex items-start gap-2">
+                      <span className="text-teal-700 font-bold">☑</span>
+                      <div>
+                        <strong>{opt.label}:</strong> <span className="text-gray-600">{opt.desc}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Sección de Firmas Formales */}
+        <div className="pt-8 mt-8 border-t border-gray-300 grid grid-cols-3 gap-6 text-center text-xs break-inside-avoid">
+          <div className="border-t border-gray-400 pt-2">
+            <p className="font-bold text-gray-800">{patientData.motherName || "Firma de la Madre"}</p>
+            <p className="text-[11px] text-gray-500">Madre Gestante</p>
+          </div>
+          <div className="border-t border-gray-400 pt-2">
+            <p className="font-bold text-gray-800">{patientData.partnerName || "Firma del Acompañante"}</p>
+            <p className="text-[11px] text-gray-500">Pareja / Acompañante</p>
+          </div>
+          <div className="border-t border-gray-400 pt-2">
+            <p className="font-bold text-gray-800">Recibido por Equipo Obstétrico</p>
+            <p className="text-[11px] text-gray-500">Firma y Sello del Profesional</p>
+          </div>
+        </div>
       </div>
 
-      <div className="flex justify-center gap-2 mb-8">
-        {[1,2,3].map(i => (
-          <div key={i} className={`h-2 w-12 rounded-full transition-colors ${i <= step ? "bg-teal-500" : "bg-gray-200"}`}></div>
-        ))}
+      {/* HEADER DE CONTROL EN LA APLICACIÓN (NO-PRINT) */}
+      <div className="no-print space-y-4">
+        <div className="flex justify-between items-start gap-3">
+          <div>
+            <div className="inline-flex items-center gap-1.5 bg-teal-50 border border-teal-200/80 px-2.5 py-0.5 rounded-full text-xs font-bold text-teal-800 mb-1">
+              <ClipboardList size={13} className="text-teal-600" /> Plan de Parto Respetado
+            </div>
+            <h3 className="text-2xl font-black text-gray-800">Tu Plan de Parto</h3>
+            <p className="text-xs text-gray-500">
+              Personaliza tus preferencias para el hospital y expórtalas en un PDF oficial.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="p-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl shadow-xs transition-all flex items-center gap-1.5 text-xs font-bold active:scale-95"
+              title="Guardar o imprimir en PDF"
+            >
+              <Printer size={16} />
+              <span className="hidden sm:inline">Imprimir PDF</span>
+            </button>
+            <button
+              type="button"
+              onClick={sharePlanWhatsApp}
+              className="p-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl shadow-xs transition-all flex items-center gap-1.5 text-xs font-bold active:scale-95"
+              title="Compartir por WhatsApp"
+            >
+              <Share2 size={16} />
+            </button>
+          </div>
+        </div>
+
+        {/* SELECTOR DE VISTA: WIZARD VS DOCUMENTO OFICIAL */}
+        <div className="flex bg-gray-100 p-1 rounded-2xl">
+          <button
+            type="button"
+            onClick={() => setViewMode("wizard")}
+            className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+              viewMode === "wizard" ? "bg-white text-teal-800 shadow-sm" : "text-gray-500 hover:text-gray-800"
+            }`}
+          >
+            <Edit3 size={14} /> Asistente Paso a Paso ({step}/5)
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("document")}
+            className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+              viewMode === "document" ? "bg-white text-teal-800 shadow-sm" : "text-gray-500 hover:text-gray-800"
+            }`}
+          >
+            <FileText size={14} /> Vista Previa Documento ({totalCheckedCount} seleccionadas)
+          </button>
+        </div>
       </div>
 
-      {currentStepData && (
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 mb-6 flex-1 w-full">
-          <h4 className="text-lg font-bold text-gray-800 mb-4">{currentStepData.title}</h4>
-          <div className="space-y-4">
-            {currentStepData.options.map(opt => (
-              <label key={opt.id} className="flex items-start gap-3 p-4 rounded-2xl border border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors">
-                <input type="checkbox" defaultChecked={opt.checked} className="mt-1 w-5 h-5 text-teal-600 rounded focus:ring-teal-500" />
-                <div>
-                  <span className="font-bold text-gray-700 block">{opt.label}</span>
-                  <span className="text-xs text-gray-500 block mt-0.5">{opt.desc}</span>
-                </div>
-              </label>
-            ))}
+      {/* VISTA 1: ASISTENTE PASO A PASO (WIZARD) */}
+      {viewMode === "wizard" && (
+        <div className="no-print mt-4 space-y-5">
+          {/* Progress Bar Steps */}
+          <div className="flex items-center gap-1.5">
+            {sections.map(s => {
+              const isPast = s.id < step;
+              const isCurrent = s.id === step;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setStep(s.id)}
+                  aria-label={`Ir al paso ${s.id}: ${s.category}`}
+                  className="flex-1 focus:outline-none"
+                >
+                  <div className={`h-2 rounded-full transition-all duration-300 ${
+                    isPast ? "bg-teal-600" : isCurrent ? "bg-teal-500 ring-2 ring-teal-200" : "bg-gray-200"
+                  }`} />
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Current Section Card */}
+          {currentSection && (
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 space-y-4 animate-in fade-in">
+              <div className="border-b border-gray-100 pb-3">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full">
+                  Paso {step} de 5 · {currentSection.category}
+                </span>
+                <h4 className="text-lg font-black text-gray-800 mt-1 leading-tight">{currentSection.title}</h4>
+                <p className="text-xs text-gray-500 mt-0.5">{currentSection.subtitle}</p>
+              </div>
+
+              {/* Opciones Interactivas con Switches */}
+              <div className="space-y-3">
+                {currentSection.options.map(opt => (
+                  <label
+                    key={opt.id}
+                    className={`flex items-start gap-3 p-3.5 rounded-2xl border transition-all cursor-pointer select-none ${
+                      opt.checked
+                        ? "bg-teal-50/60 border-teal-200 shadow-xs"
+                        : "bg-white border-gray-100 hover:border-gray-200 opacity-70"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={opt.checked}
+                      onChange={() => toggleOption(currentSection.id, opt.id)}
+                      className="mt-1 w-4 h-4 text-teal-600 rounded border-gray-300 focus:ring-teal-500"
+                    />
+                    <div className="flex-1">
+                      <span className={`text-xs font-bold block leading-snug ${opt.checked ? "text-teal-950" : "text-gray-700"}`}>
+                        {opt.label}
+                      </span>
+                      <span className="text-[11px] text-gray-500 block mt-0.5 leading-relaxed">
+                        {opt.desc}
+                      </span>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Botones de Navegación del Wizard */}
+          <div className="flex gap-2 pt-2">
+            {step > 1 && (
+              <button
+                type="button"
+                onClick={() => setStep(s => Math.max(1, s - 1))}
+                aria-label="Paso anterior"
+                className="py-3 px-4 bg-gray-100 text-gray-700 rounded-2xl hover:bg-gray-200 transition-colors font-bold text-xs flex items-center gap-1 active:scale-95"
+              >
+                <ArrowLeft size={16} /> Anterior
+              </button>
+            )}
+
+            {step < 5 ? (
+              <button
+                type="button"
+                onClick={() => setStep(s => Math.min(5, s + 1))}
+                className="flex-1 py-3 px-5 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl font-bold text-xs flex justify-center items-center gap-2 transition-all shadow-sm active:scale-95"
+              >
+                Siguiente Paso ({step + 1}/5) <ArrowRight size={16} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setViewMode("document")}
+                className="flex-1 py-3 px-5 bg-gray-900 hover:bg-gray-800 text-white rounded-2xl font-bold text-xs flex justify-center items-center gap-2 transition-all shadow-md active:scale-95"
+              >
+                <FileText size={16} /> Ver Documento Final
+              </button>
+            )}
           </div>
         </div>
       )}
 
-      <div className="flex gap-3 mt-auto">
-        {step > 1 && (
-          <button 
-            type="button"
-            onClick={prevStep} 
-            aria-label="Paso anterior del plan de parto"
-            className="p-4 bg-gray-100 text-gray-600 rounded-2xl hover:bg-gray-200 transition-colors active:scale-95"
-          >
-            <ArrowLeft size={24} />
-          </button>
-        )}
-        
-        {step < 3 ? (
-          <button 
-            type="button"
-            onClick={nextStep} 
-            className="flex-1 p-4 bg-teal-600 text-white rounded-2xl font-bold flex justify-center items-center gap-2 hover:bg-teal-700 transition-colors active:scale-95"
-          >
-            Siguiente <ArrowRight size={20} />
-          </button>
-        ) : (
-          <button 
-            type="button"
-            onClick={() => {
-              window.print();
-            }}
-            className="flex-1 p-4 bg-gray-900 text-white rounded-2xl font-bold flex justify-center items-center gap-2 hover:bg-gray-800 transition-colors active:scale-95 shadow-md"
-          >
-            <FileDown size={20} /> Guardar o Imprimir Plan (PDF)
-          </button>
-        )}
-      </div>
+      {/* VISTA 2: VISTA PREVIA DEL DOCUMENTO COMPLETO (INTERACTIVA) */}
+      {viewMode === "document" && (
+        <div className="no-print mt-4 space-y-5 animate-in fade-in">
+          {/* Card de Datos del Paciente / Hospital */}
+          <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 space-y-3">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+              <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
+                <Settings size={14} className="text-teal-600" /> Datos de la Ficha Médica
+              </h4>
+              <span className="text-[10px] text-gray-500">Se imprimirán en el encabezado</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label className="font-semibold text-gray-500 block mb-1">Nombre de la Madre:</label>
+                <input
+                  type="text"
+                  value={patientData.motherName}
+                  onChange={e => setPatientData({ ...patientData, motherName: e.target.value })}
+                  placeholder="Ej. Sofía Martínez"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="font-semibold text-gray-500 block mb-1">Acompañante / Pareja:</label>
+                <input
+                  type="text"
+                  value={patientData.partnerName}
+                  onChange={e => setPatientData({ ...patientData, partnerName: e.target.value })}
+                  placeholder="Ej. Carlos Pérez"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="font-semibold text-gray-500 block mb-1">Hospital / Clínica:</label>
+                <input
+                  type="text"
+                  value={patientData.hospital}
+                  onChange={e => setPatientData({ ...patientData, hospital: e.target.value })}
+                  placeholder="Ej. Hospital Materno Infantil"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="font-semibold text-gray-500 block mb-1">Obstetra / Matrona:</label>
+                <input
+                  type="text"
+                  value={patientData.doctor}
+                  onChange={e => setPatientData({ ...patientData, doctor: e.target.value })}
+                  placeholder="Ej. Dra. Gómez / Matrona de turno"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="font-semibold text-gray-500 block mb-1 text-xs">Observaciones Especiales o Alergias:</label>
+              <textarea
+                rows={2}
+                value={patientData.notes}
+                onChange={e => setPatientData({ ...patientData, notes: e.target.value })}
+                placeholder="Ej. Alergia a la penicilina, deseo donar sangre de cordón, etc."
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
+              />
+            </div>
+          </div>
+
+          {/* Resumen Estructurado del Documento */}
+          <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 space-y-4">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+              <h4 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                <FileText size={16} className="text-teal-600" /> Vista Previa del Documento
+              </h4>
+              <span className="text-xs font-bold text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full">
+                {totalCheckedCount} deseos activos
+              </span>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              {sections.map(sec => {
+                const active = sec.options.filter(o => o.checked);
+                return (
+                  <div key={sec.id} className="bg-slate-50/70 p-3.5 rounded-2xl border border-slate-100 space-y-2">
+                    <h5 className="font-bold text-gray-900 text-xs flex justify-between items-center">
+                      <span>{sec.title}</span>
+                      <span className="text-gray-500 font-normal">{active.length} de {sec.options.length}</span>
+                    </h5>
+                    {active.length === 0 ? (
+                      <p className="text-gray-400 italic text-[11px]">Sin preferencias seleccionadas en este apartado.</p>
+                    ) : (
+                      <ul className="space-y-1.5">
+                        {active.map(opt => (
+                          <li key={opt.id} className="flex items-start gap-2 text-gray-700">
+                            <CheckCircle2 size={14} className="text-teal-600 shrink-0 mt-0.5" />
+                            <span><strong>{opt.label}:</strong> {opt.desc}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Barra de Acciones de Exportación */}
+          <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-teal-900 text-white p-5 rounded-3xl shadow-lg space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="bg-white/10 p-2.5 rounded-2xl">
+                <Printer size={22} className="text-teal-300" />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm">¿Todo listo para el día del parto?</h4>
+                <p className="text-xs text-gray-300">Imprime 2 copias (una para el historial y otra para la matrona) o guárdalo como PDF en tu teléfono.</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <button
+                type="button"
+                onClick={handlePrint}
+                className="py-3 px-4 bg-teal-500 hover:bg-teal-400 text-teal-950 font-bold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 active:scale-95"
+              >
+                <Printer size={15} /> Imprimir / PDF
+              </button>
+              <button
+                type="button"
+                onClick={sharePlanWhatsApp}
+                className="py-3 px-4 bg-white/20 hover:bg-white/30 text-white font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95"
+              >
+                <Share2 size={15} /> WhatsApp
+              </button>
+            </div>
+
+            <div className="pt-2 text-center">
+              <button
+                type="button"
+                onClick={resetToDefaults}
+                className="text-[11px] text-gray-400 hover:text-white underline transition-colors"
+              >
+                Restablecer opciones predeterminadas
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
