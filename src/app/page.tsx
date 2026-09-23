@@ -6,8 +6,192 @@ import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight
 
 type Tab = "planificacion" | "agenda" | "herramientas" | "pandaia";
 
+export interface UserProfile {
+  role: "papa" | "mama";
+  name: string;
+  week: number;
+  location: string;
+  notes: string;
+}
+
+function ProfileModal({ 
+  profile, 
+  onSave, 
+  onClose 
+}: { 
+  profile: UserProfile;
+  onSave: (p: UserProfile) => void;
+  onClose: () => void;
+}) {
+  const [form, setForm] = useState(profile);
+
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in">
+      <div className="bg-white rounded-3xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="bg-teal-600 p-4 flex justify-between items-center text-white">
+          <h3 className="font-bold flex items-center gap-2">
+            <Settings size={18} /> Configurar Perfil
+          </h3>
+          <button onClick={onClose} className="text-teal-100 hover:text-white transition-colors" aria-label="Cerrar">
+            <X size={20} />
+          </button>
+        </div>
+        
+        <div className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
+          <p className="text-xs text-gray-500">
+            Define quién está usando la app en este dispositivo. Esto adapta la Guía, la Agenda y PandaIA:
+          </p>
+
+          {/* Selector de Rol */}
+          <div>
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
+              Rol en este dispositivo
+            </label>
+            <div className="grid grid-cols-2 gap-2 bg-gray-100 p-1 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setForm(p => ({ ...p, role: "papa" }))}
+                className={`py-2 text-xs font-bold rounded-lg transition-all ${
+                  form.role === "papa" ? "bg-white text-teal-700 shadow-sm" : "text-gray-500"
+                }`}
+              >
+                🧔 Soy el Papá
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm(p => ({ ...p, role: "mama" }))}
+                className={`py-2 text-xs font-bold rounded-lg transition-all ${
+                  form.role === "mama" ? "bg-white text-teal-700 shadow-sm" : "text-gray-500"
+                }`}
+              >
+                👩 Soy la Mamá
+              </button>
+            </div>
+          </div>
+
+          {/* Nombre / Apodo */}
+          <div>
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
+              Nombre o Apodo (Opcional)
+            </label>
+            <input
+              type="text"
+              value={form.name}
+              onChange={(e) => setForm(p => ({ ...p, name: e.target.value }))}
+              placeholder="Ej. Carlos o Sofía"
+              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+            />
+          </div>
+
+          {/* Semana de Gestación */}
+          <div>
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
+              Semana de Gestación Actual
+            </label>
+            <input
+              type="number"
+              min={1}
+              max={42}
+              value={form.week}
+              onChange={(e) => setForm(p => ({ ...p, week: parseInt(e.target.value, 10) || 1 }))}
+              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+            />
+          </div>
+
+          {/* Ubicación / Ciudad (Opcional) */}
+          <div>
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
+              Ciudad o País (Opcional)
+            </label>
+            <input
+              type="text"
+              value={form.location}
+              onChange={(e) => setForm(p => ({ ...p, location: e.target.value }))}
+              placeholder="Para recomendaciones locales"
+              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+            />
+          </div>
+
+          {/* Notas personales o médicas */}
+          <div>
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
+              Notas de rutina o preferencias
+            </label>
+            <textarea
+              rows={2}
+              value={form.notes}
+              onChange={(e) => setForm(p => ({ ...p, notes: e.target.value }))}
+              placeholder="Ej. Trabajo en turnos, cesárea programada, etc."
+              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none resize-none"
+            />
+          </div>
+        </div>
+
+        <div className="p-4 border-t border-gray-100 bg-gray-50 flex gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 py-2.5 text-sm font-semibold text-gray-500 hover:bg-gray-100 rounded-xl transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={() => onSave(form)}
+            className="flex-1 py-2.5 text-sm font-bold bg-teal-600 hover:bg-teal-700 text-white rounded-xl shadow-md transition-all active:scale-95"
+          >
+            Guardar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function PandaJRApp() {
-    const [activeTab, setActiveTab] = useState<Tab>("planificacion");
+  const [activeTab, setActiveTab] = useState<Tab>("planificacion");
+
+  // Perfil global de usuario (compartido en toda la app)
+  const [profile, setProfile] = useState<UserProfile>({
+    role: "papa",
+    name: "",
+    week: 14,
+    location: "",
+    notes: ""
+  });
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  // Cargar perfil global de localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("pandajr_user_profile");
+      if (saved) {
+        setProfile(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  const updateProfile = (updates: Partial<UserProfile>) => {
+    setProfile(prev => {
+      const updated = { ...prev, ...updates };
+      try {
+        localStorage.setItem("pandajr_user_profile", JSON.stringify(updated));
+      } catch (e) {
+        console.error(e);
+      }
+      return updated;
+    });
+  };
   
   const [events, setEvents] = useState([
     { id: 1, date: "15 Oct", rawDate: "2026-10-15", time: "10:30 AM", title: "Ecografía de las 12 Semanas (Tamizaje)", doctor: "Dra. Ramírez" },
@@ -75,34 +259,60 @@ export default function PandaJRApp() {
 
   return (
     <div className="flex flex-col min-h-screen w-full max-w-md mx-auto bg-gray-50 text-gray-900 font-sans relative pb-16 shadow-2xl overflow-x-hidden">
-      {/* Header */}
-      <header className="bg-white px-5 py-3 shadow-sm sticky top-0 z-40 w-full flex items-center">
-        <h1 className="sr-only">PandaJR</h1>
-        <Image 
-          src="/logo.png" 
-          alt="PandaJR" 
-          width={136} 
-          height={36} 
-          priority 
-          className="h-8 sm:h-9 w-auto object-contain"
-        />
+      {/* Header con Logo y Selector Global de Perfil */}
+      <header className="bg-white px-5 py-2.5 shadow-sm sticky top-0 z-40 w-full flex items-center justify-between">
+        <div className="flex items-center">
+          <h1 className="sr-only">PandaJR</h1>
+          <Image 
+            src="/logo.png" 
+            alt="PandaJR" 
+            width={136} 
+            height={36} 
+            priority 
+            className="h-8 sm:h-9 w-auto object-contain"
+          />
+        </div>
+
+        {/* Botón Global de Perfil / Switcher */}
+        <button
+          onClick={() => setIsProfileModalOpen(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-teal-50 border border-teal-200/70 hover:bg-teal-100 transition-all text-xs font-bold text-teal-700 active:scale-95 shadow-xs"
+          title="Configurar tu rol y perfil en este dispositivo"
+        >
+          <span>{profile.role === "papa" ? "🧔" : "👩"}</span>
+          <span>{profile.name || (profile.role === "papa" ? "Papá" : "Mamá")}</span>
+          <Settings size={13} className="text-teal-500 opacity-70 ml-0.5" />
+        </button>
       </header>
 
       {/* Main Content Area */}
       <main className="flex-1 w-full overflow-y-auto pb-6">
         <div className={activeTab === "planificacion" ? "block w-full h-full" : "hidden"}>
-          <GuiaPapaView showToast={showToast} />
+          <GuiaPapaView showToast={showToast} profile={profile} updateProfile={updateProfile} />
         </div>
         <div className={activeTab === "agenda" ? "block w-full h-full" : "hidden"}>
-          <AgendaView showToast={showToast} events={events} setEvents={setEvents} />
+          <AgendaView showToast={showToast} events={events} setEvents={setEvents} profile={profile} updateProfile={updateProfile} />
         </div>
         <div className={activeTab === "herramientas" ? "block w-full h-full" : "hidden"}>
           <HerramientasView showToast={showToast} />
         </div>
         <div className={activeTab === "pandaia" ? "block w-full h-full" : "hidden"}>
-          <PandaIAView showToast={showToast} addEvent={handleAIAddEvent} />
+          <PandaIAView showToast={showToast} addEvent={handleAIAddEvent} profile={profile} openProfileModal={() => setIsProfileModalOpen(true)} />
         </div>
       </main>
+
+      {/* Profile Modal Global */}
+      {isProfileModalOpen && (
+        <ProfileModal
+          profile={profile}
+          onSave={(newProfile) => {
+            updateProfile(newProfile);
+            showToast("Perfil actualizado en este dispositivo", () => {});
+            setIsProfileModalOpen(false);
+          }}
+          onClose={() => setIsProfileModalOpen(false)}
+        />
+      )}
 
       {/* Floating Toast Notification with Undo */}
       {toast && (
@@ -299,8 +509,12 @@ function getWeekData(week: number) {
   };
 }
 
-function GuiaPapaView({ showToast }: { showToast: any }) {
-  const [week, setWeek] = useState(14);
+function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, profile: UserProfile, updateProfile: (u: Partial<UserProfile>) => void }) {
+  const week = profile.week || 14;
+  const setWeek = (updater: number | ((w: number) => number)) => {
+    const nextWeek = typeof updater === "function" ? updater(week) : updater;
+    updateProfile({ week: nextWeek });
+  };
   const weekData = getWeekData(week);
 
   // Checklist state
@@ -408,11 +622,13 @@ function GuiaPapaView({ showToast }: { showToast: any }) {
           </div>
         </div>
 
-        {/* Misión del Papá */}
+        {/* Misión */}
         <div className="bg-teal-50 border-t border-teal-100 p-5">
           <div className="flex items-center gap-2 mb-2">
             <Trophy size={18} className="text-teal-600" />
-            <h3 className="font-bold text-teal-800 text-sm">Misión del Papá</h3>
+            <h3 className="font-bold text-teal-800 text-sm">
+              {profile.role === "papa" ? "Misión del Papá" : "Misión de la Mamá"}
+            </h3>
           </div>
           <p className="text-teal-900 text-sm leading-relaxed">
             {weekData.dadMission}
@@ -423,7 +639,9 @@ function GuiaPapaView({ showToast }: { showToast: any }) {
       {/* 2. Checklist Module */}
       <div>
         <div className="flex justify-between items-end mb-3">
-          <h2 className="text-xl font-bold text-gray-800">Checklists del Papá</h2>
+          <h2 className="text-xl font-bold text-gray-800">
+            {profile.role === "papa" ? "Checklists del Papá" : "Checklists de la Mamá"}
+          </h2>
           <span className="text-teal-600 font-bold text-sm">{progressPercent}% completado</span>
         </div>
         
@@ -485,9 +703,7 @@ function GuiaPapaView({ showToast }: { showToast: any }) {
 }
 
 // --- VISTA 2: AGENDA ---
-function AgendaView({ showToast, events, setEvents }: { showToast: any, events: any[], setEvents: any }) {
-  const [profile, setProfile] = React.useState<"mama"|"papa">("papa");
-
+function AgendaView({ showToast, events, setEvents, profile, updateProfile }: { showToast: any, events: any[], setEvents: any, profile: UserProfile, updateProfile: (u: Partial<UserProfile>) => void }) {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [editingEvent, setEditingEvent] = React.useState<any>(null);
   
@@ -623,11 +839,11 @@ function AgendaView({ showToast, events, setEvents }: { showToast: any, events: 
       {/* Header destacado */}
       <div className="bg-teal-600 px-6 py-8 text-white rounded-b-3xl shadow-md shrink-0">
         <p className="text-teal-100 text-sm font-medium mb-1">Etapa actual</p>
-        <h2 className="text-2xl font-bold">Semana 12 <br/><span className="text-lg font-medium text-teal-200">(Fin del primer trimestre)</span></h2>
+        <h2 className="text-2xl font-bold">Semana {profile.week} <br/><span className="text-lg font-medium text-teal-200">({profile.week <= 13 ? "Primer trimestre" : profile.week <= 27 ? "Segundo trimestre" : "Tercer trimestre"})</span></h2>
         <div className="mt-4 bg-white/20 rounded-full h-1.5 w-full overflow-hidden">
-          <div className="bg-white h-full w-[30%] rounded-full"></div>
+          <div className="bg-white h-full transition-all duration-500 rounded-full" style={{ width: `${Math.min(100, Math.round((profile.week / 40) * 100))}%` }}></div>
         </div>
-        <p className="text-teal-50 text-xs mt-2 text-right">Faltan 28 semanas</p>
+        <p className="text-teal-50 text-xs mt-2 text-right">Faltan {Math.max(0, 40 - profile.week)} semanas</p>
       </div>
 
       <div className="p-5 flex-1 overflow-y-auto space-y-6 pb-20">
@@ -636,14 +852,14 @@ function AgendaView({ showToast, events, setEvents }: { showToast: any, events: 
         <div>
           <div className="flex bg-gray-100 rounded-full p-1 mb-3">
             <button 
-              onClick={() => setProfile("mama")}
-              className={`flex-1 py-1.5 text-sm font-bold rounded-full transition-colors ${profile === "mama" ? "bg-white text-teal-600 shadow-sm" : "text-gray-500"}`}
+              onClick={() => updateProfile({ role: "mama" })}
+              className={`flex-1 py-1.5 text-sm font-bold rounded-full transition-colors ${profile.role === "mama" ? "bg-white text-teal-600 shadow-sm" : "text-gray-500"}`}
             >
               Perfil: Mamá
             </button>
             <button 
-              onClick={() => setProfile("papa")}
-              className={`flex-1 py-1.5 text-sm font-bold rounded-full transition-colors ${profile === "papa" ? "bg-white text-teal-600 shadow-sm" : "text-gray-500"}`}
+              onClick={() => updateProfile({ role: "papa" })}
+              className={`flex-1 py-1.5 text-sm font-bold rounded-full transition-colors ${profile.role === "papa" ? "bg-white text-teal-600 shadow-sm" : "text-gray-500"}`}
             >
               Perfil: Papá
             </button>
@@ -658,7 +874,7 @@ function AgendaView({ showToast, events, setEvents }: { showToast: any, events: 
             </div>
             
             <div className="space-y-2">
-              {(profile === "mama" ? suggestions.mama : suggestions.papa).map((s) => (
+              {(profile.role === "mama" ? suggestions.mama : suggestions.papa).map((s) => (
                 <div key={s.id} className="flex gap-2 items-start group/item">
                   <div className="mt-1 flex-shrink-0 w-4 h-4 bg-teal-100 rounded-full flex items-center justify-center">
                     <CheckCircle2 size={10} className="text-teal-600" />
@@ -669,7 +885,7 @@ function AgendaView({ showToast, events, setEvents }: { showToast: any, events: 
                   </button>
                 </div>
               ))}
-              {(profile === "mama" ? suggestions.mama : suggestions.papa).length === 0 && (
+              {(profile.role === "mama" ? suggestions.mama : suggestions.papa).length === 0 && (
                 <p className="text-sm text-gray-400 italic text-center py-2">No hay más sugerencias por ahora.</p>
               )}
             </div>
@@ -803,68 +1019,12 @@ function AgendaView({ showToast, events, setEvents }: { showToast: any, events: 
 }
 
 // --- VISTA 3: PANDA IA ---
-function PandaIAView({ showToast, addEvent }: { showToast: any, addEvent: any }) {
+function PandaIAView({ showToast, addEvent, profile, openProfileModal }: { showToast: any, addEvent: any, profile: UserProfile, openProfileModal: () => void }) {
   const [messages, setMessages] = useState<any[]>([
     { id: 1, sender: "ai", text: "¡Hola! Soy PandaIA. ¿En qué te ayudo hoy?" }
   ]);
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [showContextModal, setShowContextModal] = useState(false);
-
-  const [profile, setProfile] = useState<{
-    role: "papa" | "mama";
-    name: string;
-    week: number;
-    location: string;
-    notes: string;
-  }>({
-    role: "papa",
-    name: "",
-    week: 14,
-    location: "",
-    notes: ""
-  });
-
-  const [editProfile, setEditProfile] = useState(profile);
-
-  // Cargar perfil guardado del dispositivo
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("pandajr_user_profile");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setProfile(parsed);
-        setEditProfile(parsed);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }, []);
-
-  const openContextModal = () => {
-    setEditProfile(profile);
-    setShowContextModal(true);
-  };
-
-  const handleSaveProfile = (newProfile: typeof profile) => {
-    setProfile(newProfile);
-    try {
-      localStorage.setItem("pandajr_user_profile", JSON.stringify(newProfile));
-      if (showToast) showToast("Perfil actualizado en este teléfono", () => {});
-    } catch (e) {
-      console.error(e);
-    }
-    setShowContextModal(false);
-  };
-
-  // Escape key handler for modal
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setShowContextModal(false);
-    };
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
-  }, []);
 
 
     const [smartChips, setSmartChips] = useState([
@@ -959,7 +1119,7 @@ function PandaIAView({ showToast, addEvent }: { showToast: any, addEvent: any })
           </div>
         </div>
         <button 
-          onClick={openContextModal} 
+          onClick={openProfileModal} 
           className="p-2 text-teal-600 hover:bg-teal-50 rounded-xl transition-colors flex items-center gap-1.5 border border-teal-100 shadow-sm"
           aria-label="Configurar perfil"
         >
@@ -1062,128 +1222,6 @@ function PandaIAView({ showToast, addEvent }: { showToast: any, addEvent: any })
         </div>
       </div>
 
-      {/* CONTEXT MODAL (Configuración Editable de Perfil) */}
-      {showContextModal && (
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-white rounded-3xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="bg-teal-600 p-4 flex justify-between items-center text-white">
-              <h3 className="font-bold flex items-center gap-2">
-                <Settings size={18} /> Configurar Perfil
-              </h3>
-              <button onClick={() => setShowContextModal(false)} className="text-teal-100 hover:text-white transition-colors">
-                <X size={20} />
-              </button>
-            </div>
-            
-            <div className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
-              <p className="text-xs text-gray-500">
-                Personaliza quién está usando la app en este teléfono. Cada pareja puede guardar su propio perfil independiente:
-              </p>
-
-              {/* Selector de Rol */}
-              <div>
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
-                  Rol activo en este dispositivo
-                </label>
-                <div className="grid grid-cols-2 gap-2 bg-gray-100 p-1 rounded-xl">
-                  <button
-                    type="button"
-                    onClick={() => setEditProfile(p => ({ ...p, role: "papa" }))}
-                    className={`py-2 text-xs font-bold rounded-lg transition-all ${
-                      editProfile.role === "papa" ? "bg-white text-teal-700 shadow-sm" : "text-gray-500"
-                    }`}
-                  >
-                    🧔 Soy el Papá
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditProfile(p => ({ ...p, role: "mama" }))}
-                    className={`py-2 text-xs font-bold rounded-lg transition-all ${
-                      editProfile.role === "mama" ? "bg-white text-teal-700 shadow-sm" : "text-gray-500"
-                    }`}
-                  >
-                    👩 Soy la Mamá
-                  </button>
-                </div>
-              </div>
-
-              {/* Nombre / Apodo */}
-              <div>
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
-                  Nombre o Apodo (Opcional)
-                </label>
-                <input
-                  type="text"
-                  value={editProfile.name}
-                  onChange={(e) => setEditProfile(p => ({ ...p, name: e.target.value }))}
-                  placeholder="Ej. Carlos o Sofía"
-                  className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                />
-              </div>
-
-              {/* Semana de Gestación */}
-              <div>
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
-                  Semana de Gestación
-                </label>
-                <input
-                  type="number"
-                  min={1}
-                  max={42}
-                  value={editProfile.week}
-                  onChange={(e) => setEditProfile(p => ({ ...p, week: parseInt(e.target.value, 10) || 1 }))}
-                  className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                />
-              </div>
-
-              {/* Ubicación / Ciudad (Opcional) */}
-              <div>
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
-                  Ciudad o País (Opcional)
-                </label>
-                <input
-                  type="text"
-                  value={editProfile.location}
-                  onChange={(e) => setEditProfile(p => ({ ...p, location: e.target.value }))}
-                  placeholder="Ej. Madrid, Santiago, CDMX..."
-                  className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                />
-              </div>
-
-              {/* Notas personales o médicas */}
-              <div>
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
-                  Notas de rutina o preferencias
-                </label>
-                <textarea
-                  rows={2}
-                  value={editProfile.notes}
-                  onChange={(e) => setEditProfile(p => ({ ...p, notes: e.target.value }))}
-                  placeholder="Ej. Trabajo en turnos, cesárea programada, etc."
-                  className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none resize-none"
-                />
-              </div>
-            </div>
-
-            <div className="p-4 border-t border-gray-100 bg-gray-50 flex gap-2">
-              <button
-                type="button"
-                onClick={() => setShowContextModal(false)}
-                className="flex-1 py-2.5 text-sm font-semibold text-gray-500 hover:bg-gray-100 rounded-xl transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSaveProfile(editProfile)}
-                className="flex-1 py-2.5 text-sm font-bold bg-teal-600 hover:bg-teal-700 text-white rounded-xl shadow-md transition-all active:scale-95"
-              >
-                Guardar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
