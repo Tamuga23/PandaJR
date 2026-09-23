@@ -34,13 +34,18 @@ function ProfileModal({
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in">
+    <div 
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="profile-modal-title"
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in"
+    >
       <div className="bg-white rounded-3xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="bg-teal-600 p-4 flex justify-between items-center text-white">
-          <h3 className="font-bold flex items-center gap-2">
+          <h3 id="profile-modal-title" className="font-bold flex items-center gap-2">
             <Settings size={18} /> Configurar Perfil
           </h3>
-          <button onClick={onClose} className="text-teal-100 hover:text-white transition-colors" aria-label="Cerrar">
+          <button onClick={onClose} className="text-teal-100 hover:text-white transition-colors" aria-label="Cerrar ventana de perfil">
             <X size={20} />
           </button>
         </div>
@@ -79,10 +84,11 @@ function ProfileModal({
 
           {/* Nombre / Apodo */}
           <div>
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
+            <label htmlFor="profile-name" className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
               Nombre o Apodo (Opcional)
             </label>
             <input
+              id="profile-name"
               type="text"
               value={form.name}
               onChange={(e) => setForm(p => ({ ...p, name: e.target.value }))}
@@ -93,10 +99,11 @@ function ProfileModal({
 
           {/* Semana de Gestación */}
           <div>
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
+            <label htmlFor="profile-week" className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
               Semana de Gestación Actual
             </label>
             <input
+              id="profile-week"
               type="number"
               min={1}
               max={42}
@@ -108,10 +115,11 @@ function ProfileModal({
 
           {/* Ubicación / Ciudad (Opcional) */}
           <div>
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
+            <label htmlFor="profile-location" className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
               Ciudad o País (Opcional)
             </label>
             <input
+              id="profile-location"
               type="text"
               value={form.location}
               onChange={(e) => setForm(p => ({ ...p, location: e.target.value }))}
@@ -122,10 +130,11 @@ function ProfileModal({
 
           {/* Notas personales o médicas */}
           <div>
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
+            <label htmlFor="profile-notes" className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
               Notas de rutina o preferencias
             </label>
             <textarea
+              id="profile-notes"
               rows={2}
               value={form.notes}
               onChange={(e) => setForm(p => ({ ...p, notes: e.target.value }))}
@@ -531,15 +540,28 @@ function AppointmentPrepModal({
     });
   };
 
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
+    <div 
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="prep-modal-title"
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in"
+    >
       <div className="bg-white w-full max-h-[92vh] sm:max-w-md sm:rounded-3xl rounded-t-3xl overflow-hidden shadow-2xl flex flex-col animate-in slide-in-from-bottom-6">
         {/* Header con gradiente */}
         <div className="bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-600 p-5 text-white shrink-0 relative">
           <button 
             onClick={onClose} 
             className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white p-1.5 rounded-full transition-colors"
-            aria-label="Cerrar"
+            aria-label="Cerrar guía de preparación"
           >
             <X size={18} />
           </button>
@@ -555,7 +577,7 @@ function AppointmentPrepModal({
             )}
           </div>
 
-          <h3 className="text-xl font-black leading-tight pr-6">{event.title}</h3>
+          <h3 id="prep-modal-title" className="text-xl font-black leading-tight pr-6">{event.title}</h3>
           
           <div className="flex items-center gap-4 mt-2.5 text-xs text-teal-100 font-medium">
             <span className="flex items-center gap-1.5"><Calendar size={14} className="text-teal-300" /> {event.date}</span>
@@ -581,7 +603,7 @@ function AppointmentPrepModal({
               <h4 className="font-bold text-gray-800 text-sm flex items-center gap-2">
                 <ShoppingBag size={17} className="text-teal-600" /> ¿Qué debes llevar?
               </h4>
-              <span className="text-[11px] font-semibold text-gray-400">
+              <span className="text-[11px] font-semibold text-gray-500">
                 {Object.values(checkedItems).filter(Boolean).length} de {prep.whatToBring.length} listos
               </span>
             </div>
@@ -615,7 +637,7 @@ function AppointmentPrepModal({
               <h4 className="font-bold text-gray-800 text-sm flex items-center gap-2">
                 <ClipboardList size={17} className="text-teal-600" /> Preguntas clave para el doctor
               </h4>
-              <span className="text-[11px] font-semibold text-gray-400">
+              <span className="text-[11px] font-semibold text-gray-500">
                 {Object.values(checkedQuestions).filter(Boolean).length} de {prep.whatToAsk.length} hechas
               </span>
             </div>
@@ -922,7 +944,7 @@ export default function PandaJRApp() {
 
       {/* Floating Toast Notification with Undo */}
       {toast && (
-        <div className="fixed bottom-20 left-4 right-4 max-w-[calc(28rem-2rem)] mx-auto bg-gray-900/95 text-white px-4 py-3 rounded-2xl shadow-2xl z-50 flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-3 duration-200 backdrop-blur-sm border border-gray-800">
+        <div className="fixed bottom-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.5rem))] left-4 right-4 max-w-[calc(28rem-2rem)] mx-auto bg-gray-900/95 text-white px-4 py-3 rounded-2xl shadow-2xl z-50 flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-3 duration-200 backdrop-blur-sm border border-gray-800">
           <span className="text-sm font-medium">{toast.message}</span>
           <button 
             onClick={() => { toast.onUndo(); setToast(null); }}
@@ -934,7 +956,7 @@ export default function PandaJRApp() {
       )}
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-100 flex justify-around items-center px-2 py-3 z-50">
+      <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-100 flex justify-around items-center px-2 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] z-50">
         <NavItem
           icon={<Compass size={24} />}
           label="Guía"
@@ -969,7 +991,7 @@ function NavItem({ icon, label, isActive, onClick }: { icon: React.ReactNode, la
     <button
       onClick={onClick}
       className={`flex flex-col items-center gap-1 w-full p-2 transition-colors duration-200 ${
-        isActive ? "text-teal-600" : "text-gray-400 hover:text-gray-600"
+        isActive ? "text-teal-600 font-semibold" : "text-gray-500 hover:text-gray-700"
       }`}
     >
       {icon}
@@ -1269,12 +1291,12 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-800 text-left">{cat.title}</h3>
-                    <p className="text-xs text-gray-400 text-left">
+                    <p className="text-xs text-gray-500 text-left">
                       {cat.tasks.filter(t => t.completed).length} de {cat.tasks.length} completadas
                     </p>
                   </div>
                 </div>
-                {cat.expanded ? <ChevronUp size={20} className="text-gray-400" /> : <ChevronDown size={20} className="text-gray-400" />}
+                {cat.expanded ? <ChevronUp size={20} className="text-gray-500" /> : <ChevronDown size={20} className="text-gray-500" />}
               </button>
               
               {cat.expanded && (
@@ -1328,6 +1350,16 @@ function AgendaView({
   const [editingEvent, setEditingEvent] = React.useState<any>(null);
   
   const [newEvent, setNewEvent] = React.useState({ title: "", date: "", time: "", doctor: "" });
+
+  React.useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsModalOpen(false);
+    };
+    if (isModalOpen) {
+      window.addEventListener("keydown", handleEsc);
+      return () => window.removeEventListener("keydown", handleEsc);
+    }
+  }, [isModalOpen]);
 
   const deleteEvent = (id: number) => {
     const oldEvents = [...events];
@@ -1480,9 +1512,10 @@ function AgendaView({
         
         {/* Banner de Recordatorio de Próxima Cita */}
         {nextUpcoming && (
-          <div 
+          <button 
+            type="button"
             onClick={() => onOpenPrep(nextUpcoming)}
-            className="bg-gradient-to-br from-amber-500/10 via-orange-50 to-white border border-amber-200/90 rounded-3xl p-4 shadow-sm hover:shadow-md cursor-pointer transition-all active:scale-[0.99] group relative overflow-hidden"
+            className="w-full text-left bg-gradient-to-br from-amber-500/10 via-orange-50 to-white border border-amber-200/90 rounded-3xl p-4 shadow-sm hover:shadow-md cursor-pointer transition-all active:scale-[0.99] group relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-amber-500"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">
@@ -1514,7 +1547,7 @@ function AgendaView({
               </span>
               <span className="text-teal-700 group-hover:underline">Abrir →</span>
             </div>
-          </div>
+          </button>
         )}
 
         {/* Toggle Perfil */}
@@ -1555,7 +1588,7 @@ function AgendaView({
                 </div>
               ))}
               {(profile.role === "mama" ? suggestions.mama : suggestions.papa).length === 0 && (
-                <p className="text-sm text-gray-400 italic text-center py-2">No hay más sugerencias por ahora.</p>
+                <p className="text-sm text-gray-500 italic text-center py-2">No hay más sugerencias por ahora.</p>
               )}
             </div>
           </div>
@@ -1600,35 +1633,43 @@ function AgendaView({
             )}
             {events.map(event => (
               <div key={event.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-start gap-4 relative group">
-                <button 
-                  onClick={() => openEdit(event)}
-                  className="flex-1 flex items-start gap-4 text-left focus:outline-none focus:ring-2 focus:ring-teal-500 rounded-xl"
-                  aria-label={`Editar cita: ${event.title}, el ${event.date}`}
-                >
-                  <div className="bg-teal-50 text-teal-700 rounded-xl w-14 h-14 flex flex-col justify-center items-center shrink-0 mt-0.5">
+                <div className="flex-1 flex items-start gap-4">
+                  <button 
+                    type="button"
+                    onClick={() => openEdit(event)}
+                    className="bg-teal-50 text-teal-700 rounded-xl w-14 h-14 flex flex-col justify-center items-center shrink-0 mt-0.5 hover:bg-teal-100 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors"
+                    aria-label={`Ver o editar cita del ${event.date}`}
+                  >
                     <span className="text-xs font-bold uppercase">{event.date.split(" ")[1]}</span>
                     <span className="text-xl font-bold leading-none">{event.date.split(" ")[0]}</span>
-                  </div>
+                  </button>
                   <div className="flex-1">
-                    <h4 className="font-bold text-gray-800 text-base leading-snug">{event.title}</h4>
-                    <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
-                      <span className="flex items-center gap-1"><Clock size={14} /> {event.time}</span>
-                    </div>
-                    {event.doctor && <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{event.doctor}</p>}
+                    <button 
+                      type="button"
+                      onClick={() => openEdit(event)}
+                      className="text-left group/title focus:outline-none focus:ring-2 focus:ring-teal-500 rounded block w-full"
+                      aria-label={`Editar cita: ${event.title}, el ${event.date}`}
+                    >
+                      <h4 className="font-bold text-gray-800 text-base leading-snug group-hover/title:text-teal-700 transition-colors">{event.title}</h4>
+                      <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
+                        <span className="flex items-center gap-1"><Clock size={14} /> {event.time}</span>
+                      </div>
+                      {event.doctor && <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{event.doctor}</p>}
+                    </button>
                     
                     {/* Botón de Preparación Rápida */}
                     <div className="flex items-center gap-2 mt-2.5">
                       <button 
                         type="button"
-                        onClick={(e) => { e.stopPropagation(); onOpenPrep(event); }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-bold border border-teal-200/70 shadow-xs active:scale-95 transition-all"
+                        onClick={() => onOpenPrep(event)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-bold border border-teal-200/70 shadow-xs active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-teal-500"
                       >
                         <ClipboardList size={13} className="text-teal-600" />
                         <span>¿Qué llevar y preguntar?</span>
                       </button>
                     </div>
                   </div>
-                </button>
+                </div>
                 <button onClick={() => deleteEvent(event.id)} aria-label={`Eliminar cita: ${event.title}`} className="text-gray-300 hover:text-rose-500 transition-colors p-2 z-10 rounded-lg">
                   <X size={18}/>
                 </button>
@@ -1644,19 +1685,29 @@ function AgendaView({
 
       {/* Modal Nueva/Editar Cita */}
       {isModalOpen && (
-        <div className="absolute inset-0 bg-gray-900/40 z-50 flex items-end sm:items-center justify-center animate-in fade-in duration-200">
+        <div 
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="agenda-modal-title"
+          className="absolute inset-0 bg-gray-900/40 z-50 flex items-end sm:items-center justify-center animate-in fade-in duration-200"
+        >
           <div className="bg-white w-full max-h-[90%] overflow-y-auto sm:w-[90%] sm:rounded-3xl rounded-t-3xl p-6 pb-12 animate-in slide-in-from-bottom-8">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-gray-800">{editingEvent ? "Editar Cita" : "Nueva Cita Médica"}</h3>
-              <button onClick={() => setIsModalOpen(false)} className="bg-gray-100 p-2 rounded-full text-gray-500 hover:bg-gray-200">
+              <h3 id="agenda-modal-title" className="text-xl font-bold text-gray-800">{editingEvent ? "Editar Cita" : "Nueva Cita Médica"}</h3>
+              <button 
+                onClick={() => setIsModalOpen(false)} 
+                className="bg-gray-100 p-2 rounded-full text-gray-500 hover:bg-gray-200"
+                aria-label="Cerrar modal de cita"
+              >
                 <X size={20} />
               </button>
             </div>
             
             <div className="space-y-4">
               <div>
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Título / Motivo</label>
+                <label htmlFor="event-title" className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Título / Motivo</label>
                 <input 
+                  id="event-title"
                   type="text" 
                   value={newEvent.title} 
                   onChange={e => setNewEvent({...newEvent, title: e.target.value})}
@@ -1667,8 +1718,9 @@ function AgendaView({
               
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Fecha</label>
+                  <label htmlFor="event-date" className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Fecha</label>
                   <input 
+                    id="event-date"
                     type="date" 
                     value={newEvent.date} 
                     onChange={e => setNewEvent({...newEvent, date: e.target.value})}
@@ -1676,8 +1728,9 @@ function AgendaView({
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Hora</label>
+                  <label htmlFor="event-time" className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Hora</label>
                   <input 
+                    id="event-time"
                     type="time" 
                     value={newEvent.time} 
                     onChange={e => setNewEvent({...newEvent, time: e.target.value})}
@@ -1687,8 +1740,9 @@ function AgendaView({
               </div>
               
               <div>
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Doctor o Clínica</label>
+                <label htmlFor="event-doctor" className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Doctor o Clínica</label>
                 <input 
+                  id="event-doctor"
                   type="text" 
                   value={newEvent.doctor} 
                   onChange={e => setNewEvent({...newEvent, doctor: e.target.value})}
@@ -1908,10 +1962,15 @@ function PandaIAView({
         {/* Text Input */}
         <div className="p-3">
           <div className="flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-teal-500 focus-within:border-transparent transition-all">
-            <button className="p-2 text-gray-400 hover:text-teal-600 transition-colors shrink-0">
+            <button 
+              type="button"
+              aria-label="Adjuntar archivo o ecografía"
+              className="p-2 text-gray-500 hover:text-teal-600 transition-colors shrink-0"
+            >
               <Paperclip size={20} />
             </button>
             <textarea 
+              aria-label="Escribe tu consulta para PandaIA"
               rows={1}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
@@ -1925,6 +1984,8 @@ function PandaIAView({
               className="flex-1 bg-transparent border-none focus:outline-none text-base py-2 resize-none max-h-32 min-h-[40px]"
             />
             <button 
+              type="button"
+              aria-label="Enviar mensaje a PandaIA"
               onClick={() => handleSend(inputText)}
               disabled={!inputText.trim()}
               className={`p-2.5 rounded-full transition-colors shrink-0 ${
@@ -2358,7 +2419,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
         <div className="mt-8">
           <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2"><Activity size={18} className="text-teal-600"/> Historial (Timeline)</h4>
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="grid grid-cols-3 bg-gray-50 p-3 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">
+            <div className="grid grid-cols-3 bg-gray-50 p-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
               <div>Hora</div>
               <div>Duración</div>
               <div>Frecuencia</div>
@@ -2467,10 +2528,20 @@ function VotadorNombres({ showToast }: { showToast: any }) {
           <p className="text-sm text-gray-500 italic mb-8 max-w-[200px]">"{current.meaning}"</p>
           
           <div className="flex gap-6 w-full justify-center">
-            <button onClick={() => vote(current.id, "disliked")} className="bg-white border-2 border-gray-100 p-5 rounded-full shadow-sm hover:bg-gray-50 text-gray-400 transition-transform active:scale-90">
+            <button 
+              type="button"
+              onClick={() => vote(current.id, "disliked")} 
+              aria-label={`Descartar el nombre ${current.text}`}
+              className="bg-white border-2 border-gray-100 p-5 rounded-full shadow-sm hover:bg-gray-50 text-gray-400 hover:text-gray-600 transition-transform active:scale-90 focus:outline-none focus:ring-2 focus:ring-rose-300"
+            >
               <X size={32} />
             </button>
-            <button onClick={() => vote(current.id, "liked")} className="bg-rose-500 p-5 rounded-full shadow-lg hover:bg-rose-600 text-white transition-transform active:scale-90">
+            <button 
+              type="button"
+              onClick={() => vote(current.id, "liked")} 
+              aria-label={`Guardar como favorito el nombre ${current.text}`}
+              className="bg-rose-500 p-5 rounded-full shadow-lg hover:bg-rose-600 text-white transition-transform active:scale-90 focus:outline-none focus:ring-2 focus:ring-rose-300"
+            >
               <Heart size={32} fill="currentColor" />
             </button>
           </div>
@@ -2489,18 +2560,29 @@ function VotadorNombres({ showToast }: { showToast: any }) {
                 : "Has revisado esta lista, pero aún no hay coincidencias. ¡No te rindas, el nombre perfecto está ahí afuera!"}
             </p>
             <button 
+              type="button"
               onClick={() => {
-                showToast("Buscando 10 nombres más...", () => {});
+                const newSuggestions = [
+                  { id: Date.now() + 1, text: "Sofía", origin: "Griego", meaning: "Sabiduría y gracia", status: "pending", partnerLiked: true, gender: "niña" },
+                  { id: Date.now() + 2, text: "Lucas", origin: "Latín", meaning: "Luminoso y resplandeciente", status: "pending", partnerLiked: true, gender: "niño" },
+                  { id: Date.now() + 3, text: "Emma", origin: "Germánico", meaning: "Universal, entera y fuerte", status: "pending", partnerLiked: true, gender: "niña" },
+                  { id: Date.now() + 4, text: "Liam", origin: "Irlandés", meaning: "Protector decidido y valiente", status: "pending", partnerLiked: true, gender: "niño" },
+                  { id: Date.now() + 5, text: "Maya", origin: "Griego / Sánscrito", meaning: "Ilusión o madre protectora", status: "pending", partnerLiked: true, gender: "niña" },
+                  { id: Date.now() + 6, text: "Gael", origin: "Celta", meaning: "Hombre generoso y hospitalario", status: "pending", partnerLiked: true, gender: "niño" },
+                ];
+                setNames(prev => [...prev, ...newSuggestions]);
+                showToast("¡6 nuevos nombres sugeridos por PandaIA listos para votar! 👶", () => {});
               }}
               className="bg-teal-600 text-white font-bold py-3 px-6 rounded-full shadow-md hover:bg-teal-700 transition-colors flex items-center gap-2 active:scale-95"
             >
               <Bot size={18} /> Pedir más ideas a PandaIA
             </button>
             <button 
+              type="button"
               onClick={() => {
                  setNames(prev => prev.map(n => ({...n, status: "pending"})));
               }}
-              className="mt-4 text-xs font-bold text-gray-400 hover:text-gray-600 uppercase tracking-wider transition-colors focus:outline-none"
+              className="mt-4 text-xs font-bold text-gray-500 hover:text-gray-700 uppercase tracking-wider transition-colors focus:outline-none"
             >
               Volver a votar
             </button>
@@ -2588,18 +2670,33 @@ function PlanParto() {
 
       <div className="flex gap-3 mt-auto">
         {step > 1 && (
-          <button onClick={prevStep} className="p-4 bg-gray-100 text-gray-600 rounded-2xl hover:bg-gray-200 transition-colors">
+          <button 
+            type="button"
+            onClick={prevStep} 
+            aria-label="Paso anterior del plan de parto"
+            className="p-4 bg-gray-100 text-gray-600 rounded-2xl hover:bg-gray-200 transition-colors active:scale-95"
+          >
             <ArrowLeft size={24} />
           </button>
         )}
         
         {step < 3 ? (
-          <button onClick={nextStep} className="flex-1 p-4 bg-teal-600 text-white rounded-2xl font-bold flex justify-center items-center gap-2 hover:bg-teal-700 transition-colors">
+          <button 
+            type="button"
+            onClick={nextStep} 
+            className="flex-1 p-4 bg-teal-600 text-white rounded-2xl font-bold flex justify-center items-center gap-2 hover:bg-teal-700 transition-colors active:scale-95"
+          >
             Siguiente <ArrowRight size={20} />
           </button>
         ) : (
-          <button className="flex-1 p-4 bg-gray-900 text-white rounded-2xl font-bold flex justify-center items-center gap-2 hover:bg-gray-800 transition-colors">
-            <FileDown size={20} /> Generar PDF
+          <button 
+            type="button"
+            onClick={() => {
+              window.print();
+            }}
+            className="flex-1 p-4 bg-gray-900 text-white rounded-2xl font-bold flex justify-center items-center gap-2 hover:bg-gray-800 transition-colors active:scale-95 shadow-md"
+          >
+            <FileDown size={20} /> Guardar o Imprimir Plan (PDF)
           </button>
         )}
       </div>
