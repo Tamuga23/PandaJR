@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package } from "lucide-react";
 
 type Tab = "planificacion" | "agenda" | "herramientas" | "pandaia";
@@ -27,10 +28,16 @@ export default function PandaJRApp() {
   return (
     <div className="flex flex-col min-h-screen w-full max-w-md mx-auto bg-gray-50 text-gray-900 font-sans relative pb-16 shadow-2xl overflow-x-hidden">
       {/* Header */}
-      <header className="bg-white px-6 py-4 shadow-sm sticky top-0 z-40 w-full">
-        <h1 className="text-xl font-bold text-teal-600 flex items-center gap-2">
-          PandaJR
-        </h1>
+      <header className="bg-white px-5 py-3 shadow-sm sticky top-0 z-40 w-full flex items-center">
+        <h1 className="sr-only">PandaJR</h1>
+        <Image 
+          src="/logo.png" 
+          alt="PandaJR" 
+          width={136} 
+          height={36} 
+          priority 
+          className="h-8 sm:h-9 w-auto object-contain"
+        />
       </header>
 
       {/* Main Content Area */}
