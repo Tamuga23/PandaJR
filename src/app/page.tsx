@@ -842,9 +842,9 @@ export default function PandaJRApp() {
   }, [isProfileModalOpen, selectedPrepEvent]);
 
   return (
-    <div className="flex flex-col min-h-screen w-full max-w-md mx-auto bg-gray-50 text-gray-900 font-sans relative pb-16 shadow-2xl overflow-x-hidden">
+    <div className={`flex flex-col ${activeTab === "pandaia" ? "h-screen overflow-hidden" : "min-h-screen pb-16"} w-full max-w-md mx-auto bg-gray-50 text-gray-900 font-sans relative shadow-2xl overflow-x-hidden`}>
       {/* Header con Logo, Alerta de Cita y Selector Global de Perfil */}
-      <header className="bg-white px-4 sm:px-5 py-2.5 shadow-sm sticky top-0 z-40 w-full flex items-center justify-between">
+      <header className="bg-white px-4 sm:px-5 py-2.5 shadow-sm sticky top-0 z-40 w-full flex items-center justify-between shrink-0">
         <div className="flex items-center">
           <h1 className="sr-only">PandaJR</h1>
           <Image 
@@ -898,7 +898,7 @@ export default function PandaJRApp() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full overflow-y-auto pb-6">
+      <main className={`flex-1 w-full ${activeTab === "pandaia" ? "overflow-hidden flex flex-col pb-16" : "overflow-y-auto pb-6"}`}>
         <div className={activeTab === "planificacion" ? "block w-full h-full" : "hidden"}>
           <GuiaPapaView showToast={showToast} profile={profile} updateProfile={updateProfile} />
         </div>
@@ -915,7 +915,7 @@ export default function PandaJRApp() {
         <div className={activeTab === "herramientas" ? "block w-full h-full" : "hidden"}>
           <HerramientasView showToast={showToast} profile={profile} />
         </div>
-        <div className={activeTab === "pandaia" ? "block w-full h-full" : "hidden"}>
+        <div className={activeTab === "pandaia" ? "flex-1 flex flex-col w-full h-full overflow-hidden" : "hidden"}>
           <PandaIAView 
             showToast={showToast} 
             addEvent={handleAIAddEvent} 
@@ -923,6 +923,7 @@ export default function PandaJRApp() {
             openProfileModal={() => setIsProfileModalOpen(true)}
             initialQuery={aiInitialQuery}
             clearInitialQuery={() => setAiInitialQuery("")}
+            setActiveTab={setActiveTab}
           />
         </div>
       </main>
@@ -1790,42 +1791,119 @@ function AgendaView({
   );
 }
 
-// --- VISTA 3: PANDA IA ---
+// --- VISTA 3: PANDA IA (ASISTENTE CLÍNICO Y COPILOTO DE PATERNIDAD) ---
 function PandaIAView({ 
   showToast, 
   addEvent, 
   profile, 
   openProfileModal,
   initialQuery,
-  clearInitialQuery
+  clearInitialQuery,
+  setActiveTab
 }: { 
   showToast: any, 
   addEvent: any, 
   profile: UserProfile, 
   openProfileModal: () => void,
   initialQuery?: string,
-  clearInitialQuery?: () => void
+  clearInitialQuery?: () => void,
+  setActiveTab?: (tab: Tab) => void
 }) {
-  const [messages, setMessages] = useState<any[]>([
-    { id: 1, sender: "ai", text: "¡Hola! Soy PandaIA. ¿En qué te ayudo hoy?" }
+  const getContextualChips = (week: number, role: "papa" | "mama") => {
+    if (week <= 13) {
+      return role === "papa" ? [
+        "Alimentos con Colina y DHA para el cerebro",
+        "¿Cómo aliviar las náuseas matutinas de mamá?",
+        "Agendar ecografía semana 12 (Traslucencia Nucal)",
+        "Tareas domésticas y químicos que debo asumir hoy"
+      ] : [
+        "¿Es normal tener tanta fatiga y sueño?",
+        "Alimentos que debo evitar en el 1er trimestre",
+        "¿Cuándo se empieza a notar la pancita?",
+        "Agendar mi control prenatal de este mes"
+      ];
+    } else if (week <= 27) {
+      return role === "papa" ? [
+        "¿Qué evalúa la ecografía morfológica (semana 20)?",
+        "¿Cuándo empezaremos a sentir las patadas?",
+        "Agendar cita para ecografía 3D / 4D",
+        "¿Cómo apoyar a mamá con los dolores de espalda?"
+      ] : [
+        "¿Cuándo se siente el hipo del bebé?",
+        "Cuidados de la piel y suelo pélvico en 2º trimestre",
+        "Alimentos recomendados para prevenir anemia",
+        "¿Qué dudas llevar a la ecografía morfológica?"
+      ];
+    } else {
+      return role === "papa" ? [
+        "Checklist esencial para la maleta del hospital",
+        "¿Cómo reconocer las contracciones de parto activo?",
+        "Agendar monitoreo fetal preparto",
+        "¿Cómo acompañar a mamá en el dolor de parto?"
+      ] : [
+        "Signos de alarma en el tercer trimestre",
+        "Masaje perineal: ¿cómo y cuándo empezar?",
+        "¿Cómo saber si rompí bolsa o es flujo?",
+        "Revisar las cláusulas de nuestro Plan de Parto"
+      ];
+    }
+  };
+
+  const welcomeText = profile.role === "papa"
+    ? `¡Hola ${profile.name || "Papá"}! 🧔 Soy PandaIA, tu copiloto clínico en esta Semana ${profile.week || 14}.\n\nPregúntame sobre **neuro-nutrición prenatal** (DHA, colina), qué preguntar en la próxima consulta médica, o pídeme que **agende una cita médica** para ustedes directamente en la Agenda.`
+    : `¡Hola ${profile.name || "Mamá"}! 👩 Soy PandaIA, tu espacio de orientación y tranquilidad en esta Semana ${profile.week || 14}.\n\nPuedes consultarme sobre alivio de síntomas, qué esperar en tus controles o pedirme que **registre tus próximas citas médicas**.`;
+
+  const [messages, setMessages] = useState<any[]>(() => [
+    { id: 1, sender: "ai", text: welcomeText }
   ]);
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [smartChips, setSmartChips] = useState<string[]>(() => getContextualChips(profile.week || 14, profile.role));
+  const [isUltrasoundModalOpen, setIsUltrasoundModalOpen] = useState(false);
+  const messagesEndRef = React.useRef<HTMLDivElement>(null);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
+  // Auto-scroll al recibir o enviar mensajes
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
+
+  // Actualizar chips cuando cambia el perfil o semana
+  useEffect(() => {
+    setSmartChips(getContextualChips(profile.week || 14, profile.role));
+  }, [profile.week, profile.role]);
+
+  // Si se envió una consulta desde otra pantalla (ej. modal de preparación)
   useEffect(() => {
     if (initialQuery) {
       setInputText(initialQuery);
       if (clearInitialQuery) clearInitialQuery();
+      textareaRef.current?.focus();
     }
   }, [initialQuery, clearInitialQuery]);
 
+  const copyMessage = (id: number, text: string) => {
+    try {
+      navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      showToast?.("Mensaje copiado al portapapeles 📋", () => {});
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch(e) {}
+  };
 
-    const [smartChips, setSmartChips] = useState([
-    "Recordatorio: Cita médica el 28 de septiembre",
-    "Agendar cita para ecografía 3D",
-    "¿Cuándo podremos conocer el sexo del bebé?",
-    "¿Qué evalúan en la ecografía de las 12 semanas?"
-  ]);
+  const clearChat = () => {
+    setMessages([
+      { id: Date.now(), sender: "ai", text: welcomeText }
+    ]);
+    setSmartChips(getContextualChips(profile.week || 14, profile.role));
+    showToast?.("Conversación reiniciada ✨", () => {});
+  };
+
+  const handleUltrasoundSelect = (query: string) => {
+    setIsUltrasoundModalOpen(false);
+    handleSend(query);
+  };
 
   const handleSend = async (text: string) => {
     if (!text.trim() || isTyping) return;
@@ -1867,9 +1945,7 @@ function PandaIAView({
           data.appointment.doctor || "Generado por PandaIA",
           data.appointment.rawDate
         );
-        if (showToast) {
-          showToast(`Cita agendada: ${data.appointment.title}`, () => {});
-        }
+        showToast?.(`Cita agendada: ${data.appointment.title} 📅`, () => {});
       }
 
       setMessages(prev => [...prev, {
@@ -1877,8 +1953,8 @@ function PandaIAView({
         sender: "ai",
         text: data.reply || "He procesado tu consulta.",
         card: data.card || (data.appointment ? {
-          title: `📅 ${data.appointment.title}`,
-          desc: `Programada para el ${data.appointment.date} (${data.appointment.time || "Hora por definir"}). ¡Revisa la pestaña Agenda!`
+          title: data.appointment.title,
+          desc: `Programada para el ${data.appointment.date} (${data.appointment.time || "Hora por definir"}). ¡Ya está en tu Agenda Médica!`
         } : undefined)
       }]);
     } catch (err: any) {
@@ -1893,61 +1969,193 @@ function PandaIAView({
     }
   };
 
+  // Renderizador de Markdown simple para formato clínico
+  const renderFormattedMessage = (text: string) => {
+    const lines = text.split("\n");
+    return lines.map((line, idx) => {
+      const trimmed = line.trim();
+
+      // Encabezados Markdown: ### o ##
+      const isHeader = trimmed.startsWith("### ") || trimmed.startsWith("## ");
+      if (isHeader) {
+        const headerText = trimmed.replace(/^#{2,3}\s+/, "");
+        return (
+          <h4 key={idx} className="font-bold text-teal-950 text-sm mt-3 mb-1.5 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-teal-600 inline-block"></span>
+            <span>{headerText}</span>
+          </h4>
+        );
+      }
+
+      // Listas numeradas: 1. , 2. 
+      const numberedMatch = trimmed.match(/^(\d+)\.\s+(.*)$/);
+      if (numberedMatch) {
+        const num = numberedMatch[1];
+        const itemContent = numberedMatch[2];
+        const parts = itemContent.split(/(\*\*.*?\*\*)/g);
+        return (
+          <div key={idx} className="flex items-start gap-2 my-1 pl-1">
+            <span className="text-[11px] font-bold text-teal-800 bg-teal-100/90 px-1.5 py-0.5 rounded-md shrink-0 mt-0.5">{num}</span>
+            <span className="flex-1 leading-relaxed text-gray-700">
+              {parts.map((p, pIdx) => p.startsWith("**") && p.endsWith("**") ? <strong key={pIdx} className="font-bold text-gray-900">{p.slice(2, -2)}</strong> : p)}
+            </span>
+          </div>
+        );
+      }
+
+      const isBullet = trimmed.startsWith("• ") || trimmed.startsWith("- ") || trimmed.startsWith("* ");
+      const cleanLine = isBullet ? trimmed.replace(/^([•\-*]\s+)/, "") : line;
+
+      const parts = cleanLine.split(/(\*\*.*?\*\*)/g);
+      const content = parts.map((part, pIdx) => {
+        if (part.startsWith("**") && part.endsWith("**")) {
+          return <strong key={pIdx} className="font-bold text-gray-900">{part.slice(2, -2)}</strong>;
+        }
+        return part;
+      });
+
+      if (isBullet) {
+        return (
+          <div key={idx} className="flex items-start gap-2 my-1 pl-1">
+            <span className="text-teal-600 font-bold shrink-0 mt-0.5">•</span>
+            <span className="flex-1 leading-relaxed text-gray-700">{content}</span>
+          </div>
+        );
+      }
+
+      if (!trimmed) {
+        return <div key={idx} className="h-1.5" />;
+      }
+
+      return (
+        <p key={idx} className="leading-relaxed mb-1 last:mb-0">
+          {content}
+        </p>
+      );
+    });
+  };
+
   return (
-    <div className="flex flex-col h-[calc(100vh-65px)] animate-in fade-in duration-300 bg-slate-50 relative">
+    <div className="flex flex-col flex-1 h-full w-full animate-in fade-in duration-300 bg-slate-50 relative overflow-hidden">
       
-      {/* HEADER Y ESTADO */}
-      <div className="px-4 py-3 border-b border-gray-200 bg-white shadow-sm flex items-center justify-between z-10 shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="bg-teal-100 text-teal-600 p-2 rounded-full relative">
-            <Bot size={22} />
-            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full animate-pulse"></span>
+      {/* HEADER CON ESTADO Y ACCIONES */}
+      <div className="px-4 py-2.5 border-b border-gray-200/80 bg-white/95 backdrop-blur-sm shadow-xs flex items-center justify-between z-10 shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="bg-teal-100 text-teal-700 p-2 rounded-2xl relative shadow-xs">
+            <Bot size={20} />
+            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full animate-pulse"></span>
           </div>
           <div>
-            <h2 className="font-bold text-gray-800 leading-tight">PandaIA</h2>
-            <p className="text-xs font-bold text-teal-600 uppercase tracking-wide flex items-center gap-1">
-              <span className="w-1.5 h-1.5 bg-green-500 rounded-full inline-block animate-pulse"></span>
-              {profile.role === "papa" ? "Modo Papá" : "Modo Mamá"}{profile.name ? ` (${profile.name})` : ""} · Sem {profile.week}
+            <h2 className="font-bold text-gray-900 leading-tight flex items-center gap-1.5 text-sm">
+              <span>PandaIA</span>
+              <span className="text-[10px] font-bold text-teal-800 bg-teal-50 border border-teal-200/80 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                Copiloto
+              </span>
+            </h2>
+            <p className="text-xs font-semibold text-teal-700 flex items-center gap-1.5">
+              <span>{profile.role === "papa" ? "🧔 Modo Papá" : "👩 Modo Mamá"}{profile.name ? ` (${profile.name})` : ""}</span>
+              <span>· Sem {profile.week}</span>
             </p>
           </div>
         </div>
-        <button 
-          onClick={openProfileModal} 
-          className="p-2 text-teal-600 hover:bg-teal-50 rounded-xl transition-colors flex items-center gap-1.5 border border-teal-100 shadow-sm"
-          aria-label="Configurar perfil"
-        >
-          <Settings size={18} />
-          <span className="text-xs font-bold">Perfil</span>
-        </button>
+
+        <div className="flex items-center gap-1.5">
+          <button 
+            type="button"
+            onClick={clearChat}
+            className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all active:scale-95"
+            title="Iniciar nueva consulta"
+            aria-label="Reiniciar conversación"
+          >
+            <RotateCcw size={16} />
+          </button>
+          <button 
+            type="button"
+            onClick={openProfileModal} 
+            className="px-3 py-1.5 text-teal-700 hover:bg-teal-50 rounded-xl transition-all flex items-center gap-1 border border-teal-200/80 shadow-xs text-xs font-bold active:scale-95"
+            aria-label="Configurar perfil"
+          >
+            <Settings size={14} className="text-teal-600" />
+            <span>Perfil</span>
+          </button>
+        </div>
       </div>
 
-      {/* CHAT AREA */}
+      {/* CHAT AREA CON AUTO-SCROLL */}
       <div className="flex-1 p-4 overflow-y-auto space-y-4 flex flex-col no-scrollbar">
         {messages.map(msg => (
-          <div key={msg.id} className={`flex items-end gap-2 max-w-[85%] ${msg.sender === 'user' ? 'self-end flex-row-reverse' : ''}`}>
+          <div 
+            key={msg.id} 
+            className={`flex items-end gap-2 max-w-[88%] animate-in fade-in slide-in-from-bottom-2 duration-200 ${
+              msg.sender === 'user' ? 'self-end flex-row-reverse' : ''
+            }`}
+          >
             {msg.sender === 'ai' && (
-              <div className="bg-teal-100 text-teal-700 p-1.5 rounded-full shrink-0 mb-1">
+              <div className="bg-teal-100 text-teal-800 p-1.5 rounded-xl shrink-0 mb-1 shadow-xs">
                 <Bot size={16} />
               </div>
             )}
             
             <div className={`flex flex-col gap-2 ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
-              <div className={`p-3.5 rounded-2xl shadow-sm text-base ${
+              <div className={`p-4 rounded-3xl shadow-xs text-sm relative group ${
                 msg.sender === 'user' 
                   ? 'bg-teal-600 text-white rounded-br-none' 
-                  : 'bg-white border border-gray-100 text-gray-700 rounded-bl-none'
+                  : 'bg-white border border-gray-100 text-gray-800 rounded-bl-none shadow-sm'
               }`}>
-                {msg.text}
+                {msg.sender === 'ai' ? renderFormattedMessage(msg.text) : <p className="leading-relaxed">{msg.text}</p>}
+
+                {/* Botón de Copiar para Mensajes del Asistente */}
+                {msg.sender === 'ai' && (
+                  <div className="pt-2 mt-2 border-t border-gray-100 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => copyMessage(msg.id, msg.text)}
+                      className="text-[11px] font-bold text-gray-400 hover:text-teal-700 flex items-center gap-1 transition-colors p-1"
+                      title="Copiar respuesta"
+                    >
+                      {copiedId === msg.id ? (
+                        <>
+                          <Check size={12} className="text-teal-600" />
+                          <span className="text-teal-700">Copiado</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={12} />
+                          <span>Copiar</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
               
+              {/* Tarjeta de Acción / Cita Agendada */}
               {msg.card && (
-                <div className="bg-white border border-teal-100 shadow-md rounded-xl p-4 w-full max-w-sm">
-                  <div className="flex items-center gap-2 mb-2 text-teal-700 font-bold">
-                    <Package size={18} /> {msg.card.title}
+                <div className="bg-gradient-to-br from-teal-50 via-emerald-50/40 to-white border border-teal-200 shadow-sm rounded-2xl p-4 w-full max-w-sm animate-in zoom-in-95 duration-200">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center gap-1.5 text-teal-900 font-bold text-xs uppercase tracking-wider">
+                      <BriefcaseMedical size={15} className="text-teal-700" />
+                      <span>Cita Médica Agendada</span>
+                    </div>
+                    <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded-full">
+                      En Agenda
+                    </span>
                   </div>
-                  <p className="text-sm text-gray-600 leading-relaxed">
+                  <h5 className="font-bold text-gray-900 text-sm">{msg.card.title}</h5>
+                  <p className="text-xs text-gray-600 mt-1 leading-relaxed">
                     {msg.card.desc}
                   </p>
+                  
+                  {setActiveTab && (
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("agenda")}
+                      className="mt-3 w-full py-2.5 bg-teal-600 hover:bg-teal-700 active:scale-95 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-xs"
+                    >
+                      <Calendar size={13} />
+                      <span>Ver en Agenda Médica →</span>
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -1955,45 +2163,54 @@ function PandaIAView({
         ))}
 
         {isTyping && (
-          <div className="flex items-end gap-2 max-w-[85%]">
-            <div className="bg-teal-100 text-teal-700 p-1.5 rounded-full shrink-0 mb-1">
+          <div className="flex items-end gap-2 max-w-[85%] animate-in fade-in duration-150">
+            <div className="bg-teal-100 text-teal-800 p-1.5 rounded-xl shrink-0 mb-1 shadow-xs">
               <Bot size={16} />
             </div>
-            <div className="bg-white p-4 rounded-2xl rounded-bl-none shadow-sm border border-gray-100 flex gap-1 items-center h-10">
-              <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse"></div>
-              <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: "0.15s" }}></div>
-              <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: "0.3s" }}></div>
+            <div className="bg-white px-4 py-3 rounded-2xl rounded-bl-none shadow-xs border border-gray-100 flex gap-2 items-center">
+              <div className="flex gap-1 items-center">
+                <div className="w-2 h-2 bg-teal-600 rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-teal-600 rounded-full animate-pulse" style={{ animationDelay: "0.15s" }}></div>
+                <div className="w-2 h-2 bg-teal-600 rounded-full animate-pulse" style={{ animationDelay: "0.3s" }}></div>
+              </div>
+              <span className="text-xs text-gray-400 font-medium">PandaIA está respondiendo...</span>
             </div>
           </div>
         )}
+
+        <div ref={messagesEndRef} />
       </div>
 
-      {/* INPUT AREA WITH SMART CHIPS */}
-      <div className="bg-white border-t border-gray-200 shrink-0 pb-16">
-        {/* Smart Chips */}
-        <div className="flex overflow-x-auto gap-2 p-3 no-scrollbar border-b border-gray-50">
+      {/* INPUT AREA CON SMART CHIPS CONTEXTUALES */}
+      <div className="bg-white border-t border-gray-200 shrink-0">
+        {/* Smart Chips Dinámicos por Trimestre */}
+        <div className="flex overflow-x-auto gap-2 p-2.5 no-scrollbar border-b border-gray-100">
           {smartChips.map((chip, idx) => (
             <button 
               key={idx}
+              type="button"
               onClick={() => handleSend(chip)}
-              className="whitespace-nowrap bg-teal-50 border border-teal-100 text-teal-700 text-xs font-medium px-4 py-2 rounded-full hover:bg-teal-100 transition-colors"
+              className="whitespace-nowrap bg-teal-50/80 border border-teal-200/70 text-teal-800 text-xs font-semibold px-3.5 py-1.5 rounded-full hover:bg-teal-100 active:scale-95 transition-all shadow-2xs"
             >
               {chip}
             </button>
           ))}
         </div>
 
-        {/* Text Input */}
-        <div className="p-3">
-          <div className="flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-teal-500 focus-within:border-transparent transition-all">
+        {/* Text Input Ergonómico */}
+        <div className="p-2.5">
+          <div className="flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-teal-500 focus-within:border-transparent transition-all shadow-xs">
             <button 
               type="button"
-              aria-label="Adjuntar archivo o ecografía"
-              className="p-2 text-gray-500 hover:text-teal-600 transition-colors shrink-0"
+              aria-label="Cargar consulta sobre ecografías"
+              onClick={() => setIsUltrasoundModalOpen(true)}
+              className="p-2 text-gray-400 hover:text-teal-700 transition-colors shrink-0 rounded-xl hover:bg-white"
+              title="Preguntas frecuentes sobre ecografías"
             >
-              <Paperclip size={20} />
+              <Paperclip size={18} />
             </button>
             <textarea 
+              ref={textareaRef}
               aria-label="Escribe tu consulta para PandaIA"
               rows={1}
               value={inputText}
@@ -2004,23 +2221,123 @@ function PandaIAView({
                   handleSend(inputText);
                 }
               }}
-              placeholder="Pregúntale a PandaIA..." 
-              className="flex-1 bg-transparent border-none focus:outline-none text-base py-2 resize-none max-h-32 min-h-[40px]"
+              placeholder="Pregúntale a PandaIA sobre síntomas, nutrición o citas..." 
+              className="flex-1 bg-transparent border-none focus:outline-none text-base sm:text-sm py-2 resize-none max-h-32 min-h-[40px] text-gray-800 placeholder-gray-400"
             />
             <button 
               type="button"
               aria-label="Enviar mensaje a PandaIA"
               onClick={() => handleSend(inputText)}
-              disabled={!inputText.trim()}
-              className={`p-2.5 rounded-full transition-colors shrink-0 ${
-                inputText.trim() ? "bg-teal-600 text-white hover:bg-teal-700" : "bg-gray-200 text-gray-400"
+              disabled={!inputText.trim() || isTyping}
+              className={`p-2.5 rounded-xl transition-all shrink-0 active:scale-90 ${
+                inputText.trim() && !isTyping 
+                  ? "bg-teal-600 text-white hover:bg-teal-700 shadow-xs" 
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
               }`}
             >
-              <Send size={18} />
+              <Send size={16} />
             </button>
           </div>
         </div>
       </div>
+
+      {/* MODAL / SHEET DECODIFICADOR DE ECOGRAFÍAS */}
+      {isUltrasoundModalOpen && (
+        <div 
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="ultrasound-modal-title"
+          className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150"
+        >
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in slide-in-from-bottom-4 duration-200 border border-gray-100">
+            <div className="bg-gradient-to-r from-teal-600 to-teal-700 p-4 flex justify-between items-center text-white">
+              <div className="flex items-center gap-2">
+                <div className="bg-white/10 p-2 rounded-xl">
+                  <FileText size={18} />
+                </div>
+                <div>
+                  <h3 id="ultrasound-modal-title" className="font-bold text-sm leading-tight">
+                    Decodificador de Ecografía
+                  </h3>
+                  <p className="text-[11px] text-teal-100">
+                    Preguntas rápidas para interpretar tu ecografía
+                  </p>
+                </div>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setIsUltrasoundModalOpen(false)}
+                className="text-teal-100 hover:text-white p-1 rounded-lg transition-colors"
+                aria-label="Cerrar ventana de ecografías"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-2 max-h-[70vh] overflow-y-auto">
+              <p className="text-xs text-gray-500 mb-3">
+                Selecciona una consulta frecuente para que PandaIA te explique los valores clínicos con calma:
+              </p>
+
+              {[
+                {
+                  title: "Medidas Fetales (DBP, LF, CA, CC)",
+                  desc: "¿Qué significan y qué evalúan las siglas en el informe?",
+                  prompt: "¿Qué significan las siglas DBP (diámetro biparietal), LF (longitud de fémur) y CA (circunferencia abdominal) en mi ecografía?"
+                },
+                {
+                  title: "Percentiles de Crecimiento y Peso",
+                  desc: "¿Cómo interpretar si mi bebé está en percentil 25, 50 o 90?",
+                  prompt: "¿Qué significa el percentil fetal de crecimiento y peso estimado en la ecografía?"
+                },
+                {
+                  title: "Doppler Uterino y Placenta",
+                  desc: "¿Qué evalúa el Doppler y la madurez placentaria?",
+                  prompt: "¿Qué evalúa el Doppler de arterias uterinas y qué significa el grado de madurez de la placenta?"
+                },
+                {
+                  title: "Ecografía 11-14: Traslucencia Nucal (TN)",
+                  desc: "Interpretación del cribado genético del primer trimestre",
+                  prompt: "¿Qué evalúa la Traslucencia Nucal (TN) y el Hueso Nasal en la ecografía de semana 11 a 14?"
+                },
+                {
+                  title: "Líquido Amniótico (ILA)",
+                  desc: "¿Qué significa un índice de líquido amniótico normal?",
+                  prompt: "¿Qué significa el Índice de Líquido Amniótico (ILA) y cuáles son sus rangos normales?"
+                }
+              ].map((item, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleUltrasoundSelect(item.prompt)}
+                  className="w-full text-left p-3.5 rounded-2xl border border-gray-100 bg-gray-50/70 hover:bg-teal-50/60 hover:border-teal-200 transition-all flex items-start justify-between gap-3 group active:scale-[0.99]"
+                >
+                  <div className="flex-1">
+                    <p className="text-xs font-bold text-gray-900 group-hover:text-teal-900 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0"></span>
+                      <span>{item.title}</span>
+                    </p>
+                    <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">
+                      {item.desc}
+                    </p>
+                  </div>
+                  <ChevronRight size={16} className="text-gray-400 group-hover:text-teal-600 shrink-0 mt-1" />
+                </button>
+              ))}
+            </div>
+
+            <div className="p-3 bg-gray-50 border-t border-gray-100 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsUltrasoundModalOpen(false)}
+                className="px-4 py-2 text-xs font-semibold text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
