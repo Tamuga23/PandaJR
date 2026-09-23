@@ -25,26 +25,26 @@ export default function PandaJRApp() {
 
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 text-gray-900 font-sans mx-auto max-w-md relative pb-16 shadow-2xl overflow-hidden">
+    <div className="flex flex-col min-h-screen w-full max-w-md mx-auto bg-gray-50 text-gray-900 font-sans relative pb-16 shadow-2xl overflow-x-hidden">
       {/* Header */}
-      <header className="bg-white px-6 py-4 shadow-sm sticky top-0 z-40">
+      <header className="bg-white px-6 py-4 shadow-sm sticky top-0 z-40 w-full">
         <h1 className="text-xl font-bold text-teal-600 flex items-center gap-2">
           PandaJR
         </h1>
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto pb-6">
-        <div className={activeTab === "planificacion" ? "block h-full" : "hidden"}>
+      <main className="flex-1 w-full overflow-y-auto pb-6">
+        <div className={activeTab === "planificacion" ? "block w-full h-full" : "hidden"}>
           <GuiaPapaView showToast={showToast} />
         </div>
-        <div className={activeTab === "agenda" ? "block h-full" : "hidden"}>
+        <div className={activeTab === "agenda" ? "block w-full h-full" : "hidden"}>
           <AgendaView showToast={showToast} events={events} setEvents={setEvents} />
         </div>
-        <div className={activeTab === "herramientas" ? "block h-full" : "hidden"}>
+        <div className={activeTab === "herramientas" ? "block w-full h-full" : "hidden"}>
           <HerramientasView showToast={showToast} />
         </div>
-        <div className={activeTab === "pandaia" ? "block h-full" : "hidden"}>
+        <div className={activeTab === "pandaia" ? "block w-full h-full" : "hidden"}>
           <PandaIAView showToast={showToast} addEvent={handleAIAddEvent} />
         </div>
       </main>
@@ -1082,7 +1082,7 @@ function SOSSintomas() {
   ];
 
   return (
-    <div className="flex flex-col py-2 animate-in fade-in duration-300 h-full">
+    <div className="flex flex-col py-2 animate-in fade-in duration-300 h-full w-full">
       <div className="text-center mb-6">
         <h3 className="text-xl font-bold text-gray-800 flex justify-center items-center gap-2">
           <HeartPulse className="text-rose-500" /> SOS Mamá
@@ -1174,10 +1174,10 @@ function HerramientasView({ showToast }: { showToast: any }) {
   ];
 
   return (
-    <div className="flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-300">
+    <div className="flex flex-col h-full w-full animate-in fade-in slide-in-from-bottom-4 duration-300">
       {/* Sub-navigation sin desplazamiento (100% visible) */}
-      <div className="bg-white px-3 py-2.5 shadow-sm border-b border-gray-100 sticky top-0 z-10">
-        <div className="grid grid-cols-5 gap-1 bg-gray-100/90 p-1 rounded-2xl">
+      <div className="bg-white px-3 py-2.5 shadow-sm border-b border-gray-100 sticky top-0 z-10 w-full">
+        <div className="grid grid-cols-5 gap-1 bg-gray-100/90 p-1 rounded-2xl w-full">
           {tools.map((tool) => {
             const isActive = activeTool === tool.id;
             return (
@@ -1202,12 +1202,12 @@ function HerramientasView({ showToast }: { showToast: any }) {
         </div>
       </div>
 
-      <div className="p-5 flex-1 overflow-y-auto">
-        <div className={activeTool === "sos" ? "block h-full" : "hidden"}><SOSSintomas /></div>
-          <div className={activeTool === "patadas" ? "block h-full" : "hidden"}><ContadorPatadas showToast={showToast} /></div>
-        <div className={activeTool === "contracciones" ? "block h-full" : "hidden"}><ContadorContracciones showToast={showToast} /></div>
-        <div className={activeTool === "nombres" ? "block h-full" : "hidden"}><VotadorNombres showToast={showToast} /></div>
-        <div className={activeTool === "parto" ? "block h-full" : "hidden"}><PlanParto /></div>
+      <div className="p-5 flex-1 overflow-y-auto w-full">
+        <div className={activeTool === "sos" ? "block w-full h-full" : "hidden"}><SOSSintomas /></div>
+        <div className={activeTool === "patadas" ? "block w-full" : "hidden"}><ContadorPatadas showToast={showToast} /></div>
+        <div className={activeTool === "contracciones" ? "block w-full" : "hidden"}><ContadorContracciones showToast={showToast} /></div>
+        <div className={activeTool === "nombres" ? "block w-full" : "hidden"}><VotadorNombres showToast={showToast} /></div>
+        <div className={activeTool === "parto" ? "block w-full h-full" : "hidden"}><PlanParto /></div>
       </div>
     </div>
   );
@@ -1260,7 +1260,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
   };
 
   return (
-    <div className="flex flex-col py-2 animate-in fade-in duration-300">
+    <div className="flex flex-col py-2 animate-in fade-in duration-300 w-full">
       <div className="text-center mb-6">
         <h3 className="text-xl font-bold text-gray-800">Monitor Inteligente</h3>
         <p className="text-sm text-gray-500">Toca el botón con cada movimiento.</p>
@@ -1378,7 +1378,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
   const is511 = history.length >= 3 && avgDuration >= 45 && avgInterval > 0 && avgInterval <= 360;
 
   return (
-    <div className="flex flex-col py-2 animate-in fade-in duration-300">
+    <div className="flex flex-col py-2 animate-in fade-in duration-300 w-full">
       
       {is511 && (
         <div className="bg-rose-50 border border-rose-200 p-4 rounded-2xl mb-6 shadow-md" role="alert" aria-live="assertive">
@@ -1503,7 +1503,7 @@ function VotadorNombres({ showToast }: { showToast: any }) {
   };
 
   return (
-    <div className="flex flex-col py-2 animate-in fade-in duration-300">
+    <div className="flex flex-col py-2 animate-in fade-in duration-300 w-full">
       <div className="flex justify-between items-center mb-4">
         <div>
           <h3 className="text-xl font-bold text-gray-800">Nombres del Bebé</h3>
@@ -1529,13 +1529,13 @@ function VotadorNombres({ showToast }: { showToast: any }) {
       </div>
       
       {current ? (
-                  <div 
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
-            style={{ transform: touchStart !== null ? `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.05}deg)` : "translateX(0) rotate(0)", transition: touchStart !== null ? "none" : "transform 0.3s ease-out" }}
-            className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 flex flex-col items-center text-center relative overflow-hidden mb-6 select-none touch-pan-y"
-          >
+        <div 
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+          style={{ transform: touchStart !== null ? `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.05}deg)` : "translateX(0) rotate(0)", transition: touchStart !== null ? "none" : "transform 0.3s ease-out" }}
+          className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 flex flex-col items-center text-center relative overflow-hidden mb-6 select-none touch-pan-y w-full"
+        >
           <div className="absolute top-0 w-full h-2 bg-gradient-to-r from-teal-400 to-amber-400"></div>
           <h2 className="text-4xl font-black text-gray-800 mb-2 mt-4">{current.text}</h2>
           <span className="text-xs font-bold uppercase tracking-widest text-teal-600 bg-teal-50 px-3 py-1 rounded-full mb-4">
@@ -1552,8 +1552,8 @@ function VotadorNombres({ showToast }: { showToast: any }) {
             </button>
           </div>
         </div>
-              ) : (
-          <div className="bg-gradient-to-br from-teal-50 to-amber-50 rounded-3xl border border-teal-100 p-8 text-center mb-6 shadow-sm flex flex-col items-center">
+      ) : (
+        <div className="bg-gradient-to-br from-teal-50 to-amber-50 rounded-3xl border border-teal-100 p-8 text-center mb-6 shadow-sm flex flex-col items-center w-full">
             <div className="bg-white p-4 rounded-full mb-4 shadow-sm">
               <Sparkles className="text-amber-500" size={32} />
             </div>
@@ -1634,7 +1634,7 @@ function PlanParto() {
   const currentStepData = steps.find(s => s.id === step);
 
   return (
-    <div className="flex flex-col py-2 animate-in fade-in duration-300 h-full">
+    <div className="flex flex-col py-2 animate-in fade-in duration-300 h-full w-full">
       <div className="text-center mb-6">
         <h3 className="text-xl font-bold text-gray-800">Plan de Parto (Wizard)</h3>
         <p className="text-sm text-gray-500">Paso {step} de 3</p>
@@ -1647,7 +1647,7 @@ function PlanParto() {
       </div>
 
       {currentStepData && (
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 mb-6 flex-1">
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 mb-6 flex-1 w-full">
           <h4 className="text-lg font-bold text-gray-800 mb-4">{currentStepData.title}</h4>
           <div className="space-y-4">
             {currentStepData.options.map(opt => (
