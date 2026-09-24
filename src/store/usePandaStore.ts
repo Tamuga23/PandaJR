@@ -9,6 +9,7 @@ export interface UserProfile {
   notes?: string;
   pregnancyId?: string;
   inviteCode?: string;
+  comparisonTheme?: "frutas" | "geek";
 }
 
 interface PandaState {

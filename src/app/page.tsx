@@ -16,6 +16,7 @@ export interface UserProfile {
   notes?: string;
   pregnancyId?: string;
   inviteCode?: string;
+    comparisonTheme?: "frutas" | "geek";
 }
 
 function ProfileModal({ 
@@ -91,6 +92,27 @@ function ProfileModal({
                 {confirmUnlink ? '¿Seguro?' : 'Desvincular'}
               </button>
             </div>
+            
+            {form.role === 'papa' && (
+              <div className="bg-stone-50 dark:bg-white/[0.02] p-4 rounded-2xl flex items-center justify-between border border-stone-100 dark:border-white/[0.05]">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                    <Sparkles size={16} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-stone-800 dark:text-white mb-0.5">Tema de Comparación</p>
+                    <p className="text-xs text-stone-500 dark:text-[#a6a1b2]">Frutas o estilo Geek</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setForm({...form, comparisonTheme: form.comparisonTheme === 'geek' ? 'frutas' : 'geek'})}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.comparisonTheme === 'geek' ? 'bg-indigo-500' : 'bg-stone-300 dark:bg-stone-700'}`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${form.comparisonTheme === 'geek' ? 'translate-x-6' : 'translate-x-1'}`} />
+                </button>
+              </div>
+            )}
+
             {form.role === 'mama' && (
               <div className="bg-stone-900 dark:bg-[#2d273a] text-white p-4 rounded-2xl flex items-center justify-between">
                 <div>
@@ -319,7 +341,7 @@ function getAppointmentPrep(title: string): AppointmentPrepInfo {
   };
 }
 
-export function parseEventDate(ev: { rawDate?: string; date?: string; time?: string }): Date | null {
+function parseEventDate(ev: { rawDate?: string; date?: string; time?: string }): Date | null {
   if (ev.rawDate && /^\d{4}-\d{2}-\d{2}$/.test(ev.rawDate)) {
     const parts = ev.rawDate.split("-");
     const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
@@ -1442,43 +1464,31 @@ const masterCategories = [
   }
 ];
 
-function getWeekData(week: number) {
-  const data: Record<number, any> = {
-    4: { size: "Semilla de amapola 🌱", length: "0.1 cm", weight: "1 g", milestone: "Implantación del blastocisto", dadMission: "Blindaje absoluto: asegura su ácido fólico diario y elimina cualquier humo o químico ambiental." },
-    8: { size: "Frambuesa 🫐", length: "1.6 cm", weight: "1 g", milestone: "Corazón late a 150 bpm", dadMission: "Toma tú el control de la cocina: los olores fuertes le causarán aversión. Ventila la casa." },
-    10: { size: "Fresa 🍓", length: "3.1 cm", weight: "4 g", milestone: "Dedos de manos y pies diferenciados", dadMission: "Mantén galletas saladas en su buró: comer algo antes de pisar el suelo frena las náuseas matutinas." },
-    12: { size: "Ciruela 🍑", length: "5.4 cm", weight: "14 g", milestone: "Fin de la organogénesis crítica", dadMission: "Acompáñala a la ecografía de tamizaje genético (traslucencia nucal) y anota todas las dudas médicas." },
-    14: { size: "Limón 🍋", length: "8.7 cm", weight: "43 g", milestone: "Glándula tiroides funcional", dadMission: "El cerebro fetal triplica su sinapsis. Prepara cenas ricas en Colina (huevos) y DHA (salmón)." },
-    15: { size: "Manzana 🍎", length: "10.1 cm", weight: "70 g", milestone: "Esqueleto en proceso de osificación", dadMission: "El bebé absorbe calcio a toda velocidad. Garantiza lácteos, almendras o suplementos de calcio." },
-    16: { size: "Aguacate 🥑", length: "11.6 cm", weight: "100 g", milestone: "Reflejos de prensión y succión", dadMission: "Su volumen de sangre subió 50%. Vigila que tome al menos 2.5 litros de agua al día." },
-    18: { size: "Pimiento 🫑", length: "14.2 cm", weight: "190 g", milestone: "Oído interno completamente formado", dadMission: "Tu voz ya es audible para el bebé. Háblale directo a la barriga todas las noches al acostarse." },
-    20: { size: "Plátano 🍌", length: "25.6 cm", weight: "300 g", milestone: "Mitad del camino: Ecografía Morfológica", dadMission: "Bloquea tu agenda laboral: esta es la ecografía anatómica detallada donde podrán confirmar el sexo." },
-    24: { size: "Mazorca de maíz 🌽", length: "30.0 cm", weight: "600 g", milestone: "Viabilidad pulmonar incipiente", dadMission: "Semana del test de O'Sullivan (glucosa). Acompáñala al laboratorio para apoyarla con el ayuno." },
-    28: { size: "Berenjena 🍆", length: "37.6 cm", weight: "1000 g", milestone: "Apertura de párpados y sueño REM", dadMission: "Gestiona la vacuna DTPa (tos ferina) para ambos: le transmitirán anticuerpos pasivos vitales." },
-    32: { size: "Piña 🍍", length: "42.4 cm", weight: "1700 g", milestone: "Maduración del sistema nervioso central", dadMission: "Arma la pelota de pilates y ayúdala a hacer rotaciones pélvicas para aliviar el dolor lumbar." },
-    36: { size: "Melón 🍈", length: "47.4 cm", weight: "2600 g", milestone: "Bebé descendiendo hacia la pelvis", dadMission: "Instala la silla de auto en tu vehículo y practica asegurarla con los cinturones y anclajes ISOFIX." },
-    38: { size: "Sandía 🍉", length: "49.8 cm", weight: "3000 g", milestone: "Embarazo a término completo", dadMission: "Dale 6 dátiles diarios (evidencia clínica para dilatación) y mantén la maleta en la cajuela del coche." },
-    40: { size: "Calabaza 🎃", length: "51.2 cm", weight: "3400 g", milestone: "¡Listos para el gran encuentro!", dadMission: "Monitorea las contracciones con la Regla 5-1-1 y sé su ancla de calma y respiración durante el parto." },
-  };
-
-  if (data[week]) return data[week];
-
-  // Cálculo biológico coherente para cualquier otra semana intermedia (1 a 42)
-  const isT1 = week <= 13;
-  const isT2 = week > 13 && week <= 27;
-  const lengthEst = (week * 1.25).toFixed(1);
-  const weightEst = week < 10 ? (week * 0.8).toFixed(0) : Math.round(Math.pow(week / 4.2, 3) * 11);
-  
-  return { 
-    size: isT1 ? "Semilla / Baya silvestre 🫐" : isT2 ? "Vegetal nutritivo 🥑" : "Fruta madura 🍉", 
-    length: `${lengthEst} cm`, 
-    weight: `${weightEst} g`, 
-    milestone: isT1 ? "Organogénesis y multiplicación celular acelerada" : isT2 ? "Desarrollo de sentidos y corteza cerebral" : "Ganancia de peso y maduración pulmonar", 
-    dadMission: isT1 
-      ? "Evita que cargue peso, mantén la casa ventilada y apóyala con las comidas ligeras." 
-      : isT2 
-      ? "Cuiden la alineación de la espalda con la almohada de embarazo y mantengan rutinas de caminata." 
-      : "Ten lista la logística de transporte, tanque de gasolina lleno y números de emergencia a mano." 
+function getWeekData(week: number, theme: "frutas"|"geek" = "frutas") {
+  const data = [
+    { week: 4, size: { frutas: "Semilla de amapola 🌑", geek: "Dado D20 en miniatura 🎲" }, len: "0.1 cm", weight: "1 g" },
+    { week: 8, size: { frutas: "Frambuesa 🫐", geek: "Ficha de LEGO de 1x1 🧱" }, len: "1.6 cm", weight: "1 g" },
+    { week: 12, size: { frutas: "Ciruela 🍑", geek: "Dado D6 estándar 🎲" }, len: "5.4 cm", weight: "14 g" },
+    { week: 14, size: { frutas: "Limón 🍋", geek: "Goma de borrar ✏️" }, len: "8.7 cm", weight: "43 g" },
+    { week: 16, size: { frutas: "Aguacate 🥑", geek: "Mouse de computadora 🖱️" }, len: "11.6 cm", weight: "100 g" },
+    { week: 20, size: { frutas: "Plátano 🍌", geek: "Control de Nintendo Switch (Joy-Con) 🎮" }, len: "25.6 cm", weight: "300 g" },
+    { week: 24, size: { frutas: "Mazorca de maíz 🌽", geek: "Sable de luz (mango) 🔦" }, len: "30.0 cm", weight: "600 g" },
+    { week: 27, size: { frutas: "Vegetal nutritivo 🥑", geek: "iPad Mini 📱" }, len: "33.8 cm", weight: "2922 g" },
+    { week: 30, size: { frutas: "Repollo 🥬", geek: "Casco de realidad virtual 🥽" }, len: "39.9 cm", weight: "1319 g" },
+    { week: 34, size: { frutas: "Melón cantalupo 🍈", geek: "Consola Steam Deck 🕹️" }, len: "45.0 cm", weight: "2146 g" },
+    { week: 40, size: { frutas: "Sandía pequeña 🍉", geek: "PlayStation 5 (en proporción) 🎮" }, len: "51.2 cm", weight: "3462 g" },
+  ];
+  let closest = data[0];
+  for (let d of data) {
+    if (d.week <= week) closest = d;
+  }
+  return {
+    size: closest.size[theme] || closest.size.frutas,
+    length: closest.len,
+    weight: closest.weight,
+    milestone: week <= 12 ? "Fin de la organogénesis crítica" : week <= 20 ? "Glándula tiroides funcional" : "Desarrollo de sentidos y corteza cerebral",
+    momMission: week <= 12 ? "Evita que cargue peso, mantén la casa ventilada y apóyala con las comidas ligeras." : week <= 24 ? "Evita que cargue peso, mantén la casa ventilada y apóyala con las comidas ligeras." : "Cuiden la alineación de la espalda con la almohada de embarazo y mantengan rutinas de caminata.",
+    dadMission: week <= 12 ? "El cerebro fetal triplica su sinapsis. Prepara cenas ricas en Colina (huevos) y DHA (salmón)." : "Ten lista la logística de transporte, tanque de gasolina lleno y números de emergencia a mano."
   };
 }
 
@@ -1487,13 +1497,42 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
   useEffect(() => {
     if (profile.week) setWeek(profile.week);
   }, [profile.week]);
-  const weekData = getWeekData(week);
+  const weekData = getWeekData(week, profile.comparisonTheme || "frutas");
 
   // Checklist state
     const currentTrimester = React.useMemo(() => week <= 13 ? 1 : week <= 27 ? 2 : 3, [week]);
   
   const [taskStatus, setTaskStatus] = React.useState<Record<number, "completed" | "dismissed">>({});
   const [expandedCats, setExpandedCats] = React.useState<Record<string, boolean>>({});
+
+  
+  const [customTasks, setCustomTasks] = React.useState<any[]>([]);
+  const [isAddingTask, setIsAddingTask] = React.useState(false);
+  const [newTaskText, setNewTaskText] = React.useState("");
+
+  useEffect(() => {
+    if (profile.pregnancyId) {
+      import('@/lib/firebase/pairing').then(({ listenToCustomTasks }) => {
+        return listenToCustomTasks(profile.pregnancyId!, (tasks) => setCustomTasks(tasks));
+      });
+    }
+  }, [profile.pregnancyId]);
+
+  const handleAddCustomTask = async () => {
+    if (newTaskText.trim() && profile.pregnancyId) {
+      const { addCustomTask } = await import('@/lib/firebase/pairing');
+      await addCustomTask(profile.pregnancyId, newTaskText.trim(), currentTrimester);
+      setNewTaskText("");
+      setIsAddingTask(false);
+    }
+  };
+
+  const handleToggleCustomTask = async (id: string, current: boolean) => {
+    if (profile.pregnancyId) {
+      const { toggleCustomTask } = await import('@/lib/firebase/pairing');
+      await toggleCustomTask(profile.pregnancyId, id, !current);
+    }
+  };
 
   const categories = React.useMemo(() => {
     return masterCategories
@@ -2967,23 +3006,197 @@ function SOSSintomas() {
   );
 }
 
+
+function DiarioView({ profile, onClose }: { profile: UserProfile, onClose: () => void }) {
+  const [entries, setEntries] = React.useState<any[]>([]);
+  const [newEntry, setNewEntry] = React.useState("");
+
+  useEffect(() => {
+    if (profile.pregnancyId) {
+      import('@/lib/firebase/pairing').then(({ listenToJournal }) => {
+        return listenToJournal(profile.pregnancyId!, (data) => setEntries(data));
+      });
+    }
+  }, [profile.pregnancyId]);
+
+  const handlePost = async () => {
+    if (newEntry.trim() && profile.pregnancyId) {
+      const { addJournalEntry } = await import('@/lib/firebase/pairing');
+      await addJournalEntry(profile.pregnancyId, profile.role, profile.name, newEntry.trim());
+      setNewEntry("");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-stone-50 dark:bg-black overflow-y-auto animate-in slide-in-from-bottom-4">
+      <div className="sticky top-0 z-10 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-stone-200 dark:border-white/10 px-4 py-4 flex items-center gap-3">
+        <button onClick={onClose} className="w-10 h-10 rounded-full bg-stone-100 dark:bg-white/5 flex items-center justify-center text-stone-600 dark:text-stone-300">
+          <ArrowLeft size={20} />
+        </button>
+        <div>
+          <h2 className="font-bold text-lg text-stone-800 dark:text-white leading-tight">Diario de a Dos 📖</h2>
+          <p className="text-xs text-stone-500 dark:text-[#a6a1b2]">Memorias sincronizadas para el bebé</p>
+        </div>
+      </div>
+
+      <div className="p-4 max-w-lg mx-auto">
+        <div className="bg-white dark:bg-[#181a20] rounded-2xl p-4 shadow-sm border border-stone-200 dark:border-white/[0.05] mb-6">
+          <textarea 
+            value={newEntry}
+            onChange={e => setNewEntry(e.target.value)}
+            placeholder="Escribe un recuerdo, un pensamiento o un mensaje para el bebé..."
+            className="w-full bg-transparent resize-none h-24 text-stone-800 dark:text-white placeholder:text-stone-400 dark:placeholder:text-stone-600 focus:outline-none"
+          />
+          <div className="flex justify-between items-center mt-2 border-t border-stone-100 dark:border-white/5 pt-3">
+            <span className="text-xs font-bold text-stone-400 dark:text-stone-500">Publicando como {profile.name}</span>
+            <button 
+              onClick={handlePost}
+              disabled={!newEntry.trim()}
+              className="bg-terracotta text-white px-5 py-2 rounded-xl text-sm font-bold disabled:opacity-50 transition-all flex items-center gap-2"
+            >
+              <Send size={16} /> Guardar
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {entries.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-sage/20 rounded-full flex items-center justify-center mx-auto mb-4 text-sage">
+                <FileText size={24} />
+              </div>
+              <h3 className="font-bold text-stone-800 dark:text-white mb-1">El diario está vacío</h3>
+              <p className="text-sm text-stone-500 dark:text-stone-400">Escribe el primer recuerdo de este hermoso viaje.</p>
+            </div>
+          ) : (
+            entries.map(entry => (
+              <div key={entry.id} className="bg-white dark:bg-[#181a20] rounded-2xl p-4 shadow-sm border border-stone-100 dark:border-white/[0.05]">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${entry.authorRole === 'mama' ? 'bg-terracotta/20 text-terracotta' : 'bg-sage/20 text-sage'}`}>
+                    {entry.authorName.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-stone-800 dark:text-white">{entry.authorName}</p>
+                    <p className="text-[10px] text-stone-400 dark:text-stone-500">{entry.createdAt?.toDate ? entry.createdAt.toDate().toLocaleString() : 'Justo ahora'}</p>
+                  </div>
+                </div>
+                <p className="text-stone-600 dark:text-stone-300 text-sm whitespace-pre-wrap">{entry.text}</p>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+function MaletaView({ profile, onClose }: { profile: UserProfile, onClose: () => void }) {
+  const [bag, setBag] = React.useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (profile.pregnancyId) {
+      import('@/lib/firebase/pairing').then(({ listenToGoBag }) => {
+        return listenToGoBag(profile.pregnancyId!, (data) => setBag(data));
+      });
+    }
+  }, [profile.pregnancyId]);
+
+  const toggleItem = async (id: string, checked: boolean) => {
+    setBag(prev => ({ ...prev, [id]: !checked })); // optimistic
+    if (profile.pregnancyId) {
+      const { toggleGoBagItem } = await import('@/lib/firebase/pairing');
+      await toggleGoBagItem(profile.pregnancyId, id, !checked);
+    }
+  };
+
+  const items = {
+    mama: [
+      { id: 'm1', label: 'Documentos médicos y de identidad' },
+      { id: 'm2', label: 'Ropa cómoda y batas (abiertas adelante)' },
+      { id: 'm3', label: 'Pantuflas y calcetines gruesos' },
+      { id: 'm4', label: 'Artículos de aseo personal' },
+      { id: 'm5', label: 'Ropa interior desechable o grande' },
+      { id: 'm6', label: 'Ropa para salir del hospital' }
+    ],
+    bebe: [
+      { id: 'b1', label: 'Pañales de recién nacido' },
+      { id: 'b2', label: 'Toallitas húmedas' },
+      { id: 'b3', label: 'Bodys y pijamas (3-4 mudas)' },
+      { id: 'b4', label: 'Manta de algodón o lana' },
+      { id: 'b5', label: 'Gorrito y calcetines' },
+      { id: 'b6', label: 'Asiento de auto (instalado)' }
+    ],
+    papa: [
+      { id: 'p1', label: 'Snacks y botellas de agua' },
+      { id: 'p2', label: 'Cargador de celular (cable largo)' },
+      { id: 'p3', label: 'Ropa de cambio cómoda' },
+      { id: 'p4', label: 'Artículos de aseo personal' },
+      { id: 'p5', label: 'Cámara o espacio en celular' }
+    ]
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-stone-50 dark:bg-black overflow-y-auto animate-in slide-in-from-bottom-4">
+      <div className="sticky top-0 z-10 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-stone-200 dark:border-white/10 px-4 py-4 flex items-center gap-3">
+        <button onClick={onClose} className="w-10 h-10 rounded-full bg-stone-100 dark:bg-white/5 flex items-center justify-center text-stone-600 dark:text-stone-300">
+          <ArrowLeft size={20} />
+        </button>
+        <div>
+          <h2 className="font-bold text-lg text-stone-800 dark:text-white leading-tight">Maleta del Hospital 🧳</h2>
+          <p className="text-xs text-stone-500 dark:text-[#a6a1b2]">Lista sincronizada (Go Bag)</p>
+        </div>
+      </div>
+
+      <div className="p-4 max-w-lg mx-auto space-y-6 pb-20">
+        
+        {Object.entries(items).map(([category, list]) => (
+          <div key={category}>
+            <h3 className="font-black text-sm text-stone-400 uppercase tracking-wider mb-3">
+              {category === 'mama' ? 'Para Mamá' : category === 'bebe' ? 'Para el Bebé' : 'Para Papá / Copiloto'}
+            </h3>
+            <div className="bg-white dark:bg-[#181a20] rounded-2xl shadow-sm border border-stone-200 dark:border-white/[0.05] overflow-hidden">
+              {list.map((item, i) => (
+                <div 
+                  key={item.id} 
+                  onClick={() => toggleItem(item.id, bag[item.id] || false)}
+                  className={`flex items-center gap-3 p-4 cursor-pointer transition-colors hover:bg-stone-50 dark:hover:bg-white/[0.02] ${i !== list.length - 1 ? 'border-b border-stone-100 dark:border-white/5' : ''}`}
+                >
+                  <div className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${bag[item.id] ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-stone-300 dark:border-stone-600'}`}>
+                    {bag[item.id] && <Check size={14} strokeWidth={3} />}
+                  </div>
+                  <span className={`text-sm font-medium transition-all ${bag[item.id] ? 'text-stone-400 dark:text-stone-500 line-through' : 'text-stone-700 dark:text-stone-200'}`}>
+                    {item.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function HerramientasView({ showToast, profile }: { showToast: any, profile?: UserProfile }) {
 
   const [activeTool, setActiveTool] = useState<any>("sos");
 
   const tools = [
-    { id: "sos", label: "SOS Mamá", icon: <HeartPulse size={16} /> },
-    { id: "patadas", label: "Patadas", icon: <Baby size={16} /> },
-    { id: "contracciones", label: "Contracc.", icon: <Activity size={16} /> },
-    { id: "nombres", label: "Nombres", icon: <Users size={16} /> },
-    { id: "parto", label: "Parto", icon: <ClipboardList size={16} /> }
-  ];
+      { id: "sos", label: "SOS Mamá", icon: <HeartPulse size={16} /> },
+      { id: "patadas", label: "Patadas", icon: <Baby size={16} /> },
+      { id: "contracciones", label: "Contracc.", icon: <Activity size={16} /> },
+      { id: "nombres", label: "Nombres", icon: <Users size={16} /> },
+      { id: "parto", label: "Parto", icon: <ClipboardList size={16} /> },
+      { id: "diario", label: "Diario", icon: <FileText size={16} /> },
+      { id: "maleta", label: "Maleta", icon: <Package size={16} /> }
+    ];
 
   return (
     <div className="flex flex-col h-full w-full animate-in fade-in slide-in-from-bottom-4 duration-300">
       {/* Sub-navigation sin desplazamiento (100% visible) */}
       <div className="bg-white dark:bg-[#181520] px-3 py-2.5 shadow-xs border-b border-stone-200/80 dark:border-white/[0.08] sticky top-0 z-10 w-full">
-        <div role="tablist" aria-label="Herramientas de embarazo" className="grid grid-cols-5 gap-1 bg-stone-100/90 dark:bg-[#221d2d] p-1 rounded-2xl w-full">
+        <div role="tablist" aria-label="Herramientas de embarazo" className="flex gap-1 bg-stone-100/90 dark:bg-[#221d2d] p-1 rounded-2xl w-full overflow-x-auto snap-x">
           {tools.map((tool) => {
             const isActive = activeTool === tool.id;
             return (
@@ -3012,7 +3225,11 @@ function HerramientasView({ showToast, profile }: { showToast: any, profile?: Us
       </div>
 
       <div className="p-5 flex-1 overflow-y-auto w-full">
-        <div className={activeTool === "sos" ? "block w-full h-full" : "hidden"}><SOSSintomas /></div>
+        
+          {activeTool === 'diario' && profile && <DiarioView profile={profile} onClose={() => setActiveTool(null)} />}
+          {activeTool === 'maleta' && profile && <MaletaView profile={profile} onClose={() => setActiveTool(null)} />}
+          <div className={activeTool === "sos" ? "block w-full h-full" : "hidden"}><SOSSintomas /></div>
+
         <div className={activeTool === "patadas" ? "block w-full" : "hidden"}><ContadorPatadas showToast={showToast} /></div>
         <div className={activeTool === "contracciones" ? "block w-full" : "hidden"}><ContadorContracciones showToast={showToast} /></div>
         <div className={activeTool === "nombres" ? "block w-full" : "hidden"}><VotadorNombres showToast={showToast} /></div>
