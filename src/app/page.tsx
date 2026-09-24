@@ -882,28 +882,19 @@ export default function PandaJRApp() {
   const [activeTab, setActiveTab] = useState<Tab>("planificacion");
 
   // Perfil global de usuario (compartido en toda la app)
-  const [profile, setProfile] = useState<UserProfile>({
-    role: "papa",
-    name: "",
-    week: 14,
-    location: "",
-    notes: ""
-  });
+  // Zustand Global Store
+  const profile = usePandaStore(state => state.profile);
+  const setProfile = usePandaStore(state => state.setProfile);
+  const isDark = usePandaStore(state => state.isDark);
+  const toggleThemeStore = usePandaStore(state => state.toggleTheme);
+  const hasHydrated = usePandaStore(state => state.hasHydrated);
+
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [isHydrated, setIsHydrated] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [selectedPrepEvent, setSelectedPrepEvent] = useState<any | null>(null);
   const [aiInitialQuery, setAiInitialQuery] = useState<string>("");
 
-  // Control de Tema: Modo Oscuro / Claro con persistencia y háptica
-  const [isDark, setIsDark] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const isDarkMode = document.documentElement.classList.contains("dark");
-      setIsDark(isDarkMode);
-    }
-  }, []);
+  
 
   const toggleTheme = () => {
     const nextDark = !isDark;
@@ -920,21 +911,12 @@ export default function PandaJRApp() {
     }
   };
 
-  // Cargar perfil global de localStorage
+  // Detectar si el usuario necesita Onboarding
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("pandajr_user_profile");
-      if (saved && JSON.parse(saved).name) {
-        setProfile(JSON.parse(saved));
-      } else {
-        setShowOnboarding(true);
-      }
-    } catch (e) {
-      console.error(e);
+    if (hasHydrated && !profile.name) {
       setShowOnboarding(true);
     }
-    setIsHydrated(true);
-  }, []);
+  }, [hasHydrated, profile.name]);
 
   const updateProfile = (updates: Partial<UserProfile>) => {
     setProfile(prev => {
@@ -1036,13 +1018,7 @@ export default function PandaJRApp() {
 
   
 
-  // Evitar hydration mismatch renderizando solo cuando el cliente monte
-  const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  if (!isMounted) return null;
+  if (!hasHydrated) return null;
 
   return (
     <div className={`flex flex-col ${activeTab === "pandaia" ? "h-screen overflow-hidden" : "min-h-screen pb-16"} w-full max-w-md mx-auto bg-[#faf9f5] dark:bg-[#181520] text-stone-900 dark:text-[#eae6e1] font-sans relative shadow-2xl overflow-x-hidden transition-colors duration-200 border-x border-stone-200/60 dark:border-white/[0.08]`}>
@@ -1139,7 +1115,6 @@ export default function PandaJRApp() {
         <OnboardingModal 
           onComplete={(newProfile) => {
             setProfile(newProfile);
-            try { localStorage.setItem("pandajr_user_profile", JSON.stringify(newProfile)); } catch(e) {}
             setShowOnboarding(false);
             showToast(`¡Bienvenid${newProfile.role === 'mama' ? 'a' : 'o'} a PandaJR!`, () => {});
           }} 
