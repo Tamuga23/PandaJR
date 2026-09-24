@@ -27,6 +27,12 @@ export const metadata: Metadata = {
   title: "PandaJR - Copiloto para Padres Primerizos",
   description: "Herramienta colaborativa para padres primerizos: neuro-nutrición, citas médicas, contador de contracciones y asistente con IA.",
   applicationName: "PandaJR",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "PandaJR",
+  },
   authors: [{ name: "PandaJR" }],
   keywords: ["embarazo", "padres primerizos", "bebé", "agenda médica", "contracciones", "IA"],
   openGraph: {

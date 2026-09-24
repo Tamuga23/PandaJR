@@ -84,7 +84,7 @@ function ProfileModal({
               </div>
               <button 
                 onClick={() => confirmUnlink ? null : setConfirmUnlink(true)}
-                className={`text-xs font-bold min-h-[44px] min-w-[44px] px-4 rounded-lg shadow-sm transition-colors ${confirmUnlink ? 'bg-rose-500 text-white border-transparent' : 'text-stone-500 bg-white dark:bg-[#2d273a] border border-stone-200 dark:border-white/[0.06]'}`}
+                className={`text-xs font-bold min-h-[44px] min-w-[44px] px-4 rounded-lg shadow-sm transition-colors ${confirmUnlink ? 'bg-terracotta/100 text-white border-transparent' : 'text-stone-500 bg-white dark:bg-[#2d273a] border border-stone-200 dark:border-white/[0.06]'}`}
               >
                 {confirmUnlink ? '¿Seguro?' : 'Desvincular'}
               </button>
@@ -572,7 +572,7 @@ function AppointmentPrepModal({
     >
       <div className="bg-white dark:bg-[#221d2d] w-full max-h-[92vh] sm:max-w-md sm:rounded-3xl rounded-t-3xl overflow-hidden shadow-2xl flex flex-col animate-in slide-in-from-bottom-6 border border-stone-100 dark:border-white/[0.08]">
         {/* Header con gradiente */}
-        <div className="bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-600 p-5 text-white shrink-0 relative">
+        <div className="bg-sage p-5 text-white shrink-0 relative">
           <button 
             onClick={onClose} 
             className="absolute top-3.5 right-3.5 bg-white/20 hover:bg-white/30 text-white min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full transition-colors active:scale-95"
@@ -586,7 +586,7 @@ function AppointmentPrepModal({
               {prep.badge}
             </span>
             {countdown && (
-              <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${countdown.isClose ? "bg-amber-400 text-amber-950 font-black shadow-xs" : "bg-teal-800/80 text-teal-100"}`}>
+              <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${countdown.isClose ? "bg-terracotta text-terracotta font-black shadow-xs" : "bg-sage/80 text-sage/20"}`}>
                 {countdown.text}
               </span>
             )}
@@ -594,9 +594,9 @@ function AppointmentPrepModal({
 
           <h3 id="prep-modal-title" className="text-xl font-black leading-tight pr-6">{event.title}</h3>
           
-          <div className="flex items-center gap-4 mt-2.5 text-xs text-teal-100 font-medium">
-            <span className="flex items-center gap-1.5"><Calendar size={14} className="text-teal-300" /> {event.date}</span>
-            <span className="flex items-center gap-1.5"><Clock size={14} className="text-teal-300" /> {event.time}</span>
+          <div className="flex items-center gap-4 mt-2.5 text-xs text-sage/20 font-medium">
+            <span className="flex items-center gap-1.5"><Calendar size={14} className="text-sage/80" /> {event.date}</span>
+            <span className="flex items-center gap-1.5"><Clock size={14} className="text-sage/80" /> {event.time}</span>
             {event.doctor && <span className="line-clamp-1">{event.doctor}</span>}
           </div>
         </div>
@@ -605,9 +605,9 @@ function AppointmentPrepModal({
         <div className="p-5 space-y-6 overflow-y-auto flex-1 text-stone-800 dark:text-[#eae6e1]">
           
           {/* Tip destacado */}
-          <div className="bg-amber-50/90 dark:bg-[#241b12] border border-amber-200/90 dark:border-amber-500/20 rounded-2xl p-3.5 flex gap-3 items-start shadow-xs">
-            <Sparkles className="text-amber-500 shrink-0 mt-0.5" size={18} />
-            <p className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed font-medium">
+          <div className="bg-terracotta/10/90 dark:bg-[#241b12] border border-terracotta/30/90 dark:border-terracotta/100/20 rounded-2xl p-3.5 flex gap-3 items-start shadow-xs">
+            <Sparkles className="text-terracotta/100 shrink-0 mt-0.5" size={18} />
+            <p className="text-xs text-terracotta dark:text-terracotta/30 leading-relaxed font-medium">
               <strong className="font-bold">Consejo de preparación:</strong> {prep.tip}
             </p>
           </div>
@@ -616,7 +616,7 @@ function AppointmentPrepModal({
           <div>
             <div className="flex items-center justify-between mb-2.5">
               <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm flex items-center gap-2">
-                <ShoppingBag size={17} className="text-terracotta dark:text-teal-400" /> ¿Qué debes llevar?
+                <ShoppingBag size={17} className="text-terracotta dark:text-sage" /> ¿Qué debes llevar?
               </h4>
               <span className="text-xs font-semibold text-stone-500 dark:text-[#a6a1b2]">
                 {Object.values(checkedItems).filter(Boolean).length} de {prep.whatToBring.length} listos
@@ -634,11 +634,11 @@ function AppointmentPrepModal({
                     onClick={() => toggleItem(item)}
                     className={`w-full text-left p-3 rounded-xl border text-xs leading-relaxed transition-all flex items-start gap-2.5 ${
                       isChecked 
-                        ? "bg-teal-50/70 dark:bg-[#1a1724] border-teal-200 dark:border-teal-500/30 text-teal-900 dark:text-teal-300 line-through opacity-80" 
-                        : "bg-white dark:bg-[#221d2d] border-stone-200/90 dark:border-white/[0.08] hover:border-teal-200 dark:hover:border-teal-600 text-stone-700 dark:text-[#eae6e1] shadow-xs"
+                        ? "bg-sage/10/70 dark:bg-[#1a1724] border-sage/30 dark:border-sage/100/30 text-sage dark:text-sage/80 line-through opacity-80" 
+                        : "bg-white dark:bg-[#221d2d] border-stone-200/90 dark:border-white/[0.08] hover:border-sage/30 dark:hover:border-sage text-stone-700 dark:text-[#eae6e1] shadow-xs"
                     }`}
                   >
-                    <div className={`mt-0.5 shrink-0 transition-colors ${isChecked ? "text-terracotta dark:text-teal-400" : "text-stone-400 dark:text-[#a6a1b2]"}`}>
+                    <div className={`mt-0.5 shrink-0 transition-colors ${isChecked ? "text-terracotta dark:text-sage" : "text-stone-400 dark:text-[#a6a1b2]"}`}>
                       {isChecked ? <CheckCircle2 size={16} /> : <Circle size={16} />}
                     </div>
                     <span className="flex-1">{item}</span>
@@ -652,7 +652,7 @@ function AppointmentPrepModal({
           <div>
             <div className="flex items-center justify-between mb-2.5">
               <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm flex items-center gap-2">
-                <ClipboardList size={17} className="text-terracotta dark:text-teal-400" /> Preguntas clave para el doctor
+                <ClipboardList size={17} className="text-terracotta dark:text-sage" /> Preguntas clave para el doctor
               </h4>
               <span className="text-xs font-semibold text-stone-500 dark:text-[#a6a1b2]">
                 {Object.values(checkedQuestions).filter(Boolean).length} de {prep.whatToAsk.length} hechas
@@ -670,11 +670,11 @@ function AppointmentPrepModal({
                     onClick={() => toggleQuestion(q)}
                     className={`w-full text-left p-3 rounded-xl border text-xs leading-relaxed transition-all flex items-start gap-2.5 ${
                       isChecked 
-                        ? "bg-teal-50/70 dark:bg-[#1a1724] border-teal-200 dark:border-teal-500/30 text-teal-900 dark:text-teal-300 line-through opacity-80" 
-                        : "bg-white dark:bg-[#221d2d] border-stone-200/90 dark:border-white/[0.08] hover:border-teal-200 dark:hover:border-teal-600 text-stone-700 dark:text-[#eae6e1] shadow-xs"
+                        ? "bg-sage/10/70 dark:bg-[#1a1724] border-sage/30 dark:border-sage/100/30 text-sage dark:text-sage/80 line-through opacity-80" 
+                        : "bg-white dark:bg-[#221d2d] border-stone-200/90 dark:border-white/[0.08] hover:border-sage/30 dark:hover:border-sage text-stone-700 dark:text-[#eae6e1] shadow-xs"
                     }`}
                   >
-                    <div className={`mt-0.5 shrink-0 transition-colors ${isChecked ? "text-terracotta dark:text-teal-400" : "text-stone-400 dark:text-[#a6a1b2]"}`}>
+                    <div className={`mt-0.5 shrink-0 transition-colors ${isChecked ? "text-terracotta dark:text-sage" : "text-stone-400 dark:text-[#a6a1b2]"}`}>
                       {isChecked ? <CheckCircle2 size={16} /> : <Circle size={16} />}
                     </div>
                     <span className="flex-1 font-medium">{q}</span>
@@ -687,7 +687,7 @@ function AppointmentPrepModal({
           {/* Opciones de Recordatorio y Calendario */}
           <div className="bg-stone-50 dark:bg-[#2d273a]/70 border border-stone-200/80 dark:border-white/[0.08] rounded-2xl p-4 space-y-3">
             <p className="text-xs font-bold text-stone-700 dark:text-[#eae6e1] flex items-center gap-1.5">
-              <Bell size={15} className="text-terracotta dark:text-teal-400" /> Sincronizar Alarmas de Recordatorio
+              <Bell size={15} className="text-terracotta dark:text-sage" /> Sincronizar Alarmas de Recordatorio
             </p>
             <p className="text-xs text-stone-500 dark:text-[#a6a1b2] leading-snug">
               Añade esta cita a tu calendario del teléfono con 2 alarmas automáticas (24h y 2h antes) y todas estas preguntas guardadas en las notas.
@@ -703,7 +703,7 @@ function AppointmentPrepModal({
               <button
                 type="button"
                 onClick={() => openGoogleCalendar(event, prep)}
-                className="py-2.5 px-3 bg-white dark:bg-[#221d2d] hover:bg-stone-100 dark:hover:bg-[#2d273a] text-teal-700 dark:text-teal-300 font-bold text-xs rounded-xl border border-teal-200 dark:border-white/10 shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all text-center"
+                className="py-2.5 px-3 bg-white dark:bg-[#221d2d] hover:bg-stone-100 dark:hover:bg-[#2d273a] text-sage dark:text-sage/80 font-bold text-xs rounded-xl border border-sage/30 dark:border-white/10 shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all text-center"
               >
                 <span>🗓️ Google Calendar</span>
               </button>
@@ -1058,7 +1058,7 @@ export default function PandaJRApp() {
               }}
               className={`min-w-[44px] min-h-[44px] p-2.5 rounded-full border transition-all active:scale-95 relative flex items-center justify-center ${
                 nextUpcomingEvent 
-                  ? "bg-amber-50 dark:bg-[#241b12] border-amber-200 dark:border-amber-500/25 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-[#2c2217]" 
+                  ? "bg-terracotta/10 dark:bg-[#241b12] border-terracotta/30 dark:border-terracotta/100/25 text-terracotta dark:text-terracotta/80 hover:bg-terracotta/20 dark:hover:bg-[#2c2217]" 
                   : "bg-stone-50 dark:bg-[#2d273a] border-stone-200 dark:border-white/10 text-stone-400 dark:text-[#a6a1b2] hover:bg-stone-100 dark:hover:bg-[#2a2e38]"
               }`}
               title={nextUpcomingEvent ? `Recordatorio de cita: ${nextUpcomingEvent.title}` : "Citas médicas"}
@@ -1066,10 +1066,10 @@ export default function PandaJRApp() {
             >
               <Bell size={16} />
               {nextUpcomingEvent && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-500 rounded-full animate-ping"></span>
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-terracotta/100 rounded-full animate-ping"></span>
               )}
               {nextUpcomingEvent && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-500 rounded-full border-2 border-white dark:border-[#181520]"></span>
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-terracotta/100 rounded-full border-2 border-white dark:border-[#181520]"></span>
               )}
             </button>
           )}
@@ -1077,7 +1077,7 @@ export default function PandaJRApp() {
           {/* Botón Global de Perfil / Switcher */}
           <button
             onClick={() => setIsProfileModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-full bg-teal-50 dark:bg-[#1a1724] border border-teal-200/70 dark:border-teal-500/25 hover:bg-teal-100 dark:hover:bg-[#1b322c] transition-all text-xs font-bold text-teal-700 dark:text-teal-300 active:scale-95 shadow-xs"
+            className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-full bg-sage/10 dark:bg-[#1a1724] border border-sage/30/70 dark:border-sage/100/25 hover:bg-sage/20 dark:hover:bg-[#1b322c] transition-all text-xs font-bold text-sage dark:text-sage/80 active:scale-95 shadow-xs"
             title="Configurar tu rol y perfil en este dispositivo"
           >
             <span className="text-base">{profile.role === "papa" ? "🧔" : "👩"}</span>
@@ -1165,7 +1165,7 @@ export default function PandaJRApp() {
           <span className="text-sm font-medium">{toast.message}</span>
           <button 
             onClick={() => { toast.onUndo(); setToast(null); }}
-            className="text-teal-400 font-bold text-xs tracking-tight hover:text-teal-300 transition-colors px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 shrink-0"
+            className="text-sage font-bold text-xs tracking-tight hover:text-sage/80 transition-colors px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 shrink-0"
           >
             Deshacer
           </button>
@@ -1210,7 +1210,7 @@ function NavItem({ icon, label, isActive, onClick }: { icon: React.ReactNode, la
       onClick={onClick}
       aria-current={isActive ? "page" : undefined}
       className={`flex flex-col items-center gap-1 w-full p-2 transition-colors duration-200 ${
-        isActive ? "text-terracotta dark:text-teal-400 font-semibold" : "text-stone-500 hover:text-stone-700 dark:text-[#a6a1b2] dark:hover:text-[#eae6e1]"
+        isActive ? "text-terracotta dark:text-sage font-semibold" : "text-stone-500 hover:text-stone-700 dark:text-[#a6a1b2] dark:hover:text-[#eae6e1]"
       }`}
     >
       {icon}
@@ -1255,16 +1255,16 @@ function MomStatusCard({ profile }: { profile: UserProfile }) {
             <p className="text-xs text-stone-500 dark:text-[#a6a1b2] mt-0.5">Actualizado hace 40 min por ella</p>
           </div>
         </div>
-        <div className="hidden sm:flex items-center gap-1.5 bg-rose-50 dark:bg-[#2d273a] px-3 py-1.5 rounded-full border border-rose-100 dark:border-white/[0.06] shrink-0">
+        <div className="hidden sm:flex items-center gap-1.5 bg-terracotta/10 dark:bg-[#2d273a] px-3 py-1.5 rounded-full border border-terracotta/20 dark:border-white/[0.06] shrink-0">
           <span className="text-xs">💖</span>
-          <span className="text-[11px] font-bold text-rose-700 dark:text-rose-400">Muy feliz y relajada</span>
+          <span className="text-[11px] font-bold text-terracotta dark:text-terracotta">Muy feliz y relajada</span>
         </div>
       </div>
       
       {/* Mobile status badge fallback */}
-      <div className="sm:hidden flex items-center gap-1.5 bg-rose-50 dark:bg-[#2d273a] px-3 py-1.5 rounded-full border border-rose-100 dark:border-white/[0.06] mb-3 w-fit">
+      <div className="sm:hidden flex items-center gap-1.5 bg-terracotta/10 dark:bg-[#2d273a] px-3 py-1.5 rounded-full border border-terracotta/20 dark:border-white/[0.06] mb-3 w-fit">
         <span className="text-xs">💖</span>
-        <span className="text-[11px] font-bold text-rose-700 dark:text-rose-400">Muy feliz y relajada</span>
+        <span className="text-[11px] font-bold text-terracotta dark:text-terracotta">Muy feliz y relajada</span>
       </div>
       
       {/* Quote bubble */}
@@ -1295,7 +1295,7 @@ const masterCategories = [
   {
     id: "t1_nutricion", trimester: 1, defaultExpanded: true,
     title: "Neuro-Nutrición (Pilar 1)",
-    icon: <Utensils className="text-amber-500" size={20} />, color: "bg-amber-50",
+    icon: <Utensils className="text-terracotta/100" size={20} />, color: "bg-terracotta/10",
     tasks: [
       { id: 110, text: "Garantizar Suplemento de Ácido Fólico diario" },
       { id: 111, text: "Mantener su termo de agua lleno (volumen amniótico)" },
@@ -1305,7 +1305,7 @@ const masterCategories = [
   {
     id: "t1_toxicos", trimester: 1, defaultExpanded: true,
     title: "Escudo Ambiental (Pilar 2)",
-    icon: <AlertTriangle className="text-rose-500" size={20} />, color: "bg-rose-50",
+    icon: <AlertTriangle className="text-terracotta/100" size={20} />, color: "bg-terracotta/10",
     tasks: [
       { id: 113, text: "Tirar/Donar tuppers de plástico (BPA interfiere hormonas)" },
       { id: 114, text: "Asumir tú la limpieza con químicos (evitar VOCs)" },
@@ -1315,7 +1315,7 @@ const masterCategories = [
   {
     id: "t1_citas", trimester: 1, defaultExpanded: false,
     title: "Salud y Citas Médicas",
-    icon: <Activity className="text-terracotta" size={20} />, color: "bg-teal-50",
+    icon: <Activity className="text-terracotta" size={20} />, color: "bg-sage/10",
     tasks: [
       { id: 101, text: "Agendar primera cita obstétrica" },
       { id: 102, text: "Preguntar sobre cobertura de seguro médico" },
@@ -1326,7 +1326,7 @@ const masterCategories = [
   {
     id: "t2_nutricion", trimester: 2, defaultExpanded: true,
     title: "Neuro-Nutrición y DHA",
-    icon: <Utensils className="text-amber-500" size={20} />, color: "bg-amber-50",
+    icon: <Utensils className="text-terracotta/100" size={20} />, color: "bg-terracotta/10",
     tasks: [
       { id: 210, text: "Suplemento DHA/Omega-3 (Desarrollo corteza frontal)" },
       { id: 211, text: "Garantizar Colina en dieta (Huevos, pollo magro)" },
@@ -1336,7 +1336,7 @@ const masterCategories = [
   {
     id: "t2_estres", trimester: 2, defaultExpanded: true,
     title: "Gestor de Cortisol (Pilar 3)",
-    icon: <Heart className="text-rose-500" size={20} />, color: "bg-rose-50",
+    icon: <Heart className="text-terracotta/100" size={20} />, color: "bg-terracotta/10",
     tasks: [
       { id: 213, text: "Asumir la carga mental de planear las cenas" },
       { id: 214, text: "Agendarle un masaje prenatal o día de descanso total" },
@@ -1346,7 +1346,7 @@ const masterCategories = [
   {
     id: "t2_compras", trimester: 2, defaultExpanded: false,
     title: "Primeras compras",
-    icon: <ShoppingBag className="text-terracotta" size={20} />, color: "bg-teal-50",
+    icon: <ShoppingBag className="text-terracotta" size={20} />, color: "bg-sage/10",
     tasks: [
       { id: 204, text: "Cotizar cochecito/carriola" },
       { id: 205, text: "Comprar almohada de embarazo (Alineación pélvica)" },
@@ -1356,7 +1356,7 @@ const masterCategories = [
   {
     id: "t3_biomecanica", trimester: 3, defaultExpanded: true,
     title: "Microbioma y Pelvis (Pilar 4)",
-    icon: <Activity className="text-terracotta" size={20} />, color: "bg-teal-50",
+    icon: <Activity className="text-terracotta" size={20} />, color: "bg-sage/10",
     tasks: [
       { id: 310, text: "Vacuna DTPa para ambos (Anticuerpos pasivos al feto)" },
       { id: 311, text: "Probióticos en dieta (Yogur/Kefir) para sembrar microbioma" },
@@ -1366,7 +1366,7 @@ const masterCategories = [
   {
     id: "t3_maleta", trimester: 3, defaultExpanded: true,
     title: "Maleta de hospital",
-    icon: <BriefcaseMedical className="text-rose-500" size={20} />, color: "bg-rose-50",
+    icon: <BriefcaseMedical className="text-terracotta/100" size={20} />, color: "bg-terracotta/10",
     tasks: [
       { id: 301, text: "Documentos de identidad y seguro" },
       { id: 302, text: "Ropa cómoda para tu pareja" },
@@ -1377,7 +1377,7 @@ const masterCategories = [
   {
     id: "t3_logistica", trimester: 3, defaultExpanded: false,
     title: "Logística del parto",
-    icon: <MapPin className="text-terracotta" size={20} />, color: "bg-teal-50",
+    icon: <MapPin className="text-terracotta" size={20} />, color: "bg-sage/10",
     tasks: [
       { id: 305, text: "Instalar silla de coche y aprender a usarla" },
       { id: 306, text: "Simulacro de ruta al hospital (medir tiempos)" },
@@ -1488,7 +1488,7 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
       {/* 1. Week Selector & Info */}
       <div className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-sm border border-stone-200/80 dark:border-white/[0.08] overflow-hidden transition-colors">
         {/* Selector */}
-        <div className="bg-gradient-to-r from-teal-600 to-teal-500 dark:from-[#1a1724] dark:to-[#1f1b2b] dark:border-b dark:border-white/[0.08] p-4 text-white dark:text-[#eae6e1] flex items-center justify-between transition-colors">
+        <div className="bg-gradient-to-r from-sage to-sage/100 dark:from-[#1a1724] dark:to-[#1f1b2b] dark:border-b dark:border-white/[0.08] p-4 text-white dark:text-[#eae6e1] flex items-center justify-between transition-colors">
           <button aria-label="Semana anterior"
             onClick={() => setWeek(w => Math.max(1, w - 1))}
             className="p-2 hover:bg-white/20 dark:hover:bg-white/10 rounded-full transition-colors"
@@ -1496,7 +1496,7 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
             <ChevronLeft size={24} />
           </button>
           <div className="text-center">
-            <p className="text-teal-100 dark:text-teal-300/80 text-xs font-semibold tracking-tight mb-1">Semana de Gestación</p>
+            <p className="text-sage/20 dark:text-sage/80/80 text-xs font-semibold tracking-tight mb-1">Semana de Gestación</p>
             <h2 className="text-3xl font-black">{week}</h2>
           </div>
           <button aria-label="Semana siguiente"
@@ -1514,8 +1514,8 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
               <p className="text-stone-500 dark:text-[#a6a1b2] text-xs uppercase font-bold mb-1">Tamaño comparativo</p>
               <p className="text-xl font-bold text-stone-800 dark:text-[#eae6e1]">{weekData.size}</p>
             </div>
-            <div className="bg-teal-50 dark:bg-[#1a1724] p-3 rounded-2xl">
-              <Baby size={32} className="text-terracotta dark:text-teal-400" />
+            <div className="bg-sage/10 dark:bg-[#1a1724] p-3 rounded-2xl">
+              <Baby size={32} className="text-terracotta dark:text-sage" />
             </div>
           </div>
           
@@ -1530,11 +1530,11 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
             </div>
           </div>
 
-          <div className="bg-amber-50/80 dark:bg-[#241b12] border border-amber-200/80 dark:border-amber-500/20 rounded-2xl p-4 flex gap-3">
-            <Sparkles size={24} className="text-amber-500 shrink-0" />
+          <div className="bg-terracotta/10/80 dark:bg-[#241b12] border border-terracotta/30/80 dark:border-terracotta/100/20 rounded-2xl p-4 flex gap-3">
+            <Sparkles size={24} className="text-terracotta/100 shrink-0" />
             <div>
-              <p className="text-amber-800 dark:text-amber-300 text-xs font-bold uppercase mb-1">Hito de la semana</p>
-              <p className="text-amber-900 dark:text-[#eae6e1] text-sm font-medium">{weekData.milestone}</p>
+              <p className="text-terracotta dark:text-terracotta/80 text-xs font-bold uppercase mb-1">Hito de la semana</p>
+              <p className="text-terracotta dark:text-[#eae6e1] text-sm font-medium">{weekData.milestone}</p>
             </div>
           </div>
         </div>
@@ -1543,14 +1543,14 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
             <PregnancyProgressBar week={week} />
           </div>
         {/* Misión */}
-        <div className="bg-teal-50/70 dark:bg-[#1a1724] border-t border-teal-100 dark:border-teal-500/20 p-5">
+        <div className="bg-sage/10/70 dark:bg-[#1a1724] border-t border-sage/20 dark:border-sage/100/20 p-5">
           <div className="flex items-center gap-2 mb-2">
-            <Trophy size={18} className="text-terracotta dark:text-teal-400" />
-            <h3 className="font-bold text-teal-800 dark:text-teal-300 text-sm">
+            <Trophy size={18} className="text-terracotta dark:text-sage" />
+            <h3 className="font-bold text-sage dark:text-sage/80 text-sm">
               {profile.role === "papa" ? "Misión del Papá" : "Misión de la Mamá"}
             </h3>
           </div>
-          <p className="text-teal-900 dark:text-[#eae6e1] text-sm leading-relaxed">
+          <p className="text-sage dark:text-[#eae6e1] text-sm leading-relaxed">
             {weekData.dadMission}
           </p>
         </div>
@@ -1565,7 +1565,7 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
           <h2 className="text-xl font-bold text-stone-800 dark:text-[#eae6e1]">
             {profile.role === "papa" ? "Checklists del Papá" : "Checklists de la Mamá"}
           </h2>
-          <span className="text-terracotta dark:text-teal-400 font-bold text-sm">{progressPercent}% completado</span>
+          <span className="text-terracotta dark:text-sage font-bold text-sm">{progressPercent}% completado</span>
         </div>
         
         {/* Progress bar */}
@@ -1603,9 +1603,9 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
                         onClick={() => toggleTask(cat.id, task.id)}
                         aria-checked={task.completed}
                         role="switch"
-                        className="w-full text-left flex items-start gap-3 p-3 bg-white dark:bg-[#2d273a] rounded-xl border border-stone-200/80 dark:border-white/[0.06] cursor-pointer hover:border-teal-200 dark:hover:border-teal-600 transition-colors group focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        className="w-full text-left flex items-start gap-3 p-3 bg-white dark:bg-[#2d273a] rounded-xl border border-stone-200/80 dark:border-white/[0.06] cursor-pointer hover:border-sage/30 dark:hover:border-sage transition-colors group focus:outline-none focus:ring-2 focus:ring-sage/100"
                       >
-                        <div className={`mt-0.5 shrink-0 transition-colors ${task.completed ? "text-terracotta" : "text-stone-400 dark:text-[#a6a1b2] group-hover:text-teal-400"}`}>
+                        <div className={`mt-0.5 shrink-0 transition-colors ${task.completed ? "text-terracotta" : "text-stone-400 dark:text-[#a6a1b2] group-hover:text-sage"}`}>
                           {task.completed ? <CheckCircle2 size={18} /> : <Circle size={18} />}
                         </div>
                         <span className={`text-sm leading-snug ${task.completed ? "text-stone-400 dark:text-[#a6a1b2]/60 line-through" : "text-stone-700 dark:text-[#eae6e1]"}`}>
@@ -1819,12 +1819,12 @@ function AgendaView({
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 relative h-full flex flex-col">
       {/* Header destacado */}
       <div className="bg-terracotta dark:bg-[#1a1724] dark:border-b dark:border-white/[0.08] px-6 py-7 text-white dark:text-[#eae6e1] rounded-b-3xl shadow-sm shrink-0 transition-colors">
-        <p className="text-teal-100 dark:text-teal-300/80 text-xs font-semibold tracking-tight mb-1">Etapa actual</p>
-        <h2 className="text-2xl font-bold tracking-tight">Semana {profile.week} <span className="text-base font-medium text-teal-100/90 dark:text-[#a6a1b2] ml-1">({profile.week <= 13 ? "Primer trimestre" : profile.week <= 27 ? "Segundo trimestre" : "Tercer trimestre"})</span></h2>
+        <p className="text-sage/20 dark:text-sage/80/80 text-xs font-semibold tracking-tight mb-1">Etapa actual</p>
+        <h2 className="text-2xl font-bold tracking-tight">Semana {profile.week} <span className="text-base font-medium text-sage/20/90 dark:text-[#a6a1b2] ml-1">({profile.week <= 13 ? "Primer trimestre" : profile.week <= 27 ? "Segundo trimestre" : "Tercer trimestre"})</span></h2>
         <div className="mt-3.5 bg-white/20 dark:bg-white/10 rounded-full h-1.5 w-full overflow-hidden">
-          <div className="bg-white dark:bg-teal-400 h-full transition-all duration-500 rounded-full" style={{ width: `${Math.min(100, Math.round((profile.week / 40) * 100))}%` }}></div>
+          <div className="bg-white dark:bg-sage h-full transition-all duration-500 rounded-full" style={{ width: `${Math.min(100, Math.round((profile.week / 40) * 100))}%` }}></div>
         </div>
-        <p className="text-teal-50 dark:text-[#a6a1b2] text-xs mt-2 text-right font-medium">Faltan {Math.max(0, 40 - profile.week)} semanas</p>
+        <p className="text-sage/10 dark:text-[#a6a1b2] text-xs mt-2 text-right font-medium">Faltan {Math.max(0, 40 - profile.week)} semanas</p>
       </div>
 
       <div className="p-5 flex-1 overflow-y-auto space-y-6 pb-20">
@@ -1834,19 +1834,19 @@ function AgendaView({
           <button 
             type="button"
             onClick={() => onOpenPrep(nextUpcoming)}
-            className="w-full text-left bg-amber-50/70 dark:bg-[#1f1b15] border border-amber-200/80 dark:border-amber-500/20 rounded-3xl p-4 shadow-sm hover:shadow-md cursor-pointer transition-all active:scale-[0.99] group relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full text-left bg-terracotta/10/70 dark:bg-[#1f1b15] border border-terracotta/30/80 dark:border-terracotta/100/20 rounded-3xl p-4 shadow-sm hover:shadow-md cursor-pointer transition-all active:scale-[0.99] group relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-terracotta/100"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">
-                <div className="bg-amber-100 dark:bg-[#2c2217] text-amber-800 dark:text-amber-300 p-2.5 rounded-2xl shrink-0 mt-0.5 group-hover:scale-105 transition-transform shadow-xs">
-                  <Bell size={20} className="animate-pulse text-amber-600 dark:text-amber-400" />
+                <div className="bg-terracotta/20 dark:bg-[#2c2217] text-terracotta dark:text-terracotta/80 p-2.5 rounded-2xl shrink-0 mt-0.5 group-hover:scale-105 transition-transform shadow-xs">
+                  <Bell size={20} className="animate-pulse text-amber-600 dark:text-terracotta" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold tracking-tight text-amber-900 dark:text-amber-200 bg-amber-200/80 dark:bg-amber-500/20 px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-bold tracking-tight text-terracotta dark:text-terracotta/30 bg-terracotta/30/80 dark:bg-terracotta/100/20 px-2 py-0.5 rounded-full">
                       Recordatorio de Cita
                     </span>
-                    <span className="text-xs font-bold text-amber-950 dark:text-amber-300">
+                    <span className="text-xs font-bold text-terracotta dark:text-terracotta/80">
                       {getCountdownText(parseEventDate(nextUpcoming)!).text}
                     </span>
                   </div>
@@ -1857,29 +1857,29 @@ function AgendaView({
                   </p>
                 </div>
               </div>
-              <ChevronRight size={18} className="text-amber-500 dark:text-amber-400 shrink-0 mt-2 group-hover:translate-x-1 transition-transform" />
+              <ChevronRight size={18} className="text-terracotta/100 dark:text-terracotta shrink-0 mt-2 group-hover:translate-x-1 transition-transform" />
             </div>
 
-            <div className="mt-3.5 pt-2.5 border-t border-amber-200/60 dark:border-amber-500/15 flex items-center justify-between text-xs font-bold">
-              <span className="flex items-center gap-1.5 text-amber-950 dark:text-amber-300">
-                <ClipboardList size={13} className="text-amber-700 dark:text-amber-400" /> Preparación: ¿Qué llevar y qué preguntar?
+            <div className="mt-3.5 pt-2.5 border-t border-terracotta/30/60 dark:border-terracotta/100/15 flex items-center justify-between text-xs font-bold">
+              <span className="flex items-center gap-1.5 text-terracotta dark:text-terracotta/80">
+                <ClipboardList size={13} className="text-terracotta dark:text-terracotta" /> Preparación: ¿Qué llevar y qué preguntar?
               </span>
-              <span className="text-teal-700 dark:text-teal-400 group-hover:underline">Abrir →</span>
+              <span className="text-sage dark:text-sage group-hover:underline">Abrir →</span>
             </div>
           </button>
         )}
 
         {/* Acordeón Compacto de Sugerencias del Copiloto IA */}
         {((profile.role === "mama" ? suggestions.mama : suggestions.papa).length > 0 || isSuggestionsOpen) && (
-          <div className="bg-white dark:bg-[#221d2d] rounded-2xl shadow-xs border border-teal-100 dark:border-white/[0.08] overflow-hidden transition-all">
+          <div className="bg-white dark:bg-[#221d2d] rounded-2xl shadow-xs border border-sage/20 dark:border-white/[0.08] overflow-hidden transition-all">
             <button
               type="button"
               onClick={() => setIsSuggestionsOpen(prev => !prev)}
-              className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-teal-50/50 dark:hover:bg-[#2d273a]/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+              className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-sage/10/50 dark:hover:bg-[#2d273a]/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-sage/100"
               aria-expanded={isSuggestionsOpen}
             >
               <div className="flex items-center gap-2.5">
-                <div className="bg-teal-100 dark:bg-[#1a1724] text-teal-800 dark:text-teal-300 p-1.5 rounded-xl">
+                <div className="bg-sage/20 dark:bg-[#1a1724] text-sage dark:text-sage/80 p-1.5 rounded-xl">
                   <Sparkles size={16} />
                 </div>
                 <div>
@@ -1892,7 +1892,7 @@ function AgendaView({
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-teal-800 dark:text-teal-300 bg-teal-100 dark:bg-[#1a1724] px-2 py-0.5 rounded-full tracking-wider uppercase border border-transparent dark:border-teal-500/20">
+                <span className="text-xs font-bold text-sage dark:text-sage/80 bg-sage/20 dark:bg-[#1a1724] px-2 py-0.5 rounded-full tracking-wider uppercase border border-transparent dark:border-sage/100/20">
                   {profile.role === "mama" ? "Mamá" : "Papá"}
                 </span>
                 <ChevronDown size={16} className={`text-stone-400 dark:text-[#a6a1b2] transition-transform duration-200 ${isSuggestionsOpen ? "rotate-180" : ""}`} />
@@ -1900,11 +1900,11 @@ function AgendaView({
             </button>
 
             {isSuggestionsOpen && (
-              <div className="p-4 pt-1 space-y-2 border-t border-teal-50/80 dark:border-white/[0.06] animate-in fade-in">
+              <div className="p-4 pt-1 space-y-2 border-t border-sage/10/80 dark:border-white/[0.06] animate-in fade-in">
                 {(profile.role === "mama" ? suggestions.mama : suggestions.papa).map((s) => (
                   <div key={s.id} className="flex gap-2.5 items-start p-2.5 rounded-xl bg-stone-50 dark:bg-[#2d273a] border border-stone-200/80 dark:border-white/[0.06]">
-                    <div className="mt-0.5 flex-shrink-0 w-4 h-4 bg-teal-100 dark:bg-[#1a1724] rounded-full flex items-center justify-center">
-                      <CheckCircle2 size={11} className="text-teal-700 dark:text-teal-300" />
+                    <div className="mt-0.5 flex-shrink-0 w-4 h-4 bg-sage/20 dark:bg-[#1a1724] rounded-full flex items-center justify-center">
+                      <CheckCircle2 size={11} className="text-sage dark:text-sage/80" />
                     </div>
                     <p className="text-xs text-stone-700 dark:text-[#eae6e1] leading-snug flex-1 font-medium">{s.text}</p>
                     <button 
@@ -1929,7 +1929,7 @@ function AgendaView({
         <div>
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-bold text-stone-800 dark:text-[#eae6e1] flex items-center gap-2">
-              <Calendar className="text-terracotta dark:text-teal-400" size={20}/> Agenda Médica
+              <Calendar className="text-terracotta dark:text-sage" size={20}/> Agenda Médica
             </h3>
             <div className="flex items-center gap-1.5">
               <button
@@ -1938,7 +1938,7 @@ function AgendaView({
                   if (ok) showToast("Recordatorios de citas activados en este teléfono 🔔", () => {});
                   else showToast("Permiso de notificaciones del navegador no concedido", () => {});
                 }}
-                className="text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#1a1724] hover:bg-teal-100 dark:hover:bg-[#19322c] px-2.5 py-1.5 rounded-xl border border-teal-200/60 dark:border-teal-500/25 flex items-center gap-1 transition-colors shadow-xs active:scale-95"
+                className="text-xs font-bold text-sage dark:text-sage/80 bg-sage/10 dark:bg-[#1a1724] hover:bg-sage/20 dark:hover:bg-[#19322c] px-2.5 py-1.5 rounded-xl border border-sage/30/60 dark:border-sage/100/25 flex items-center gap-1 transition-colors shadow-xs active:scale-95"
                 title="Activar alertas en el teléfono"
               >
                 <Bell size={13} /> Alertas
@@ -1946,7 +1946,7 @@ function AgendaView({
               {events.length > 0 && (
                 <button
                   onClick={shareWithPartner}
-                  className="text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#1a1724] hover:bg-teal-100 dark:hover:bg-[#19322c] px-2.5 py-1.5 rounded-xl border border-teal-200/60 dark:border-teal-500/25 flex items-center gap-1 transition-colors shadow-xs active:scale-95"
+                  className="text-xs font-bold text-sage dark:text-sage/80 bg-sage/10 dark:bg-[#1a1724] hover:bg-sage/20 dark:hover:bg-[#19322c] px-2.5 py-1.5 rounded-xl border border-sage/30/60 dark:border-sage/100/25 flex items-center gap-1 transition-colors shadow-xs active:scale-95"
                   title="Compartir citas con tu pareja para sincronizarlas"
                 >
                   <Share2 size={13} /> Sincronizar
@@ -1968,7 +1968,7 @@ function AgendaView({
                   <button 
                     type="button"
                     onClick={() => openEdit(event)}
-                    className="bg-teal-50 dark:bg-[#1a1724] text-teal-700 dark:text-teal-300 rounded-xl w-14 h-14 flex flex-col justify-center items-center shrink-0 mt-0.5 hover:bg-teal-100 dark:hover:bg-[#19322c] focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors"
+                    className="bg-sage/10 dark:bg-[#1a1724] text-sage dark:text-sage/80 rounded-xl w-14 h-14 flex flex-col justify-center items-center shrink-0 mt-0.5 hover:bg-sage/20 dark:hover:bg-[#19322c] focus:outline-none focus:ring-2 focus:ring-sage/100 transition-colors"
                     aria-label={`Ver o editar cita del ${event.date}`}
                   >
                     <span className="text-xs font-bold uppercase">{event.date.split(" ")[1]}</span>
@@ -1978,10 +1978,10 @@ function AgendaView({
                     <button 
                       type="button"
                       onClick={() => openEdit(event)}
-                      className="text-left group/title focus:outline-none focus:ring-2 focus:ring-teal-500 rounded block w-full"
+                      className="text-left group/title focus:outline-none focus:ring-2 focus:ring-sage/100 rounded block w-full"
                       aria-label={`Editar cita: ${event.title}, el ${event.date}`}
                     >
-                      <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] text-base leading-snug group-hover/title:text-teal-700 dark:group-hover/title:text-teal-300 transition-colors">{event.title}</h4>
+                      <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] text-base leading-snug group-hover/title:text-sage dark:group-hover/title:text-sage/80 transition-colors">{event.title}</h4>
                       <div className="flex items-center gap-3 mt-1 text-sm text-stone-500 dark:text-[#a6a1b2]">
                         <span className="flex items-center gap-1"><Clock size={14} /> {event.time}</span>
                       </div>
@@ -1993,9 +1993,9 @@ function AgendaView({
                       <button 
                         type="button"
                         onClick={() => onOpenPrep(event)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-[#1a1724] hover:bg-teal-100 dark:hover:bg-[#19322c] text-teal-800 dark:text-teal-300 text-xs font-bold border border-teal-200/70 dark:border-teal-500/25 shadow-xs active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sage/10 dark:bg-[#1a1724] hover:bg-sage/20 dark:hover:bg-[#19322c] text-sage dark:text-sage/80 text-xs font-bold border border-sage/30/70 dark:border-sage/100/25 shadow-xs active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-sage/100"
                       >
-                        <ClipboardList size={13} className="text-terracotta dark:text-teal-400" />
+                        <ClipboardList size={13} className="text-terracotta dark:text-sage" />
                         <span>¿Qué llevar y preguntar?</span>
                       </button>
                     </div>
@@ -2005,7 +2005,7 @@ function AgendaView({
                   type="button"
                   onClick={() => deleteEvent(event.id)} 
                   aria-label={`Eliminar cita: ${event.title}`} 
-                  className="min-w-[40px] min-h-[40px] flex items-center justify-center text-stone-400 dark:text-[#a6a1b2] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-stone-100 dark:hover:bg-[#2d273a] transition-colors p-2 z-10 rounded-xl"
+                  className="min-w-[40px] min-h-[40px] flex items-center justify-center text-stone-400 dark:text-[#a6a1b2] hover:text-rose-600 dark:hover:text-terracotta hover:bg-stone-100 dark:hover:bg-[#2d273a] transition-colors p-2 z-10 rounded-xl"
                 >
                   <X size={18}/>
                 </button>
@@ -2013,7 +2013,7 @@ function AgendaView({
             ))}
           </div>
           
-          <button onClick={openNew} className="w-full mt-4 py-3 rounded-xl border-2 border-dashed border-teal-200 dark:border-teal-500/30 text-terracotta dark:text-teal-300 font-bold flex items-center justify-center gap-2 hover:bg-teal-50 dark:hover:bg-[#1a1724]/50 transition-colors">
+          <button onClick={openNew} className="w-full mt-4 py-3 rounded-xl border-2 border-dashed border-sage/30 dark:border-sage/100/30 text-terracotta dark:text-sage/80 font-bold flex items-center justify-center gap-2 hover:bg-sage/10 dark:hover:bg-[#1a1724]/50 transition-colors">
             <Plus size={18} /> Nueva Cita Médica
           </button>
         </div>
@@ -2043,9 +2043,9 @@ function AgendaView({
             <div className="space-y-4">
               <div>
                 <label htmlFor="event-title" className="text-xs font-bold text-stone-700 dark:text-[#eae6e1] tracking-tight mb-1 flex items-center justify-between">
-                  <span>Título / Motivo <span className="text-rose-500">*</span></span>
+                  <span>Título / Motivo <span className="text-terracotta/100">*</span></span>
                   {touched.title && errors.title && (
-                    <span className="text-rose-500 text-xs font-medium lowercase tracking-normal flex items-center gap-1 animate-in fade-in" role="alert">
+                    <span className="text-terracotta/100 text-xs font-medium lowercase tracking-normal flex items-center gap-1 animate-in fade-in" role="alert">
                       <AlertCircle size={12} /> {errors.title}
                     </span>
                   )}
@@ -2070,8 +2070,8 @@ function AgendaView({
                   aria-invalid={touched.title && !!errors.title}
                   className={`w-full bg-stone-50 dark:bg-[#2d273a] border rounded-xl px-4 py-3 text-stone-800 dark:text-[#eae6e1] transition-colors focus:outline-none focus:ring-2 placeholder-gray-400 dark:placeholder-[#a6a1b2]/60 ${
                     touched.title && errors.title
-                      ? "border-rose-400 bg-rose-50/20 dark:bg-rose-950/20 focus:ring-rose-400"
-                      : "border-stone-200 dark:border-white/10 focus:ring-teal-500"
+                      ? "border-terracotta bg-terracotta/10/20 dark:bg-rose-950/20 focus:ring-terracotta"
+                      : "border-stone-200 dark:border-white/10 focus:ring-sage/100"
                   }`}
                   placeholder="Ej. Ecografía Morfológica o Control Prenatal" 
                 />
@@ -2080,9 +2080,9 @@ function AgendaView({
               <div className="flex gap-3">
                 <div className="flex-1">
                   <label htmlFor="event-date" className="text-xs font-bold text-stone-700 dark:text-[#eae6e1] tracking-tight mb-1 flex items-center justify-between">
-                    <span>Fecha <span className="text-rose-500">*</span></span>
+                    <span>Fecha <span className="text-terracotta/100">*</span></span>
                     {touched.date && errors.date && (
-                      <span className="text-rose-500 text-xs font-medium lowercase tracking-normal flex items-center gap-1 animate-in fade-in" role="alert">
+                      <span className="text-terracotta/100 text-xs font-medium lowercase tracking-normal flex items-center gap-1 animate-in fade-in" role="alert">
                         <AlertCircle size={12} /> Requerida
                       </span>
                     )}
@@ -2107,8 +2107,8 @@ function AgendaView({
                     aria-invalid={touched.date && !!errors.date}
                     className={`w-full bg-stone-50 dark:bg-[#2d273a] border rounded-xl px-4 py-3 text-stone-800 dark:text-[#eae6e1] transition-colors focus:outline-none focus:ring-2 ${
                       touched.date && errors.date
-                        ? "border-rose-400 bg-rose-50/20 dark:bg-rose-950/20 focus:ring-rose-400"
-                        : "border-stone-200 dark:border-white/10 focus:ring-teal-500"
+                        ? "border-terracotta bg-terracotta/10/20 dark:bg-rose-950/20 focus:ring-terracotta"
+                        : "border-stone-200 dark:border-white/10 focus:ring-sage/100"
                     }`} 
                   />
                 </div>
@@ -2119,7 +2119,7 @@ function AgendaView({
                     type="time" 
                     value={newEvent.time} 
                     onChange={e => setNewEvent({...newEvent, time: e.target.value})}
-                    className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-4 py-3 text-stone-800 dark:text-[#eae6e1] focus:outline-none focus:ring-2 focus:ring-teal-500" 
+                    className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-4 py-3 text-stone-800 dark:text-[#eae6e1] focus:outline-none focus:ring-2 focus:ring-sage/100" 
                   />
                 </div>
               </div>
@@ -2131,7 +2131,7 @@ function AgendaView({
                   type="text" 
                   value={newEvent.doctor} 
                   onChange={e => setNewEvent({...newEvent, doctor: e.target.value})}
-                  className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-4 py-3 text-stone-800 dark:text-[#eae6e1] focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder-gray-400 dark:placeholder-[#a6a1b2]/60"
+                  className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-4 py-3 text-stone-800 dark:text-[#eae6e1] focus:outline-none focus:ring-2 focus:ring-sage/100 placeholder-gray-400 dark:placeholder-[#a6a1b2]/60"
                   placeholder="Dra. Ramírez / Hospital Los Olivos" 
                 />
               </div>
@@ -2439,7 +2439,7 @@ function PandaIAView({
       if (isHeader) {
         const headerText = trimmed.replace(/^#{2,3}\s+/, "");
         return (
-          <h4 key={idx} className="font-bold text-teal-950 dark:text-teal-300 text-sm mt-3 mb-1.5 flex items-center gap-1.5">
+          <h4 key={idx} className="font-bold text-teal-950 dark:text-sage/80 text-sm mt-3 mb-1.5 flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-terracotta inline-block"></span>
             <span>{headerText}</span>
           </h4>
@@ -2454,7 +2454,7 @@ function PandaIAView({
         const parts = itemContent.split(/(\*\*.*?\*\*)/g);
         return (
           <div key={idx} className="flex items-start gap-2 my-1 pl-1">
-            <span className="text-xs font-bold text-teal-800 dark:text-teal-200 bg-teal-100/90 dark:bg-[#1a1724] px-1.5 py-0.5 rounded-md shrink-0 mt-0.5">{num}</span>
+            <span className="text-xs font-bold text-sage dark:text-sage/30 bg-sage/20/90 dark:bg-[#1a1724] px-1.5 py-0.5 rounded-md shrink-0 mt-0.5">{num}</span>
             <span className="flex-1 leading-relaxed text-stone-700 dark:text-[#eae6e1]/90">
               {parts.map((p, pIdx) => p.startsWith("**") && p.endsWith("**") ? <strong key={pIdx} className="font-bold text-stone-900 dark:text-[#eae6e1]">{p.slice(2, -2)}</strong> : p)}
             </span>
@@ -2476,7 +2476,7 @@ function PandaIAView({
       if (isBullet) {
         return (
           <div key={idx} className="flex items-start gap-2 my-1 pl-1">
-            <span className="text-terracotta dark:text-teal-400 font-bold shrink-0 mt-0.5">•</span>
+            <span className="text-terracotta dark:text-sage font-bold shrink-0 mt-0.5">•</span>
             <span className="flex-1 leading-relaxed text-stone-700 dark:text-[#eae6e1]/90">{content}</span>
           </div>
         );
@@ -2500,18 +2500,18 @@ function PandaIAView({
       {/* HEADER CON ESTADO Y ACCIONES */}
       <div className="px-4 py-2.5 border-b border-stone-200/80 dark:border-white/[0.08] bg-white/95 dark:bg-[#181520]/95 backdrop-blur-sm shadow-xs flex items-center justify-between z-10 shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="bg-teal-100 dark:bg-[#1a1724] text-teal-700 dark:text-teal-300 p-2 rounded-2xl relative shadow-xs">
+          <div className="bg-sage/20 dark:bg-[#1a1724] text-sage dark:text-sage/80 p-2 rounded-2xl relative shadow-xs">
             <Bot size={20} />
             <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-[#181520] rounded-full animate-pulse"></span>
           </div>
           <div>
             <h2 className="font-bold text-stone-900 dark:text-[#eae6e1] leading-tight flex items-center gap-1.5 text-sm">
               <span>PandaIA</span>
-              <span className="text-xs font-bold text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-[#1a1724] border border-teal-200/80 dark:border-teal-500/25 px-2 py-0.5 rounded-full tracking-tight">
+              <span className="text-xs font-bold text-sage dark:text-sage/80 bg-sage/10 dark:bg-[#1a1724] border border-sage/30/80 dark:border-sage/100/25 px-2 py-0.5 rounded-full tracking-tight">
                 Copiloto
               </span>
             </h2>
-            <p className="text-xs font-semibold text-teal-700 dark:text-teal-300 flex items-center gap-1.5">
+            <p className="text-xs font-semibold text-sage dark:text-sage/80 flex items-center gap-1.5">
               <span>{profile.role === "papa" ? "🧔 Modo Papá" : "👩 Modo Mamá"}{profile.name ? ` (${profile.name})` : ""}</span>
               <span>· Sem {profile.week}</span>
             </p>
@@ -2541,7 +2541,7 @@ function PandaIAView({
             }`}
           >
             {msg.sender === 'ai' && (
-              <div className="bg-teal-100 dark:bg-[#1a1724] text-teal-800 dark:text-teal-300 p-1.5 rounded-xl shrink-0 mb-1 shadow-xs">
+              <div className="bg-sage/20 dark:bg-[#1a1724] text-sage dark:text-sage/80 p-1.5 rounded-xl shrink-0 mb-1 shadow-xs">
                 <Bot size={16} />
               </div>
             )}
@@ -2560,13 +2560,13 @@ function PandaIAView({
                     <button
                       type="button"
                       onClick={() => copyMessage(msg.id, msg.text)}
-                      className="text-xs font-bold text-stone-400 dark:text-[#a6a1b2] hover:text-teal-700 dark:hover:text-teal-300 flex items-center gap-1 transition-colors p-1"
+                      className="text-xs font-bold text-stone-400 dark:text-[#a6a1b2] hover:text-sage dark:hover:text-sage/80 flex items-center gap-1 transition-colors p-1"
                       title="Copiar respuesta"
                     >
                       {copiedId === msg.id ? (
                         <>
-                          <Check size={12} className="text-terracotta dark:text-teal-400" />
-                          <span className="text-teal-700 dark:text-teal-300">Copiado</span>
+                          <Check size={12} className="text-terracotta dark:text-sage" />
+                          <span className="text-sage dark:text-sage/80">Copiado</span>
                         </>
                       ) : (
                         <>
@@ -2581,10 +2581,10 @@ function PandaIAView({
               
               {/* Tarjeta de Acción / Cita Agendada */}
               {msg.card && (
-                <div className="bg-gradient-to-br from-teal-50 via-emerald-50/40 to-white dark:from-[#221d2d] dark:to-[#1a1724] border border-teal-200 dark:border-teal-500/25 shadow-xs rounded-2xl p-4 w-full max-w-sm animate-in zoom-in-95 duration-200">
+                <div className="bg-gradient-to-br from-sage/10 via-emerald-50/40 to-white dark:from-[#221d2d] dark:to-[#1a1724] border border-sage/30 dark:border-sage/100/25 shadow-xs rounded-2xl p-4 w-full max-w-sm animate-in zoom-in-95 duration-200">
                   <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-1.5 text-teal-900 dark:text-teal-300 font-bold text-xs tracking-tight">
-                      <BriefcaseMedical size={15} className="text-teal-700 dark:text-teal-400" />
+                    <div className="flex items-center gap-1.5 text-sage dark:text-sage/80 font-bold text-xs tracking-tight">
+                      <BriefcaseMedical size={15} className="text-sage dark:text-sage" />
                       <span>Cita Médica Agendada</span>
                     </div>
                     <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100/90 dark:bg-[#1a1724] px-2 py-0.5 rounded-full">
@@ -2614,7 +2614,7 @@ function PandaIAView({
 
         {isTyping && (
           <div className="flex items-end gap-2 max-w-[85%] animate-in fade-in duration-150">
-            <div className="bg-teal-100 dark:bg-[#1a1724] text-teal-800 dark:text-teal-300 p-1.5 rounded-xl shrink-0 mb-1 shadow-xs">
+            <div className="bg-sage/20 dark:bg-[#1a1724] text-sage dark:text-sage/80 p-1.5 rounded-xl shrink-0 mb-1 shadow-xs">
               <Bot size={16} />
             </div>
             <div className="bg-white dark:bg-[#221d2d] px-4 py-3 rounded-2xl rounded-bl-none shadow-xs border border-stone-100 dark:border-white/[0.08] flex gap-2 items-center">
@@ -2640,7 +2640,7 @@ function PandaIAView({
               key={idx}
               type="button"
               onClick={() => handleSend(chip)}
-              className="whitespace-nowrap bg-teal-50/80 dark:bg-[#2d273a] border border-teal-200/70 dark:border-white/10 text-teal-800 dark:text-teal-300 text-xs font-semibold px-3.5 py-1.5 rounded-full hover:bg-teal-100 dark:hover:bg-[#383147] active:scale-95 transition-all shadow-2xs"
+              className="whitespace-nowrap bg-sage/10/80 dark:bg-[#2d273a] border border-sage/30/70 dark:border-white/10 text-sage dark:text-sage/80 text-xs font-semibold px-3.5 py-1.5 rounded-full hover:bg-sage/20 dark:hover:bg-[#383147] active:scale-95 transition-all shadow-2xs"
             >
               {chip}
             </button>
@@ -2649,12 +2649,12 @@ function PandaIAView({
 
         {/* Text Input Ergonómico */}
         <div className="p-2.5">
-          <div className="flex items-end gap-2 bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-teal-500 focus-within:border-transparent transition-all shadow-xs">
+          <div className="flex items-end gap-2 bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-sage/100 focus-within:border-transparent transition-all shadow-xs">
             <button 
               type="button"
               aria-label="Cargar consulta sobre ecografías"
               onClick={() => setIsUltrasoundModalOpen(true)}
-              className="p-2 text-stone-400 dark:text-[#a6a1b2] hover:text-teal-700 dark:hover:text-teal-300 transition-colors shrink-0 rounded-xl hover:bg-white dark:hover:bg-[#221d2d]"
+              className="p-2 text-stone-400 dark:text-[#a6a1b2] hover:text-sage dark:hover:text-sage/80 transition-colors shrink-0 rounded-xl hover:bg-white dark:hover:bg-[#221d2d]"
               title="Preguntas frecuentes sobre ecografías"
             >
               <Paperclip size={18} />
@@ -2701,7 +2701,7 @@ function PandaIAView({
           className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150"
         >
           <div className="bg-white dark:bg-[#221d2d] rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in slide-in-from-bottom-4 duration-200 border border-stone-100 dark:border-white/[0.08]">
-            <div className="bg-gradient-to-r from-teal-600 to-teal-700 p-4 flex justify-between items-center text-white">
+            <div className="bg-gradient-to-r from-sage to-sage p-4 flex justify-between items-center text-white">
               <div className="flex items-center gap-2">
                 <div className="bg-white/10 p-2 rounded-xl">
                   <FileText size={18} />
@@ -2710,7 +2710,7 @@ function PandaIAView({
                   <h3 id="ultrasound-modal-title" className="font-bold text-sm leading-tight">
                     Decodificador de Ecografía
                   </h3>
-                  <p className="text-xs text-teal-100">
+                  <p className="text-xs text-sage/20">
                     Preguntas rápidas para interpretar tu ecografía
                   </p>
                 </div>
@@ -2718,7 +2718,7 @@ function PandaIAView({
               <button 
                 type="button"
                 onClick={() => setIsUltrasoundModalOpen(false)}
-                className="text-teal-100 hover:text-white p-1 rounded-lg transition-colors"
+                className="text-sage/20 hover:text-white p-1 rounded-lg transition-colors"
                 aria-label="Cerrar ventana de ecografías"
               >
                 <X size={20} />
@@ -2735,10 +2735,10 @@ function PandaIAView({
                   key={idx}
                   type="button"
                   onClick={() => handleUltrasoundSelect(item.prompt)}
-                  className="w-full text-left p-3.5 rounded-2xl border border-stone-100 dark:border-white/[0.08] bg-stone-50/70 dark:bg-[#2d273a]/60 hover:bg-teal-50/60 dark:hover:bg-[#2d273a] hover:border-teal-200 dark:hover:border-teal-500/30 transition-all flex items-start justify-between gap-3 group active:scale-[0.99]"
+                  className="w-full text-left p-3.5 rounded-2xl border border-stone-100 dark:border-white/[0.08] bg-stone-50/70 dark:bg-[#2d273a]/60 hover:bg-sage/10/60 dark:hover:bg-[#2d273a] hover:border-sage/30 dark:hover:border-sage/100/30 transition-all flex items-start justify-between gap-3 group active:scale-[0.99]"
                 >
                   <div className="flex-1">
-                    <p className="text-xs font-bold text-stone-900 dark:text-[#eae6e1] group-hover:text-teal-900 dark:group-hover:text-teal-300 flex items-center gap-1.5">
+                    <p className="text-xs font-bold text-stone-900 dark:text-[#eae6e1] group-hover:text-sage dark:group-hover:text-sage/80 flex items-center gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-terracotta shrink-0"></span>
                       <span>{item.title}</span>
                     </p>
@@ -2746,7 +2746,7 @@ function PandaIAView({
                       {item.desc}
                     </p>
                   </div>
-                  <ChevronRight size={16} className="text-stone-400 dark:text-[#a6a1b2] group-hover:text-terracotta dark:group-hover:text-teal-300 shrink-0 mt-1" />
+                  <ChevronRight size={16} className="text-stone-400 dark:text-[#a6a1b2] group-hover:text-terracotta dark:group-hover:text-sage/80 shrink-0 mt-1" />
                 </button>
               ))}
             </div>
@@ -2776,8 +2776,8 @@ function SOSSintomas() {
     {
       id: "mareos",
       title: "Náuseas y Mareos",
-      icon: <Utensils className="text-amber-500" size={20} />,
-      color: "bg-amber-50 dark:bg-[#241b12]",
+      icon: <Utensils className="text-terracotta/100" size={20} />,
+      color: "bg-terracotta/10 dark:bg-[#241b12]",
       content: (
         <ul className="text-sm text-stone-600 dark:text-[#a6a1b2] space-y-2 mt-2 list-disc pl-5">
           <li><strong className="text-stone-900 dark:text-[#eae6e1]">Estómago con colchón:</strong> Coman galletas saladas o tostadas antes de levantarse de la cama.</li>
@@ -2790,8 +2790,8 @@ function SOSSintomas() {
     {
       id: "acidez",
       title: "Acidez y Reflujo",
-      icon: <Heart className="text-rose-500" size={20} />,
-      color: "bg-rose-50 dark:bg-[#251518]",
+      icon: <Heart className="text-terracotta/100" size={20} />,
+      color: "bg-terracotta/10 dark:bg-[#251518]",
       content: (
         <ul className="text-sm text-stone-600 dark:text-[#a6a1b2] space-y-2 mt-2 list-disc pl-5">
           <li><strong className="text-stone-900 dark:text-[#eae6e1]">Poco pero seguido:</strong> 5 o 6 comidas pequeñas al día en lugar de 3 grandes para no sobrecargar el esfínter.</li>
@@ -2817,8 +2817,8 @@ function SOSSintomas() {
     {
       id: "alarma",
       title: "🚨 Señales de Alarma Médica",
-      icon: <AlertTriangle className="text-rose-600 dark:text-rose-400" size={20} />,
-      color: "bg-rose-50 dark:bg-[#251518]",
+      icon: <AlertTriangle className="text-rose-600 dark:text-terracotta" size={20} />,
+      color: "bg-terracotta/10 dark:bg-[#251518]",
       content: (
         <ul className="text-sm text-rose-800 dark:text-rose-300 font-medium space-y-2 mt-2 list-disc pl-5">
           <li><strong className="text-rose-950 dark:text-rose-200">Sangrado vaginal</strong> (cualquier cantidad, contactar al médico).</li>
@@ -2835,23 +2835,23 @@ function SOSSintomas() {
     <div className="flex flex-col py-2 animate-in fade-in duration-300 h-full w-full">
       <div className="text-center mb-6">
         <h3 className="text-xl font-bold text-stone-800 dark:text-[#eae6e1] flex justify-center items-center gap-2">
-          <HeartPulse className="text-rose-500" /> SOS Mamá
+          <HeartPulse className="text-terracotta/100" /> SOS Mamá
         </h3>
         <p className="text-sm text-stone-500 dark:text-[#a6a1b2]">Guía rápida de alivio de síntomas</p>
       </div>
 
       {/* Banner de Emergencia Rápida */}
-      <div className="bg-gradient-to-r from-rose-50 to-red-50 dark:from-[#251518] dark:to-[#201316] border border-rose-200 dark:border-rose-500/25 rounded-2xl p-4 mb-4 flex items-center justify-between gap-3 shadow-xs">
+      <div className="bg-gradient-to-r from-terracotta/10 to-red-50 dark:from-[#251518] dark:to-[#201316] border border-rose-200 dark:border-terracotta/100/25 rounded-2xl p-4 mb-4 flex items-center justify-between gap-3 shadow-xs">
         <div>
           <h4 className="font-bold text-rose-800 dark:text-rose-300 text-sm flex items-center gap-1.5">
             <AlertTriangle size={16} className="text-rose-600 shrink-0" /> ¿Emergencia o Alarma?
           </h4>
-          <p className="text-xs text-rose-600 dark:text-rose-400 mt-0.5">Acceso rápido ante signos de alerta</p>
+          <p className="text-xs text-rose-600 dark:text-terracotta mt-0.5">Acceso rápido ante signos de alerta</p>
         </div>
         <div className="flex gap-2 shrink-0">
           <a
             href="tel:911"
-            className="bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-xs transition-all"
+            className="bg-rose-600 hover:bg-terracotta active:scale-95 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-xs transition-all"
             aria-label="Llamar a Urgencias médicas"
           >
             📞 Llamar
@@ -2860,7 +2860,7 @@ function SOSSintomas() {
             href="https://maps.google.com/?q=hospital+maternidad"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-white dark:bg-[#221d2d] hover:bg-rose-100/50 dark:hover:bg-[#2d273a] active:scale-95 border border-rose-200 dark:border-rose-500/25 text-rose-700 dark:text-rose-300 font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-xs transition-all"
+            className="bg-white dark:bg-[#221d2d] hover:bg-terracotta/20/50 dark:hover:bg-[#2d273a] active:scale-95 border border-rose-200 dark:border-terracotta/100/25 text-terracotta dark:text-rose-300 font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-xs transition-all"
             aria-label="Ver ruta al hospital más cercano"
           >
             📍 Hospital
@@ -2886,10 +2886,10 @@ function SOSSintomas() {
               <div className="p-4 pt-0 bg-stone-50 dark:bg-[#2d273a]/30 border-t border-stone-100 dark:border-white/[0.06] animate-in slide-in-from-top-2">
                 {sym.content}
                 {sym.id === "alarma" && (
-                  <div className="mt-4 pt-3 border-t border-rose-200 dark:border-rose-500/30 flex gap-2">
+                  <div className="mt-4 pt-3 border-t border-rose-200 dark:border-terracotta/100/30 flex gap-2">
                     <a
                       href="tel:911"
-                      className="flex-1 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
+                      className="flex-1 bg-rose-600 hover:bg-terracotta active:scale-95 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
                     >
                       📞 Llamar al Obstetra / 911
                     </a>
@@ -2897,7 +2897,7 @@ function SOSSintomas() {
                       href="https://maps.google.com/?q=hospital+maternidad"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 bg-white dark:bg-[#221d2d] hover:bg-rose-50 dark:hover:bg-[#2d273a] active:scale-95 border border-rose-300 dark:border-rose-500/30 text-rose-800 dark:text-rose-300 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
+                      className="flex-1 bg-white dark:bg-[#221d2d] hover:bg-terracotta/10 dark:hover:bg-[#2d273a] active:scale-95 border border-rose-300 dark:border-terracotta/100/30 text-rose-800 dark:text-rose-300 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
                     >
                       📍 Ruta al Hospital
                     </a>
@@ -2940,11 +2940,11 @@ function HerramientasView({ showToast, profile }: { showToast: any, profile?: Us
                 onClick={() => setActiveTool(tool.id as any)}
                 className={`flex flex-col items-center justify-center py-2 px-0.5 rounded-xl transition-all ${
                   isActive 
-                    ? "bg-white dark:bg-[#2d273a] text-teal-700 dark:text-teal-300 shadow-xs font-bold scale-[1.02]" 
+                    ? "bg-white dark:bg-[#2d273a] text-sage dark:text-sage/80 shadow-xs font-bold scale-[1.02]" 
                     : "text-stone-500 dark:text-[#a6a1b2] hover:text-stone-800 dark:hover:text-[#eae6e1] font-medium"
                 }`}
               >
-                <div className={`p-1 rounded-lg ${isActive ? "text-terracotta dark:text-teal-400" : "text-stone-400 dark:text-[#a6a1b2]"}`}>
+                <div className={`p-1 rounded-lg ${isActive ? "text-terracotta dark:text-sage" : "text-stone-400 dark:text-[#a6a1b2]"}`}>
                   {tool.icon}
                 </div>
                 <span className="text-xs leading-tight text-center tracking-tight truncate w-full">
@@ -3183,8 +3183,8 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
       
       {/* HEADER CON PROTOCOLO CARDIFF Y GUÍA */}
       <div className="text-center">
-        <div className="inline-flex items-center gap-1.5 bg-teal-50 dark:bg-[#1a1724] border border-teal-200/80 dark:border-teal-500/25 px-3 py-1 rounded-full text-xs font-bold text-teal-800 dark:text-teal-300 mb-2 shadow-xs">
-          <Baby size={14} className="text-terracotta dark:text-teal-400" /> Protocolo Cardiff (Contar hasta 10)
+        <div className="inline-flex items-center gap-1.5 bg-sage/10 dark:bg-[#1a1724] border border-sage/30/80 dark:border-sage/100/25 px-3 py-1 rounded-full text-xs font-bold text-sage dark:text-sage/80 mb-2 shadow-xs">
+          <Baby size={14} className="text-terracotta dark:text-sage" /> Protocolo Cardiff (Contar hasta 10)
         </div>
         <h3 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1]">Monitor Fetal Inteligente</h3>
         <p className="text-xs text-stone-500 dark:text-[#a6a1b2] max-w-xs mx-auto mt-1 leading-relaxed">
@@ -3195,9 +3195,9 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
         <button
           type="button"
           onClick={() => setShowGuide(!showGuide)}
-          className="mt-3 text-xs font-bold text-teal-700 dark:text-teal-300 hover:text-teal-900 dark:hover:text-teal-200 inline-flex items-center gap-1 bg-teal-50/60 dark:bg-[#1a1724] hover:bg-teal-100/70 dark:hover:bg-[#19322c] px-3 py-1.5 rounded-xl border border-teal-200/60 dark:border-teal-500/25 transition-colors"
+          className="mt-3 text-xs font-bold text-sage dark:text-sage/80 hover:text-sage dark:hover:text-sage/30 inline-flex items-center gap-1 bg-sage/10/60 dark:bg-[#1a1724] hover:bg-sage/20/70 dark:hover:bg-[#19322c] px-3 py-1.5 rounded-xl border border-sage/30/60 dark:border-sage/100/25 transition-colors"
         >
-          <Info size={14} className="text-terracotta dark:text-teal-400" />
+          <Info size={14} className="text-terracotta dark:text-sage" />
           <span>{showGuide ? "Ocultar guía clínica" : "¿Cómo y cuándo contar patadas?"}</span>
           {showGuide ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </button>
@@ -3205,29 +3205,29 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
 
       {/* GUÍA MÉDICA DESPLEGABLE */}
       {showGuide && (
-        <div className="bg-gradient-to-br from-teal-50/90 to-emerald-50/70 dark:from-[#221d2d] dark:to-[#1a1724] border border-teal-200 dark:border-teal-500/25 rounded-3xl p-5 text-left text-xs text-stone-700 dark:text-[#eae6e1]/90 space-y-3 shadow-xs animate-in fade-in slide-in-from-top-2">
-          <h4 className="font-bold text-teal-900 dark:text-teal-300 text-sm flex items-center gap-2">
-            <ClipboardList size={16} className="text-teal-700 dark:text-teal-400" /> Guía Obstétrica: Protocolo Cardiff
+        <div className="bg-gradient-to-br from-sage/10/90 to-emerald-50/70 dark:from-[#221d2d] dark:to-[#1a1724] border border-sage/30 dark:border-sage/100/25 rounded-3xl p-5 text-left text-xs text-stone-700 dark:text-[#eae6e1]/90 space-y-3 shadow-xs animate-in fade-in slide-in-from-top-2">
+          <h4 className="font-bold text-sage dark:text-sage/80 text-sm flex items-center gap-2">
+            <ClipboardList size={16} className="text-sage dark:text-sage" /> Guía Obstétrica: Protocolo Cardiff
           </h4>
           <ul className="space-y-2 leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
             <li className="flex items-start gap-2">
-              <span className="text-terracotta dark:text-teal-400 font-bold">1.</span>
+              <span className="text-terracotta dark:text-sage font-bold">1.</span>
               <span><strong>¿Cuándo iniciar?</strong> Recomendado a partir de la semana 28 (o semana 24 si tu médico lo indicó).</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-terracotta dark:text-teal-400 font-bold">2.</span>
+              <span className="text-terracotta dark:text-sage font-bold">2.</span>
               <span><strong>Mejor momento:</strong> 30 a 60 minutos después de comer o por la noche, cuando el feto recibe más glucosa y la madre está en reposo.</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-terracotta dark:text-teal-400 font-bold">3.</span>
+              <span className="text-terracotta dark:text-sage font-bold">3.</span>
               <span><strong>Postura recomendada:</strong> Recuéstate sobre tu costado izquierdo para maximizar la oxigenación placentaria.</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-terracotta dark:text-teal-400 font-bold">4.</span>
+              <span className="text-terracotta dark:text-sage font-bold">4.</span>
               <span><strong>¿Qué cuenta como movimiento?</strong> Patadas, aleteos, giros o presiones claras. El hipo rítmico no se cuenta como patada voluntaria.</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-terracotta dark:text-teal-400 font-bold">5.</span>
+              <span className="text-terracotta dark:text-sage font-bold">5.</span>
               <span><strong>Meta normal:</strong> Sentir 10 movimientos. La gran mayoría de bebés lo logra en menos de 30 a 45 minutos.</span>
             </li>
           </ul>
@@ -3236,15 +3236,15 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
 
       {/* ALERTA CLÍNICA CARDIFF (>90 MIN) */}
       {isOvertime && (
-        <div className="bg-amber-50 dark:bg-[#241b12] border-2 border-amber-300 dark:border-amber-500/40 rounded-3xl p-4 text-left shadow-md animate-in fade-in" role="alert">
+        <div className="bg-terracotta/10 dark:bg-[#241b12] border-2 border-terracotta/80 dark:border-terracotta/100/40 rounded-3xl p-4 text-left shadow-md animate-in fade-in" role="alert">
           <div className="flex gap-3 items-start">
             <AlertTriangle className="text-amber-600 shrink-0 mt-0.5" size={22} />
             <div>
-              <h4 className="font-bold text-amber-950 dark:text-amber-300 text-sm">Sesión Prolongada (+90 min sin 10 patadas)</h4>
-              <p className="text-xs text-amber-900 dark:text-amber-200 mt-1 leading-relaxed">
+              <h4 className="font-bold text-terracotta dark:text-terracotta/80 text-sm">Sesión Prolongada (+90 min sin 10 patadas)</h4>
+              <p className="text-xs text-terracotta dark:text-terracotta/30 mt-1 leading-relaxed">
                 Si el bebé está inactivo, prueba estos pasos clínicos de estimulación:
               </p>
-              <ul className="text-xs text-amber-900/90 dark:text-amber-200/90 list-disc list-inside mt-1.5 space-y-0.5">
+              <ul className="text-xs text-terracotta/90 dark:text-terracotta/30/90 list-disc list-inside mt-1.5 space-y-0.5">
                 <li>Bebe un vaso de agua muy fría o jugo de frutas natural.</li>
                 <li>Recuéstate 20 minutos sobre tu costado izquierdo en completo silencio.</li>
                 <li>Toca suavemente tu abdomen o pon música suave.</li>
@@ -3252,10 +3252,10 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
               <p className="text-xs font-semibold text-rose-800 dark:text-rose-300 mt-2">
                 Si tras 2 horas completas el bebé no alcanza 10 movimientos o notas una reducción drástica, contacta a tu equipo médico de inmediato.
               </p>
-              <div className="mt-3 pt-2.5 border-t border-amber-200 dark:border-amber-500/30 flex gap-2">
+              <div className="mt-3 pt-2.5 border-t border-terracotta/30 dark:border-terracotta/100/30 flex gap-2">
                 <a
                   href="tel:911"
-                  className="inline-flex items-center gap-1.5 bg-rose-600 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-xs hover:bg-rose-700 active:scale-95 transition-all"
+                  className="inline-flex items-center gap-1.5 bg-rose-600 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-xs hover:bg-terracotta active:scale-95 transition-all"
                 >
                   <PhoneCall size={14} /> Llamada al Médico / SOS
                 </a>
@@ -3269,7 +3269,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
       <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] space-y-3">
         <div className="flex items-center justify-between text-xs font-bold">
           <span className="text-stone-700 dark:text-[#eae6e1]">Progreso de la Sesión</span>
-          <span className="text-teal-700 dark:text-teal-300">{count} de 10 patadas</span>
+          <span className="text-sage dark:text-sage/80">{count} de 10 patadas</span>
         </div>
 
         {/* 10 Pills Indicadoras */}
@@ -3284,7 +3284,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
                   isDone
                     ? "bg-terracotta text-white shadow-xs scale-100"
                     : isCurrent
-                    ? "bg-amber-100 dark:bg-[#241b12] text-amber-800 dark:text-amber-300 border-2 border-amber-400 animate-pulse scale-105"
+                    ? "bg-terracotta/20 dark:bg-[#241b12] text-terracotta dark:text-terracotta/80 border-2 border-terracotta animate-pulse scale-105"
                     : "bg-stone-100 dark:bg-[#2d273a] text-stone-400 dark:text-[#a6a1b2]/60"
                 }`}
               >
@@ -3297,7 +3297,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
         {/* Barra de progreso suave */}
         <div className="w-full bg-stone-100 dark:bg-[#2d273a] rounded-full h-2 overflow-hidden">
           <div
-            className="bg-gradient-to-r from-teal-500 to-emerald-500 h-full transition-all duration-300 rounded-full"
+            className="bg-gradient-to-r from-sage/100 to-emerald-500 h-full transition-all duration-300 rounded-full"
             style={{ width: `${Math.min(100, (count / 10) * 100)}%` }}
           />
         </div>
@@ -3310,27 +3310,27 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
           onClick={handleKick}
           disabled={count >= 10}
           aria-label={count >= 10 ? "Meta de 10 patadas completada" : "Registrar movimiento o patada del bebé"}
-          className={`relative z-10 w-60 h-60 rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-200 transform active:scale-95 select-none focus:outline-none focus:ring-4 focus:ring-teal-300 dark:focus:ring-teal-600 ${
+          className={`relative z-10 w-60 h-60 rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-200 transform active:scale-95 select-none focus:outline-none focus:ring-4 focus:ring-sage/80 dark:focus:ring-sage ${
             count >= 10 
-              ? "bg-gradient-to-br from-emerald-500 to-teal-600 dark:from-[#15342c] dark:to-[#0f241e] text-white border-4 border-white dark:border-teal-500/30 cursor-default" 
+              ? "bg-gradient-to-br from-emerald-500 to-sage dark:from-[#15342c] dark:to-[#0f241e] text-white border-4 border-white dark:border-sage/100/30 cursor-default" 
               : count === 0
-              ? "bg-gradient-to-br from-teal-500 to-teal-700 dark:from-[#221d2d] dark:to-[#181520] text-white dark:text-[#eae6e1] border-4 border-white dark:border-teal-500/30 hover:shadow-teal-200/80 hover:scale-[1.02]"
-              : "bg-gradient-to-br from-teal-500 via-teal-600 to-emerald-600 dark:from-[#183a31] dark:to-[#102721] text-white dark:text-[#eae6e1] border-4 border-white dark:border-teal-500/40 hover:scale-[1.02]"
+              ? "bg-gradient-to-br from-sage/100 to-sage dark:from-[#221d2d] dark:to-[#181520] text-white dark:text-[#eae6e1] border-4 border-white dark:border-sage/100/30 hover:shadow-sage/30/80 hover:scale-[1.02]"
+              : "bg-gradient-to-br from-sage/100 via-sage to-sage-hover dark:from-[#183a31] dark:to-[#102721] text-white dark:text-[#eae6e1] border-4 border-white dark:border-sage/100/40 hover:scale-[1.02]"
           }`}
         >
           {count < 10 ? (
             <>
               <span className="text-8xl font-black tracking-tighter leading-none">{count}</span>
-              <span className="text-xs font-black uppercase tracking-widest mt-2 bg-white/20 px-3 py-1 rounded-full text-teal-50">
+              <span className="text-xs font-black uppercase tracking-widest mt-2 bg-white/20 px-3 py-1 rounded-full text-sage/10">
                 {count === 0 ? "Toca para Iniciar" : "Registrar Patada"}
               </span>
-              <span className="text-xs text-teal-100 mt-1 opacity-90 font-medium">
+              <span className="text-xs text-sage/20 mt-1 opacity-90 font-medium">
                 {count === 0 ? "1ª patada activa el tiempo" : `Faltan ${10 - count} para la meta`}
               </span>
             </>
           ) : (
             <>
-              <Sparkles size={40} className="text-amber-300 mb-1 animate-pulse motion-reduce:animate-none" />
+              <Sparkles size={40} className="text-terracotta/80 mb-1 animate-pulse motion-reduce:animate-none" />
               <span className="text-4xl font-black tracking-tight leading-tight">¡Meta 10!</span>
               <span className="text-xs font-bold tracking-tight text-emerald-100 mt-1">Completada con éxito</span>
             </>
@@ -3364,11 +3364,11 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
       <div className="bg-white dark:bg-[#221d2d] w-full rounded-3xl shadow-xs border border-stone-100 dark:border-white/[0.08] p-4 flex flex-col gap-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="bg-teal-50 dark:bg-[#1a1724] text-teal-700 dark:text-teal-300 p-2.5 rounded-2xl">
-              <Clock size={22} className={startTime ? "animate-pulse text-terracotta dark:text-teal-400" : ""} />
+            <div className="bg-sage/10 dark:bg-[#1a1724] text-sage dark:text-sage/80 p-2.5 rounded-2xl">
+              <Clock size={22} className={startTime ? "animate-pulse text-terracotta dark:text-sage" : ""} />
             </div>
             <div>
-              <p className="text-xs text-teal-700 dark:text-teal-300 font-bold tracking-tight">Tiempo de Sesión</p>
+              <p className="text-xs text-sage dark:text-sage/80 font-bold tracking-tight">Tiempo de Sesión</p>
               <p className="text-2xl font-black text-stone-800 dark:text-[#eae6e1] tracking-tight font-mono tabular-nums">{formatTimer(elapsedSeconds)}</p>
             </div>
           </div>
@@ -3376,7 +3376,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
           <button 
             type="button"
             onClick={reset} 
-            className="text-rose-700 dark:text-rose-300 hover:text-rose-800 dark:hover:text-rose-200 font-bold text-xs bg-rose-50/70 dark:bg-[#251518] hover:bg-rose-100/80 dark:hover:bg-[#301c20] px-3.5 py-2 rounded-xl transition-colors tracking-tight flex items-center gap-1.5 active:scale-95 border border-rose-200/60 dark:border-rose-500/25"
+            className="text-terracotta dark:text-rose-300 hover:text-rose-800 dark:hover:text-rose-200 font-bold text-xs bg-terracotta/10/70 dark:bg-[#251518] hover:bg-terracotta/20/80 dark:hover:bg-[#301c20] px-3.5 py-2 rounded-xl transition-colors tracking-tight flex items-center gap-1.5 active:scale-95 border border-rose-200/60 dark:border-terracotta/100/25"
             title="Reiniciar conteo y cronómetro"
           >
             <RotateCcw size={13} /> Reiniciar
@@ -3389,10 +3389,10 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
             <button
               type="button"
               onClick={() => setShowTimeline(!showTimeline)}
-              className="w-full flex items-center justify-between text-xs font-bold text-stone-600 dark:text-[#a6a1b2] hover:text-teal-700 dark:hover:text-teal-300 py-1 transition-colors"
+              className="w-full flex items-center justify-between text-xs font-bold text-stone-600 dark:text-[#a6a1b2] hover:text-sage dark:hover:text-sage/80 py-1 transition-colors"
             >
               <span className="flex items-center gap-1.5">
-                <Activity size={14} className="text-terracotta dark:text-teal-400" />
+                <Activity size={14} className="text-terracotta dark:text-sage" />
                 <span>Ver ritmo de movimientos ({kicks.length} registrados)</span>
               </span>
               {showTimeline ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -3404,7 +3404,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
                   <div key={k.id} className="flex justify-between items-center text-xs bg-slate-50 dark:bg-[#2d273a]/60 px-3 py-1.5 rounded-xl border border-slate-100 dark:border-white/[0.06]">
                     <span className="font-bold text-stone-700 dark:text-[#eae6e1]">Patada #{idx + 1}</span>
                     <span className="text-stone-500 dark:text-[#a6a1b2] font-mono">{k.timeStr}</span>
-                    <span className="text-teal-700 dark:text-teal-300 font-semibold text-xs">
+                    <span className="text-sage dark:text-sage/80 font-semibold text-xs">
                       {k.intervalSecs !== null ? `+${formatDurationText(k.intervalSecs)}` : "Inicio"}
                     </span>
                   </div>
@@ -3417,15 +3417,15 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
 
       {/* TARJETA DE CELEBRACIÓN Y NOTA AL COMPLETAR */}
       {completedSession && (
-        <div className="bg-gradient-to-br from-emerald-500 to-teal-700 text-white rounded-3xl p-5 shadow-lg space-y-4 animate-in zoom-in-95 duration-200">
+        <div className="bg-gradient-to-br from-emerald-500 to-sage text-white rounded-3xl p-5 shadow-lg space-y-4 animate-in zoom-in-95 duration-200">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               <div className="bg-white/20 p-2.5 rounded-2xl">
-                <Sparkles size={24} className="text-amber-300" />
+                <Sparkles size={24} className="text-terracotta/80" />
               </div>
               <div>
                 <h4 className="text-lg font-black leading-tight">¡Sesión Exitosa Registrada!</h4>
-                <p className="text-xs text-teal-100 mt-0.5">10 movimientos completados en {completedSession.durationFormatted}</p>
+                <p className="text-xs text-sage/20 mt-0.5">10 movimientos completados en {completedSession.durationFormatted}</p>
               </div>
             </div>
             <button
@@ -3438,12 +3438,12 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
             </button>
           </div>
 
-          <p className="text-xs text-teal-50 leading-relaxed bg-white/10 p-3 rounded-2xl">
+          <p className="text-xs text-sage/10 leading-relaxed bg-white/10 p-3 rounded-2xl">
             ⚡ <strong>Evaluación médica:</strong> Tu bebé mostró un ritmo activo y reactivo saludable. La sesión ya está registrada en el historial.
           </p>
 
           <div>
-            <p className="text-xs font-bold tracking-tight text-teal-200 mb-2">Añadir contexto a la sesión:</p>
+            <p className="text-xs font-bold tracking-tight text-sage/30 mb-2">Añadir contexto a la sesión:</p>
             <div className="flex flex-wrap gap-1.5">
               {[
                 "🍽️ Después de comer",
@@ -3459,7 +3459,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
                   onClick={() => saveSessionNote(note)}
                   className={`text-xs px-3 py-1.5 rounded-xl font-medium transition-all ${
                     selectedNote === note
-                      ? "bg-white text-teal-800 font-bold shadow-sm"
+                      ? "bg-white text-sage font-bold shadow-sm"
                       : "bg-white/15 text-white hover:bg-white/25"
                   }`}
                 >
@@ -3472,7 +3472,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
           <button
             type="button"
             onClick={reset}
-            className="w-full py-3 bg-white text-teal-800 rounded-2xl font-bold text-xs hover:bg-teal-50 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2"
+            className="w-full py-3 bg-white text-sage rounded-2xl font-bold text-xs hover:bg-sage/10 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2"
           >
             <RotateCcw size={14} /> Iniciar Nueva Sesión
           </button>
@@ -3481,17 +3481,17 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
 
       {/* ESTADÍSTICAS INTELIGENTES Y PROMEDIO */}
       {avgDurationMinutes !== null && (
-        <div className="bg-gradient-to-br from-teal-50/70 to-emerald-50/60 dark:from-[#221d2d] dark:to-[#1a1724] rounded-3xl p-4 border border-teal-100 dark:border-teal-500/25 flex items-center justify-between shadow-xs">
+        <div className="bg-gradient-to-br from-sage/10/70 to-emerald-50/60 dark:from-[#221d2d] dark:to-[#1a1724] rounded-3xl p-4 border border-sage/20 dark:border-sage/100/25 flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="bg-teal-100 dark:bg-[#1a1724] text-teal-700 dark:text-teal-300 p-2.5 rounded-2xl">
-              <Trophy size={20} className="text-teal-700 dark:text-teal-400" />
+            <div className="bg-sage/20 dark:bg-[#1a1724] text-sage dark:text-sage/80 p-2.5 rounded-2xl">
+              <Trophy size={20} className="text-sage dark:text-sage" />
             </div>
             <div>
               <p className="text-xs font-bold text-stone-800 dark:text-[#eae6e1]">Promedio Personal (10 Patadas)</p>
-              <p className="text-lg font-black text-teal-700 dark:text-teal-300 font-mono">~{avgDurationMinutes} minutos</p>
+              <p className="text-lg font-black text-sage dark:text-sage/80 font-mono">~{avgDurationMinutes} minutos</p>
             </div>
           </div>
-          <span className="text-xs font-bold text-teal-800 dark:text-teal-300 bg-teal-100/80 dark:bg-[#1a1724] px-2.5 py-1 rounded-full tracking-tight">
+          <span className="text-xs font-bold text-sage dark:text-sage/80 bg-sage/20/80 dark:bg-[#1a1724] px-2.5 py-1 rounded-full tracking-tight">
             Ritmo Normal
           </span>
         </div>
@@ -3501,7 +3501,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
       <div>
         <div className="flex justify-between items-center mb-3">
           <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] flex items-center gap-2 text-sm">
-            <History size={18} className="text-terracotta dark:text-teal-300"/> Historial Clínico ({sessions.length})
+            <History size={18} className="text-terracotta dark:text-sage/80"/> Historial Clínico ({sessions.length})
           </h4>
           <span className="text-xs font-semibold text-stone-500 dark:text-[#a6a1b2]">Guardado automático</span>
         </div>
@@ -3514,15 +3514,15 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
         ) : (
           <div className="space-y-2.5">
             {sessions.map(s => (
-              <div key={s.id} className="bg-white dark:bg-[#221d2d] p-3.5 rounded-2xl border border-stone-200/80 dark:border-white/[0.08] shadow-xs flex justify-between items-center group hover:border-teal-200 dark:hover:border-teal-500/30 transition-all">
+              <div key={s.id} className="bg-white dark:bg-[#221d2d] p-3.5 rounded-2xl border border-stone-200/80 dark:border-white/[0.08] shadow-xs flex justify-between items-center group hover:border-sage/30 dark:hover:border-sage/100/30 transition-all">
                 <div className="flex items-center gap-3">
-                  <div className="bg-emerald-50 dark:bg-[#1a1724] text-emerald-600 dark:text-teal-300 p-2 rounded-xl shrink-0">
+                  <div className="bg-emerald-50 dark:bg-[#1a1724] text-sage-hover dark:text-sage/80 p-2 rounded-xl shrink-0">
                     <CheckCircle size={18}/>
                   </div>
                   <div>
                     <span className="font-bold text-stone-800 dark:text-[#eae6e1] text-xs leading-tight block">{s.dateFormatted}</span>
                     {s.note && (
-                      <span className="text-xs font-medium text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#1a1724] px-2 py-0.5 rounded-md inline-block mt-0.5">
+                      <span className="text-xs font-medium text-sage dark:text-sage/80 bg-sage/10 dark:bg-[#1a1724] px-2 py-0.5 rounded-md inline-block mt-0.5">
                         {s.note}
                       </span>
                     )}
@@ -3538,7 +3538,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
                     type="button"
                     onClick={() => deleteSession(s.id)}
                     aria-label={`Eliminar sesión de ${s.dateFormatted}`}
-                    className="min-w-[40px] min-h-[40px] flex items-center justify-center text-stone-400 dark:text-[#a6a1b2] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-stone-100 dark:hover:bg-[#2d273a] p-2 rounded-xl transition-colors"
+                    className="min-w-[40px] min-h-[40px] flex items-center justify-center text-stone-400 dark:text-[#a6a1b2] hover:text-rose-600 dark:hover:text-terracotta hover:bg-stone-100 dark:hover:bg-[#2d273a] p-2 rounded-xl transition-colors"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -3677,9 +3677,9 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
       
       {/* Alerta de Parto Activo (Regla 5-1-1) */}
       {is511 && (
-        <div className="bg-rose-50 dark:bg-[#251518] border border-rose-200 dark:border-rose-500/25 p-4 rounded-3xl shadow-xs animate-in slide-in-from-top-3" role="alert" aria-live="assertive">
+        <div className="bg-terracotta/10 dark:bg-[#251518] border border-rose-200 dark:border-terracotta/100/25 p-4 rounded-3xl shadow-xs animate-in slide-in-from-top-3" role="alert" aria-live="assertive">
           <div className="flex gap-3">
-            <div className="bg-rose-100 dark:bg-[#341b21] text-rose-600 dark:text-rose-300 p-2.5 rounded-2xl shrink-0">
+            <div className="bg-terracotta/20 dark:bg-[#341b21] text-rose-600 dark:text-rose-300 p-2.5 rounded-2xl shrink-0">
               <AlertTriangle size={24} />
             </div>
             <div>
@@ -3689,10 +3689,10 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
               </p>
             </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-rose-200/80 dark:border-rose-500/20 flex gap-2">
+          <div className="mt-3 pt-3 border-t border-rose-200/80 dark:border-terracotta/100/20 flex gap-2">
             <a
               href="tel:911"
-              className="flex-1 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
+              className="flex-1 bg-rose-600 hover:bg-terracotta active:scale-95 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
             >
               📞 Llamar al Obstetra
             </a>
@@ -3700,7 +3700,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
               href="https://maps.google.com/?q=hospital+maternidad"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 bg-white dark:bg-[#221d2d] hover:bg-rose-100/50 dark:hover:bg-[#2d273a] active:scale-95 border border-rose-300 dark:border-rose-500/30 text-rose-900 dark:text-rose-300 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
+              className="flex-1 bg-white dark:bg-[#221d2d] hover:bg-terracotta/20/50 dark:hover:bg-[#2d273a] active:scale-95 border border-rose-300 dark:border-terracotta/100/30 text-terracotta dark:text-rose-300 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
             >
               📍 Ruta al Hospital
             </a>
@@ -3711,12 +3711,12 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
       {/* Tarjetas de Promedios */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] flex flex-col items-center justify-center text-center">
-          <p className="text-xs text-teal-800 dark:text-teal-300 font-bold tracking-tight mb-1">Duración Promedio</p>
-          <p className="text-xl font-black text-teal-700 dark:text-teal-300 tabular-nums">{history.length > 0 ? formatTime(avgDuration) : "—"}</p>
+          <p className="text-xs text-sage dark:text-sage/80 font-bold tracking-tight mb-1">Duración Promedio</p>
+          <p className="text-xl font-black text-sage dark:text-sage/80 tabular-nums">{history.length > 0 ? formatTime(avgDuration) : "—"}</p>
         </div>
         <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] flex flex-col items-center justify-center text-center">
           <p className="text-xs text-rose-800 dark:text-rose-300 font-bold tracking-tight mb-1">Frecuencia Promedio</p>
-          <p className="text-xl font-black text-rose-600 dark:text-rose-400 tabular-nums">{avgInterval ? formatTime(avgInterval) : "—"}</p>
+          <p className="text-xl font-black text-rose-600 dark:text-terracotta tabular-nums">{avgInterval ? formatTime(avgInterval) : "—"}</p>
         </div>
       </div>
       
@@ -3724,9 +3724,9 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
       <button 
         type="button"
         onClick={toggleRecording}
-        className={`w-full py-7 rounded-3xl shadow-xl text-white font-bold text-xl flex flex-col items-center justify-center gap-2 transition-all duration-300 transform active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-teal-400 ${
+        className={`w-full py-7 rounded-3xl shadow-xl text-white font-bold text-xl flex flex-col items-center justify-center gap-2 transition-all duration-300 transform active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-sage ${
           isRecording 
-            ? "bg-rose-500 hover:bg-rose-600 ring-4 ring-rose-200 dark:ring-rose-500/30" 
+            ? "bg-terracotta/100 hover:bg-rose-600 ring-4 ring-rose-200 dark:ring-terracotta/100/30" 
             : "bg-terracotta hover:bg-terracotta-hover"
         }`}
         aria-label={isRecording ? "Detener registro de contracción" : "Iniciar registro de contracción"}
@@ -3744,21 +3744,21 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
 
       {/* MODO RECUPERACIÓN Y RESPIRACIÓN GUIADA ENTRE CONTRACCIONES */}
       {!isRecording && history.length > 0 && (
-        <div className="bg-gradient-to-br from-teal-50/80 via-emerald-50/50 to-white dark:from-[#221d2d] dark:to-[#1a1724] rounded-3xl p-5 border border-teal-200/80 dark:border-teal-500/25 shadow-xs space-y-4 animate-in fade-in">
-          <div className="flex items-center justify-between border-b border-teal-100 dark:border-white/[0.06] pb-2.5">
+        <div className="bg-gradient-to-br from-sage/10/80 via-emerald-50/50 to-white dark:from-[#221d2d] dark:to-[#1a1724] rounded-3xl p-5 border border-sage/30/80 dark:border-sage/100/25 shadow-xs space-y-4 animate-in fade-in">
+          <div className="flex items-center justify-between border-b border-sage/20 dark:border-white/[0.06] pb-2.5">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-              <h4 className="text-xs font-bold text-teal-950 dark:text-teal-300 tracking-tight">Intervalo de Descanso Activo</h4>
+              <h4 className="text-xs font-bold text-teal-950 dark:text-sage/80 tracking-tight">Intervalo de Descanso Activo</h4>
             </div>
-            <span className="text-xs font-bold text-teal-700 dark:text-teal-300 font-mono tabular-nums">
+            <span className="text-xs font-bold text-sage dark:text-sage/80 font-mono tabular-nums">
               Descanso: {formatTime(restSeconds)}
             </span>
           </div>
 
           {/* Pacer Visual de Respiración */}
           <div className="flex flex-col items-center justify-center py-2 text-center">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-teal-400/20 to-emerald-400/30 border-2 border-teal-500 flex items-center justify-center animate-pulse motion-reduce:animate-none">
-              <HeartPulse size={32} className="text-terracotta dark:text-teal-400" />
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-sage/20 to-emerald-400/30 border-2 border-sage/100 flex items-center justify-center animate-pulse motion-reduce:animate-none">
+              <HeartPulse size={32} className="text-terracotta dark:text-sage" />
             </div>
             <p className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm mt-3">Inhala lento en 4s ... Exhala suave en 6s</p>
             <p className="text-xs text-stone-500 dark:text-[#a6a1b2] max-w-xs mt-0.5">
@@ -3767,8 +3767,8 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
           </div>
 
           {/* Guía Rápida para el Acompañante */}
-          <div className="bg-white/90 dark:bg-[#2d273a]/80 rounded-2xl p-3 border border-teal-100/90 dark:border-white/10 text-xs space-y-1">
-            <p className="font-bold text-teal-900 dark:text-teal-300 flex items-center gap-1">
+          <div className="bg-white/90 dark:bg-[#2d273a]/80 rounded-2xl p-3 border border-sage/20/90 dark:border-white/10 text-xs space-y-1">
+            <p className="font-bold text-sage dark:text-sage/80 flex items-center gap-1">
               <span>🤝 Acompañamiento del Papá / Pareja:</span>
             </p>
             <p className="text-stone-600 dark:text-[#a6a1b2] leading-relaxed">• Ofrece un sorbo pequeño de agua fresca o bálsamo labial.</p>
@@ -3781,7 +3781,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
       {/* Historial o Estado Inicial */}
       {history.length === 0 ? (
         <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-6 border border-dashed border-stone-200 dark:border-white/[0.08] text-center shadow-xs">
-          <div className="bg-teal-50 dark:bg-[#1a1724] w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 text-terracotta dark:text-teal-300">
+          <div className="bg-sage/10 dark:bg-[#1a1724] w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 text-terracotta dark:text-sage/80">
             <HeartPulse size={24} />
           </div>
           <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm mb-1">Sin contracciones registradas</h4>
@@ -3793,12 +3793,12 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm flex items-center gap-2">
-              <Activity size={18} className="text-terracotta dark:text-teal-300"/> Historial ({history.length})
+              <Activity size={18} className="text-terracotta dark:text-sage/80"/> Historial ({history.length})
             </h4>
             <button
               type="button"
               onClick={clearHistory}
-              className="text-xs font-bold text-stone-400 dark:text-[#a6a1b2] hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
+              className="text-xs font-bold text-stone-400 dark:text-[#a6a1b2] hover:text-rose-600 dark:hover:text-terracotta transition-colors"
             >
               Reiniciar historial
             </button>
@@ -3818,11 +3818,11 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
                     {new Date(item.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
                   <div>
-                    <span className="font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#1a1724] py-1 px-2 rounded-lg inline-block tabular-nums">
+                    <span className="font-bold text-sage dark:text-sage/80 bg-sage/10 dark:bg-[#1a1724] py-1 px-2 rounded-lg inline-block tabular-nums">
                       {formatTime(item.duration)}
                     </span>
                   </div>
-                  <div className="font-bold text-rose-600 dark:text-rose-400 tabular-nums">
+                  <div className="font-bold text-rose-600 dark:text-terracotta tabular-nums">
                     {item.interval ? formatTime(item.interval) : "—"}
                   </div>
                   <div>
@@ -3830,7 +3830,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
                       type="button"
                       onClick={() => deleteItem(item.id)}
                       aria-label="Eliminar contracción"
-                      className="min-w-[40px] min-h-[40px] inline-flex items-center justify-center text-stone-400 dark:text-[#a6a1b2] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-stone-100 dark:hover:bg-[#2d273a] p-2 rounded-xl transition-colors"
+                      className="min-w-[40px] min-h-[40px] inline-flex items-center justify-center text-stone-400 dark:text-[#a6a1b2] hover:text-rose-600 dark:hover:text-terracotta hover:bg-stone-100 dark:hover:bg-[#2d273a] p-2 rounded-xl transition-colors"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -3972,7 +3972,7 @@ function VotadorNombres({ showToast }: { showToast: any }) {
         </div>
         <div className="flex items-center gap-2">
           {matches.length > 0 && (
-            <div className="bg-rose-100 dark:bg-[#251518] text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-500/20 font-bold px-3 py-1 rounded-full text-xs flex items-center gap-1 animate-pulse">
+            <div className="bg-terracotta/20 dark:bg-[#251518] text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-terracotta/100/20 font-bold px-3 py-1 rounded-full text-xs flex items-center gap-1 animate-pulse">
               <Heart size={12} fill="currentColor"/> {matches.length} Matches
             </div>
           )}
@@ -3980,13 +3980,13 @@ function VotadorNombres({ showToast }: { showToast: any }) {
             type="button"
             onClick={handleRequestMoreNames}
             disabled={isLoadingMore}
-            className="text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#1a1724] hover:bg-teal-100 dark:hover:bg-[#19322c] px-3 py-1.5 min-h-[38px] rounded-full border border-teal-200/70 dark:border-teal-500/25 flex items-center gap-1.5 transition-colors disabled:opacity-60 shadow-xs active:scale-95"
+            className="text-xs font-bold text-sage dark:text-sage/80 bg-sage/10 dark:bg-[#1a1724] hover:bg-sage/20 dark:hover:bg-[#19322c] px-3 py-1.5 min-h-[38px] rounded-full border border-sage/30/70 dark:border-sage/100/25 flex items-center gap-1.5 transition-colors disabled:opacity-60 shadow-xs active:scale-95"
             title="Pedir más nombres a PandaIA"
           >
             {isLoadingMore ? (
-              <div className="w-3 h-3 border-2 border-teal-600 dark:border-teal-300 border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-3 h-3 border-2 border-sage dark:border-sage/80 border-t-transparent rounded-full animate-spin"></div>
             ) : (
-              <Sparkles size={12} className="text-amber-500" />
+              <Sparkles size={12} className="text-terracotta/100" />
             )}
             <span>+ Nombres</span>
           </button>
@@ -4030,9 +4030,9 @@ function VotadorNombres({ showToast }: { showToast: any }) {
           style={{ transform: touchStart !== null ? `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.05}deg)` : "translateX(0) rotate(0)", transition: touchStart !== null ? "none" : "transform 0.3s ease-out" }}
           className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-xl border border-stone-100 dark:border-white/[0.08] p-8 flex flex-col items-center text-center relative overflow-hidden mb-6 select-none touch-pan-y w-full"
         >
-          <div className="absolute top-0 w-full h-2 bg-gradient-to-r from-teal-400 to-amber-400"></div>
+          <div className="absolute top-0 w-full h-2 bg-gradient-to-r from-sage to-terracotta"></div>
           <h2 className="text-4xl font-black text-stone-800 dark:text-[#eae6e1] mb-2 mt-4">{current.text}</h2>
-          <span className="text-xs font-bold uppercase tracking-widest text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#1a1724] px-3 py-1 rounded-full mb-4">
+          <span className="text-xs font-bold uppercase tracking-widest text-sage dark:text-sage/80 bg-sage/10 dark:bg-[#1a1724] px-3 py-1 rounded-full mb-4">
             Origen: {current.origin} • {current.gender}
           </span>
           <p className="text-sm text-stone-500 dark:text-[#a6a1b2] italic mb-8 max-w-[200px]">"{current.meaning}"</p>
@@ -4050,16 +4050,16 @@ function VotadorNombres({ showToast }: { showToast: any }) {
               type="button"
               onClick={() => vote(current.id, "liked")} 
               aria-label={`Guardar como favorito el nombre ${current.text}`}
-              className="bg-rose-500 p-5 rounded-full shadow-lg hover:bg-rose-600 text-white transition-transform active:scale-90 focus:outline-none focus:ring-2 focus:ring-rose-300"
+              className="bg-terracotta/100 p-5 rounded-full shadow-lg hover:bg-rose-600 text-white transition-transform active:scale-90 focus:outline-none focus:ring-2 focus:ring-rose-300"
             >
               <Heart size={32} fill="currentColor" />
             </button>
           </div>
         </div>
       ) : (
-        <div className="bg-gradient-to-br from-teal-50 to-amber-50 dark:from-[#221d2d] dark:to-[#1a1724] rounded-3xl border border-teal-100 dark:border-teal-500/25 p-8 text-center mb-6 shadow-xs flex flex-col items-center w-full">
+        <div className="bg-gradient-to-br from-sage/10 to-terracotta/10 dark:from-[#221d2d] dark:to-[#1a1724] rounded-3xl border border-sage/20 dark:border-sage/100/25 p-8 text-center mb-6 shadow-xs flex flex-col items-center w-full">
             <div className="bg-white dark:bg-[#2d273a] p-4 rounded-full mb-4 shadow-xs">
-              <Sparkles className="text-amber-500" size={32} />
+              <Sparkles className="text-terracotta/100" size={32} />
             </div>
             <h4 className="text-xl font-bold text-stone-800 dark:text-[#eae6e1] mb-2">
               {matches.length > 0 ? "¡Excelente trabajo en equipo!" : "¡Sigue buscando!"}
@@ -4101,11 +4101,11 @@ function VotadorNombres({ showToast }: { showToast: any }) {
 
       {matches.length > 0 && (
         <div className="mt-4">
-          <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] mb-3 flex items-center gap-2"><Sparkles size={18} className="text-amber-500"/> ¡It's a Match!</h4>
+          <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] mb-3 flex items-center gap-2"><Sparkles size={18} className="text-terracotta/100"/> ¡It's a Match!</h4>
           <div className="grid grid-cols-2 gap-3">
             {matches.map(n => (
-              <div key={n.id} className="bg-gradient-to-br from-teal-50 to-white dark:from-[#221d2d] dark:to-[#2d273a] border border-teal-100 dark:border-white/[0.08] p-4 rounded-2xl flex flex-col items-center justify-center shadow-xs">
-                <Heart size={20} className="text-rose-400 mb-1" fill="currentColor"/>
+              <div key={n.id} className="bg-gradient-to-br from-sage/10 to-white dark:from-[#221d2d] dark:to-[#2d273a] border border-sage/20 dark:border-white/[0.08] p-4 rounded-2xl flex flex-col items-center justify-center shadow-xs">
+                <Heart size={20} className="text-terracotta mb-1" fill="currentColor"/>
                 <span className="font-bold text-stone-800 dark:text-[#eae6e1]">{n.text}</span>
               </div>
             ))}
@@ -4308,9 +4308,9 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
 
       {/* DOCUMENTO CLINICO IMPRESO (SOLO VISIBLE AL IMPRIMIR CON WINDOW.PRINT) */}
       <div className="hidden print:block text-black bg-white p-8 max-w-4xl mx-auto space-y-6 text-sm">
-        <div className="border-b-2 border-teal-800 pb-4 flex justify-between items-end">
+        <div className="border-b-2 border-sage pb-4 flex justify-between items-end">
           <div>
-            <h1 className="text-2xl font-black tracking-tight text-teal-900">PLAN DE PARTO Y NACIMIENTO INFORMADO</h1>
+            <h1 className="text-2xl font-black tracking-tight text-sage">PLAN DE PARTO Y NACIMIENTO INFORMADO</h1>
             <p className="text-xs text-stone-600 mt-0.5">Expresión de voluntades y preferencias clínicas para la atención del parto y recién nacido</p>
           </div>
           <div className="text-right text-xs text-stone-500 font-mono">
@@ -4335,11 +4335,11 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
 
         {/* Cláusula Introductoria de Respeto Clínico */}
         <blockquote className="bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-xl text-xs text-stone-700 italic flex items-start gap-2.5">
-          <span className="text-teal-700 font-serif text-lg leading-none select-none shrink-0" aria-hidden="true">“</span>
+          <span className="text-sage font-serif text-lg leading-none select-none shrink-0" aria-hidden="true">“</span>
           <p className="flex-1">
             A la atención del equipo obstétrico y pediátrico: Este plan expresa nuestros deseos y preferencias para el proceso de parto y postparto inmediato, entendiendo siempre que la salud y seguridad de la madre y del bebé priman ante cualquier eventualidad médica imprevista.
           </p>
-          <span className="text-teal-700 font-serif text-lg leading-none select-none shrink-0 self-end" aria-hidden="true">”</span>
+          <span className="text-sage font-serif text-lg leading-none select-none shrink-0 self-end" aria-hidden="true">”</span>
         </blockquote>
 
         {/* Secciones y Preferencias Seleccionadas */}
@@ -4353,7 +4353,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                 <ul className="space-y-1 text-xs text-stone-800 pt-1">
                   {activeOpts.map(opt => (
                     <li key={opt.id} className="flex items-start gap-2">
-                      <span className="text-teal-700 font-bold">☑</span>
+                      <span className="text-sage font-bold">☑</span>
                       <div>
                         <strong>{opt.label}:</strong> <span className="text-stone-600">{opt.desc}</span>
                       </div>
@@ -4386,8 +4386,8 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
       <div className="no-print space-y-4">
         <div className="flex justify-between items-start gap-3">
           <div>
-            <div className="inline-flex items-center gap-1.5 bg-teal-50 dark:bg-[#1a1724] border border-teal-200/80 dark:border-teal-500/25 px-2.5 py-0.5 rounded-full text-xs font-bold text-teal-800 dark:text-teal-300 mb-1">
-              <ClipboardList size={13} className="text-terracotta dark:text-teal-400" /> Plan de Parto Respetado
+            <div className="inline-flex items-center gap-1.5 bg-sage/10 dark:bg-[#1a1724] border border-sage/30/80 dark:border-sage/100/25 px-2.5 py-0.5 rounded-full text-xs font-bold text-sage dark:text-sage/80 mb-1">
+              <ClipboardList size={13} className="text-terracotta dark:text-sage" /> Plan de Parto Respetado
             </div>
             <h3 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1]">Tu Plan de Parto</h3>
             <p className="text-xs text-stone-500 dark:text-[#a6a1b2]">
@@ -4423,7 +4423,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
             onClick={() => setViewMode("wizard")}
             className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
               viewMode === "wizard" 
-                ? "bg-white dark:bg-[#2d273a] text-teal-800 dark:text-teal-300 shadow-xs" 
+                ? "bg-white dark:bg-[#2d273a] text-sage dark:text-sage/80 shadow-xs" 
                 : "text-stone-500 dark:text-[#a6a1b2] hover:text-stone-800 dark:hover:text-[#eae6e1]"
             }`}
           >
@@ -4434,7 +4434,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
             onClick={() => setViewMode("document")}
             className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
               viewMode === "document" 
-                ? "bg-white dark:bg-[#2d273a] text-teal-800 dark:text-teal-300 shadow-xs" 
+                ? "bg-white dark:bg-[#2d273a] text-sage dark:text-sage/80 shadow-xs" 
                 : "text-stone-500 dark:text-[#a6a1b2] hover:text-stone-800 dark:hover:text-[#eae6e1]"
             }`}
           >
@@ -4457,10 +4457,10 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                   type="button"
                   onClick={() => setStep(s.id)}
                   aria-label={`Ir al paso ${s.id}: ${s.category}`}
-                  className="flex-1 py-2 min-h-[40px] flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded-full"
+                  className="flex-1 py-2 min-h-[40px] flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-sage/100 rounded-full"
                 >
                   <div className={`h-2 w-full rounded-full transition-all duration-300 ${
-                    isPast ? "bg-terracotta" : isCurrent ? "bg-terracotta ring-2 ring-teal-200 dark:ring-teal-500/30" : "bg-stone-200 dark:bg-[#2d273a]"
+                    isPast ? "bg-terracotta" : isCurrent ? "bg-terracotta ring-2 ring-sage/30 dark:ring-sage/100/30" : "bg-stone-200 dark:bg-[#2d273a]"
                   }`} />
                 </button>
               );
@@ -4471,7 +4471,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
           {currentSection && (
             <div className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-xs border border-stone-200/80 dark:border-white/[0.08] p-5 space-y-4 animate-in fade-in">
               <div className="border-b border-stone-100 dark:border-white/[0.06] pb-3">
-                <span className="text-xs font-bold tracking-tight text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#1a1724] px-2.5 py-0.5 rounded-full">
+                <span className="text-xs font-bold tracking-tight text-sage dark:text-sage/80 bg-sage/10 dark:bg-[#1a1724] px-2.5 py-0.5 rounded-full">
                   Paso {step} de 5 · {currentSection.category}
                 </span>
                 <h4 className="text-lg font-black text-stone-800 dark:text-[#eae6e1] mt-1 leading-tight">{currentSection.title}</h4>
@@ -4485,7 +4485,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                     key={opt.id}
                     className={`flex items-start gap-3 p-3.5 rounded-2xl border transition-all cursor-pointer select-none ${
                       opt.checked
-                        ? "bg-teal-50/60 dark:bg-[#2d273a] border-teal-200 dark:border-teal-500/30 shadow-xs"
+                        ? "bg-sage/10/60 dark:bg-[#2d273a] border-sage/30 dark:border-sage/100/30 shadow-xs"
                         : "bg-white dark:bg-[#221d2d] border-stone-200/80 dark:border-white/[0.08] hover:border-stone-300 dark:hover:border-white/20 opacity-70"
                     }`}
                   >
@@ -4493,10 +4493,10 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                       type="checkbox"
                       checked={opt.checked}
                       onChange={() => toggleOption(currentSection.id, opt.id)}
-                      className="mt-1 w-4 h-4 text-terracotta rounded border-stone-300 dark:border-white/20 dark:bg-[#2d273a] focus:ring-teal-500"
+                      className="mt-1 w-4 h-4 text-terracotta rounded border-stone-300 dark:border-white/20 dark:bg-[#2d273a] focus:ring-sage/100"
                     />
                     <div className="flex-1">
-                      <span className={`text-xs font-bold block leading-snug ${opt.checked ? "text-teal-950 dark:text-teal-300" : "text-stone-700 dark:text-[#eae6e1]"}`}>
+                      <span className={`text-xs font-bold block leading-snug ${opt.checked ? "text-teal-950 dark:text-sage/80" : "text-stone-700 dark:text-[#eae6e1]"}`}>
                         {opt.label}
                       </span>
                       <span className="text-xs text-stone-500 dark:text-[#a6a1b2] block mt-0.5 leading-relaxed">
@@ -4550,7 +4550,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
           <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-5 shadow-xs border border-stone-100 dark:border-white/[0.08] space-y-3">
             <div className="flex justify-between items-center border-b border-stone-100 dark:border-white/[0.06] pb-2">
               <h4 className="text-xs font-bold text-stone-800 dark:text-[#eae6e1] tracking-tight flex items-center gap-1.5">
-                <Settings size={14} className="text-terracotta dark:text-teal-400" /> Datos de la Ficha Médica
+                <Settings size={14} className="text-terracotta dark:text-sage" /> Datos de la Ficha Médica
               </h4>
               <span className="text-xs text-stone-500 dark:text-[#a6a1b2]">Se imprimirán en el encabezado</span>
             </div>
@@ -4564,7 +4564,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                   value={patientData.motherName}
                   onChange={e => setPatientData({ ...patientData, motherName: e.target.value })}
                   placeholder="Ej. Sofía Martínez"
-                  className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-sage/100"
                 />
               </div>
 
@@ -4576,7 +4576,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                   value={patientData.partnerName}
                   onChange={e => setPatientData({ ...patientData, partnerName: e.target.value })}
                   placeholder="Ej. Carlos Pérez"
-                  className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-sage/100"
                 />
               </div>
 
@@ -4588,7 +4588,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                   value={patientData.hospital}
                   onChange={e => setPatientData({ ...patientData, hospital: e.target.value })}
                   placeholder="Ej. Hospital Materno Infantil"
-                  className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-sage/100"
                 />
               </div>
 
@@ -4600,7 +4600,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                   value={patientData.doctor}
                   onChange={e => setPatientData({ ...patientData, doctor: e.target.value })}
                   placeholder="Ej. Dra. Gómez / Matrona de turno"
-                  className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-sage/100"
                 />
               </div>
             </div>
@@ -4613,7 +4613,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                 value={patientData.notes}
                 onChange={e => setPatientData({ ...patientData, notes: e.target.value })}
                 placeholder="Ej. Alergia a la penicilina, deseo donar sangre de cordón, etc."
-                className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
+                className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-sage/100 resize-none"
               />
             </div>
           </div>
@@ -4622,9 +4622,9 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
           <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-5 shadow-xs border border-stone-100 dark:border-white/[0.08] space-y-4">
             <div className="flex justify-between items-center border-b border-stone-100 dark:border-white/[0.06] pb-2">
               <h4 className="text-sm font-bold text-stone-800 dark:text-[#eae6e1] flex items-center gap-2">
-                <FileText size={16} className="text-terracotta dark:text-teal-400" /> Vista Previa del Documento
+                <FileText size={16} className="text-terracotta dark:text-sage" /> Vista Previa del Documento
               </h4>
-              <span className="text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#1a1724] px-2.5 py-0.5 rounded-full">
+              <span className="text-xs font-bold text-sage dark:text-sage/80 bg-sage/10 dark:bg-[#1a1724] px-2.5 py-0.5 rounded-full">
                 {totalCheckedCount} deseos activos
               </span>
             </div>
@@ -4644,7 +4644,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                       <ul className="space-y-1.5">
                         {active.map(opt => (
                           <li key={opt.id} className="flex items-start gap-2 text-stone-700 dark:text-[#eae6e1]/90">
-                            <CheckCircle2 size={14} className="text-terracotta dark:text-teal-400 shrink-0 mt-0.5" />
+                            <CheckCircle2 size={14} className="text-terracotta dark:text-sage shrink-0 mt-0.5" />
                             <span><strong>{opt.label}:</strong> {opt.desc}</span>
                           </li>
                         ))}
@@ -4657,10 +4657,10 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
           </div>
 
           {/* Barra de Acciones de Exportación */}
-          <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-teal-900 dark:from-[#221d2d] dark:via-[#1c2027] dark:to-[#1a1724] border border-transparent dark:border-white/[0.08] text-white p-5 rounded-3xl shadow-lg space-y-3">
+          <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-sage dark:from-[#221d2d] dark:via-[#1c2027] dark:to-[#1a1724] border border-transparent dark:border-white/[0.08] text-white p-5 rounded-3xl shadow-lg space-y-3">
             <div className="flex items-center gap-3">
               <div className="bg-white/10 p-2.5 rounded-2xl">
-                <Printer size={22} className="text-teal-300" />
+                <Printer size={22} className="text-sage/80" />
               </div>
               <div>
                 <h4 className="font-bold text-sm">¿Todo listo para el día del parto?</h4>
@@ -4672,7 +4672,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
               <button
                 type="button"
                 onClick={handlePrint}
-                className="py-3 px-4 bg-terracotta hover:bg-teal-400 text-teal-950 font-bold text-xs rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 active:scale-95"
+                className="py-3 px-4 bg-terracotta hover:bg-sage text-teal-950 font-bold text-xs rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 active:scale-95"
               >
                 <Printer size={15} /> Imprimir / PDF
               </button>
