@@ -64,9 +64,8 @@ export async function updatePregnancyWeek(pregnancyId: string, week: number) {
 }
 
 export async function saveMomStatus(pregnancyId: string, statusText: string, emoji: string) {
-  const statusRef = doc(collection(db, "mom_status_logs"));
+  const statusRef = doc(collection(db, "pregnancies", pregnancyId, "status_logs"));
   await setDoc(statusRef, {
-    pregnancyId,
     statusText,
     emoji,
     createdAt: serverTimestamp()
@@ -84,8 +83,8 @@ export function listenToPregnancy(pregnancyId: string, callback: (data: any) => 
 }
 
 export function listenToMomStatus(pregnancyId: string, callback: (status: any) => void) {
-  const logsRef = collection(db, "mom_status_logs");
-  const q = query(logsRef, where("pregnancyId", "==", pregnancyId), orderBy("createdAt", "desc"), limit(1));
+  const logsRef = collection(db, "pregnancies", pregnancyId, "status_logs");
+  const q = query(logsRef, orderBy("createdAt", "desc"), limit(1));
   return onSnapshot(q, (snapshot) => {
     if (!snapshot.empty) {
       callback(snapshot.docs[0].data());
