@@ -1,10 +1,12 @@
+import html2canvas from 'html2canvas';
+import { getWeekData } from "./weekData";
 ﻿"use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { usePandaStore } from "@/store/usePandaStore";
 import { ensureAuth, createPregnancyForMom, joinPregnancyAsDad, listenToPregnancy, listenToMomStatus, updatePregnancyWeek, saveMomStatus, saveEvents, listenToEvents, saveKickSessions, listenToKickSessions, saveContractions, listenToContractions, saveBabyNames, listenToBabyNames, saveBirthPlan, listenToBirthPlan, saveChecklistProgress, listenToChecklistProgress, saveAppointmentPrep, listenToAppointmentPrep } from "@/lib/firebase/pairing";
 import Image from "next/image";
-import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, AlertCircle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2, Bell, RotateCcw, Trash2, PhoneCall, Check, Undo2, Printer, Copy, Edit3, Sun, Moon, BookOpen, ExternalLink , Wallet } from "lucide-react";
+import { Camera, Wand2, Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, AlertCircle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2, Bell, RotateCcw, Trash2, PhoneCall, Check, Undo2, Printer, Copy, Edit3, Sun, Moon, BookOpen, ExternalLink , Wallet } from "lucide-react";
 
 type Tab = "planificacion" | "agenda" | "herramientas" | "pandaia";
 
@@ -437,6 +439,14 @@ export function HerramientasView({ showToast, profile }: { showToast: any, profi
   const [activeTool, setActiveTool] = useState<any>(null);
 
   const tools = [
+    {
+      id: "story",
+      icon: <Camera className="text-pink-500" size={26} />,
+      title: "Panda Story",
+      desc: "Comparte tu avance",
+      color: "bg-pink-100 dark:bg-pink-900/40 border-pink-200 dark:border-pink-800/50"
+    },
+
     {
       id: "presupuesto",
       icon: <Wallet className="text-emerald-500" size={26} />,
@@ -2477,6 +2487,173 @@ export function CalculadoraPresupuesto({ onClose }: { onClose: () => void }) {
               </div>
             )}
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+
+
+
+// --- PANDA JR STORY GENERATOR ---
+export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClose: () => void }) {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const storyRef = useRef<HTMLDivElement>(null);
+  
+  const week = profile?.week || 14;
+  
+  const weekData = getWeekData(week, profile?.theme || "frutas");
+  const sizeText = weekData.size || "Limón 🍋";
+  const emojiMatch = sizeText.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]|\p{Emoji_Presentation}/gu);
+  const emoji = emojiMatch ? emojiMatch[emojiMatch.length - 1] : '🍋';
+  const fruit = sizeText.replace(emoji, '').trim();
+
+
+  const generateStory = async () => {
+    if (!storyRef.current) return;
+    setIsGenerating(true);
+    try {
+      await new Promise(r => setTimeout(r, 300));
+      const canvas = await html2canvas(storyRef.current, {
+        scale: 3, 
+        backgroundColor: null,
+        useCORS: true,
+      });
+      const url = canvas.toDataURL("image/png");
+      setImageUrl(url);
+    } catch (error) {
+      console.error("Error generating story:", error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const shareStory = async () => {
+    if (!imageUrl) return;
+    try {
+      const res = await fetch(imageUrl);
+      const blob = await res.blob();
+      const file = new File([blob], `pandajr-semana-${week}.png`, { type: 'image/png' });
+      
+      if (navigator.share) {
+        await navigator.share({
+          title: `¡Estamos en la semana ${week}!`,
+          text: `Nuestro bebé es del tamaño de un ${fruit}. Sigue nuestro embarazo con PandaJR.`,
+          files: [file]
+        });
+      } else {
+        const a = document.createElement('a');
+        a.href = imageUrl;
+        a.download = `pandajr-semana-${week}.png`;
+        a.click();
+      }
+    } catch (e) {
+      console.log("Error sharing:", e);
+      const a = document.createElement('a');
+      a.href = imageUrl;
+      a.download = `pandajr-semana-${week}.png`;
+      a.click();
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div className="bg-stone-50 dark:bg-[#1a1625] w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+        <div className="p-4 flex justify-between items-center bg-white dark:bg-[#221d2d] border-b border-stone-100 dark:border-white/10 shrink-0">
+          <h2 className="font-bold flex items-center gap-2 text-stone-800 dark:text-stone-200">
+            <Camera size={20} className="text-terracotta" /> PandaJR Story
+          </h2>
+          <button onClick={onClose} className="p-2 bg-stone-100 dark:bg-white/5 hover:bg-stone-200 dark:hover:bg-white/10 rounded-full transition-colors">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center gap-6">
+          <div className="relative shadow-xl rounded-[2rem] overflow-hidden border-4 border-white dark:border-[#2d273a] w-full max-w-[320px] aspect-[4/5] bg-gradient-to-br from-sage/20 via-white to-terracotta/20 dark:from-sage/40 dark:via-[#1a1625] dark:to-terracotta/40">
+            
+            <div 
+              ref={storyRef}
+              className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-8 text-stone-800 text-center"
+              style={{
+                background: "linear-gradient(135deg, #e4efe7 0%, #fcfbf9 50%, #fbe9e3 100%)",
+              }}
+            >
+              <div className="absolute top-6 left-1/2 -translate-x-1/2 opacity-20 flex items-center gap-2">
+                 <span className="font-black text-xl tracking-tighter text-[#547A66]">PandaJR.</span>
+              </div>
+              
+              <div className="mt-8 space-y-2 relative z-10">
+                <p className="text-sm font-bold tracking-widest uppercase text-[#d97757]">
+                  ¡ESTAMOS EN LA!
+                </p>
+                <h3 className="text-6xl font-black text-[#547A66] tracking-tighter" style={{ fontSize: '3.75rem', lineHeight: '1', fontWeight: '900', color: '#547A66' }}>
+                  Semana {week}
+                </h3>
+              </div>
+
+              <div className="flex-1 flex items-center justify-center relative w-full my-6">
+                <div className="absolute inset-0 bg-white/40 blur-3xl rounded-full"></div>
+                <div className="text-[120px] leading-none drop-shadow-2xl relative z-10 animate-in zoom-in duration-500" style={{ fontSize: '120px', textShadow: '0 25px 25px rgb(0 0 0 / 0.15)' }}>
+                  {emoji}
+                </div>
+              </div>
+
+              <div className="bg-white/60 backdrop-blur-md rounded-2xl p-4 w-full relative z-10 shadow-sm border border-white/50" style={{ background: 'rgba(255,255,255,0.6)', borderRadius: '1rem', padding: '1rem' }}>
+                <p className="text-sm font-semibold text-stone-600" style={{ fontSize: '0.875rem', fontWeight: '600', color: '#52525b' }}>
+                  Nuestro bebé es del tamaño de:
+                </p>
+                <p className="text-xl font-black text-stone-800 mt-1 capitalize" style={{ fontSize: '1.25rem', fontWeight: '900', color: '#27272a', marginTop: '0.25rem', textTransform: 'capitalize' }}>
+                  {fruit}
+                </p>
+                <p className="text-xs text-stone-500 mt-1" style={{ fontSize: '0.75rem', color: '#71717a', marginTop: '0.25rem' }}>
+                  {weekData.size} • {weekData.weight}
+                </p>
+              </div>
+            </div>
+            
+            {imageUrl && (
+              <img src={imageUrl} alt="PandaJR Story" className="absolute inset-0 w-full h-full object-cover z-20" />
+            )}
+            
+            {isGenerating && (
+              <div className="absolute inset-0 z-30 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center">
+                <div className="w-8 h-8 border-4 border-[#547A66] border-t-[#d97757] rounded-full animate-spin"></div>
+                <p className="mt-4 font-bold text-[#547A66] animate-pulse">Creando magia...</p>
+              </div>
+            )}
+          </div>
+
+          <div className="w-full flex flex-col gap-3">
+            {!imageUrl ? (
+              <button 
+                onClick={generateStory}
+                disabled={isGenerating}
+                className="w-full bg-terracotta hover:bg-[#c46548] text-white font-bold py-4 rounded-2xl shadow-lg transition-transform active:scale-95 flex justify-center items-center gap-2"
+              >
+                <Wand2 size={20} /> Generar Tarjeta
+              </button>
+            ) : (
+              <div className="flex gap-2">
+                <button 
+                  onClick={shareStory}
+                  className="flex-1 bg-sage hover:bg-[#466856] text-white font-bold py-4 rounded-2xl shadow-lg transition-transform active:scale-95 flex justify-center items-center gap-2"
+                >
+                  <Share2 size={20} /> Compartir
+                </button>
+                <button 
+                  onClick={() => setImageUrl(null)}
+                  className="p-4 bg-stone-200 dark:bg-[#2d273a] text-stone-600 dark:text-stone-300 rounded-2xl hover:bg-stone-300 transition-colors"
+                  aria-label="Generar de nuevo"
+                >
+                  <RotateCcw size={20} />
+                </button>
+              </div>
+            )}
+          </div>
+
         </div>
       </div>
     </div>
