@@ -45,7 +45,12 @@ function ProfileModal({
           <h3 id="profile-modal-title" className="font-bold flex items-center gap-2">
             <Settings size={18} /> Configurar Perfil
           </h3>
-          <button onClick={onClose} className="text-teal-100 hover:text-white transition-colors" aria-label="Cerrar ventana de perfil">
+          <button 
+            type="button"
+            onClick={onClose} 
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-xl text-teal-100 hover:text-white hover:bg-white/10 transition-colors" 
+            aria-label="Cerrar ventana de perfil"
+          >
             <X size={20} />
           </button>
         </div>
@@ -614,14 +619,16 @@ function AppointmentPrepModal({
                   <button
                     key={idx}
                     type="button"
+                    role="checkbox"
+                    aria-checked={isChecked}
                     onClick={() => toggleItem(item)}
                     className={`w-full text-left p-3 rounded-xl border text-xs leading-relaxed transition-all flex items-start gap-2.5 ${
                       isChecked 
                         ? "bg-teal-50/70 dark:bg-teal-950/40 border-teal-200 dark:border-teal-800/60 text-teal-900 dark:text-teal-300 line-through opacity-80" 
-                        : "bg-white dark:bg-slate-800 border-gray-100 dark:border-slate-700 hover:border-teal-200 dark:hover:border-teal-600 text-gray-700 dark:text-slate-200 shadow-xs"
+                        : "bg-white dark:bg-slate-800 border-gray-200/90 dark:border-slate-700 hover:border-teal-200 dark:hover:border-teal-600 text-gray-700 dark:text-slate-200 shadow-xs"
                     }`}
                   >
-                    <div className={`mt-0.5 shrink-0 transition-colors ${isChecked ? "text-teal-600 dark:text-teal-400" : "text-gray-300 dark:text-slate-600"}`}>
+                    <div className={`mt-0.5 shrink-0 transition-colors ${isChecked ? "text-teal-600 dark:text-teal-400" : "text-gray-400 dark:text-slate-500"}`}>
                       {isChecked ? <CheckCircle2 size={16} /> : <Circle size={16} />}
                     </div>
                     <span className="flex-1">{item}</span>
@@ -648,14 +655,16 @@ function AppointmentPrepModal({
                   <button
                     key={idx}
                     type="button"
+                    role="checkbox"
+                    aria-checked={isChecked}
                     onClick={() => toggleQuestion(q)}
                     className={`w-full text-left p-3 rounded-xl border text-xs leading-relaxed transition-all flex items-start gap-2.5 ${
                       isChecked 
-                        ? "bg-emerald-50/70 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/60 text-emerald-900 dark:text-emerald-300 line-through opacity-80" 
-                        : "bg-white dark:bg-slate-800 border-gray-100 dark:border-slate-700 hover:border-teal-200 dark:hover:border-teal-600 text-gray-700 dark:text-slate-200 shadow-xs"
+                        ? "bg-teal-50/70 dark:bg-teal-950/40 border-teal-200 dark:border-teal-800/60 text-teal-900 dark:text-teal-300 line-through opacity-80" 
+                        : "bg-white dark:bg-slate-800 border-gray-200/90 dark:border-slate-700 hover:border-teal-200 dark:hover:border-teal-600 text-gray-700 dark:text-slate-200 shadow-xs"
                     }`}
                   >
-                    <div className={`mt-0.5 shrink-0 transition-colors ${isChecked ? "text-emerald-600 dark:text-emerald-400" : "text-gray-300 dark:text-slate-600"}`}>
+                    <div className={`mt-0.5 shrink-0 transition-colors ${isChecked ? "text-teal-600 dark:text-teal-400" : "text-gray-400 dark:text-slate-500"}`}>
                       {isChecked ? <CheckCircle2 size={16} /> : <Circle size={16} />}
                     </div>
                     <span className="flex-1 font-medium">{q}</span>
@@ -706,7 +715,7 @@ function AppointmentPrepModal({
           <button
             type="button"
             onClick={onClose}
-            className="py-3 px-5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-bold text-xs transition-colors"
+            className="min-h-[44px] min-w-[70px] py-3 px-5 bg-gray-200 hover:bg-gray-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-800 dark:text-slate-200 rounded-xl font-bold text-xs transition-colors"
           >
             Listo
           </button>
@@ -1019,7 +1028,7 @@ export default function PandaJRApp() {
       )}
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-gray-100 dark:border-slate-800 flex justify-around items-center px-2 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] z-50 transition-colors">
+      <nav aria-label="Navegación principal" className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-gray-200/80 dark:border-slate-800 flex justify-around items-center px-2 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] z-50 transition-colors">
         <NavItem
           icon={<Compass size={24} />}
           label="Guía"
@@ -1052,7 +1061,9 @@ export default function PandaJRApp() {
 function NavItem({ icon, label, isActive, onClick }: { icon: React.ReactNode, label: string, isActive: boolean, onClick: () => void }) {
   return (
     <button
+      type="button"
       onClick={onClick}
+      aria-current={isActive ? "page" : undefined}
       className={`flex flex-col items-center gap-1 w-full p-2 transition-colors duration-200 ${
         isActive ? "text-teal-600 dark:text-teal-400 font-semibold" : "text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
       }`}
@@ -1343,7 +1354,7 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
 
         <div className="space-y-4">
           {categories.map((cat) => (
-            <div key={cat.id} className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 overflow-hidden transition-colors">
+            <div key={cat.id} className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 overflow-hidden transition-colors">
               <button 
                 onClick={() => toggleExpand(cat.id)}
                 className="w-full p-4 flex items-center justify-between bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800/60 transition-colors"
@@ -1371,9 +1382,9 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
                         onClick={() => toggleTask(cat.id, task.id)}
                         aria-checked={task.completed}
                         role="switch"
-                        className="w-full text-left flex items-start gap-3 p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-gray-100 dark:border-slate-700/80 cursor-pointer hover:border-teal-200 dark:hover:border-teal-600 transition-colors group focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        className="w-full text-left flex items-start gap-3 p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-gray-200/80 dark:border-slate-700/80 cursor-pointer hover:border-teal-200 dark:hover:border-teal-600 transition-colors group focus:outline-none focus:ring-2 focus:ring-teal-500"
                       >
-                        <div className={`mt-0.5 shrink-0 transition-colors ${task.completed ? "text-teal-500" : "text-gray-300 dark:text-slate-600 group-hover:text-teal-400"}`}>
+                        <div className={`mt-0.5 shrink-0 transition-colors ${task.completed ? "text-teal-500" : "text-gray-400 dark:text-slate-500 group-hover:text-teal-400"}`}>
                           {task.completed ? <CheckCircle2 size={18} /> : <Circle size={18} />}
                         </div>
                         <span className={`text-sm leading-snug ${task.completed ? "text-gray-400 dark:text-slate-500 line-through" : "text-gray-700 dark:text-slate-200"}`}>
@@ -1602,68 +1613,68 @@ function AgendaView({
           <button 
             type="button"
             onClick={() => onOpenPrep(nextUpcoming)}
-            className="w-full text-left bg-gradient-to-br from-amber-500/10 via-orange-50 to-white border border-amber-200/90 rounded-3xl p-4 shadow-sm hover:shadow-md cursor-pointer transition-all active:scale-[0.99] group relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full text-left bg-gradient-to-br from-amber-500/10 via-orange-50 to-white dark:from-amber-950/40 dark:via-slate-900 dark:to-slate-900 border border-amber-200/90 dark:border-amber-800/60 rounded-3xl p-4 shadow-sm hover:shadow-md cursor-pointer transition-all active:scale-[0.99] group relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-amber-500"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">
-                <div className="bg-amber-100 text-amber-800 p-2.5 rounded-2xl shrink-0 mt-0.5 group-hover:scale-105 transition-transform shadow-xs">
-                  <Bell size={20} className="animate-pulse text-amber-600" />
+                <div className="bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 p-2.5 rounded-2xl shrink-0 mt-0.5 group-hover:scale-105 transition-transform shadow-xs">
+                  <Bell size={20} className="animate-pulse text-amber-600 dark:text-amber-400" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 dark:text-amber-200 bg-amber-200/80 dark:bg-amber-900/60 px-2 py-0.5 rounded-full">
                       Recordatorio de Cita
                     </span>
-                    <span className="text-xs font-bold text-amber-950">
+                    <span className="text-xs font-bold text-amber-950 dark:text-amber-300">
                       {getCountdownText(parseEventDate(nextUpcoming)!).text}
                     </span>
                   </div>
-                  <h4 className="font-bold text-gray-900 text-base mt-1 leading-tight">{nextUpcoming.title}</h4>
-                  <p className="text-xs text-gray-600 mt-1 flex items-center gap-2">
+                  <h4 className="font-bold text-gray-900 dark:text-slate-100 text-base mt-1 leading-tight">{nextUpcoming.title}</h4>
+                  <p className="text-xs text-gray-600 dark:text-slate-400 mt-1 flex items-center gap-2">
                     <span>📅 {nextUpcoming.date} ({nextUpcoming.time})</span>
                     {nextUpcoming.doctor && <span>· {nextUpcoming.doctor}</span>}
                   </p>
                 </div>
               </div>
-              <ChevronRight size={18} className="text-amber-500 shrink-0 mt-2 group-hover:translate-x-1 transition-transform" />
+              <ChevronRight size={18} className="text-amber-500 dark:text-amber-400 shrink-0 mt-2 group-hover:translate-x-1 transition-transform" />
             </div>
 
-            <div className="mt-3.5 pt-2.5 border-t border-amber-200/60 flex items-center justify-between text-xs font-bold">
-              <span className="flex items-center gap-1.5 text-amber-950">
-                <ClipboardList size={13} className="text-amber-700" /> Preparación: ¿Qué llevar y qué preguntar?
+            <div className="mt-3.5 pt-2.5 border-t border-amber-200/60 dark:border-amber-900/50 flex items-center justify-between text-xs font-bold">
+              <span className="flex items-center gap-1.5 text-amber-950 dark:text-amber-300">
+                <ClipboardList size={13} className="text-amber-700 dark:text-amber-400" /> Preparación: ¿Qué llevar y qué preguntar?
               </span>
-              <span className="text-teal-700 group-hover:underline">Abrir →</span>
+              <span className="text-teal-700 dark:text-teal-400 group-hover:underline">Abrir →</span>
             </div>
           </button>
         )}
 
         {/* Acordeón Compacto de Sugerencias del Copiloto IA */}
         {((profile.role === "mama" ? suggestions.mama : suggestions.papa).length > 0 || isSuggestionsOpen) && (
-          <div className="bg-white rounded-2xl shadow-xs border border-teal-100 overflow-hidden transition-all">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-teal-100 dark:border-slate-800 overflow-hidden transition-all">
             <button
               type="button"
               onClick={() => setIsSuggestionsOpen(prev => !prev)}
-              className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-teal-50/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+              className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-teal-50/50 dark:hover:bg-slate-800/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
               aria-expanded={isSuggestionsOpen}
             >
               <div className="flex items-center gap-2.5">
-                <div className="bg-teal-100 text-teal-800 p-1.5 rounded-xl">
+                <div className="bg-teal-100 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 p-1.5 rounded-xl">
                   <Sparkles size={16} />
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-gray-800 block">
+                  <span className="text-xs font-bold text-gray-800 dark:text-slate-100 block">
                     Sugerencias del Copiloto IA ({(profile.role === "mama" ? suggestions.mama : suggestions.papa).length})
                   </span>
-                  <span className="text-[11px] text-gray-500 block">
+                  <span className="text-[11px] text-gray-500 dark:text-slate-400 block">
                     {isSuggestionsOpen ? "Toca para ocultar" : "Toca para ver recomendaciones para ti"}
                   </span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-teal-800 bg-teal-100 px-2 py-0.5 rounded-full tracking-wider uppercase">
+                <span className="text-[10px] font-bold text-teal-800 dark:text-teal-300 bg-teal-100 dark:bg-teal-950/60 px-2 py-0.5 rounded-full tracking-wider uppercase">
                   {profile.role === "mama" ? "Mamá" : "Papá"}
                 </span>
-                <ChevronDown size={16} className={`text-gray-400 transition-transform duration-200 ${isSuggestionsOpen ? "rotate-180" : ""}`} />
+                <ChevronDown size={16} className={`text-gray-400 dark:text-slate-500 transition-transform duration-200 ${isSuggestionsOpen ? "rotate-180" : ""}`} />
               </div>
             </button>
 
@@ -1731,7 +1742,7 @@ function AgendaView({
               </div>
             )}
             {events.map(event => (
-              <div key={event.id} className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-slate-800 flex items-start gap-4 relative group transition-colors">
+              <div key={event.id} className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-gray-200/80 dark:border-slate-800 flex items-start gap-4 relative group transition-colors">
                 <div className="flex-1 flex items-start gap-4">
                   <button 
                     type="button"
@@ -1769,7 +1780,12 @@ function AgendaView({
                     </div>
                   </div>
                 </div>
-                <button onClick={() => deleteEvent(event.id)} aria-label={`Eliminar cita: ${event.title}`} className="text-gray-300 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-400 transition-colors p-2 z-10 rounded-lg">
+                <button 
+                  type="button"
+                  onClick={() => deleteEvent(event.id)} 
+                  aria-label={`Eliminar cita: ${event.title}`} 
+                  className="min-w-[40px] min-h-[40px] flex items-center justify-center text-gray-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors p-2 z-10 rounded-xl"
+                >
                   <X size={18}/>
                 </button>
               </div>
@@ -2580,10 +2596,10 @@ function SOSSintomas() {
     {
       id: "alarma",
       title: "🚨 Señales de Alarma Médica",
-      icon: <AlertTriangle className="text-red-500" size={20} />,
-      color: "bg-red-50 dark:bg-red-950/40",
+      icon: <AlertTriangle className="text-rose-600 dark:text-rose-400" size={20} />,
+      color: "bg-rose-50 dark:bg-rose-950/40",
       content: (
-        <ul className="text-sm text-red-700 dark:text-red-300 font-medium space-y-2 mt-2 list-disc pl-5">
+        <ul className="text-sm text-rose-800 dark:text-rose-200 font-medium space-y-2 mt-2 list-disc pl-5">
           <li><strong>Sangrado vaginal</strong> (cualquier cantidad, contactar al médico).</li>
           <li><strong>Dolor abdominal intenso</strong> o cólicos persistentes que no ceden al descansar.</li>
           <li><strong>Dolor de cabeza severo</strong> o visión borrosa (riesgo de preeclampsia).</li>
@@ -2633,8 +2649,9 @@ function SOSSintomas() {
 
       <div className="space-y-3 overflow-y-auto pb-8">
         {symptoms.map(sym => (
-          <div key={sym.id} className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 overflow-hidden">
+          <div key={sym.id} className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 overflow-hidden">
             <button 
+              type="button"
               onClick={() => setExpanded(expanded === sym.id ? null : sym.id)}
               className="w-full p-4 flex items-center justify-between text-left transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/60"
             >
@@ -2648,10 +2665,10 @@ function SOSSintomas() {
               <div className="p-4 pt-0 bg-gray-50 dark:bg-slate-800/40 border-t border-gray-100 dark:border-slate-800 animate-in slide-in-from-top-2">
                 {sym.content}
                 {sym.id === "alarma" && (
-                  <div className="mt-4 pt-3 border-t border-red-200 dark:border-red-900/50 flex gap-2">
+                  <div className="mt-4 pt-3 border-t border-rose-200 dark:border-rose-900/50 flex gap-2">
                     <a
                       href="tel:911"
-                      className="flex-1 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all text-center"
+                      className="flex-1 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all text-center"
                     >
                       📞 Llamar al Obstetra / 911
                     </a>
@@ -2659,7 +2676,7 @@ function SOSSintomas() {
                       href="https://maps.google.com/?q=hospital+maternidad"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 bg-white dark:bg-slate-900 hover:bg-red-50 dark:hover:bg-slate-800 active:scale-95 border border-red-300 dark:border-red-800 text-red-800 dark:text-red-300 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all text-center"
+                      className="flex-1 bg-white dark:bg-slate-900 hover:bg-rose-50 dark:hover:bg-slate-800 active:scale-95 border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-300 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all text-center"
                     >
                       📍 Ruta al Hospital
                     </a>
@@ -2689,13 +2706,16 @@ function HerramientasView({ showToast, profile }: { showToast: any, profile?: Us
   return (
     <div className="flex flex-col h-full w-full animate-in fade-in slide-in-from-bottom-4 duration-300">
       {/* Sub-navigation sin desplazamiento (100% visible) */}
-      <div className="bg-white dark:bg-slate-900 px-3 py-2.5 shadow-sm border-b border-gray-100 dark:border-slate-800 sticky top-0 z-10 w-full">
-        <div className="grid grid-cols-5 gap-1 bg-gray-100/90 dark:bg-slate-800/90 p-1 rounded-2xl w-full">
+      <div className="bg-white dark:bg-slate-900 px-3 py-2.5 shadow-sm border-b border-gray-200/80 dark:border-slate-800 sticky top-0 z-10 w-full">
+        <div role="tablist" aria-label="Herramientas de embarazo" className="grid grid-cols-5 gap-1 bg-gray-100/90 dark:bg-slate-800/90 p-1 rounded-2xl w-full">
           {tools.map((tool) => {
             const isActive = activeTool === tool.id;
             return (
               <button
                 key={tool.id}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
                 onClick={() => setActiveTool(tool.id as any)}
                 className={`flex flex-col items-center justify-center py-2 px-0.5 rounded-xl transition-all ${
                   isActive 
@@ -3190,7 +3210,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
             <button
               type="button"
               onClick={() => setCompletedSession(null)}
-              className="text-white/80 hover:text-white p-1"
+              className="text-white/80 hover:text-white min-w-[40px] min-h-[40px] flex items-center justify-center p-2 rounded-xl hover:bg-white/10 transition-colors"
               aria-label="Cerrar aviso de sesión completada"
             >
               <X size={18} />
@@ -3273,7 +3293,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
         ) : (
           <div className="space-y-2.5">
             {sessions.map(s => (
-              <div key={s.id} className="bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-xs flex justify-between items-center group hover:border-teal-200 dark:hover:border-teal-700 transition-all">
+              <div key={s.id} className="bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-gray-200/80 dark:border-slate-800 shadow-xs flex justify-between items-center group hover:border-teal-200 dark:hover:border-teal-700 transition-all">
                 <div className="flex items-center gap-3">
                   <div className="bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 p-2 rounded-xl shrink-0">
                     <CheckCircle size={18}/>
@@ -3297,7 +3317,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
                     type="button"
                     onClick={() => deleteSession(s.id)}
                     aria-label={`Eliminar sesión de ${s.dateFormatted}`}
-                    className="text-gray-300 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-400 p-1.5 rounded-lg transition-colors"
+                    className="min-w-[40px] min-h-[40px] flex items-center justify-center text-gray-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-gray-100 dark:hover:bg-slate-800 p-2 rounded-xl transition-colors"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -3563,7 +3583,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
             </button>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800 overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-gray-200/80 dark:border-slate-800 overflow-hidden">
             <div className="grid grid-cols-4 bg-gray-50 dark:bg-slate-800/50 p-3 text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider text-center">
               <div>Hora</div>
               <div>Duración</div>
@@ -3589,9 +3609,9 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
                       type="button"
                       onClick={() => deleteItem(item.id)}
                       aria-label="Eliminar contracción"
-                      className="text-gray-300 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-400 p-1.5 rounded-lg transition-colors"
+                      className="min-w-[40px] min-h-[40px] inline-flex items-center justify-center text-gray-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-gray-100 dark:hover:bg-slate-800 p-2 rounded-xl transition-colors"
                     >
-                      <Trash2 size={15} />
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 </div>
@@ -4228,7 +4248,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
 
           {/* Current Section Card */}
           {currentSection && (
-            <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800 p-5 space-y-4 animate-in fade-in">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-gray-200/80 dark:border-slate-800 p-5 space-y-4 animate-in fade-in">
               <div className="border-b border-gray-100 dark:border-slate-800 pb-3">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 px-2.5 py-0.5 rounded-full">
                   Paso {step} de 5 · {currentSection.category}
@@ -4245,14 +4265,14 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                     className={`flex items-start gap-3 p-3.5 rounded-2xl border transition-all cursor-pointer select-none ${
                       opt.checked
                         ? "bg-teal-50/60 dark:bg-slate-800/80 border-teal-200 dark:border-teal-700/60 shadow-xs"
-                        : "bg-white dark:bg-slate-900 border-gray-100 dark:border-slate-800 hover:border-gray-200 dark:hover:border-slate-700 opacity-70"
+                        : "bg-white dark:bg-slate-900 border-gray-200/80 dark:border-slate-800 hover:border-gray-300 dark:hover:border-slate-700 opacity-70"
                     }`}
                   >
                     <input
                       type="checkbox"
                       checked={opt.checked}
                       onChange={() => toggleOption(currentSection.id, opt.id)}
-                      className="mt-1 w-4 h-4 text-teal-600 rounded border-gray-300 focus:ring-teal-500"
+                      className="mt-1 w-4 h-4 text-teal-600 rounded border-gray-300 dark:border-slate-700 dark:bg-slate-800 focus:ring-teal-500"
                     />
                     <div className="flex-1">
                       <span className={`text-xs font-bold block leading-snug ${opt.checked ? "text-teal-950 dark:text-teal-300" : "text-gray-700 dark:text-slate-300"}`}>
