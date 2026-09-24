@@ -30,6 +30,7 @@ function ProfileModal({
   toggleTheme: () => void;
 }) {
   const [form, setForm] = useState(profile);
+  const [confirmUnlink, setConfirmUnlink] = useState(false);
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -81,8 +82,11 @@ function ProfileModal({
                   <p className="text-xs text-stone-500 dark:text-[#a6a1b2]">{form.name}</p>
                 </div>
               </div>
-              <button className="text-xs font-bold text-stone-500 bg-white dark:bg-[#2d273a] border border-stone-200 dark:border-white/[0.06] px-3 py-1.5 rounded-lg shadow-sm">
-                Desvincular
+              <button 
+                onClick={() => confirmUnlink ? null : setConfirmUnlink(true)}
+                className={`text-xs font-bold min-h-[44px] min-w-[44px] px-4 rounded-lg shadow-sm transition-colors ${confirmUnlink ? 'bg-rose-500 text-white border-transparent' : 'text-stone-500 bg-white dark:bg-[#2d273a] border border-stone-200 dark:border-white/[0.06]'}`}
+              >
+                {confirmUnlink ? '¿Seguro?' : 'Desvincular'}
               </button>
             </div>
             {form.role === 'mama' && (
@@ -91,7 +95,7 @@ function ProfileModal({
                   <p className="text-[10px] text-stone-400 font-bold uppercase tracking-wider mb-0.5">Código de Pareja</p>
                   <p className="font-mono font-bold tracking-widest text-lg">PANDA-7284</p>
                 </div>
-                <button className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors">
+                <button className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-xl transition-colors" aria-label="Copiar código">
                   <ClipboardList size={18} />
                 </button>
               </div>
@@ -148,15 +152,16 @@ function ProfileModal({
                 <p className="text-xs text-stone-500 dark:text-[#a6a1b2]">Ideal para la noche</p>
               </div>
             </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={isDark}
-              onClick={toggleTheme}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isDark ? 'bg-terracotta' : 'bg-stone-300'}`}
-            >
-              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isDark ? 'translate-x-6' : 'translate-x-1'}`} />
-            </button>
+            <div className="min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer" onClick={toggleTheme}>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={isDark}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors pointer-events-none ${isDark ? "bg-terracotta" : "bg-stone-300"}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isDark ? "translate-x-6" : "translate-x-1"}`} />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -731,7 +736,7 @@ function AppointmentPrepModal({
 }
 
 
-function OnboardingModal({ onComplete }: { onComplete: (profile: UserProfile) => void }) {
+function OnboardingModal({ onComplete, onSkip }: { onComplete: (profile: UserProfile) => void }) {
   const [step, setStep] = useState(1);
   const [role, setRole] = useState<"mama" | "papa" | null>(null);
   const [name, setName] = useState("");
@@ -785,6 +790,14 @@ function OnboardingModal({ onComplete }: { onComplete: (profile: UserProfile) =>
                 <span className={`font-bold ${role === "papa" ? "text-sage" : "text-stone-600 dark:text-[#a6a1b2]"}`}>Soy el copiloto (pareja)</span>
               </button>
             </div>
+
+          {/* Botón de Skip (P0) */}
+          <button 
+            onClick={() => onSkip && onSkip()} 
+            className="w-full mt-4 py-3 min-h-[44px] text-sm font-bold text-stone-400 hover:text-stone-600 dark:text-[#a6a1b2] dark:hover:text-white transition-colors"
+          >
+            Explorar como invitado por ahora
+          </button>
             <button 
               onClick={handleNext}
               disabled={!role}
@@ -1110,8 +1123,11 @@ export default function PandaJRApp() {
           onComplete={(newProfile) => {
             setProfile(newProfile);
             setShowOnboarding(false);
-            showToast(`¡Bienvenid${newProfile.role === 'mama' ? 'a' : 'o'} a PandaJR!`, () => {});
-          }} 
+          }}
+          onSkip={() => {
+            setProfile({ name: 'Invitado', role: 'papa', week: 1 });
+            setShowOnboarding(false);
+          }}
         />
       )}
       
