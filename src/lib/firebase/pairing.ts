@@ -1,10 +1,18 @@
-import { db } from "./config";
-import { collection, doc, setDoc, getDocs, query, where, updateDoc, serverTimestamp } from "firebase/firestore";
+import { db, auth } from "./config";
+import { collection, doc, setDoc, getDocs, query, where, serverTimestamp } from "firebase/firestore";
+import { signInAnonymously } from "firebase/auth";
 
 // Función auxiliar para generar códigos aleatorios (ej: PANDA-8A2F)
 const generateInviteCode = () => {
   return 'PANDA-' + Math.random().toString(36).substring(2, 6).toUpperCase();
 };
+
+export async function ensureAuth() {
+  if (!auth.currentUser) {
+    await signInAnonymously(auth);
+  }
+  return auth.currentUser?.uid;
+}
 
 /**
  * Paso 1: La Mamá se registra y crea el Embarazo (Pregnancy)
@@ -13,7 +21,6 @@ export async function createPregnancyForMom(userId: string, babyName: string) {
   try {
     const inviteCode = generateInviteCode();
     
-    // 1. Crear el documento del Embarazo
     const newPregnancyRef = doc(collection(db, "pregnancies"));
     await setDoc(newPregnancyRef, {
       babyName,
@@ -22,7 +29,6 @@ export async function createPregnancyForMom(userId: string, babyName: string) {
       status: "active"
     });
 
-    // 2. Crear/Actualizar el perfil de la mamá vinculándola a este embarazo
     const userRef = doc(db, "users", userId);
     await setDoc(userRef, {
       role: "mama",
@@ -42,7 +48,6 @@ export async function createPregnancyForMom(userId: string, babyName: string) {
  */
 export async function joinPregnancyAsDad(userId: string, inviteCode: string) {
   try {
-    // 1. Buscar si existe un embarazo con ese código
     const pregnanciesRef = collection(db, "pregnancies");
     const q = query(pregnanciesRef, where("inviteCode", "==", inviteCode.toUpperCase()));
     const querySnapshot = await getDocs(q);
@@ -51,11 +56,9 @@ export async function joinPregnancyAsDad(userId: string, inviteCode: string) {
       throw new Error("Código de invitación inválido o caducado.");
     }
 
-    // Obtenemos el ID del embarazo
     const pregnancyDoc = querySnapshot.docs[0];
     const pregnancyId = pregnancyDoc.id;
 
-    // 2. Crear/Actualizar el perfil del papá vinculándolo a ese embarazo
     const userRef = doc(db, "users", userId);
     await setDoc(userRef, {
       role: "papa",
@@ -68,17 +71,4 @@ export async function joinPregnancyAsDad(userId: string, inviteCode: string) {
     console.error("Error joining pregnancy:", error);
     throw error;
   }
-}
-
-/**
- * Ejemplo de cómo guardar el estado de la mamá usando el ID compartido
- */
-export async function saveMomStatus(pregnancyId: string, statusText: string, emoji: string) {
-  const statusRef = doc(collection(db, "mom_status_logs"));
-  await setDoc(statusRef, {
-    pregnancyId,
-    statusText,
-    emoji,
-    createdAt: serverTimestamp()
-  });
 }

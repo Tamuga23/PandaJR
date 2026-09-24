@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { usePandaStore } from "@/store/usePandaStore";
+import { ensureAuth, createPregnancyForMom, joinPregnancyAsDad } from "@/lib/firebase/pairing";
 import Image from "next/image";
 import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, AlertCircle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2, Bell, RotateCcw, Trash2, PhoneCall, Check, Undo2, Printer, Copy, Edit3, Sun, Moon } from "lucide-react";
 
@@ -744,21 +745,45 @@ function OnboardingModal({ onComplete, onSkip }: { onComplete: (profile: UserPro
   const [code, setCode] = useState("");
   const [generatedCode, setGeneratedCode] = useState("");
 
-  const handleNext = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [tempPregnancyId, setTempPregnancyId] = useState("");
+
+  const handleNext = async () => {
+    setErrorMsg("");
     if (step === 1 && role) {
       setStep(2);
-      if (role === "mama") {
-        setGeneratedCode('PANDA-' + Math.random().toString(36).substring(2, 6).toUpperCase());
-      }
     } else if (step === 2) {
       if (role === "mama" && name) {
-        setStep(3); // Show code
+        setIsLoading(true);
+        try {
+          const uid = await ensureAuth();
+          if (!uid) throw new Error("No auth");
+          const { inviteCode, pregnancyId } = await createPregnancyForMom(uid, name);
+          setGeneratedCode(inviteCode);
+          setTempPregnancyId(pregnancyId);
+          setStep(3); // Show code
+        } catch (e) {
+          console.error(e);
+          setErrorMsg("Error al crear. Asegúrate de habilitar Firestore y Auth Anónimo.");
+        } finally {
+          setIsLoading(false);
+        }
       } else if (role === "papa" && code.length > 4) {
-        // Mock successful pairing
-        onComplete({ role: "papa", name: "Copiloto", week: 14, location: "", notes: "" });
+        setIsLoading(true);
+        try {
+          const uid = await ensureAuth();
+          if (!uid) throw new Error("No auth");
+          const { pregnancyId, babyName } = await joinPregnancyAsDad(uid, code);
+          onComplete({ role: "papa", name: "Copiloto", week: 14, location: "", notes: "", pregnancyId });
+        } catch (e: any) {
+          setErrorMsg(e.message || "Código inválido");
+        } finally {
+          setIsLoading(false);
+        }
       }
     } else if (step === 3) {
-      onComplete({ role: "mama", name, week, location: "", notes: "" });
+      onComplete({ role: "mama", name, week, location: "", notes: "", pregnancyId: tempPregnancyId });
     }
   };
 
@@ -803,8 +828,8 @@ function OnboardingModal({ onComplete, onSkip }: { onComplete: (profile: UserPro
               disabled={!role}
               className="w-full bg-stone-900 hover:bg-stone-800 dark:bg-[#eae6e1] dark:hover:bg-white dark:text-stone-900 text-white rounded-xl py-3.5 font-bold disabled:opacity-50 transition-all mt-4"
             >
-              Continuar
-            </button>
+              {isLoading ? "Conectando..." : "Continuar"}
+              </button>
           </div>
         )}
 
@@ -813,7 +838,8 @@ function OnboardingModal({ onComplete, onSkip }: { onComplete: (profile: UserPro
             <h2 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1]">Tu perfil</h2>
             <p className="text-sm text-stone-500 dark:text-[#a6a1b2]">Configura tu embarazo para personalizar la experiencia.</p>
             
-            <div className="space-y-4 text-left">
+            {errorMsg && <div className="text-sm text-rose-500 bg-rose-50 dark:bg-rose-950/30 p-3 rounded-xl border border-rose-100 dark:border-rose-900">{errorMsg}</div>}
+              <div className="space-y-4 text-left">
               <div>
                 <label className="text-xs font-bold text-stone-600 dark:text-[#a6a1b2] mb-1 block">Tu nombre</label>
                 <input 
