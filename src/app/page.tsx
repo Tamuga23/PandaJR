@@ -1320,7 +1320,7 @@ function PregnancyProgressBar({ week }: { week: number }) {
 
 function MomStatusCard({ profile, remoteMomStatus }: { profile: UserProfile, remoteMomStatus?: any }) {
   return (
-    <div className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-sm border border-stone-200/80 dark:border-white/[0.08] p-5 animate-in fade-in transition-colors">
+    <div className="bg-gradient-to-br from-terracotta/10 to-white dark:from-[#2a222f] dark:to-[#1a1724] rounded-3xl shadow-sm border border-terracotta/20 dark:border-terracotta/10 p-6 animate-in fade-in transition-colors">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full overflow-hidden bg-stone-100 border border-stone-200 dark:border-white/[0.06] shrink-0">
@@ -1330,7 +1330,7 @@ function MomStatusCard({ profile, remoteMomStatus }: { profile: UserProfile, rem
             </div>
           </div>
           <div>
-            <h3 className="text-sm font-bold text-stone-800 dark:text-[#eae6e1] leading-tight">¿Cómo se siente {profile.name || "Elena"} hoy?</h3>
+            <h3 className="text-base font-black text-stone-800 dark:text-[#eae6e1] tracking-tight leading-tight">¿Cómo se siente {profile.name || "Elena"} hoy?</h3>
             <p className="text-xs text-stone-500 dark:text-[#a6a1b2] mt-0.5">Actualizado hace 40 min por ella</p>
           </div>
         </div>
@@ -1621,7 +1621,7 @@ function GuiaPapaView({ showToast, profile, updateProfile, remoteMomStatus }: { 
           <div className="flex justify-between items-center mb-4">
             <div>
               <p className="text-stone-500 dark:text-[#a6a1b2] text-xs uppercase font-bold mb-1">Tamaño comparativo</p>
-              <p className="text-xl font-bold text-stone-800 dark:text-[#eae6e1]">{weekData.size}</p>
+              <p className="text-2xl font-black tracking-tight text-stone-800 dark:text-[#eae6e1]">{weekData.size}</p>
             </div>
             <div className="bg-sage/10 dark:bg-[#1a1724] p-3 rounded-2xl">
               <Baby size={32} className="text-terracotta dark:text-sage" />
@@ -1666,12 +1666,12 @@ function GuiaPapaView({ showToast, profile, updateProfile, remoteMomStatus }: { 
       </div>
 
       {/* 1.5 Mom Status (New Pareja Module) */}
-      <MomStatusCard profile={profile} remoteMomStatus={remoteMomStatus} />
+      <div className="pt-2"><MomStatusCard profile={profile} remoteMomStatus={remoteMomStatus} /></div>
 
       {/* 2. Checklist Module */}
       <div>
-        <div className="flex justify-between items-end mb-3">
-          <h2 className="text-xl font-bold text-stone-800 dark:text-[#eae6e1]">
+        <div className="flex justify-between items-baseline mb-4">
+          <h2 className="text-2xl font-black tracking-tight text-stone-800 dark:text-[#eae6e1]">
             {profile.role === "papa" ? "Checklists del Copiloto" : "Mis Checklists"}
           </h2>
           <span className="text-terracotta dark:text-sage font-bold text-sm">{progressPercent}% completado</span>
@@ -1682,7 +1682,7 @@ function GuiaPapaView({ showToast, profile, updateProfile, remoteMomStatus }: { 
           <div className="bg-terracotta h-2.5 rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
         </div>
 
-        <div className="space-y-4">
+        <div className="flex flex-col gap-5">
           {categories.map((cat) => (
             <div key={cat.id} className="bg-white dark:bg-[#221d2d] rounded-2xl shadow-sm border border-stone-200/80 dark:border-white/[0.08] overflow-hidden transition-colors">
               <button 
@@ -1704,8 +1704,8 @@ function GuiaPapaView({ showToast, profile, updateProfile, remoteMomStatus }: { 
               </button>
               
               {cat.expanded && (
-                <div className="p-4 pt-0 border-t border-stone-100 dark:border-white/[0.06] bg-stone-50/50 dark:bg-[#181520]/60">
-                  <div className="space-y-2 mt-3">
+                <div className="p-4 pt-0 border-t border-stone-100 dark:border-white/[0.06] bg-sage/5 dark:bg-[#181520]/60">
+                  <div className="flex flex-col gap-2.5 mt-4">
                     {cat.tasks.map(task => (
                       <button 
                         key={task.id} 
@@ -1714,7 +1714,7 @@ function GuiaPapaView({ showToast, profile, updateProfile, remoteMomStatus }: { 
                         role="switch"
                         className="w-full text-left flex items-start gap-3 p-3 bg-white dark:bg-[#2d273a] rounded-xl border border-stone-200/80 dark:border-white/[0.06] cursor-pointer hover:border-sage/30 dark:hover:border-sage transition-colors group focus:outline-none focus:ring-2 focus:ring-sage/100"
                       >
-                        <div className={`mt-0.5 shrink-0 transition-colors ${task.completed ? "text-terracotta" : "text-stone-400 dark:text-[#a6a1b2] group-hover:text-sage"}`}>
+                        <div className={`mt-0.5 shrink-0 transition-all duration-300 ${task.completed ? "text-terracotta scale-110" : "text-stone-400 dark:text-[#a6a1b2] group-hover:text-sage group-hover:scale-110"}`}>
                           {task.completed ? <CheckCircle2 size={18} /> : <Circle size={18} />}
                         </div>
                         <span className={`text-sm leading-snug ${task.completed ? "text-stone-400 dark:text-[#a6a1b2]/60 line-through" : "text-stone-700 dark:text-[#eae6e1]"}`}>
@@ -2149,7 +2149,7 @@ function AgendaView({
               </button>
             </div>
             
-            <div className="space-y-4">
+            <div className="flex flex-col gap-5">
               <div>
                 <label htmlFor="event-title" className="text-xs font-bold text-stone-700 dark:text-[#eae6e1] tracking-tight mb-1 flex items-center justify-between">
                   <span>Título / Motivo <span className="text-terracotta/100">*</span></span>
@@ -3061,7 +3061,7 @@ function DiarioView({ profile, onClose }: { profile: UserProfile, onClose: () =>
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="flex flex-col gap-5">
           {entries.length === 0 ? (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-sage/20 rounded-full flex items-center justify-center mx-auto mb-4 text-sage">
@@ -3341,7 +3341,7 @@ function HerramientasView({ showToast, profile }: { showToast: any, profile?: Us
         <p className="text-sm text-stone-500 dark:text-[#a6a1b2]">Todo lo que necesitas a un toque de distancia.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 pb-20">
+      <div className="grid grid-cols-2 gap-4 pb-24">
         {/* SOS takes full width */}
         <button 
           onClick={() => setActiveTool('sos')}
