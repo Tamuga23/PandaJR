@@ -56,11 +56,14 @@ export const usePandaStore = create<PandaState>()(
     }),
     {
       name: 'pandajr-storage', // nombre en localStorage
-      onRehydrateStorage: () => (state) => {
+            onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
-        // Aplicar el tema inmediatamente después de hidratar
-        if (state?.isDark && typeof window !== 'undefined') {
-          document.documentElement.classList.add("dark");
+        if (typeof window !== 'undefined') {
+          if (state?.isDark) {
+            document.documentElement.classList.add("dark");
+          } else {
+            document.documentElement.classList.remove("dark");
+          }
         }
       }
     }

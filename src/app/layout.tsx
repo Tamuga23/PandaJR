@@ -82,9 +82,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Script id="theme-script" strategy="beforeInteractive" dangerouslySetInnerHTML={{
             __html: `
               try {
-                const savedTheme = localStorage.getItem('pandajr_theme');
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                const storage = localStorage.getItem('pandajr-storage');
+                let isDark = false;
+                if (storage) {
+                  const parsed = JSON.parse(storage);
+                  if (parsed.state && parsed.state.isDark === true) {
+                    isDark = true;
+                  }
+                }
+                if (isDark) {
                   document.documentElement.classList.add('dark');
                 } else {
                   document.documentElement.classList.remove('dark');
