@@ -428,13 +428,13 @@ function downloadIcsCalendar(ev: any, prep: AppointmentPrepInfo) {
     `CITA MÉDICA: ${ev.title}`,
     `ESPECIALISTA: ${ev.doctor || "Por definir"}`,
     "",
-    "ðŸŽ’ QUí‰ LLEVAR:",
+    "�x} QU�0 LLEVAR:",
     ...prep.whatToBring.map(item => `â€¢ ${item}`),
     "",
     "â“ PREGUNTAS CLAVE PARA EL MÉDICO:",
     ...prep.whatToAsk.map(item => `â€¢ ${item}`),
     "",
-    `ðŸ’¡ CONSEJO PANDAJR: ${prep.tip}`
+    `�x� CONSEJO PANDAJR: ${prep.tip}`
   ].join("\\n");
 
   const icsContent = [
@@ -493,7 +493,7 @@ function openGoogleCalendar(ev: any, prep: AppointmentPrepInfo) {
     `CITA MÉDICA: ${ev.title}`,
     `ESPECIALISTA: ${ev.doctor || ""}`,
     "",
-    "ðŸŽ’ QUí‰ LLEVAR:",
+    "�x} QU�0 LLEVAR:",
     ...prep.whatToBring.map(i => `â€¢ ${i}`),
     "",
     "â“ PREGUNTAS PARA EL DOCTOR:",
@@ -514,12 +514,12 @@ async function requestBrowserNotification(upcomingEvent?: any): Promise<boolean>
     const permission = await Notification.requestPermission();
     if (permission === "granted") {
       if (upcomingEvent) {
-        new Notification(`ðŸ”” PandaJR: Recordatorio de Cita`, {
+        new Notification(`�x”” PandaJR: Recordatorio de Cita`, {
           body: `Próxima cita: "${upcomingEvent.title}" el ${upcomingEvent.date} a las ${upcomingEvent.time}. ¡Toca para ver qué llevar y qué preguntar!`,
           icon: "/icon.jpg"
         });
       } else {
-        new Notification(`ðŸ”” PandaJR: Recordatorios Activados`, {
+        new Notification(`�x”” PandaJR: Recordatorios Activados`, {
           body: `¡Excelente! Te avisaremos de tus citas médicas y te recordaremos qué llevar y qué preguntar antes de salir.`,
           icon: "/icon.jpg"
         });
@@ -722,14 +722,14 @@ function AppointmentPrepModal({
                 onClick={() => downloadIcsCalendar(event, prep)}
                 className="py-2.5 px-3 bg-white dark:bg-[#221d2d] hover:bg-stone-100 dark:hover:bg-[#2d273a] text-stone-800 dark:text-[#eae6e1] font-bold text-xs rounded-xl border border-stone-200 dark:border-white/10 shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all text-center"
               >
-                <span>ðŸ“… Apple / iCal (.ics)</span>
+                <span>�x& Apple / iCal (.ics)</span>
               </button>
               <button
                 type="button"
                 onClick={() => openGoogleCalendar(event, prep)}
                 className="py-2.5 px-3 bg-white dark:bg-[#221d2d] hover:bg-stone-100 dark:hover:bg-[#2d273a] text-sage dark:text-sage/80 font-bold text-xs rounded-xl border border-sage/30 dark:border-white/10 shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all text-center"
               >
-                <span>ðŸ—“ï¸ Google Calendar</span>
+                <span>�x️ Google Calendar</span>
               </button>
             </div>
           </div>
@@ -1159,7 +1159,7 @@ export default function PandaJRApp() {
             className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-full bg-sage/10 dark:bg-[#1a1724] border border-sage/30/70 dark:border-sage/100/25 hover:bg-sage/20 dark:hover:bg-[#1b322c] transition-all text-xs font-bold text-sage dark:text-sage/80 active:scale-95 shadow-xs"
             title="Configurar tu rol y perfil en este dispositivo"
           >
-            <span className="text-base">{profile.role === "papa" ? "ðŸ§”" : "ðŸ‘©"}</span>
+            <span className="text-base">{profile.role === "papa" ? "�x�”" : "�x�"}</span>
             <span>{profile.name || (profile.role === "papa" ? "Papá" : "Mamá")}</span>
             <Settings size={13} className="text-terracotta opacity-70 ml-0.5" />
           </button>
@@ -1335,14 +1335,14 @@ function MomStatusCard({ profile, remoteMomStatus }: { profile: UserProfile, rem
           </div>
         </div>
         <div className="hidden sm:flex items-center gap-1.5 bg-terracotta/10 dark:bg-[#2d273a] px-3 py-1.5 rounded-full border border-terracotta/20 dark:border-white/[0.06] shrink-0">
-          <span className="text-xs">ðŸ’–</span>
+          <span className="text-xs">�x</span>
           <span className="text-[11px] font-bold text-terracotta dark:text-terracotta">Muy feliz y relajada</span>
         </div>
       </div>
       
       {/* Mobile status badge fallback */}
       <div className="sm:hidden flex items-center gap-1.5 bg-terracotta/10 dark:bg-[#2d273a] px-3 py-1.5 rounded-full border border-terracotta/20 dark:border-white/[0.06] mb-3 w-fit">
-        <span className="text-xs">ðŸ’–</span>
+        <span className="text-xs">�x</span>
         <span className="text-[11px] font-bold text-terracotta dark:text-terracotta">Muy feliz y relajada</span>
       </div>
       
@@ -1368,7 +1368,7 @@ function MomStatusCard({ profile, remoteMomStatus }: { profile: UserProfile, rem
   );
 }
 
-// --- VISTA 1: GUíA DEL PAPí ---
+// --- VISTA 1: GUíA DEL PAP� ---
 const masterCategories = [
   // TRIMESTRE 1 (Semanas 1-13)
   {
@@ -1376,7 +1376,7 @@ const masterCategories = [
     title: "Neuro-Nutrición (Pilar 1)",
     icon: <Utensils className="text-terracotta/100" size={20} />, color: "bg-terracotta/10",
     tasks: [
-      { id: 110, text: "Garantizar Suplemento de ícido Fólico diario" },
+      { id: 110, text: "Garantizar Suplemento de �cido Fólico diario" },
       { id: 111, text: "Mantener su termo de agua lleno (volumen amniótico)" },
       { id: 112, text: "Snacks secos en su buró (contra náuseas matutinas)" },
     ]
@@ -1898,7 +1898,7 @@ function AgendaView({
       const shareUrl = `${window.location.origin}/?sync_events=${dataStr}`;
       
       const summary = events.map(e => `â€¢ ${e.date} (${e.time}): ${e.title} - ${e.doctor}`).join("\n");
-      const text = `¡Hola amor! Te comparto nuestra agenda médica actualizada de PandaJR:\n\n${summary}\n\nðŸ‘‰ íbrelo aquí para sincronizarlo en tu teléfono:\n${shareUrl}`;
+      const text = `¡Hola amor! Te comparto nuestra agenda médica actualizada de PandaJR:\n\n${summary}\n\n�x0 �brelo aquí para sincronizarlo en tu teléfono:\n${shareUrl}`;
 
       if (navigator.share) {
         navigator.share({
@@ -1961,8 +1961,8 @@ function AgendaView({
                   </div>
                   <h4 className="font-bold text-stone-900 dark:text-[#eae6e1] text-base mt-1 leading-tight">{nextUpcoming.title}</h4>
                   <p className="text-xs text-stone-600 dark:text-[#a6a1b2] mt-1 flex items-center gap-2">
-                    <span>ðŸ“… {nextUpcoming.date} ({nextUpcoming.time})</span>
-                    {nextUpcoming.doctor && <span>Â· {nextUpcoming.doctor}</span>}
+                    <span>�x& {nextUpcoming.date} ({nextUpcoming.time})</span>
+                    {nextUpcoming.doctor && <span>· {nextUpcoming.doctor}</span>}
                   </p>
                 </div>
               </div>
@@ -2044,7 +2044,7 @@ function AgendaView({
               <button
                 onClick={async () => {
                   const ok = await requestBrowserNotification(nextUpcoming);
-                  if (ok) showToast("Recordatorios de citas activados en este teléfono ðŸ””", () => {});
+                  if (ok) showToast("Recordatorios de citas activados en este teléfono �x””", () => {});
                   else showToast("Permiso de notificaciones del navegador no concedido", () => {});
                 }}
                 className="text-xs font-bold text-sage dark:text-sage/80 bg-sage/10 dark:bg-[#1a1724] hover:bg-sage/20 dark:hover:bg-[#19322c] px-2.5 py-1.5 rounded-xl border border-sage/30/60 dark:border-sage/100/25 flex items-center gap-1 transition-colors shadow-xs active:scale-95"
@@ -2297,7 +2297,7 @@ function PandaIAView({
         "¿Cómo apoyar a mamá con los dolores de espalda?"
       ] : [
         "¿Cuándo se siente el hipo del bebé?",
-        "Cuidados de la piel y suelo pélvico en 2Âº trimestre",
+        "Cuidados de la piel y suelo pélvico en 2º trimestre",
         "Alimentos recomendados para prevenir anemia",
         "¿Qué dudas llevar a la ecografía morfológica?"
       ];
@@ -2391,8 +2391,8 @@ function PandaIAView({
 
   const getWelcomeText = (week: number, role: "papa" | "mama", name?: string) => {
     return role === "papa"
-      ? `¡Hola ${name || "Papá"}! ðŸ§” Soy PandaIA, tu copiloto clínico en esta Semana ${week}.\n\nPregúntame sobre el **desarrollo del bebé en la semana ${week}**, neuro-nutrición prenatal (DHA, colina), qué preguntar en la próxima consulta médica, o pídeme que **agende una cita médica** para ustedes directamente en la Agenda.`
-      : `¡Hola ${name || "Mamá"}! ðŸ‘© Soy PandaIA, tu espacio de orientación y tranquilidad en esta Semana ${week}.\n\nPuedes consultarme sobre los cambios y síntomas de la **semana ${week}**, nutrición o pedirme que **registre tus próximas citas médicas**.`;
+      ? `¡Hola ${name || "Papá"}! �x�” Soy PandaIA, tu copiloto clínico en esta Semana ${week}.\n\nPregúntame sobre el **desarrollo del bebé en la semana ${week}**, neuro-nutrición prenatal (DHA, colina), qué preguntar en la próxima consulta médica, o pídeme que **agende una cita médica** para ustedes directamente en la Agenda.`
+      : `¡Hola ${name || "Mamá"}! �x� Soy PandaIA, tu espacio de orientación y tranquilidad en esta Semana ${week}.\n\nPuedes consultarme sobre los cambios y síntomas de la **semana ${week}**, nutrición o pedirme que **registre tus próximas citas médicas**.`;
   };
 
   const [messages, setMessages] = useState<any[]>(() => [
@@ -2452,7 +2452,7 @@ function PandaIAView({
     try {
       navigator.clipboard.writeText(text);
       setCopiedId(id);
-      showToast?.("Mensaje copiado al portapapeles ðŸ“‹", () => {});
+      showToast?.("Mensaje copiado al portapapeles �x9", () => {});
       setTimeout(() => setCopiedId(null), 2000);
     } catch(e) {}
   };
@@ -2513,7 +2513,7 @@ function PandaIAView({
           data.appointment.doctor || "Generado por PandaIA",
           data.appointment.rawDate
         );
-        showToast?.(`Cita agendada: ${data.appointment.title} ðŸ“…`, () => {});
+        showToast?.(`Cita agendada: ${data.appointment.title} �x&`, () => {});
       }
 
       setMessages(prev => [...prev, {
@@ -2621,8 +2621,8 @@ function PandaIAView({
               </span>
             </h2>
             <p className="text-xs font-semibold text-sage dark:text-sage/80 flex items-center gap-1.5">
-              <span>{profile.role === "papa" ? "ðŸ§” Modo Papá" : "ðŸ‘© Modo Mamá"}{profile.name ? ` (${profile.name})` : ""}</span>
-              <span>Â· Sem {profile.week}</span>
+              <span>{profile.role === "papa" ? "�x�” Modo Papá" : "�x� Modo Mamá"}{profile.name ? ` (${profile.name})` : ""}</span>
+              <span>· Sem {profile.week}</span>
             </p>
           </div>
         </div>
@@ -2925,7 +2925,7 @@ function SOSSintomas() {
     },
     {
       id: "alarma",
-      title: "ðŸš¨ Señales de Alarma Médica",
+      title: "�xa� Señales de Alarma Médica",
       icon: <AlertTriangle className="text-rose-600 dark:text-terracotta" size={20} />,
       color: "bg-terracotta/10 dark:bg-[#251518]",
       content: (
@@ -2958,7 +2958,7 @@ function SOSSintomas() {
             className="bg-rose-600 hover:bg-terracotta active:scale-95 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-xs transition-all"
             aria-label="Llamar a Urgencias médicas"
           >
-            ðŸ“ž Llamar
+            �x~ Llamar
           </a>
           <a
             href="https://maps.google.com/?q=hospital+maternidad"
@@ -2967,7 +2967,7 @@ function SOSSintomas() {
             className="bg-white dark:bg-[#221d2d] hover:bg-terracotta/20/50 dark:hover:bg-[#2d273a] active:scale-95 border border-rose-200 dark:border-terracotta/100/25 text-terracotta dark:text-rose-300 font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-xs transition-all"
             aria-label="Ver ruta al hospital más cercano"
           >
-            ðŸ“ Hospital
+            �x� Hospital
           </a>
         </div>
       </div>
@@ -2995,7 +2995,7 @@ function SOSSintomas() {
                       href="tel:911"
                       className="flex-1 bg-rose-600 hover:bg-terracotta active:scale-95 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
                     >
-                      ðŸ“ž Llamar al Obstetra / 911
+                      �x~ Llamar al Obstetra / 911
                     </a>
                     <a
                       href="https://maps.google.com/?q=hospital+maternidad"
@@ -3003,7 +3003,7 @@ function SOSSintomas() {
                       rel="noopener noreferrer"
                       className="flex-1 bg-white dark:bg-[#221d2d] hover:bg-terracotta/10 dark:hover:bg-[#2d273a] active:scale-95 border border-rose-300 dark:border-terracotta/100/30 text-rose-800 dark:text-rose-300 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
                     >
-                      ðŸ“ Ruta al Hospital
+                      �x� Ruta al Hospital
                     </a>
                   </div>
                 )}
@@ -3188,7 +3188,7 @@ function LecturasView({ week, onClose, showToast }: { week: number, onClose: () 
         url: "#"
       },
       {
-        title: "El ícido Fólico y el Tubo Neural",
+        title: "El �cido Fólico y el Tubo Neural",
         desc: "Por qué este suplemento es el superhéroe indiscutible del primer trimestre.",
         readTime: "3 min",
         type: "Ciencia",
@@ -3520,7 +3520,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
       setCompletedSession(newSessionItem);
       setSessions(prev => [newSessionItem, ...prev]);
       setStartTime(null);
-      showToast("ðŸŽ‰ ¡Meta de 10 patadas alcanzada! Sesión guardada.", () => {});
+      showToast("�x}0 ¡Meta de 10 patadas alcanzada! Sesión guardada.", () => {});
     }
   };
 
@@ -3741,7 +3741,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
                 {count === 0 ? "Toca para Iniciar" : "Registrar Patada"}
               </span>
               <span className="text-xs text-sage/20 mt-1 opacity-90 font-medium">
-                {count === 0 ? "1Âª patada activa el tiempo" : `Faltan ${10 - count} para la meta`}
+                {count === 0 ? "1ª patada activa el tiempo" : `Faltan ${10 - count} para la meta`}
               </span>
             </>
           ) : (
@@ -3862,12 +3862,12 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
             <p className="text-xs font-bold tracking-tight text-sage/30 mb-2">Añadir contexto a la sesión:</p>
             <div className="flex flex-wrap gap-1.5">
               {[
-                "ðŸ½ï¸ Después de comer",
-                "ðŸ›ï¸ En reposo",
-                "ðŸŽ¶ Con música",
-                "ðŸŒ™ Por la noche",
+                "�x��️ Después de comer",
+                "�x:�️ En reposo",
+                "�x}� Con música",
+                "�xR" Por la noche",
                 "â˜€ï¸ En la mañana",
-                "ðŸš¶ Tras caminar"
+                "�xa� Tras caminar"
               ].map(note => (
                 <button
                   key={note}
@@ -4112,7 +4112,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
               href="tel:911"
               className="flex-1 bg-rose-600 hover:bg-terracotta active:scale-95 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
             >
-              ðŸ“ž Llamar al Obstetra
+              �x~ Llamar al Obstetra
             </a>
             <a
               href="https://maps.google.com/?q=hospital+maternidad"
@@ -4120,7 +4120,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
               rel="noopener noreferrer"
               className="flex-1 bg-white dark:bg-[#221d2d] hover:bg-terracotta/20/50 dark:hover:bg-[#2d273a] active:scale-95 border border-rose-300 dark:border-terracotta/100/30 text-terracotta dark:text-rose-300 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
             >
-              ðŸ“ Ruta al Hospital
+              �x� Ruta al Hospital
             </a>
           </div>
         </div>
@@ -4187,7 +4187,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
           {/* Guía Rápida para el Acompañante */}
           <div className="bg-white/90 dark:bg-[#2d273a]/80 rounded-2xl p-3 border border-sage/20/90 dark:border-white/10 text-xs space-y-1">
             <p className="font-bold text-sage dark:text-sage/80 flex items-center gap-1">
-              <span>ðŸ¤ Acompañamiento del Papá / Pareja:</span>
+              <span>�x�� Acompañamiento del Papá / Pareja:</span>
             </p>
             <p className="text-stone-600 dark:text-[#a6a1b2] leading-relaxed">â€¢ Ofrece un sorbo pequeño de agua fresca o bálsamo labial.</p>
             <p className="text-stone-600 dark:text-[#a6a1b2] leading-relaxed">â€¢ Aplica contrapresión firme con el talón de la mano en el sacro (espalda baja).</p>
@@ -4697,7 +4697,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
   };
 
   const handlePrint = () => {
-    showToast("Generando vista de impresión para PDF... ðŸ“„", () => {});
+    showToast("Generando vista de impresión para PDF... �x", () => {});
     setTimeout(() => {
       window.print();
     }, 150);
@@ -4710,18 +4710,18 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
       );
 
       const text = [
-        `ðŸ“‹ *PLAN DE PARTO Y NACIMIENTO PANDAJR*`,
-        `ðŸ¤° *Madre:* ${patientData.motherName || "Gestante"}`,
-        `ðŸ§” *Acompañante:* ${patientData.partnerName || "Pareja"}`,
-        `ðŸ¥ *Centro Médico:* ${patientData.hospital}`,
-        `ðŸ“… *Semana de Gestación:* ${patientData.week}`,
-        patientData.doctor ? `ðŸ©º *Especialista:* ${patientData.doctor}` : "",
+        `�x9 *PLAN DE PARTO Y NACIMIENTO PANDAJR*`,
+        `�x�� *Madre:* ${patientData.motherName || "Gestante"}`,
+        `�x�” *Acompañante:* ${patientData.partnerName || "Pareja"}`,
+        `�x�� *Centro Médico:* ${patientData.hospital}`,
+        `�x& *Semana de Gestación:* ${patientData.week}`,
+        patientData.doctor ? `�x�� *Especialista:* ${patientData.doctor}` : "",
         "",
-        `âœ¨ *PREFERENCIAS Y CLíUSULAS ACTIVAS (${checkedOptions.length}):*`,
+        `âœ¨ *PREFERENCIAS Y CL�USULAS ACTIVAS (${checkedOptions.length}):*`,
         ...checkedOptions,
         "",
-        patientData.notes ? `ðŸ“ *Notas Especiales:* ${patientData.notes}\n` : "",
-        `ðŸ‘‰ *Documento generado y coordinado con PandaJR*`
+        patientData.notes ? `�x� *Notas Especiales:* ${patientData.notes}\n` : "",
+        `�x0 *Documento generado y coordinado con PandaJR*`
       ].filter(Boolean).join("\n");
 
       if (navigator.share) {
@@ -4915,7 +4915,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
             <div className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-xs border border-stone-200/80 dark:border-white/[0.08] p-5 space-y-4 animate-in fade-in">
               <div className="border-b border-stone-100 dark:border-white/[0.06] pb-3">
                 <span className="text-xs font-bold tracking-tight text-sage dark:text-sage/80 bg-sage/10 dark:bg-[#1a1724] px-2.5 py-0.5 rounded-full">
-                  Paso {step} de 5 Â· {currentSection.category}
+                  Paso {step} de 5 · {currentSection.category}
                 </span>
                 <h4 className="text-lg font-black text-stone-800 dark:text-[#eae6e1] mt-1 leading-tight">{currentSection.title}</h4>
                 <p className="text-xs text-stone-500 dark:text-[#a6a1b2] mt-0.5">{currentSection.subtitle}</p>
