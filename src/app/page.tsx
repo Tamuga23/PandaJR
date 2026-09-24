@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { usePandaStore } from "@/store/usePandaStore";
-import { ensureAuth, createPregnancyForMom, joinPregnancyAsDad, listenToPregnancy, listenToMomStatus, updatePregnancyWeek, saveMomStatus } from "@/lib/firebase/pairing";
+import { ensureAuth, createPregnancyForMom, joinPregnancyAsDad, listenToPregnancy, listenToMomStatus, updatePregnancyWeek, saveMomStatus, saveEvents, listenToEvents, saveKickSessions, listenToKickSessions, saveContractions, listenToContractions, saveBabyNames, listenToBabyNames, saveBirthPlan, listenToBirthPlan, saveChecklistProgress, listenToChecklistProgress, saveAppointmentPrep, listenToAppointmentPrep } from "@/lib/firebase/pairing";
 import Image from "next/image";
 import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, AlertCircle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2, Bell, RotateCcw, Trash2, PhoneCall, Check, Undo2, Printer, Copy, Edit3, Sun, Moon } from "lucide-react";
 
@@ -411,7 +411,7 @@ function getCountdownText(eventDate: Date): { text: string; isClose: boolean; da
   return { text: `En ${diffDays} días`, isClose: false, daysLeft: diffDays };
 }
 
-export function downloadIcsCalendar(ev: any, prep: AppointmentPrepInfo) {
+function downloadIcsCalendar(ev: any, prep: AppointmentPrepInfo) {
   const parsedDate = parseEventDate(ev) || new Date();
   const pad = (n: number) => String(n).padStart(2, "0");
   const year = parsedDate.getFullYear();
@@ -476,7 +476,7 @@ export function downloadIcsCalendar(ev: any, prep: AppointmentPrepInfo) {
   URL.revokeObjectURL(url);
 }
 
-export function openGoogleCalendar(ev: any, prep: AppointmentPrepInfo) {
+function openGoogleCalendar(ev: any, prep: AppointmentPrepInfo) {
   const parsedDate = parseEventDate(ev) || new Date();
   const pad = (n: number) => String(n).padStart(2, "0");
   const year = parsedDate.getFullYear();
@@ -506,7 +506,7 @@ export function openGoogleCalendar(ev: any, prep: AppointmentPrepInfo) {
   window.open(url, "_blank");
 }
 
-export async function requestBrowserNotification(upcomingEvent?: any): Promise<boolean> {
+async function requestBrowserNotification(upcomingEvent?: any): Promise<boolean> {
   if (typeof window === "undefined" || !("Notification" in window)) {
     return false;
   }
@@ -1168,7 +1168,7 @@ export default function PandaJRApp() {
       {/* Main Content Area */}
       <main className={`flex-1 w-full ${activeTab === "pandaia" ? "overflow-hidden flex flex-col pb-16" : "overflow-y-auto pb-6"}`}>
         <div className={activeTab === "planificacion" ? "block w-full h-full" : "hidden"}>
-          <GuiaPapaView showToast={showToast} profile={profile} updateProfile={updateProfile} />
+          <GuiaPapaView showToast={showToast} profile={profile} updateProfile={updateProfile} remoteMomStatus={remoteMomStatus} />
         </div>
         <div className={activeTab === "agenda" ? "block w-full h-full" : "hidden"}>
           <AgendaView 
@@ -1317,7 +1317,7 @@ function PregnancyProgressBar({ week }: { week: number }) {
   );
 }
 
-function MomStatusCard({ profile }: { profile: UserProfile }) {
+function MomStatusCard({ profile, remoteMomStatus }: { profile: UserProfile, remoteMomStatus?: any }) {
   return (
     <div className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-sm border border-stone-200/80 dark:border-white/[0.08] p-5 animate-in fade-in transition-colors">
       <div className="flex items-center justify-between mb-4">
@@ -1487,12 +1487,12 @@ function getWeekData(week: number, theme: "frutas"|"geek" = "frutas") {
     length: closest.len,
     weight: closest.weight,
     milestone: week <= 12 ? "Fin de la organogénesis crítica" : week <= 20 ? "Glándula tiroides funcional" : "Desarrollo de sentidos y corteza cerebral",
-    momMission: week <= 12 ? "Evita que cargue peso, mantén la casa ventilada y apóyala con las comidas ligeras." : week <= 24 ? "Evita que cargue peso, mantén la casa ventilada y apóyala con las comidas ligeras." : "Cuiden la alineación de la espalda con la almohada de embarazo y mantengan rutinas de caminata.",
+    momMission: week <= 12 ? "Tu cuerpo está formando órganos vitales. Prioriza descanso, ácido fólico y evita cargar peso." : week <= 24 ? "Tu bebé ya escucha tu voz. Mantén una dieta rica en hierro y calcio, y camina 20 min diarios." : "Practica ejercicios de Kegel, usa la almohada de embarazo para dormir y prepara tu plan de parto.",
     dadMission: week <= 12 ? "El cerebro fetal triplica su sinapsis. Prepara cenas ricas en Colina (huevos) y DHA (salmón)." : "Ten lista la logística de transporte, tanque de gasolina lleno y números de emergencia a mano."
   };
 }
 
-function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, profile: UserProfile, updateProfile: (u: Partial<UserProfile>) => void }) {
+function GuiaPapaView({ showToast, profile, updateProfile, remoteMomStatus }: { showToast: any, profile: UserProfile, updateProfile: (u: Partial<UserProfile>) => void, remoteMomStatus?: any }) {
   const [week, setWeek] = useState(profile.week || 14);
   useEffect(() => {
     if (profile.week) setWeek(profile.week);
@@ -1503,6 +1503,18 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
     const currentTrimester = React.useMemo(() => week <= 13 ? 1 : week <= 27 ? 2 : 3, [week]);
   
   const [taskStatus, setTaskStatus] = React.useState<Record<number, "completed" | "dismissed">>({});
+  
+  // Sync checklist progress with Firestore
+  useEffect(() => {
+    if (profile.pregnancyId) {
+      const unsub = listenToChecklistProgress(profile.pregnancyId, (progress) => {
+        const mapped: Record<number, "completed" | "dismissed"> = {};
+        Object.entries(progress).forEach(([k, v]) => { if (v) mapped[Number(k)] = "completed"; });
+        setTaskStatus(mapped);
+      });
+      return () => unsub();
+    }
+  }, [profile.pregnancyId]);
   const [expandedCats, setExpandedCats] = React.useState<Record<string, boolean>>({});
 
   
@@ -1641,23 +1653,23 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
           <div className="flex items-center gap-2 mb-2">
             <Trophy size={18} className="text-terracotta dark:text-sage" />
             <h3 className="font-bold text-sage dark:text-sage/80 text-sm">
-              {profile.role === "papa" ? "Misión del Papá" : "Misión de la Mamá"}
+              {profile.role === "papa" ? "Misión del Copiloto" : "Tu Misión"}
             </h3>
           </div>
           <p className="text-sage dark:text-[#eae6e1] text-sm leading-relaxed">
-            {weekData.dadMission}
+            {profile.role === "papa" ? weekData.dadMission : weekData.momMission}
           </p>
         </div>
       </div>
 
       {/* 1.5 Mom Status (New Pareja Module) */}
-      <MomStatusCard profile={profile} />
+      <MomStatusCard profile={profile} remoteMomStatus={remoteMomStatus} />
 
       {/* 2. Checklist Module */}
       <div>
         <div className="flex justify-between items-end mb-3">
           <h2 className="text-xl font-bold text-stone-800 dark:text-[#eae6e1]">
-            {profile.role === "papa" ? "Checklists del Papá" : "Checklists de la Mamá"}
+            {profile.role === "papa" ? "Checklists del Copiloto" : "Mis Checklists"}
           </h2>
           <span className="text-terracotta dark:text-sage font-bold text-sm">{progressPercent}% completado</span>
         </div>
@@ -3310,6 +3322,8 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
   useEffect(() => {
     try {
       localStorage.setItem("pandajr_kick_sessions", JSON.stringify(sessions));
+      const pid = usePandaStore.getState().profile.pregnancyId;
+      if (pid) saveKickSessions(pid, sessions).catch(() => {});
     } catch (e) {}
   }, [sessions]);
 
@@ -3857,6 +3871,8 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
   useEffect(() => {
     try {
       localStorage.setItem("pandajr_contractions_history", JSON.stringify(history));
+      const pid2 = usePandaStore.getState().profile.pregnancyId;
+      if (pid2) saveContractions(pid2, history).catch(() => {});
     } catch (e) {}
   }, [history]);
 
@@ -4126,6 +4142,17 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
 }
 
 function VotadorNombres({ showToast }: { showToast: any }) {
+  // Firestore sync for baby names
+  useEffect(() => {
+    const pid = usePandaStore.getState().profile.pregnancyId;
+    if (pid) {
+      const unsub = listenToBabyNames(pid, (remoteNames) => {
+        if (remoteNames.length > 0) setNames(remoteNames);
+      });
+      return () => unsub();
+    }
+  }, []);
+
   const [names, setNames] = useState<any[]>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -4152,6 +4179,8 @@ function VotadorNombres({ showToast }: { showToast: any }) {
   useEffect(() => {
     try {
       localStorage.setItem("pandajr_baby_names", JSON.stringify(names));
+    const pidNames = usePandaStore.getState().profile.pregnancyId;
+    if (pidNames) saveBabyNames(pidNames, names).catch(() => {});
     } catch (e) {}
   }, [names]);
 
@@ -4480,6 +4509,18 @@ const DEFAULT_PLAN_SECTIONS: PlanSection[] = [
 ];
 
 function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: any }) {
+  // Firestore sync for birth plan
+  useEffect(() => {
+    const pid = usePandaStore.getState().profile.pregnancyId;
+    if (pid) {
+      const unsub = listenToBirthPlan(pid, (data) => {
+        if (data.patient && Object.keys(data.patient).length > 0) setPatientData((prev: any) => ({ ...prev, ...data.patient }));
+        if (data.sections && data.sections.length > 0) setSections(data.sections);
+      });
+      return () => unsub();
+    }
+  }, []);
+
   const [step, setStep] = useState(1);
   const [viewMode, setViewMode] = useState<"wizard" | "document">("wizard");
 

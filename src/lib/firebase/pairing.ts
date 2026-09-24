@@ -1,5 +1,5 @@
 import { db, auth } from "./config";
-import { collection, doc, setDoc, getDocs, query, where, serverTimestamp, onSnapshot, updateDoc, orderBy, limit } from "firebase/firestore";
+import { collection, doc, setDoc, getDocs, query, where, serverTimestamp, onSnapshot, updateDoc, orderBy, limit, addDoc, deleteDoc } from "firebase/firestore";
 import { signInAnonymously } from "firebase/auth";
 
 // Función auxiliar para generar códigos aleatorios (ej: PANDA-8A2F)
@@ -150,5 +150,112 @@ export function listenToGoBag(pregnancyId: string, callback: (items: any) => voi
       bag[doc.id] = doc.data().checked;
     });
     callback(bag);
+  });
+}
+
+// --- EVENTS / AGENDA (citas médicas) ---
+export async function saveEvents(pregnancyId: string, events: any[]) {
+  const ref = doc(db, "pregnancies", pregnancyId, "shared_data", "events");
+  await setDoc(ref, { items: events, updatedAt: serverTimestamp() }, { merge: true });
+}
+
+export function listenToEvents(pregnancyId: string, callback: (events: any[]) => void) {
+  const ref = doc(db, "pregnancies", pregnancyId, "shared_data", "events");
+  return onSnapshot(ref, (docSnap) => {
+    if (docSnap.exists()) {
+      callback(docSnap.data().items || []);
+    }
+  });
+}
+
+// --- KICK SESSIONS (Monitor de Patadas) ---
+export async function saveKickSessions(pregnancyId: string, sessions: any[]) {
+  const ref = doc(db, "pregnancies", pregnancyId, "shared_data", "kick_sessions");
+  await setDoc(ref, { items: sessions, updatedAt: serverTimestamp() }, { merge: true });
+}
+
+export function listenToKickSessions(pregnancyId: string, callback: (sessions: any[]) => void) {
+  const ref = doc(db, "pregnancies", pregnancyId, "shared_data", "kick_sessions");
+  return onSnapshot(ref, (docSnap) => {
+    if (docSnap.exists()) {
+      callback(docSnap.data().items || []);
+    }
+  });
+}
+
+// --- CONTRACTIONS HISTORY ---
+export async function saveContractions(pregnancyId: string, history: any[]) {
+  const ref = doc(db, "pregnancies", pregnancyId, "shared_data", "contractions");
+  await setDoc(ref, { items: history, updatedAt: serverTimestamp() }, { merge: true });
+}
+
+export function listenToContractions(pregnancyId: string, callback: (history: any[]) => void) {
+  const ref = doc(db, "pregnancies", pregnancyId, "shared_data", "contractions");
+  return onSnapshot(ref, (docSnap) => {
+    if (docSnap.exists()) {
+      callback(docSnap.data().items || []);
+    }
+  });
+}
+
+// --- BABY NAMES (Votador de Nombres) ---
+export async function saveBabyNames(pregnancyId: string, names: any[]) {
+  const ref = doc(db, "pregnancies", pregnancyId, "shared_data", "baby_names");
+  await setDoc(ref, { items: names, updatedAt: serverTimestamp() }, { merge: true });
+}
+
+export function listenToBabyNames(pregnancyId: string, callback: (names: any[]) => void) {
+  const ref = doc(db, "pregnancies", pregnancyId, "shared_data", "baby_names");
+  return onSnapshot(ref, (docSnap) => {
+    if (docSnap.exists()) {
+      callback(docSnap.data().items || []);
+    }
+  });
+}
+
+// --- BIRTH PLAN (Plan de Parto) ---
+export async function saveBirthPlan(pregnancyId: string, patient: any, sections: any[]) {
+  const ref = doc(db, "pregnancies", pregnancyId, "shared_data", "birth_plan");
+  await setDoc(ref, { patient, sections, updatedAt: serverTimestamp() }, { merge: true });
+}
+
+export function listenToBirthPlan(pregnancyId: string, callback: (data: { patient: any, sections: any[] }) => void) {
+  const ref = doc(db, "pregnancies", pregnancyId, "shared_data", "birth_plan");
+  return onSnapshot(ref, (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      callback({ patient: data.patient || {}, sections: data.sections || [] });
+    }
+  });
+}
+
+// --- CHECKLIST PROGRESS (built-in trimester checklists) ---
+export async function saveChecklistProgress(pregnancyId: string, progress: Record<string, boolean>) {
+  const ref = doc(db, "pregnancies", pregnancyId, "shared_data", "checklist_progress");
+  await setDoc(ref, { items: progress, updatedAt: serverTimestamp() }, { merge: true });
+}
+
+export function listenToChecklistProgress(pregnancyId: string, callback: (progress: Record<string, boolean>) => void) {
+  const ref = doc(db, "pregnancies", pregnancyId, "shared_data", "checklist_progress");
+  return onSnapshot(ref, (docSnap) => {
+    if (docSnap.exists()) {
+      callback(docSnap.data().items || {});
+    }
+  });
+}
+
+// --- APPOINTMENT PREP (checklist de preparación de citas) ---
+export async function saveAppointmentPrep(pregnancyId: string, eventId: string, data: { items: Record<string, boolean>, questions: Record<string, boolean> }) {
+  const ref = doc(db, "pregnancies", pregnancyId, "shared_data", "prep_" + eventId);
+  await setDoc(ref, { ...data, updatedAt: serverTimestamp() }, { merge: true });
+}
+
+export function listenToAppointmentPrep(pregnancyId: string, eventId: string, callback: (data: { items: Record<string, boolean>, questions: Record<string, boolean> }) => void) {
+  const ref = doc(db, "pregnancies", pregnancyId, "shared_data", "prep_" + eventId);
+  return onSnapshot(ref, (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      callback({ items: data.items || {}, questions: data.questions || {} });
+    }
   });
 }
