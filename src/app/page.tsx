@@ -816,9 +816,9 @@ function OnboardingModal({ onComplete, onSkip }: { onComplete: (profile: UserPro
         
         {step === 1 && (
           <div className="space-y-6">
-            <div className="bg-terracotta/10 dark:bg-terracotta/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-2">
-              <Heart className="text-terracotta" size={32} />
-            </div>
+            <div className="w-24 h-24 rounded-3xl overflow-hidden mx-auto mb-4 border border-stone-200 dark:border-white/[0.08] shadow-sm">
+                <Image src="/panda-icon.jpg" alt="PandaJR Icon" width={96} height={96} className="w-full h-full object-cover" priority />
+              </div>
             <h2 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1]">Bienvenido a PandaJR</h2>
             <p className="text-sm text-stone-500 dark:text-[#a6a1b2]">¿Quién eres en esta hermosa aventura?</p>
             
