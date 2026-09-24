@@ -2551,7 +2551,7 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
       const url = canvas.toDataURL("image/png");
       setImageUrl(url);
     } catch (error) {
-      console.error("Error generating story:", error);
+      console.error("Error generating story:", error); alert("Hubo un error al generar la imagen. Intenta de nuevo.");
     } finally {
       setIsGenerating(false);
     }
@@ -2624,7 +2624,7 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
                 </div>
               </div>
 
-              <div className="bg-white/60 backdrop-blur-md rounded-2xl p-4 w-full relative z-10 shadow-sm border border-white/50" >
+              <div className="bg-white/90 rounded-2xl p-4 w-full relative z-10 shadow-sm border border-white/50" >
    
                 <p className="text-sm font-semibold text-stone-600" >
                   Nuestro bebé es del tamaño de:
@@ -2637,7 +2637,7 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
                     {weekData.size} • {weekData.weight}
                   </p>
                 </div>
-                <div className="mt-3 bg-white/70 backdrop-blur-sm p-3 rounded-xl border border-sage/20 shadow-sm">
+                <div className="mt-3 bg-white/90 p-3 rounded-xl border border-sage/20 shadow-sm">
                   <p className="text-xs font-bold text-sage text-center">
                     {getMilestonePhrase(week)}
                   </p>
