@@ -1058,6 +1058,16 @@ export default function PandaJRApp() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isProfileModalOpen, selectedPrepEvent]);
 
+  
+
+  // Evitar hydration mismatch renderizando solo cuando el cliente monte
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) return null;
+
   return (
     <div className={`flex flex-col ${activeTab === "pandaia" ? "h-screen overflow-hidden" : "min-h-screen pb-16"} w-full max-w-md mx-auto bg-[#faf9f5] dark:bg-[#181520] text-stone-900 dark:text-[#eae6e1] font-sans relative shadow-2xl overflow-x-hidden transition-colors duration-200 border-x border-stone-200/60 dark:border-white/[0.08]`}>
       {/* Header con Logo, Switch Modo Oscuro, Alerta de Cita y Selector Global de Perfil */}
