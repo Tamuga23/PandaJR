@@ -2598,11 +2598,9 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center gap-6">
-          <div className="relative shadow-xl rounded-[2rem] overflow-hidden border-4 border-white dark:border-[#2d273a] w-full max-w-[320px] aspect-[4/5] bg-gradient-to-br from-sage/20 via-white to-terracotta/20 dark:from-sage/40 dark:via-[#1a1625] dark:to-terracotta/40">
+          <div ref={storyRef} className="relative shadow-xl rounded-[2rem] overflow-hidden border-4 border-white dark:border-[#2d273a] w-full max-w-[320px] aspect-[9/16] bg-gradient-to-br from-sage/20 via-white to-terracotta/20 dark:from-sage/40 dark:via-[#1a1625] dark:to-terracotta/40">
             
-            <div 
-              ref={storyRef}
-              className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-8 text-stone-800 text-center bg-gradient-to-br from-sage/20 via-stone-50 to-terracotta/20"
+            <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-8 text-stone-800 text-center bg-gradient-to-br from-sage/20 via-stone-50 to-terracotta/20"
             >
               <div className="absolute top-6 left-1/2 -translate-x-1/2 opacity-20 flex items-center gap-2">
                  <span className="font-black text-xl tracking-tighter text-sage">PandaJR.</span>
@@ -2618,8 +2616,8 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
               </div>
 
               <div className="flex-1 flex items-center justify-center relative w-full my-6">
-                <div className="absolute inset-0 bg-white/40 blur-3xl rounded-full"></div>
-                <div className="text-[8rem] leading-none drop-shadow-2xl relative z-10 animate-in zoom-in duration-500" >
+                
+                <div className="text-[8rem] leading-none  relative z-10 animate-in zoom-in duration-500" >
                   {emoji}
                 </div>
               </div>
