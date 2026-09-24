@@ -2608,11 +2608,11 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
                  <span className="font-black text-xl tracking-tighter text-sage">PandaJR.</span>
               </div>
               
-              <div className="mt-8 space-y-2 relative z-10">
+              <div className="mt-8 space-y-1 relative z-10 pt-4">
                 <p className="text-sm font-bold tracking-widest uppercase text-terracotta">
                   ¡ESTAMOS EN LA!
                 </p>
-                <h3 className="text-6xl font-black text-sage tracking-tighter" >
+                <h3 className="text-5xl font-black text-sage tracking-tighter leading-tight" >
                   Semana {week}
                 </h3>
               </div>
@@ -2698,9 +2698,9 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
   const [activeTab, setActiveTab] = useState<"dormir" | "estimulacion" | "latidos">("dormir");
 
   const playlists = {
-    dormir: "https://open.spotify.com/embed/playlist/37i9dQZF1DXcVDmeug1vF1?utm_source=generator&theme=0",
-    estimulacion: "https://open.spotify.com/embed/playlist/37i9dQZF1DX5I05jXpeO1B?utm_source=generator&theme=0",
-    latidos: "https://open.spotify.com/embed/playlist/64qO4w74wNf0JqUOPZfE4F?utm_source=generator&theme=0"
+    dormir: "https://open.spotify.com/embed/playlist/37i9dQZF1DWZq91oLsHZvy?utm_source=generator&theme=0",
+    estimulacion: "https://open.spotify.com/embed/playlist/37i9dQZF1DX8C9xQcOrE6T?utm_source=generator&theme=0",
+    latidos: "https://open.spotify.com/embed/playlist/37i9dQZF1DWUvHZA1zLcjW?utm_source=generator&theme=0"
   };
 
   return (
