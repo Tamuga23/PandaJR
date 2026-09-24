@@ -60,12 +60,12 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/logo.png" },
+      { url: "/app-icon.jpg" },
       { url: "/og-image.jpg" },
     ],
-    shortcut: "/logo.png",
+    shortcut: "/app-icon.jpg",
     apple: [
-      { url: "/logo.png" },
+      { url: "/app-icon.jpg" },
       { url: "/og-image.jpg" },
     ],
   },
