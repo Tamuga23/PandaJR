@@ -2334,11 +2334,7 @@ export function CalculadoraPresupuesto({ onClose }: { onClose: () => void }) {
       const saved = localStorage.getItem("pandajr_budget_expenses");
       if (saved) return JSON.parse(saved);
     }
-    return [
-      { id: "1", name: "Cuna", amount: 350, category: "Habitación" },
-      { id: "2", name: "Carriola", amount: 450, category: "Transporte" },
-      { id: "3", name: "Pañales RN", amount: 60, category: "Cuidado" }
-    ];
+    return [];
   });
   const [newItem, setNewItem] = useState("");
   const [newAmount, setNewAmount] = useState("");
@@ -2517,6 +2513,18 @@ export function CalculadoraPresupuesto({ onClose }: { onClose: () => void }) {
 
 // --- PANDA JR STORY GENERATOR ---
 export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClose: () => void }) {
+  const getMilestonePhrase = (w: number) => {
+    if (w <= 8) return "Su corazoncito ya late a mil por hora ❤️";
+    if (w <= 12) return "¡Ya tiene huellas dactilares únicas! 🖐️";
+    if (w <= 16) return "Comienza a escuchar los latidos de mamá 🎵";
+    if (w <= 20) return "¡Primeras pataditas en camino! 🦶";
+    if (w <= 24) return "Puede escuchar tu voz y la música 🎶";
+    if (w <= 28) return "Abre y cierra sus ojitos 👀";
+    if (w <= 32) return "Sus pulmones se preparan para respirar 🫁";
+    if (w <= 36) return "Reconoce canciones y voces familiares 🧸";
+    return "¡Listo para conocer el mundo! 🌍";
+  };
+
   const [isGenerating, setIsGenerating] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const storyRef = useRef<HTMLDivElement>(null);
@@ -2617,16 +2625,24 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
               </div>
 
               <div className="bg-white/60 backdrop-blur-md rounded-2xl p-4 w-full relative z-10 shadow-sm border border-white/50" >
+   
                 <p className="text-sm font-semibold text-stone-600" >
                   Nuestro bebé es del tamaño de:
                 </p>
                 <p className="text-xl font-black text-stone-800 mt-1 capitalize" >
                   {fruit}
                 </p>
-                <p className="text-xs text-stone-500 mt-1" >
-                  {weekData.size} • {weekData.weight}
-                </p>
-              </div>
+                <div className="flex justify-between items-center mt-2 border-t border-stone-200/50 pt-2">
+                  <p className="text-xs text-stone-500 font-bold" >
+                    {weekData.size} • {weekData.weight}
+                  </p>
+                </div>
+                <div className="mt-3 bg-white/70 backdrop-blur-sm p-3 rounded-xl border border-sage/20 shadow-sm">
+                  <p className="text-xs font-bold text-sage text-center">
+                    {getMilestonePhrase(week)}
+                  </p>
+                </div>
+</div>
             </div>
             
             {imageUrl && (
