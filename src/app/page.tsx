@@ -429,10 +429,10 @@ function downloadIcsCalendar(ev: any, prep: AppointmentPrepInfo) {
     `ESPECIALISTA: ${ev.doctor || "Por definir"}`,
     "",
     "🎒 QUÉ LLEVAR:",
-    ...prep.whatToBring.map(item => `â€¢ ${item}`),
+    ...prep.whatToBring.map(item => `• ${item}`),
     "",
     "â“ PREGUNTAS CLAVE PARA EL MÉDICO:",
-    ...prep.whatToAsk.map(item => `â€¢ ${item}`),
+    ...prep.whatToAsk.map(item => `• ${item}`),
     "",
     `💡 CONSEJO PANDAJR: ${prep.tip}`
   ].join("\\n");
@@ -494,10 +494,10 @@ function openGoogleCalendar(ev: any, prep: AppointmentPrepInfo) {
     `ESPECIALISTA: ${ev.doctor || ""}`,
     "",
     "🎒 QUÉ LLEVAR:",
-    ...prep.whatToBring.map(i => `â€¢ ${i}`),
+    ...prep.whatToBring.map(i => `• ${i}`),
     "",
     "â“ PREGUNTAS PARA EL DOCTOR:",
-    ...prep.whatToAsk.map(i => `â€¢ ${i}`),
+    ...prep.whatToAsk.map(i => `• ${i}`),
     "",
     `CONSEJO PANDAJR: ${prep.tip}`
   ].join("\n");
@@ -1897,7 +1897,7 @@ function AgendaView({
       const dataStr = btoa(unescape(encodeURIComponent(JSON.stringify(events))));
       const shareUrl = `${window.location.origin}/?sync_events=${dataStr}`;
       
-      const summary = events.map(e => `â€¢ ${e.date} (${e.time}): ${e.title} - ${e.doctor}`).join("\n");
+      const summary = events.map(e => `• ${e.date} (${e.time}): ${e.title} - ${e.doctor}`).join("\n");
       const text = `¡Hola amor! Te comparto nuestra agenda médica actualizada de PandaJR:\n\n${summary}\n\n👉 Ábrelo aquí para sincronizarlo en tu teléfono:\n${shareUrl}`;
 
       if (navigator.share) {
@@ -2571,8 +2571,8 @@ function PandaIAView({
         );
       }
 
-      const isBullet = trimmed.startsWith("â€¢ ") || trimmed.startsWith("- ") || trimmed.startsWith("* ");
-      const cleanLine = isBullet ? trimmed.replace(/^([â€¢\-*]\s+)/, "") : line;
+      const isBullet = trimmed.startsWith("• ") || trimmed.startsWith("- ") || trimmed.startsWith("* ");
+      const cleanLine = isBullet ? trimmed.replace(/^([•\-*]\s+)/, "") : line;
 
       const parts = cleanLine.split(/(\*\*.*?\*\*)/g);
       const content = parts.map((part, pIdx) => {
@@ -2585,7 +2585,7 @@ function PandaIAView({
       if (isBullet) {
         return (
           <div key={idx} className="flex items-start gap-2 my-1 pl-1">
-            <span className="text-terracotta dark:text-sage font-bold shrink-0 mt-0.5">â€¢</span>
+            <span className="text-terracotta dark:text-sage font-bold shrink-0 mt-0.5">•</span>
             <span className="flex-1 leading-relaxed text-stone-700 dark:text-[#eae6e1]/90">{content}</span>
           </div>
         );
@@ -3841,7 +3841,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
               </div>
               <div>
                 <h4 className="text-lg font-black leading-tight">¡Sesión Exitosa Registrada!</h4>
-                <p className="text-xs text-sage/20 mt-0.5">10 movimientos completados en {completedSession.durationFormatted}</p>
+                <p className="text-xs text-white/80 mt-0.5">10 movimientos completados en {completedSession.durationFormatted}</p>
               </div>
             </div>
             <button
@@ -3854,12 +3854,12 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
             </button>
           </div>
 
-          <p className="text-xs text-sage/10 leading-relaxed bg-white/10 p-3 rounded-2xl">
+          <p className="text-xs text-white/90 leading-relaxed bg-white/10 p-3 rounded-2xl">
             âš¡ <strong>Evaluación médica:</strong> Tu bebé mostró un ritmo activo y reactivo saludable. La sesión ya está registrada en el historial.
           </p>
 
           <div>
-            <p className="text-xs font-bold tracking-tight text-sage/30 mb-2">Añadir contexto a la sesión:</p>
+            <p className="text-xs font-bold tracking-tight text-white/80 mb-2">Añadir contexto a la sesión:</p>
               <div className="flex flex-wrap gap-1.5">
                 {[
                   "🍽️ Después de comer",
@@ -4130,11 +4130,11 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] flex flex-col items-center justify-center text-center">
           <p className="text-xs text-sage dark:text-sage/80 font-bold tracking-tight mb-1">Duración Promedio</p>
-          <p className="text-xl font-black text-sage dark:text-sage/80 tabular-nums">{history.length > 0 ? formatTime(avgDuration) : "â€”"}</p>
+          <p className="text-xl font-black text-sage dark:text-sage/80 tabular-nums">{history.length > 0 ? formatTime(avgDuration) : "—"}</p>
         </div>
         <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] flex flex-col items-center justify-center text-center">
           <p className="text-xs text-rose-800 dark:text-rose-300 font-bold tracking-tight mb-1">Frecuencia Promedio</p>
-          <p className="text-xl font-black text-rose-600 dark:text-terracotta tabular-nums">{avgInterval ? formatTime(avgInterval) : "â€”"}</p>
+          <p className="text-xl font-black text-rose-600 dark:text-terracotta tabular-nums">{avgInterval ? formatTime(avgInterval) : "—"}</p>
         </div>
       </div>
       
@@ -4189,9 +4189,9 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
             <p className="font-bold text-sage dark:text-sage/80 flex items-center gap-1">
               <span>🤝 Acompañamiento del Papá / Pareja:</span>
             </p>
-            <p className="text-stone-600 dark:text-[#a6a1b2] leading-relaxed">â€¢ Ofrece un sorbo pequeño de agua fresca o bálsamo labial.</p>
-            <p className="text-stone-600 dark:text-[#a6a1b2] leading-relaxed">â€¢ Aplica contrapresión firme con el talón de la mano en el sacro (espalda baja).</p>
-            <p className="text-stone-600 dark:text-[#a6a1b2] leading-relaxed">â€¢ Recuérdale con voz serena: <em>"Respira profundo, lo estás haciendo genial."</em></p>
+            <p className="text-stone-600 dark:text-[#a6a1b2] leading-relaxed">• Ofrece un sorbo pequeño de agua fresca o bálsamo labial.</p>
+            <p className="text-stone-600 dark:text-[#a6a1b2] leading-relaxed">• Aplica contrapresión firme con el talón de la mano en el sacro (espalda baja).</p>
+            <p className="text-stone-600 dark:text-[#a6a1b2] leading-relaxed">• Recuérdale con voz serena: <em>"Respira profundo, lo estás haciendo genial."</em></p>
           </div>
         </div>
       )}
@@ -4241,7 +4241,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
                     </span>
                   </div>
                   <div className="font-bold text-rose-600 dark:text-terracotta tabular-nums">
-                    {item.interval ? formatTime(item.interval) : "â€”"}
+                    {item.interval ? formatTime(item.interval) : "—"}
                   </div>
                   <div>
                     <button
@@ -4464,7 +4464,7 @@ function VotadorNombres({ showToast }: { showToast: any }) {
           <div className="absolute top-0 w-full h-2 bg-gradient-to-r from-sage to-terracotta"></div>
           <h2 className="text-4xl font-black text-stone-800 dark:text-[#eae6e1] mb-2 mt-4">{current.text}</h2>
           <span className="text-xs font-bold uppercase tracking-widest text-sage dark:text-sage/80 bg-sage/10 dark:bg-[#1a1724] px-3 py-1 rounded-full mb-4">
-            Origen: {current.origin} â€¢ {current.gender}
+            Origen: {current.origin} • {current.gender}
           </span>
           <p className="text-sm text-stone-500 dark:text-[#a6a1b2] italic mb-8 max-w-[200px]">"{current.meaning}"</p>
           
@@ -4706,7 +4706,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
   const sharePlanWhatsApp = () => {
     try {
       const checkedOptions = sections.flatMap(sec => 
-        sec.options.filter(o => o.checked).map(o => `â€¢ [${sec.category}] ${o.label}`)
+        sec.options.filter(o => o.checked).map(o => `• [${sec.category}] ${o.label}`)
       );
 
       const text = [
@@ -4778,11 +4778,11 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
 
         {/* Cláusula Introductoria de Respeto Clínico */}
         <blockquote className="bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-xl text-xs text-stone-700 italic flex items-start gap-2.5">
-          <span className="text-sage font-serif text-lg leading-none select-none shrink-0" aria-hidden="true">â€œ</span>
+          <span className="text-sage font-serif text-lg leading-none select-none shrink-0" aria-hidden="true">“</span>
           <p className="flex-1">
             A la atención del equipo obstétrico y pediátrico: Este plan expresa nuestros deseos y preferencias para el proceso de parto y postparto inmediato, entendiendo siempre que la salud y seguridad de la madre y del bebé priman ante cualquier eventualidad médica imprevista.
           </p>
-          <span className="text-sage font-serif text-lg leading-none select-none shrink-0 self-end" aria-hidden="true">â€</span>
+          <span className="text-sage font-serif text-lg leading-none select-none shrink-0 self-end" aria-hidden="true">”</span>
         </blockquote>
 
         {/* Secciones y Preferencias Seleccionadas */}
