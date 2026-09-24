@@ -929,6 +929,32 @@ export default function PandaJRApp() {
   const setProfile = usePandaStore(state => state.setProfile);
   const isDark = usePandaStore(state => state.isDark);
   const toggleThemeStore = usePandaStore(state => state.toggleTheme);
+  // --- Firebase Real-time Sync ---
+  const [remoteMomStatus, setRemoteMomStatus] = useState<any>(null);
+
+  useEffect(() => {
+    if (profile?.pregnancyId) {
+      const unsubPreg = listenToPregnancy(profile.pregnancyId, (data) => {
+        if (data.week && data.week !== profile.week) {
+          // Sync week to local store
+          setProfile({ week: data.week });
+        }
+      });
+      const unsubStatus = listenToMomStatus(profile.pregnancyId, (status) => {
+        setRemoteMomStatus({
+          text: status.statusText,
+          emoji: status.emoji,
+          lastUpdated: "recién actualizado"
+        });
+      });
+      return () => {
+        unsubPreg();
+        unsubStatus();
+      };
+    }
+  }, [profile?.pregnancyId, profile?.week]);
+  // -------------------------------
+
   const hasHydrated = usePandaStore(state => state.hasHydrated);
 
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
