@@ -1074,6 +1074,76 @@ function NavItem({ icon, label, isActive, onClick }: { icon: React.ReactNode, la
   );
 }
 
+function PregnancyProgressBar({ week }: { week: number }) {
+  const percent = Math.min(100, Math.max(0, (week / 40) * 100));
+  
+  return (
+    <div className="w-full">
+      <div className="flex justify-between items-end mb-2 px-1">
+        <span className="text-[11px] font-medium text-stone-500 dark:text-[#a6a1b2]">Inicio dulce</span>
+        <span className="text-sm font-bold text-stone-800 dark:text-[#eae6e1]">Semana {week} ({Math.round(percent)}%)</span>
+        <span className="text-[11px] font-medium text-stone-500 dark:text-[#a6a1b2]">Llegada soñada</span>
+      </div>
+      <div className="h-2 w-full bg-stone-100 dark:bg-[#2d273a] rounded-full overflow-hidden">
+        <div 
+          className="h-full bg-sage rounded-full transition-all duration-500 ease-out" 
+          style={{ width: `${percent}%` }}
+        ></div>
+      </div>
+    </div>
+  );
+}
+
+function MomStatusCard({ profile }: { profile: UserProfile }) {
+  return (
+    <div className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-sm border border-stone-200/80 dark:border-white/[0.08] p-5 animate-in fade-in transition-colors">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full overflow-hidden bg-stone-100 border border-stone-200 dark:border-white/[0.06] shrink-0">
+            {/* Avatar placeholder */}
+            <div className="w-full h-full bg-terracotta/20 flex items-center justify-center text-terracotta font-bold text-lg">
+              {profile.name ? profile.name.charAt(0).toUpperCase() : "E"}
+            </div>
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-stone-800 dark:text-[#eae6e1] leading-tight">¿Cómo se siente {profile.name || "Elena"} hoy?</h3>
+            <p className="text-xs text-stone-500 dark:text-[#a6a1b2] mt-0.5">Actualizado hace 40 min por ella</p>
+          </div>
+        </div>
+        <div className="hidden sm:flex items-center gap-1.5 bg-rose-50 dark:bg-[#2d273a] px-3 py-1.5 rounded-full border border-rose-100 dark:border-white/[0.06] shrink-0">
+          <span className="text-xs">💖</span>
+          <span className="text-[11px] font-bold text-rose-700 dark:text-rose-400">Muy feliz y relajada</span>
+        </div>
+      </div>
+      
+      {/* Mobile status badge fallback */}
+      <div className="sm:hidden flex items-center gap-1.5 bg-rose-50 dark:bg-[#2d273a] px-3 py-1.5 rounded-full border border-rose-100 dark:border-white/[0.06] mb-3 w-fit">
+        <span className="text-xs">💖</span>
+        <span className="text-[11px] font-bold text-rose-700 dark:text-rose-400">Muy feliz y relajada</span>
+      </div>
+      
+      {/* Quote bubble */}
+      <div className="bg-stone-50 dark:bg-[#1a1724] rounded-2xl p-4 mb-4 border border-stone-100 dark:border-white/[0.04] relative">
+        <p className="text-sm italic text-stone-700 dark:text-[#eae6e1]/90">
+          "¡El masaje de pies fue la gloria! Y el bebé no paró de responder a las caricias antes de cenar ✨"
+        </p>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row items-center gap-3">
+        <button className="w-full sm:flex-1 bg-sage/10 hover:bg-sage/20 dark:bg-sage/20 dark:hover:bg-sage/30 text-sage dark:text-sage-hover border border-sage/20 rounded-xl py-2.5 text-xs font-bold transition-colors flex items-center justify-center gap-2">
+          <CheckCircle2 size={16} />
+          Masaje completado
+        </button>
+        <button className="w-full sm:flex-1 bg-terracotta hover:bg-terracotta-hover text-white rounded-xl py-2.5 text-xs font-bold transition-colors flex items-center justify-center gap-2 shadow-sm">
+          <Heart size={16} />
+          Charla en la cama
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // --- VISTA 1: GUÍA DEL PAPÁ ---
 const masterCategories = [
   // TRIMESTRE 1 (Semanas 1-13)
@@ -1324,6 +1394,9 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
           </div>
         </div>
 
+          <div className="border-t border-stone-100 dark:border-white/[0.06] pt-5 mt-5 pb-5">
+            <PregnancyProgressBar week={week} />
+          </div>
         {/* Misión */}
         <div className="bg-teal-50/70 dark:bg-[#1a1724] border-t border-teal-100 dark:border-teal-500/20 p-5">
           <div className="flex items-center gap-2 mb-2">
@@ -1337,6 +1410,9 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
           </p>
         </div>
       </div>
+
+      {/* 1.5 Mom Status (New Pareja Module) */}
+      <MomStatusCard profile={profile} />
 
       {/* 2. Checklist Module */}
       <div>
