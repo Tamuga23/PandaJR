@@ -11,8 +11,9 @@ export interface UserProfile {
   role: "papa" | "mama";
   name: string;
   week: number;
-  location: string;
-  notes: string;
+  location?: string;
+  notes?: string;
+  pregnancyId?: string;
 }
 
 function ProfileModal({ 
@@ -899,7 +900,7 @@ export default function PandaJRApp() {
 
   const toggleTheme = () => {
     const nextDark = !isDark;
-    toggleThemeStore(nextDark);
+    toggleThemeStore();
     if (nextDark) {
       document.documentElement.classList.add("dark");
       try { localStorage.setItem("pandajr_theme", "dark"); } catch(e) {}
@@ -920,15 +921,7 @@ export default function PandaJRApp() {
   }, [hasHydrated, profile.name]);
 
   const updateProfile = (updates: Partial<UserProfile>) => {
-    setProfile((prev: any) => {
-      const updated = { ...prev, ...updates };
-      try {
-        localStorage.setItem("pandajr_user_profile", JSON.stringify(updated));
-      } catch (e) {
-        console.error(e);
-      }
-      return updated;
-    });
+    setProfile(updates);
   };
   
   const [events, setEvents] = useState([
