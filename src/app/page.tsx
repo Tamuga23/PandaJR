@@ -40,8 +40,8 @@ function ProfileModal({
       aria-labelledby="profile-modal-title"
       className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in"
     >
-      <div className="bg-white dark:bg-[#181a20] rounded-3xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200 border border-stone-200/80 dark:border-white/[0.08]">
-        <div className="bg-teal-600 dark:bg-teal-700 p-4 flex justify-between items-center text-white">
+      <div className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200 border border-stone-200/80 dark:border-white/[0.08]">
+        <div className="bg-terracotta dark:bg-teal-700 p-4 flex justify-between items-center text-white">
           <h3 id="profile-modal-title" className="font-bold flex items-center gap-2">
             <Settings size={18} /> Configurar Perfil
           </h3>
@@ -56,21 +56,21 @@ function ProfileModal({
         </div>
         
         <div className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
-          <p className="text-xs text-stone-500 dark:text-[#9ea3ae]">
+          <p className="text-xs text-stone-500 dark:text-[#a6a1b2]">
             Define quién está usando la app en este dispositivo. Esto adapta la Guía, la Agenda y PandaIA:
           </p>
 
           {/* Selector de Rol */}
           <div>
-            <label className="text-xs font-bold text-stone-600 dark:text-[#9ea3ae] tracking-tight block mb-1">
+            <label className="text-xs font-bold text-stone-600 dark:text-[#a6a1b2] tracking-tight block mb-1">
               Rol en este dispositivo
             </label>
-            <div className="grid grid-cols-2 gap-2 bg-stone-100 dark:bg-[#21242c] p-1 rounded-xl">
+            <div className="grid grid-cols-2 gap-2 bg-stone-100 dark:bg-[#2d273a] p-1 rounded-xl">
               <button
                 type="button"
                 onClick={() => setForm(p => ({ ...p, role: "papa" }))}
                 className={`py-2 text-xs font-bold rounded-lg transition-all ${
-                  form.role === "papa" ? "bg-white dark:bg-[#181a20] text-teal-700 dark:text-teal-300 shadow-sm border border-transparent dark:border-white/[0.08]" : "text-stone-500 dark:text-[#9ea3ae]"
+                  form.role === "papa" ? "bg-white dark:bg-[#221d2d] text-teal-700 dark:text-teal-300 shadow-sm border border-transparent dark:border-white/[0.08]" : "text-stone-500 dark:text-[#a6a1b2]"
                 }`}
               >
                 🧔 Soy el Papá
@@ -79,7 +79,7 @@ function ProfileModal({
                 type="button"
                 onClick={() => setForm(p => ({ ...p, role: "mama" }))}
                 className={`py-2 text-xs font-bold rounded-lg transition-all ${
-                  form.role === "mama" ? "bg-white dark:bg-[#181a20] text-teal-700 dark:text-teal-300 shadow-sm border border-transparent dark:border-white/[0.08]" : "text-stone-500 dark:text-[#9ea3ae]"
+                  form.role === "mama" ? "bg-white dark:bg-[#221d2d] text-teal-700 dark:text-teal-300 shadow-sm border border-transparent dark:border-white/[0.08]" : "text-stone-500 dark:text-[#a6a1b2]"
                 }`}
               >
                 👩 Soy la Mamá
@@ -89,7 +89,7 @@ function ProfileModal({
 
           {/* Nombre / Apodo */}
           <div>
-            <label htmlFor="profile-name" className="text-xs font-bold text-stone-600 dark:text-[#9ea3ae] tracking-tight block mb-1">
+            <label htmlFor="profile-name" className="text-xs font-bold text-stone-600 dark:text-[#a6a1b2] tracking-tight block mb-1">
               Nombre o Apodo (Opcional)
             </label>
             <input
@@ -98,13 +98,13 @@ function ProfileModal({
               value={form.name}
               onChange={(e) => setForm(p => ({ ...p, name: e.target.value }))}
               placeholder="Ej. Carlos o Sofía"
-              className="w-full text-sm bg-white dark:bg-[#21242c] text-stone-800 dark:text-[#f3f1ec] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-teal-500 focus:outline-none placeholder-stone-400 dark:placeholder-[#9ea3ae]/60"
+              className="w-full text-sm bg-white dark:bg-[#2d273a] text-stone-800 dark:text-[#eae6e1] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-teal-500 focus:outline-none placeholder-stone-400 dark:placeholder-[#a6a1b2]/60"
             />
           </div>
 
           {/* Semana de Gestación */}
           <div>
-            <label htmlFor="profile-week" className="text-xs font-bold text-stone-600 dark:text-[#9ea3ae] tracking-tight block mb-1">
+            <label htmlFor="profile-week" className="text-xs font-bold text-stone-600 dark:text-[#a6a1b2] tracking-tight block mb-1">
               Semana de Gestación Actual
             </label>
             <input
@@ -114,13 +114,13 @@ function ProfileModal({
               max={42}
               value={form.week}
               onChange={(e) => setForm(p => ({ ...p, week: parseInt(e.target.value, 10) || 1 }))}
-              className="w-full text-sm bg-white dark:bg-[#21242c] text-stone-800 dark:text-[#f3f1ec] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+              className="w-full text-sm bg-white dark:bg-[#2d273a] text-stone-800 dark:text-[#eae6e1] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-teal-500 focus:outline-none"
             />
           </div>
 
           {/* Ubicación / Ciudad (Opcional) */}
           <div>
-            <label htmlFor="profile-location" className="text-xs font-bold text-stone-600 dark:text-[#9ea3ae] tracking-tight block mb-1">
+            <label htmlFor="profile-location" className="text-xs font-bold text-stone-600 dark:text-[#a6a1b2] tracking-tight block mb-1">
               Ciudad o País (Opcional)
             </label>
             <input
@@ -129,13 +129,13 @@ function ProfileModal({
               value={form.location}
               onChange={(e) => setForm(p => ({ ...p, location: e.target.value }))}
               placeholder="Para recomendaciones locales"
-              className="w-full text-sm bg-white dark:bg-[#21242c] text-stone-800 dark:text-[#f3f1ec] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-teal-500 focus:outline-none placeholder-stone-400 dark:placeholder-[#9ea3ae]/60"
+              className="w-full text-sm bg-white dark:bg-[#2d273a] text-stone-800 dark:text-[#eae6e1] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-teal-500 focus:outline-none placeholder-stone-400 dark:placeholder-[#a6a1b2]/60"
             />
           </div>
 
           {/* Notas personales o médicas */}
           <div>
-            <label htmlFor="profile-notes" className="text-xs font-bold text-stone-600 dark:text-[#9ea3ae] tracking-tight block mb-1">
+            <label htmlFor="profile-notes" className="text-xs font-bold text-stone-600 dark:text-[#a6a1b2] tracking-tight block mb-1">
               Notas de rutina o preferencias
             </label>
             <textarea
@@ -144,23 +144,23 @@ function ProfileModal({
               value={form.notes}
               onChange={(e) => setForm(p => ({ ...p, notes: e.target.value }))}
               placeholder="Ej. Trabajo en turnos, cesárea programada, etc."
-              className="w-full text-sm bg-white dark:bg-[#21242c] text-stone-800 dark:text-[#f3f1ec] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-teal-500 focus:outline-none resize-none placeholder-stone-400 dark:placeholder-[#9ea3ae]/60"
+              className="w-full text-sm bg-white dark:bg-[#2d273a] text-stone-800 dark:text-[#eae6e1] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-teal-500 focus:outline-none resize-none placeholder-stone-400 dark:placeholder-[#a6a1b2]/60"
             />
           </div>
         </div>
 
-        <div className="p-4 border-t border-stone-200/80 dark:border-white/[0.08] bg-stone-50 dark:bg-[#181a20] flex gap-2">
+        <div className="p-4 border-t border-stone-200/80 dark:border-white/[0.08] bg-stone-50 dark:bg-[#221d2d] flex gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-2.5 text-sm font-semibold text-stone-500 dark:text-[#9ea3ae] hover:bg-stone-100 dark:hover:bg-[#21242c] rounded-xl transition-colors"
+            className="flex-1 py-2.5 text-sm font-semibold text-stone-500 dark:text-[#a6a1b2] hover:bg-stone-100 dark:hover:bg-[#2d273a] rounded-xl transition-colors"
           >
             Cancelar
           </button>
           <button
             type="button"
             onClick={() => onSave(form)}
-            className="flex-1 py-2.5 text-sm font-bold bg-teal-600 hover:bg-teal-700 text-white rounded-xl shadow-md transition-all active:scale-95"
+            className="flex-1 py-2.5 text-sm font-bold bg-terracotta hover:bg-terracotta-hover text-white rounded-xl shadow-md transition-all active:scale-95"
           >
             Guardar
           </button>
@@ -560,7 +560,7 @@ function AppointmentPrepModal({
       aria-labelledby="prep-modal-title"
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in"
     >
-      <div className="bg-white dark:bg-[#181a20] w-full max-h-[92vh] sm:max-w-md sm:rounded-3xl rounded-t-3xl overflow-hidden shadow-2xl flex flex-col animate-in slide-in-from-bottom-6 border border-stone-100 dark:border-white/[0.08]">
+      <div className="bg-white dark:bg-[#221d2d] w-full max-h-[92vh] sm:max-w-md sm:rounded-3xl rounded-t-3xl overflow-hidden shadow-2xl flex flex-col animate-in slide-in-from-bottom-6 border border-stone-100 dark:border-white/[0.08]">
         {/* Header con gradiente */}
         <div className="bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-600 p-5 text-white shrink-0 relative">
           <button 
@@ -592,7 +592,7 @@ function AppointmentPrepModal({
         </div>
 
         {/* Scrollable Content */}
-        <div className="p-5 space-y-6 overflow-y-auto flex-1 text-stone-800 dark:text-[#f3f1ec]">
+        <div className="p-5 space-y-6 overflow-y-auto flex-1 text-stone-800 dark:text-[#eae6e1]">
           
           {/* Tip destacado */}
           <div className="bg-amber-50/90 dark:bg-[#241b12] border border-amber-200/90 dark:border-amber-500/20 rounded-2xl p-3.5 flex gap-3 items-start shadow-xs">
@@ -605,10 +605,10 @@ function AppointmentPrepModal({
           {/* Sección 1: Qué llevar */}
           <div>
             <div className="flex items-center justify-between mb-2.5">
-              <h4 className="font-bold text-stone-800 dark:text-[#f3f1ec] text-sm flex items-center gap-2">
-                <ShoppingBag size={17} className="text-teal-600 dark:text-teal-400" /> ¿Qué debes llevar?
+              <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm flex items-center gap-2">
+                <ShoppingBag size={17} className="text-terracotta dark:text-teal-400" /> ¿Qué debes llevar?
               </h4>
-              <span className="text-xs font-semibold text-stone-500 dark:text-[#9ea3ae]">
+              <span className="text-xs font-semibold text-stone-500 dark:text-[#a6a1b2]">
                 {Object.values(checkedItems).filter(Boolean).length} de {prep.whatToBring.length} listos
               </span>
             </div>
@@ -624,11 +624,11 @@ function AppointmentPrepModal({
                     onClick={() => toggleItem(item)}
                     className={`w-full text-left p-3 rounded-xl border text-xs leading-relaxed transition-all flex items-start gap-2.5 ${
                       isChecked 
-                        ? "bg-teal-50/70 dark:bg-[#132420] border-teal-200 dark:border-teal-500/30 text-teal-900 dark:text-teal-300 line-through opacity-80" 
-                        : "bg-white dark:bg-[#181a20] border-stone-200/90 dark:border-white/[0.08] hover:border-teal-200 dark:hover:border-teal-600 text-stone-700 dark:text-[#f3f1ec] shadow-xs"
+                        ? "bg-teal-50/70 dark:bg-[#1a1724] border-teal-200 dark:border-teal-500/30 text-teal-900 dark:text-teal-300 line-through opacity-80" 
+                        : "bg-white dark:bg-[#221d2d] border-stone-200/90 dark:border-white/[0.08] hover:border-teal-200 dark:hover:border-teal-600 text-stone-700 dark:text-[#eae6e1] shadow-xs"
                     }`}
                   >
-                    <div className={`mt-0.5 shrink-0 transition-colors ${isChecked ? "text-teal-600 dark:text-teal-400" : "text-stone-400 dark:text-[#9ea3ae]"}`}>
+                    <div className={`mt-0.5 shrink-0 transition-colors ${isChecked ? "text-terracotta dark:text-teal-400" : "text-stone-400 dark:text-[#a6a1b2]"}`}>
                       {isChecked ? <CheckCircle2 size={16} /> : <Circle size={16} />}
                     </div>
                     <span className="flex-1">{item}</span>
@@ -641,10 +641,10 @@ function AppointmentPrepModal({
           {/* Sección 2: Qué preguntar al médico */}
           <div>
             <div className="flex items-center justify-between mb-2.5">
-              <h4 className="font-bold text-stone-800 dark:text-[#f3f1ec] text-sm flex items-center gap-2">
-                <ClipboardList size={17} className="text-teal-600 dark:text-teal-400" /> Preguntas clave para el doctor
+              <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm flex items-center gap-2">
+                <ClipboardList size={17} className="text-terracotta dark:text-teal-400" /> Preguntas clave para el doctor
               </h4>
-              <span className="text-xs font-semibold text-stone-500 dark:text-[#9ea3ae]">
+              <span className="text-xs font-semibold text-stone-500 dark:text-[#a6a1b2]">
                 {Object.values(checkedQuestions).filter(Boolean).length} de {prep.whatToAsk.length} hechas
               </span>
             </div>
@@ -660,11 +660,11 @@ function AppointmentPrepModal({
                     onClick={() => toggleQuestion(q)}
                     className={`w-full text-left p-3 rounded-xl border text-xs leading-relaxed transition-all flex items-start gap-2.5 ${
                       isChecked 
-                        ? "bg-teal-50/70 dark:bg-[#132420] border-teal-200 dark:border-teal-500/30 text-teal-900 dark:text-teal-300 line-through opacity-80" 
-                        : "bg-white dark:bg-[#181a20] border-stone-200/90 dark:border-white/[0.08] hover:border-teal-200 dark:hover:border-teal-600 text-stone-700 dark:text-[#f3f1ec] shadow-xs"
+                        ? "bg-teal-50/70 dark:bg-[#1a1724] border-teal-200 dark:border-teal-500/30 text-teal-900 dark:text-teal-300 line-through opacity-80" 
+                        : "bg-white dark:bg-[#221d2d] border-stone-200/90 dark:border-white/[0.08] hover:border-teal-200 dark:hover:border-teal-600 text-stone-700 dark:text-[#eae6e1] shadow-xs"
                     }`}
                   >
-                    <div className={`mt-0.5 shrink-0 transition-colors ${isChecked ? "text-teal-600 dark:text-teal-400" : "text-stone-400 dark:text-[#9ea3ae]"}`}>
+                    <div className={`mt-0.5 shrink-0 transition-colors ${isChecked ? "text-terracotta dark:text-teal-400" : "text-stone-400 dark:text-[#a6a1b2]"}`}>
                       {isChecked ? <CheckCircle2 size={16} /> : <Circle size={16} />}
                     </div>
                     <span className="flex-1 font-medium">{q}</span>
@@ -675,25 +675,25 @@ function AppointmentPrepModal({
           </div>
 
           {/* Opciones de Recordatorio y Calendario */}
-          <div className="bg-stone-50 dark:bg-[#21242c]/70 border border-stone-200/80 dark:border-white/[0.08] rounded-2xl p-4 space-y-3">
-            <p className="text-xs font-bold text-stone-700 dark:text-[#f3f1ec] flex items-center gap-1.5">
-              <Bell size={15} className="text-teal-600 dark:text-teal-400" /> Sincronizar Alarmas de Recordatorio
+          <div className="bg-stone-50 dark:bg-[#2d273a]/70 border border-stone-200/80 dark:border-white/[0.08] rounded-2xl p-4 space-y-3">
+            <p className="text-xs font-bold text-stone-700 dark:text-[#eae6e1] flex items-center gap-1.5">
+              <Bell size={15} className="text-terracotta dark:text-teal-400" /> Sincronizar Alarmas de Recordatorio
             </p>
-            <p className="text-xs text-stone-500 dark:text-[#9ea3ae] leading-snug">
+            <p className="text-xs text-stone-500 dark:text-[#a6a1b2] leading-snug">
               Añade esta cita a tu calendario del teléfono con 2 alarmas automáticas (24h y 2h antes) y todas estas preguntas guardadas en las notas.
             </p>
             <div className="grid grid-cols-2 gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => downloadIcsCalendar(event, prep)}
-                className="py-2.5 px-3 bg-white dark:bg-[#181a20] hover:bg-stone-100 dark:hover:bg-[#21242c] text-stone-800 dark:text-[#f3f1ec] font-bold text-xs rounded-xl border border-stone-200 dark:border-white/10 shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all text-center"
+                className="py-2.5 px-3 bg-white dark:bg-[#221d2d] hover:bg-stone-100 dark:hover:bg-[#2d273a] text-stone-800 dark:text-[#eae6e1] font-bold text-xs rounded-xl border border-stone-200 dark:border-white/10 shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all text-center"
               >
                 <span>📅 Apple / iCal (.ics)</span>
               </button>
               <button
                 type="button"
                 onClick={() => openGoogleCalendar(event, prep)}
-                className="py-2.5 px-3 bg-white dark:bg-[#181a20] hover:bg-stone-100 dark:hover:bg-[#21242c] text-teal-700 dark:text-teal-300 font-bold text-xs rounded-xl border border-teal-200 dark:border-white/10 shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all text-center"
+                className="py-2.5 px-3 bg-white dark:bg-[#221d2d] hover:bg-stone-100 dark:hover:bg-[#2d273a] text-teal-700 dark:text-teal-300 font-bold text-xs rounded-xl border border-teal-200 dark:border-white/10 shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all text-center"
               >
                 <span>🗓️ Google Calendar</span>
               </button>
@@ -702,12 +702,12 @@ function AppointmentPrepModal({
         </div>
 
         {/* Footer con botón de consulta a PandaIA */}
-        <div className="p-4 border-t border-stone-200/80 dark:border-white/[0.08] bg-stone-50 dark:bg-[#181a20] flex gap-2">
+        <div className="p-4 border-t border-stone-200/80 dark:border-white/[0.08] bg-stone-50 dark:bg-[#221d2d] flex gap-2">
           {onAskPandaIA && (
             <button
               type="button"
               onClick={() => onAskPandaIA(`Tengo una cita de "${event.title}" con ${event.doctor || "mi médico"} el ${event.date}. ¿Qué otros consejos o preparaciones me recomiendas como ${event.title}?`)}
-              className="flex-1 py-3 px-4 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95"
+              className="flex-1 py-3 px-4 bg-terracotta hover:bg-terracotta-hover text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95"
             >
               <Bot size={16} /> Consultar con PandaIA
             </button>
@@ -715,7 +715,7 @@ function AppointmentPrepModal({
           <button
             type="button"
             onClick={onClose}
-            className="min-h-[44px] min-w-[70px] py-3 px-5 bg-stone-200 hover:bg-stone-300 dark:bg-[#21242c] dark:hover:bg-[#2a2e38] text-stone-800 dark:text-[#f3f1ec] rounded-xl font-bold text-xs transition-colors"
+            className="min-h-[44px] min-w-[70px] py-3 px-5 bg-stone-200 hover:bg-stone-300 dark:bg-[#2d273a] dark:hover:bg-[#2a2e38] text-stone-800 dark:text-[#eae6e1] rounded-xl font-bold text-xs transition-colors"
           >
             Listo
           </button>
@@ -876,9 +876,9 @@ export default function PandaJRApp() {
   }, [isProfileModalOpen, selectedPrepEvent]);
 
   return (
-    <div className={`flex flex-col ${activeTab === "pandaia" ? "h-screen overflow-hidden" : "min-h-screen pb-16"} w-full max-w-md mx-auto bg-[#faf9f5] dark:bg-[#111317] text-stone-900 dark:text-[#f3f1ec] font-sans relative shadow-2xl overflow-x-hidden transition-colors duration-200 border-x border-stone-200/60 dark:border-white/[0.08]`}>
+    <div className={`flex flex-col ${activeTab === "pandaia" ? "h-screen overflow-hidden" : "min-h-screen pb-16"} w-full max-w-md mx-auto bg-[#faf9f5] dark:bg-[#181520] text-stone-900 dark:text-[#eae6e1] font-sans relative shadow-2xl overflow-x-hidden transition-colors duration-200 border-x border-stone-200/60 dark:border-white/[0.08]`}>
       {/* Header con Logo, Switch Modo Oscuro, Alerta de Cita y Selector Global de Perfil */}
-      <header className="bg-white/95 dark:bg-[#111317]/95 backdrop-blur-md px-3 sm:px-4 py-2.5 shadow-xs border-b border-stone-200/70 dark:border-white/[0.08] sticky top-0 z-40 w-full flex items-center justify-between shrink-0 transition-colors">
+      <header className="bg-white/95 dark:bg-[#181520]/95 backdrop-blur-md px-3 sm:px-4 py-2.5 shadow-xs border-b border-stone-200/70 dark:border-white/[0.08] sticky top-0 z-40 w-full flex items-center justify-between shrink-0 transition-colors">
         <div className="flex items-center">
           <h1 className="sr-only">PandaJR</h1>
           <Image 
@@ -900,15 +900,15 @@ export default function PandaJRApp() {
             onClick={toggleTheme}
             aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
             title={isDark ? "Modo oscuro activo (Toca para modo claro)" : "Modo claro activo (Toca para modo oscuro)"}
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-stone-100 dark:hover:bg-[#21242c] transition-colors active:scale-95 cursor-pointer touch-manipulation select-none"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-stone-100 dark:hover:bg-[#2d273a] transition-colors active:scale-95 cursor-pointer touch-manipulation select-none"
           >
             <div className={`relative w-12 h-6 rounded-full transition-colors duration-300 p-0.5 border ${
-              isDark ? "bg-[#21242c] border-white/10" : "bg-stone-200 border-stone-300"
+              isDark ? "bg-[#2d273a] border-white/10" : "bg-stone-200 border-stone-300"
             }`}>
               <div
                 className={`w-5 h-5 rounded-full shadow-xs transform transition-transform duration-300 flex items-center justify-center ${
                   isDark 
-                    ? "translate-x-6 bg-[#181a20] text-teal-300 border border-white/10" 
+                    ? "translate-x-6 bg-[#221d2d] text-teal-300 border border-white/10" 
                     : "translate-x-0 bg-white text-amber-500 border border-amber-100"
                 }`}
               >
@@ -930,7 +930,7 @@ export default function PandaJRApp() {
               className={`min-w-[44px] min-h-[44px] p-2.5 rounded-full border transition-all active:scale-95 relative flex items-center justify-center ${
                 nextUpcomingEvent 
                   ? "bg-amber-50 dark:bg-[#241b12] border-amber-200 dark:border-amber-500/25 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-[#2c2217]" 
-                  : "bg-stone-50 dark:bg-[#21242c] border-stone-200 dark:border-white/10 text-stone-400 dark:text-[#9ea3ae] hover:bg-stone-100 dark:hover:bg-[#2a2e38]"
+                  : "bg-stone-50 dark:bg-[#2d273a] border-stone-200 dark:border-white/10 text-stone-400 dark:text-[#a6a1b2] hover:bg-stone-100 dark:hover:bg-[#2a2e38]"
               }`}
               title={nextUpcomingEvent ? `Recordatorio de cita: ${nextUpcomingEvent.title}` : "Citas médicas"}
               aria-label="Recordatorio de citas médicas"
@@ -940,7 +940,7 @@ export default function PandaJRApp() {
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-500 rounded-full animate-ping"></span>
               )}
               {nextUpcomingEvent && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-500 rounded-full border-2 border-white dark:border-[#111317]"></span>
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-500 rounded-full border-2 border-white dark:border-[#181520]"></span>
               )}
             </button>
           )}
@@ -948,12 +948,12 @@ export default function PandaJRApp() {
           {/* Botón Global de Perfil / Switcher */}
           <button
             onClick={() => setIsProfileModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-full bg-teal-50 dark:bg-[#132420] border border-teal-200/70 dark:border-teal-500/25 hover:bg-teal-100 dark:hover:bg-[#1b322c] transition-all text-xs font-bold text-teal-700 dark:text-teal-300 active:scale-95 shadow-xs"
+            className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-full bg-teal-50 dark:bg-[#1a1724] border border-teal-200/70 dark:border-teal-500/25 hover:bg-teal-100 dark:hover:bg-[#1b322c] transition-all text-xs font-bold text-teal-700 dark:text-teal-300 active:scale-95 shadow-xs"
             title="Configurar tu rol y perfil en este dispositivo"
           >
             <span className="text-base">{profile.role === "papa" ? "🧔" : "👩"}</span>
             <span>{profile.name || (profile.role === "papa" ? "Papá" : "Mamá")}</span>
-            <Settings size={13} className="text-teal-500 opacity-70 ml-0.5" />
+            <Settings size={13} className="text-terracotta opacity-70 ml-0.5" />
           </button>
         </div>
       </header>
@@ -1028,7 +1028,7 @@ export default function PandaJRApp() {
       )}
 
       {/* Bottom Navigation */}
-      <nav aria-label="Navegación principal" className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 dark:bg-[#111317]/95 backdrop-blur-md border-t border-stone-200/80 dark:border-white/[0.08] flex justify-around items-center px-2 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] z-50 transition-colors">
+      <nav aria-label="Navegación principal" className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 dark:bg-[#181520]/95 backdrop-blur-md border-t border-stone-200/80 dark:border-white/[0.08] flex justify-around items-center px-2 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] z-50 transition-colors">
         <NavItem
           icon={<Compass size={24} />}
           label="Guía"
@@ -1065,7 +1065,7 @@ function NavItem({ icon, label, isActive, onClick }: { icon: React.ReactNode, la
       onClick={onClick}
       aria-current={isActive ? "page" : undefined}
       className={`flex flex-col items-center gap-1 w-full p-2 transition-colors duration-200 ${
-        isActive ? "text-teal-600 dark:text-teal-400 font-semibold" : "text-stone-500 hover:text-stone-700 dark:text-[#9ea3ae] dark:hover:text-[#f3f1ec]"
+        isActive ? "text-terracotta dark:text-teal-400 font-semibold" : "text-stone-500 hover:text-stone-700 dark:text-[#a6a1b2] dark:hover:text-[#eae6e1]"
       }`}
     >
       {icon}
@@ -1100,7 +1100,7 @@ const masterCategories = [
   {
     id: "t1_citas", trimester: 1, defaultExpanded: false,
     title: "Salud y Citas Médicas",
-    icon: <Activity className="text-teal-500" size={20} />, color: "bg-teal-50",
+    icon: <Activity className="text-terracotta" size={20} />, color: "bg-teal-50",
     tasks: [
       { id: 101, text: "Agendar primera cita obstétrica" },
       { id: 102, text: "Preguntar sobre cobertura de seguro médico" },
@@ -1131,7 +1131,7 @@ const masterCategories = [
   {
     id: "t2_compras", trimester: 2, defaultExpanded: false,
     title: "Primeras compras",
-    icon: <ShoppingBag className="text-teal-500" size={20} />, color: "bg-teal-50",
+    icon: <ShoppingBag className="text-terracotta" size={20} />, color: "bg-teal-50",
     tasks: [
       { id: 204, text: "Cotizar cochecito/carriola" },
       { id: 205, text: "Comprar almohada de embarazo (Alineación pélvica)" },
@@ -1141,7 +1141,7 @@ const masterCategories = [
   {
     id: "t3_biomecanica", trimester: 3, defaultExpanded: true,
     title: "Microbioma y Pelvis (Pilar 4)",
-    icon: <Activity className="text-teal-500" size={20} />, color: "bg-teal-50",
+    icon: <Activity className="text-terracotta" size={20} />, color: "bg-teal-50",
     tasks: [
       { id: 310, text: "Vacuna DTPa para ambos (Anticuerpos pasivos al feto)" },
       { id: 311, text: "Probióticos en dieta (Yogur/Kefir) para sembrar microbioma" },
@@ -1162,7 +1162,7 @@ const masterCategories = [
   {
     id: "t3_logistica", trimester: 3, defaultExpanded: false,
     title: "Logística del parto",
-    icon: <MapPin className="text-teal-500" size={20} />, color: "bg-teal-50",
+    icon: <MapPin className="text-terracotta" size={20} />, color: "bg-teal-50",
     tasks: [
       { id: 305, text: "Instalar silla de coche y aprender a usarla" },
       { id: 306, text: "Simulacro de ruta al hospital (medir tiempos)" },
@@ -1271,9 +1271,9 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
     <div className="p-5 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
       
       {/* 1. Week Selector & Info */}
-      <div className="bg-white dark:bg-[#181a20] rounded-3xl shadow-sm border border-stone-200/80 dark:border-white/[0.08] overflow-hidden transition-colors">
+      <div className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-sm border border-stone-200/80 dark:border-white/[0.08] overflow-hidden transition-colors">
         {/* Selector */}
-        <div className="bg-gradient-to-r from-teal-600 to-teal-500 dark:from-[#132420] dark:to-[#182d27] dark:border-b dark:border-white/[0.08] p-4 text-white dark:text-[#f3f1ec] flex items-center justify-between transition-colors">
+        <div className="bg-gradient-to-r from-teal-600 to-teal-500 dark:from-[#1a1724] dark:to-[#1f1b2b] dark:border-b dark:border-white/[0.08] p-4 text-white dark:text-[#eae6e1] flex items-center justify-between transition-colors">
           <button aria-label="Semana anterior"
             onClick={() => setWeek(w => Math.max(1, w - 1))}
             className="p-2 hover:bg-white/20 dark:hover:bg-white/10 rounded-full transition-colors"
@@ -1296,22 +1296,22 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
         <div className="p-5">
           <div className="flex justify-between items-center mb-4">
             <div>
-              <p className="text-stone-500 dark:text-[#9ea3ae] text-xs uppercase font-bold mb-1">Tamaño comparativo</p>
-              <p className="text-xl font-bold text-stone-800 dark:text-[#f3f1ec]">{weekData.size}</p>
+              <p className="text-stone-500 dark:text-[#a6a1b2] text-xs uppercase font-bold mb-1">Tamaño comparativo</p>
+              <p className="text-xl font-bold text-stone-800 dark:text-[#eae6e1]">{weekData.size}</p>
             </div>
-            <div className="bg-teal-50 dark:bg-[#132420] p-3 rounded-2xl">
-              <Baby size={32} className="text-teal-600 dark:text-teal-400" />
+            <div className="bg-teal-50 dark:bg-[#1a1724] p-3 rounded-2xl">
+              <Baby size={32} className="text-terracotta dark:text-teal-400" />
             </div>
           </div>
           
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="bg-stone-50 dark:bg-[#21242c] rounded-2xl p-3 border border-stone-200/80 dark:border-white/[0.06]">
-              <p className="text-stone-500 dark:text-[#9ea3ae] text-xs font-bold mb-1">Longitud</p>
-              <p className="font-bold text-stone-800 dark:text-[#f3f1ec]">{weekData.length}</p>
+            <div className="bg-stone-50 dark:bg-[#2d273a] rounded-2xl p-3 border border-stone-200/80 dark:border-white/[0.06]">
+              <p className="text-stone-500 dark:text-[#a6a1b2] text-xs font-bold mb-1">Longitud</p>
+              <p className="font-bold text-stone-800 dark:text-[#eae6e1]">{weekData.length}</p>
             </div>
-            <div className="bg-stone-50 dark:bg-[#21242c] rounded-2xl p-3 border border-stone-200/80 dark:border-white/[0.06]">
-              <p className="text-stone-500 dark:text-[#9ea3ae] text-xs font-bold mb-1">Peso est.</p>
-              <p className="font-bold text-stone-800 dark:text-[#f3f1ec]">{weekData.weight}</p>
+            <div className="bg-stone-50 dark:bg-[#2d273a] rounded-2xl p-3 border border-stone-200/80 dark:border-white/[0.06]">
+              <p className="text-stone-500 dark:text-[#a6a1b2] text-xs font-bold mb-1">Peso est.</p>
+              <p className="font-bold text-stone-800 dark:text-[#eae6e1]">{weekData.weight}</p>
             </div>
           </div>
 
@@ -1319,20 +1319,20 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
             <Sparkles size={24} className="text-amber-500 shrink-0" />
             <div>
               <p className="text-amber-800 dark:text-amber-300 text-xs font-bold uppercase mb-1">Hito de la semana</p>
-              <p className="text-amber-900 dark:text-[#f3f1ec] text-sm font-medium">{weekData.milestone}</p>
+              <p className="text-amber-900 dark:text-[#eae6e1] text-sm font-medium">{weekData.milestone}</p>
             </div>
           </div>
         </div>
 
         {/* Misión */}
-        <div className="bg-teal-50/70 dark:bg-[#132420] border-t border-teal-100 dark:border-teal-500/20 p-5">
+        <div className="bg-teal-50/70 dark:bg-[#1a1724] border-t border-teal-100 dark:border-teal-500/20 p-5">
           <div className="flex items-center gap-2 mb-2">
-            <Trophy size={18} className="text-teal-600 dark:text-teal-400" />
+            <Trophy size={18} className="text-terracotta dark:text-teal-400" />
             <h3 className="font-bold text-teal-800 dark:text-teal-300 text-sm">
               {profile.role === "papa" ? "Misión del Papá" : "Misión de la Mamá"}
             </h3>
           </div>
-          <p className="text-teal-900 dark:text-[#f3f1ec] text-sm leading-relaxed">
+          <p className="text-teal-900 dark:text-[#eae6e1] text-sm leading-relaxed">
             {weekData.dadMission}
           </p>
         </div>
@@ -1341,40 +1341,40 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
       {/* 2. Checklist Module */}
       <div>
         <div className="flex justify-between items-end mb-3">
-          <h2 className="text-xl font-bold text-stone-800 dark:text-[#f3f1ec]">
+          <h2 className="text-xl font-bold text-stone-800 dark:text-[#eae6e1]">
             {profile.role === "papa" ? "Checklists del Papá" : "Checklists de la Mamá"}
           </h2>
-          <span className="text-teal-600 dark:text-teal-400 font-bold text-sm">{progressPercent}% completado</span>
+          <span className="text-terracotta dark:text-teal-400 font-bold text-sm">{progressPercent}% completado</span>
         </div>
         
         {/* Progress bar */}
-        <div className="w-full bg-stone-200 dark:bg-[#21242c] rounded-full h-2.5 mb-5 overflow-hidden">
-          <div className="bg-teal-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
+        <div className="w-full bg-stone-200 dark:bg-[#2d273a] rounded-full h-2.5 mb-5 overflow-hidden">
+          <div className="bg-terracotta h-2.5 rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
         </div>
 
         <div className="space-y-4">
           {categories.map((cat) => (
-            <div key={cat.id} className="bg-white dark:bg-[#181a20] rounded-2xl shadow-sm border border-stone-200/80 dark:border-white/[0.08] overflow-hidden transition-colors">
+            <div key={cat.id} className="bg-white dark:bg-[#221d2d] rounded-2xl shadow-sm border border-stone-200/80 dark:border-white/[0.08] overflow-hidden transition-colors">
               <button 
                 onClick={() => toggleExpand(cat.id)}
-                className="w-full p-4 flex items-center justify-between bg-white dark:bg-[#181a20] hover:bg-stone-50 dark:hover:bg-[#21242c]/60 transition-colors"
+                className="w-full p-4 flex items-center justify-between bg-white dark:bg-[#221d2d] hover:bg-stone-50 dark:hover:bg-[#2d273a]/60 transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <div className={`${cat.color} dark:bg-opacity-20 p-2 rounded-xl`}>
                     {cat.icon}
                   </div>
                   <div>
-                    <h3 className="font-bold text-stone-800 dark:text-[#f3f1ec] text-left">{cat.title}</h3>
-                    <p className="text-xs text-stone-500 dark:text-[#9ea3ae] text-left">
+                    <h3 className="font-bold text-stone-800 dark:text-[#eae6e1] text-left">{cat.title}</h3>
+                    <p className="text-xs text-stone-500 dark:text-[#a6a1b2] text-left">
                       {cat.tasks.filter(t => t.completed).length} de {cat.tasks.length} completadas
                     </p>
                   </div>
                 </div>
-                {cat.expanded ? <ChevronUp size={20} className="text-stone-500 dark:text-[#9ea3ae]" /> : <ChevronDown size={20} className="text-stone-500 dark:text-[#9ea3ae]" />}
+                {cat.expanded ? <ChevronUp size={20} className="text-stone-500 dark:text-[#a6a1b2]" /> : <ChevronDown size={20} className="text-stone-500 dark:text-[#a6a1b2]" />}
               </button>
               
               {cat.expanded && (
-                <div className="p-4 pt-0 border-t border-stone-100 dark:border-white/[0.06] bg-stone-50/50 dark:bg-[#111317]/60">
+                <div className="p-4 pt-0 border-t border-stone-100 dark:border-white/[0.06] bg-stone-50/50 dark:bg-[#181520]/60">
                   <div className="space-y-2 mt-3">
                     {cat.tasks.map(task => (
                       <button 
@@ -1382,12 +1382,12 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
                         onClick={() => toggleTask(cat.id, task.id)}
                         aria-checked={task.completed}
                         role="switch"
-                        className="w-full text-left flex items-start gap-3 p-3 bg-white dark:bg-[#21242c] rounded-xl border border-stone-200/80 dark:border-white/[0.06] cursor-pointer hover:border-teal-200 dark:hover:border-teal-600 transition-colors group focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        className="w-full text-left flex items-start gap-3 p-3 bg-white dark:bg-[#2d273a] rounded-xl border border-stone-200/80 dark:border-white/[0.06] cursor-pointer hover:border-teal-200 dark:hover:border-teal-600 transition-colors group focus:outline-none focus:ring-2 focus:ring-teal-500"
                       >
-                        <div className={`mt-0.5 shrink-0 transition-colors ${task.completed ? "text-teal-500" : "text-stone-400 dark:text-[#9ea3ae] group-hover:text-teal-400"}`}>
+                        <div className={`mt-0.5 shrink-0 transition-colors ${task.completed ? "text-terracotta" : "text-stone-400 dark:text-[#a6a1b2] group-hover:text-teal-400"}`}>
                           {task.completed ? <CheckCircle2 size={18} /> : <Circle size={18} />}
                         </div>
-                        <span className={`text-sm leading-snug ${task.completed ? "text-stone-400 dark:text-[#9ea3ae]/60 line-through" : "text-stone-700 dark:text-[#f3f1ec]"}`}>
+                        <span className={`text-sm leading-snug ${task.completed ? "text-stone-400 dark:text-[#a6a1b2]/60 line-through" : "text-stone-700 dark:text-[#eae6e1]"}`}>
                           {task.text}
                         </span>
                       </button>
@@ -1597,13 +1597,13 @@ function AgendaView({
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 relative h-full flex flex-col">
       {/* Header destacado */}
-      <div className="bg-teal-600 dark:bg-[#132420] dark:border-b dark:border-white/[0.08] px-6 py-7 text-white dark:text-[#f3f1ec] rounded-b-3xl shadow-sm shrink-0 transition-colors">
+      <div className="bg-terracotta dark:bg-[#1a1724] dark:border-b dark:border-white/[0.08] px-6 py-7 text-white dark:text-[#eae6e1] rounded-b-3xl shadow-sm shrink-0 transition-colors">
         <p className="text-teal-100 dark:text-teal-300/80 text-xs font-semibold tracking-tight mb-1">Etapa actual</p>
-        <h2 className="text-2xl font-bold tracking-tight">Semana {profile.week} <span className="text-base font-medium text-teal-100/90 dark:text-[#9ea3ae] ml-1">({profile.week <= 13 ? "Primer trimestre" : profile.week <= 27 ? "Segundo trimestre" : "Tercer trimestre"})</span></h2>
+        <h2 className="text-2xl font-bold tracking-tight">Semana {profile.week} <span className="text-base font-medium text-teal-100/90 dark:text-[#a6a1b2] ml-1">({profile.week <= 13 ? "Primer trimestre" : profile.week <= 27 ? "Segundo trimestre" : "Tercer trimestre"})</span></h2>
         <div className="mt-3.5 bg-white/20 dark:bg-white/10 rounded-full h-1.5 w-full overflow-hidden">
           <div className="bg-white dark:bg-teal-400 h-full transition-all duration-500 rounded-full" style={{ width: `${Math.min(100, Math.round((profile.week / 40) * 100))}%` }}></div>
         </div>
-        <p className="text-teal-50 dark:text-[#9ea3ae] text-xs mt-2 text-right font-medium">Faltan {Math.max(0, 40 - profile.week)} semanas</p>
+        <p className="text-teal-50 dark:text-[#a6a1b2] text-xs mt-2 text-right font-medium">Faltan {Math.max(0, 40 - profile.week)} semanas</p>
       </div>
 
       <div className="p-5 flex-1 overflow-y-auto space-y-6 pb-20">
@@ -1629,8 +1629,8 @@ function AgendaView({
                       {getCountdownText(parseEventDate(nextUpcoming)!).text}
                     </span>
                   </div>
-                  <h4 className="font-bold text-stone-900 dark:text-[#f3f1ec] text-base mt-1 leading-tight">{nextUpcoming.title}</h4>
-                  <p className="text-xs text-stone-600 dark:text-[#9ea3ae] mt-1 flex items-center gap-2">
+                  <h4 className="font-bold text-stone-900 dark:text-[#eae6e1] text-base mt-1 leading-tight">{nextUpcoming.title}</h4>
+                  <p className="text-xs text-stone-600 dark:text-[#a6a1b2] mt-1 flex items-center gap-2">
                     <span>📅 {nextUpcoming.date} ({nextUpcoming.time})</span>
                     {nextUpcoming.doctor && <span>· {nextUpcoming.doctor}</span>}
                   </p>
@@ -1650,54 +1650,54 @@ function AgendaView({
 
         {/* Acordeón Compacto de Sugerencias del Copiloto IA */}
         {((profile.role === "mama" ? suggestions.mama : suggestions.papa).length > 0 || isSuggestionsOpen) && (
-          <div className="bg-white dark:bg-[#181a20] rounded-2xl shadow-xs border border-teal-100 dark:border-white/[0.08] overflow-hidden transition-all">
+          <div className="bg-white dark:bg-[#221d2d] rounded-2xl shadow-xs border border-teal-100 dark:border-white/[0.08] overflow-hidden transition-all">
             <button
               type="button"
               onClick={() => setIsSuggestionsOpen(prev => !prev)}
-              className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-teal-50/50 dark:hover:bg-[#21242c]/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+              className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-teal-50/50 dark:hover:bg-[#2d273a]/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
               aria-expanded={isSuggestionsOpen}
             >
               <div className="flex items-center gap-2.5">
-                <div className="bg-teal-100 dark:bg-[#132420] text-teal-800 dark:text-teal-300 p-1.5 rounded-xl">
+                <div className="bg-teal-100 dark:bg-[#1a1724] text-teal-800 dark:text-teal-300 p-1.5 rounded-xl">
                   <Sparkles size={16} />
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-stone-800 dark:text-[#f3f1ec] block">
+                  <span className="text-xs font-bold text-stone-800 dark:text-[#eae6e1] block">
                     Sugerencias del Copiloto IA ({(profile.role === "mama" ? suggestions.mama : suggestions.papa).length})
                   </span>
-                  <span className="text-xs text-stone-500 dark:text-[#9ea3ae] block">
+                  <span className="text-xs text-stone-500 dark:text-[#a6a1b2] block">
                     {isSuggestionsOpen ? "Toca para ocultar" : "Toca para ver recomendaciones para ti"}
                   </span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-teal-800 dark:text-teal-300 bg-teal-100 dark:bg-[#132420] px-2 py-0.5 rounded-full tracking-wider uppercase border border-transparent dark:border-teal-500/20">
+                <span className="text-xs font-bold text-teal-800 dark:text-teal-300 bg-teal-100 dark:bg-[#1a1724] px-2 py-0.5 rounded-full tracking-wider uppercase border border-transparent dark:border-teal-500/20">
                   {profile.role === "mama" ? "Mamá" : "Papá"}
                 </span>
-                <ChevronDown size={16} className={`text-stone-400 dark:text-[#9ea3ae] transition-transform duration-200 ${isSuggestionsOpen ? "rotate-180" : ""}`} />
+                <ChevronDown size={16} className={`text-stone-400 dark:text-[#a6a1b2] transition-transform duration-200 ${isSuggestionsOpen ? "rotate-180" : ""}`} />
               </div>
             </button>
 
             {isSuggestionsOpen && (
               <div className="p-4 pt-1 space-y-2 border-t border-teal-50/80 dark:border-white/[0.06] animate-in fade-in">
                 {(profile.role === "mama" ? suggestions.mama : suggestions.papa).map((s) => (
-                  <div key={s.id} className="flex gap-2.5 items-start p-2.5 rounded-xl bg-stone-50 dark:bg-[#21242c] border border-stone-200/80 dark:border-white/[0.06]">
-                    <div className="mt-0.5 flex-shrink-0 w-4 h-4 bg-teal-100 dark:bg-[#132420] rounded-full flex items-center justify-center">
+                  <div key={s.id} className="flex gap-2.5 items-start p-2.5 rounded-xl bg-stone-50 dark:bg-[#2d273a] border border-stone-200/80 dark:border-white/[0.06]">
+                    <div className="mt-0.5 flex-shrink-0 w-4 h-4 bg-teal-100 dark:bg-[#1a1724] rounded-full flex items-center justify-center">
                       <CheckCircle2 size={11} className="text-teal-700 dark:text-teal-300" />
                     </div>
-                    <p className="text-xs text-stone-700 dark:text-[#f3f1ec] leading-snug flex-1 font-medium">{s.text}</p>
+                    <p className="text-xs text-stone-700 dark:text-[#eae6e1] leading-snug flex-1 font-medium">{s.text}</p>
                     <button 
                       type="button"
                       onClick={() => dismissSuggestion(s.id)} 
                       aria-label="Descartar sugerencia" 
-                      className="text-stone-400 dark:text-[#9ea3ae] hover:text-stone-700 dark:hover:text-[#f3f1ec] p-1 rounded-lg hover:bg-stone-200/60 dark:hover:bg-[#2c303b] transition-colors flex items-center justify-center"
+                      className="text-stone-400 dark:text-[#a6a1b2] hover:text-stone-700 dark:hover:text-[#eae6e1] p-1 rounded-lg hover:bg-stone-200/60 dark:hover:bg-[#2c303b] transition-colors flex items-center justify-center"
                     >
                       <X size={15} />
                     </button>
                   </div>
                 ))}
                 {(profile.role === "mama" ? suggestions.mama : suggestions.papa).length === 0 && (
-                  <p className="text-xs text-stone-400 dark:text-[#9ea3ae] italic text-center py-2">No hay más sugerencias por ahora.</p>
+                  <p className="text-xs text-stone-400 dark:text-[#a6a1b2] italic text-center py-2">No hay más sugerencias por ahora.</p>
                 )}
               </div>
             )}
@@ -1707,8 +1707,8 @@ function AgendaView({
         {/* Citas */}
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-stone-800 dark:text-[#f3f1ec] flex items-center gap-2">
-              <Calendar className="text-teal-500 dark:text-teal-400" size={20}/> Agenda Médica
+            <h3 className="text-lg font-bold text-stone-800 dark:text-[#eae6e1] flex items-center gap-2">
+              <Calendar className="text-terracotta dark:text-teal-400" size={20}/> Agenda Médica
             </h3>
             <div className="flex items-center gap-1.5">
               <button
@@ -1717,7 +1717,7 @@ function AgendaView({
                   if (ok) showToast("Recordatorios de citas activados en este teléfono 🔔", () => {});
                   else showToast("Permiso de notificaciones del navegador no concedido", () => {});
                 }}
-                className="text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#132420] hover:bg-teal-100 dark:hover:bg-[#19322c] px-2.5 py-1.5 rounded-xl border border-teal-200/60 dark:border-teal-500/25 flex items-center gap-1 transition-colors shadow-xs active:scale-95"
+                className="text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#1a1724] hover:bg-teal-100 dark:hover:bg-[#19322c] px-2.5 py-1.5 rounded-xl border border-teal-200/60 dark:border-teal-500/25 flex items-center gap-1 transition-colors shadow-xs active:scale-95"
                 title="Activar alertas en el teléfono"
               >
                 <Bell size={13} /> Alertas
@@ -1725,7 +1725,7 @@ function AgendaView({
               {events.length > 0 && (
                 <button
                   onClick={shareWithPartner}
-                  className="text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#132420] hover:bg-teal-100 dark:hover:bg-[#19322c] px-2.5 py-1.5 rounded-xl border border-teal-200/60 dark:border-teal-500/25 flex items-center gap-1 transition-colors shadow-xs active:scale-95"
+                  className="text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#1a1724] hover:bg-teal-100 dark:hover:bg-[#19322c] px-2.5 py-1.5 rounded-xl border border-teal-200/60 dark:border-teal-500/25 flex items-center gap-1 transition-colors shadow-xs active:scale-95"
                   title="Compartir citas con tu pareja para sincronizarlas"
                 >
                   <Share2 size={13} /> Sincronizar
@@ -1736,18 +1736,18 @@ function AgendaView({
           
           <div className="space-y-3">
             {events.length === 0 && (
-              <div className="bg-stone-50 dark:bg-[#181a20]/60 rounded-2xl p-6 text-center border border-dashed border-stone-200 dark:border-white/[0.08]">
-                <Calendar className="mx-auto text-stone-300 dark:text-[#9ea3ae]/60 mb-2" size={32} />
-                <p className="text-stone-500 dark:text-[#9ea3ae] text-sm font-medium">No hay citas agendadas</p>
+              <div className="bg-stone-50 dark:bg-[#221d2d]/60 rounded-2xl p-6 text-center border border-dashed border-stone-200 dark:border-white/[0.08]">
+                <Calendar className="mx-auto text-stone-300 dark:text-[#a6a1b2]/60 mb-2" size={32} />
+                <p className="text-stone-500 dark:text-[#a6a1b2] text-sm font-medium">No hay citas agendadas</p>
               </div>
             )}
             {events.map(event => (
-              <div key={event.id} className="bg-white dark:bg-[#181a20] rounded-2xl p-4 shadow-xs border border-stone-200/80 dark:border-white/[0.08] flex items-start gap-4 relative group transition-colors">
+              <div key={event.id} className="bg-white dark:bg-[#221d2d] rounded-2xl p-4 shadow-xs border border-stone-200/80 dark:border-white/[0.08] flex items-start gap-4 relative group transition-colors">
                 <div className="flex-1 flex items-start gap-4">
                   <button 
                     type="button"
                     onClick={() => openEdit(event)}
-                    className="bg-teal-50 dark:bg-[#132420] text-teal-700 dark:text-teal-300 rounded-xl w-14 h-14 flex flex-col justify-center items-center shrink-0 mt-0.5 hover:bg-teal-100 dark:hover:bg-[#19322c] focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors"
+                    className="bg-teal-50 dark:bg-[#1a1724] text-teal-700 dark:text-teal-300 rounded-xl w-14 h-14 flex flex-col justify-center items-center shrink-0 mt-0.5 hover:bg-teal-100 dark:hover:bg-[#19322c] focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors"
                     aria-label={`Ver o editar cita del ${event.date}`}
                   >
                     <span className="text-xs font-bold uppercase">{event.date.split(" ")[1]}</span>
@@ -1760,11 +1760,11 @@ function AgendaView({
                       className="text-left group/title focus:outline-none focus:ring-2 focus:ring-teal-500 rounded block w-full"
                       aria-label={`Editar cita: ${event.title}, el ${event.date}`}
                     >
-                      <h4 className="font-bold text-stone-800 dark:text-[#f3f1ec] text-base leading-snug group-hover/title:text-teal-700 dark:group-hover/title:text-teal-300 transition-colors">{event.title}</h4>
-                      <div className="flex items-center gap-3 mt-1 text-sm text-stone-500 dark:text-[#9ea3ae]">
+                      <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] text-base leading-snug group-hover/title:text-teal-700 dark:group-hover/title:text-teal-300 transition-colors">{event.title}</h4>
+                      <div className="flex items-center gap-3 mt-1 text-sm text-stone-500 dark:text-[#a6a1b2]">
                         <span className="flex items-center gap-1"><Clock size={14} /> {event.time}</span>
                       </div>
-                      {event.doctor && <p className="text-xs text-stone-500 dark:text-[#9ea3ae] mt-0.5 line-clamp-1">{event.doctor}</p>}
+                      {event.doctor && <p className="text-xs text-stone-500 dark:text-[#a6a1b2] mt-0.5 line-clamp-1">{event.doctor}</p>}
                     </button>
                     
                     {/* Botón de Preparación Rápida */}
@@ -1772,9 +1772,9 @@ function AgendaView({
                       <button 
                         type="button"
                         onClick={() => onOpenPrep(event)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-[#132420] hover:bg-teal-100 dark:hover:bg-[#19322c] text-teal-800 dark:text-teal-300 text-xs font-bold border border-teal-200/70 dark:border-teal-500/25 shadow-xs active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-[#1a1724] hover:bg-teal-100 dark:hover:bg-[#19322c] text-teal-800 dark:text-teal-300 text-xs font-bold border border-teal-200/70 dark:border-teal-500/25 shadow-xs active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-teal-500"
                       >
-                        <ClipboardList size={13} className="text-teal-600 dark:text-teal-400" />
+                        <ClipboardList size={13} className="text-terracotta dark:text-teal-400" />
                         <span>¿Qué llevar y preguntar?</span>
                       </button>
                     </div>
@@ -1784,7 +1784,7 @@ function AgendaView({
                   type="button"
                   onClick={() => deleteEvent(event.id)} 
                   aria-label={`Eliminar cita: ${event.title}`} 
-                  className="min-w-[40px] min-h-[40px] flex items-center justify-center text-stone-400 dark:text-[#9ea3ae] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-stone-100 dark:hover:bg-[#21242c] transition-colors p-2 z-10 rounded-xl"
+                  className="min-w-[40px] min-h-[40px] flex items-center justify-center text-stone-400 dark:text-[#a6a1b2] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-stone-100 dark:hover:bg-[#2d273a] transition-colors p-2 z-10 rounded-xl"
                 >
                   <X size={18}/>
                 </button>
@@ -1792,7 +1792,7 @@ function AgendaView({
             ))}
           </div>
           
-          <button onClick={openNew} className="w-full mt-4 py-3 rounded-xl border-2 border-dashed border-teal-200 dark:border-teal-500/30 text-teal-600 dark:text-teal-300 font-bold flex items-center justify-center gap-2 hover:bg-teal-50 dark:hover:bg-[#132420]/50 transition-colors">
+          <button onClick={openNew} className="w-full mt-4 py-3 rounded-xl border-2 border-dashed border-teal-200 dark:border-teal-500/30 text-terracotta dark:text-teal-300 font-bold flex items-center justify-center gap-2 hover:bg-teal-50 dark:hover:bg-[#1a1724]/50 transition-colors">
             <Plus size={18} /> Nueva Cita Médica
           </button>
         </div>
@@ -1807,12 +1807,12 @@ function AgendaView({
           onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
           className="absolute inset-0 bg-stone-900/40 dark:bg-black/70 z-50 flex items-end sm:items-center justify-center animate-in fade-in duration-200"
         >
-          <div className="bg-white dark:bg-[#181a20] w-full max-h-[90%] overflow-y-auto sm:w-[90%] sm:rounded-3xl rounded-t-3xl p-6 pb-12 animate-in slide-in-from-bottom-8 border border-stone-100 dark:border-white/[0.08] shadow-2xl">
+          <div className="bg-white dark:bg-[#221d2d] w-full max-h-[90%] overflow-y-auto sm:w-[90%] sm:rounded-3xl rounded-t-3xl p-6 pb-12 animate-in slide-in-from-bottom-8 border border-stone-100 dark:border-white/[0.08] shadow-2xl">
             <div className="flex justify-between items-center mb-6">
-              <h3 id="agenda-modal-title" className="text-xl font-bold text-stone-800 dark:text-[#f3f1ec]">{editingEvent ? "Editar Cita" : "Nueva Cita Médica"}</h3>
+              <h3 id="agenda-modal-title" className="text-xl font-bold text-stone-800 dark:text-[#eae6e1]">{editingEvent ? "Editar Cita" : "Nueva Cita Médica"}</h3>
               <button 
                 onClick={closeModal} 
-                className="bg-stone-100 dark:bg-[#21242c] p-2 rounded-full text-stone-500 dark:text-[#9ea3ae] hover:bg-stone-200 dark:hover:bg-[#2a2d36] transition-colors"
+                className="bg-stone-100 dark:bg-[#2d273a] p-2 rounded-full text-stone-500 dark:text-[#a6a1b2] hover:bg-stone-200 dark:hover:bg-[#2a2d36] transition-colors"
                 aria-label="Cerrar modal de cita"
               >
                 <X size={20} />
@@ -1821,7 +1821,7 @@ function AgendaView({
             
             <div className="space-y-4">
               <div>
-                <label htmlFor="event-title" className="text-xs font-bold text-stone-700 dark:text-[#f3f1ec] tracking-tight mb-1 flex items-center justify-between">
+                <label htmlFor="event-title" className="text-xs font-bold text-stone-700 dark:text-[#eae6e1] tracking-tight mb-1 flex items-center justify-between">
                   <span>Título / Motivo <span className="text-rose-500">*</span></span>
                   {touched.title && errors.title && (
                     <span className="text-rose-500 text-xs font-medium lowercase tracking-normal flex items-center gap-1 animate-in fade-in" role="alert">
@@ -1847,7 +1847,7 @@ function AgendaView({
                     }
                   }}
                   aria-invalid={touched.title && !!errors.title}
-                  className={`w-full bg-stone-50 dark:bg-[#21242c] border rounded-xl px-4 py-3 text-stone-800 dark:text-[#f3f1ec] transition-colors focus:outline-none focus:ring-2 placeholder-gray-400 dark:placeholder-[#9ea3ae]/60 ${
+                  className={`w-full bg-stone-50 dark:bg-[#2d273a] border rounded-xl px-4 py-3 text-stone-800 dark:text-[#eae6e1] transition-colors focus:outline-none focus:ring-2 placeholder-gray-400 dark:placeholder-[#a6a1b2]/60 ${
                     touched.title && errors.title
                       ? "border-rose-400 bg-rose-50/20 dark:bg-rose-950/20 focus:ring-rose-400"
                       : "border-stone-200 dark:border-white/10 focus:ring-teal-500"
@@ -1858,7 +1858,7 @@ function AgendaView({
               
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <label htmlFor="event-date" className="text-xs font-bold text-stone-700 dark:text-[#f3f1ec] tracking-tight mb-1 flex items-center justify-between">
+                  <label htmlFor="event-date" className="text-xs font-bold text-stone-700 dark:text-[#eae6e1] tracking-tight mb-1 flex items-center justify-between">
                     <span>Fecha <span className="text-rose-500">*</span></span>
                     {touched.date && errors.date && (
                       <span className="text-rose-500 text-xs font-medium lowercase tracking-normal flex items-center gap-1 animate-in fade-in" role="alert">
@@ -1884,7 +1884,7 @@ function AgendaView({
                       }
                     }}
                     aria-invalid={touched.date && !!errors.date}
-                    className={`w-full bg-stone-50 dark:bg-[#21242c] border rounded-xl px-4 py-3 text-stone-800 dark:text-[#f3f1ec] transition-colors focus:outline-none focus:ring-2 ${
+                    className={`w-full bg-stone-50 dark:bg-[#2d273a] border rounded-xl px-4 py-3 text-stone-800 dark:text-[#eae6e1] transition-colors focus:outline-none focus:ring-2 ${
                       touched.date && errors.date
                         ? "border-rose-400 bg-rose-50/20 dark:bg-rose-950/20 focus:ring-rose-400"
                         : "border-stone-200 dark:border-white/10 focus:ring-teal-500"
@@ -1892,25 +1892,25 @@ function AgendaView({
                   />
                 </div>
                 <div className="flex-1">
-                  <label htmlFor="event-time" className="text-xs font-bold text-stone-700 dark:text-[#f3f1ec] tracking-tight mb-1 block">Hora</label>
+                  <label htmlFor="event-time" className="text-xs font-bold text-stone-700 dark:text-[#eae6e1] tracking-tight mb-1 block">Hora</label>
                   <input 
                     id="event-time"
                     type="time" 
                     value={newEvent.time} 
                     onChange={e => setNewEvent({...newEvent, time: e.target.value})}
-                    className="w-full bg-stone-50 dark:bg-[#21242c] border border-stone-200 dark:border-white/10 rounded-xl px-4 py-3 text-stone-800 dark:text-[#f3f1ec] focus:outline-none focus:ring-2 focus:ring-teal-500" 
+                    className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-4 py-3 text-stone-800 dark:text-[#eae6e1] focus:outline-none focus:ring-2 focus:ring-teal-500" 
                   />
                 </div>
               </div>
               
               <div>
-                <label htmlFor="event-doctor" className="text-xs font-bold text-stone-700 dark:text-[#f3f1ec] tracking-tight mb-1 block">Doctor o Clínica</label>
+                <label htmlFor="event-doctor" className="text-xs font-bold text-stone-700 dark:text-[#eae6e1] tracking-tight mb-1 block">Doctor o Clínica</label>
                 <input 
                   id="event-doctor"
                   type="text" 
                   value={newEvent.doctor} 
                   onChange={e => setNewEvent({...newEvent, doctor: e.target.value})}
-                  className="w-full bg-stone-50 dark:bg-[#21242c] border border-stone-200 dark:border-white/10 rounded-xl px-4 py-3 text-stone-800 dark:text-[#f3f1ec] focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder-gray-400 dark:placeholder-[#9ea3ae]/60"
+                  className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-4 py-3 text-stone-800 dark:text-[#eae6e1] focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder-gray-400 dark:placeholder-[#a6a1b2]/60"
                   placeholder="Dra. Ramírez / Hospital Los Olivos" 
                 />
               </div>
@@ -1918,7 +1918,7 @@ function AgendaView({
               <button 
                 type="button"
                 onClick={handleSaveEvent}
-                className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-xl mt-4 transition-colors shadow-xs active:scale-[0.99]"
+                className="w-full bg-terracotta hover:bg-terracotta-hover text-white font-bold py-4 rounded-xl mt-4 transition-colors shadow-xs active:scale-[0.99]"
               >
                 {editingEvent ? "Actualizar Cita" : "Guardar Cita"}
               </button>
@@ -2219,7 +2219,7 @@ function PandaIAView({
         const headerText = trimmed.replace(/^#{2,3}\s+/, "");
         return (
           <h4 key={idx} className="font-bold text-teal-950 dark:text-teal-300 text-sm mt-3 mb-1.5 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-teal-600 inline-block"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-terracotta inline-block"></span>
             <span>{headerText}</span>
           </h4>
         );
@@ -2233,9 +2233,9 @@ function PandaIAView({
         const parts = itemContent.split(/(\*\*.*?\*\*)/g);
         return (
           <div key={idx} className="flex items-start gap-2 my-1 pl-1">
-            <span className="text-xs font-bold text-teal-800 dark:text-teal-200 bg-teal-100/90 dark:bg-[#132420] px-1.5 py-0.5 rounded-md shrink-0 mt-0.5">{num}</span>
-            <span className="flex-1 leading-relaxed text-stone-700 dark:text-[#f3f1ec]/90">
-              {parts.map((p, pIdx) => p.startsWith("**") && p.endsWith("**") ? <strong key={pIdx} className="font-bold text-stone-900 dark:text-[#f3f1ec]">{p.slice(2, -2)}</strong> : p)}
+            <span className="text-xs font-bold text-teal-800 dark:text-teal-200 bg-teal-100/90 dark:bg-[#1a1724] px-1.5 py-0.5 rounded-md shrink-0 mt-0.5">{num}</span>
+            <span className="flex-1 leading-relaxed text-stone-700 dark:text-[#eae6e1]/90">
+              {parts.map((p, pIdx) => p.startsWith("**") && p.endsWith("**") ? <strong key={pIdx} className="font-bold text-stone-900 dark:text-[#eae6e1]">{p.slice(2, -2)}</strong> : p)}
             </span>
           </div>
         );
@@ -2247,7 +2247,7 @@ function PandaIAView({
       const parts = cleanLine.split(/(\*\*.*?\*\*)/g);
       const content = parts.map((part, pIdx) => {
         if (part.startsWith("**") && part.endsWith("**")) {
-          return <strong key={pIdx} className="font-bold text-stone-900 dark:text-[#f3f1ec]">{part.slice(2, -2)}</strong>;
+          return <strong key={pIdx} className="font-bold text-stone-900 dark:text-[#eae6e1]">{part.slice(2, -2)}</strong>;
         }
         return part;
       });
@@ -2255,8 +2255,8 @@ function PandaIAView({
       if (isBullet) {
         return (
           <div key={idx} className="flex items-start gap-2 my-1 pl-1">
-            <span className="text-teal-600 dark:text-teal-400 font-bold shrink-0 mt-0.5">•</span>
-            <span className="flex-1 leading-relaxed text-stone-700 dark:text-[#f3f1ec]/90">{content}</span>
+            <span className="text-terracotta dark:text-teal-400 font-bold shrink-0 mt-0.5">•</span>
+            <span className="flex-1 leading-relaxed text-stone-700 dark:text-[#eae6e1]/90">{content}</span>
           </div>
         );
       }
@@ -2274,19 +2274,19 @@ function PandaIAView({
   };
 
   return (
-    <div className="flex flex-col flex-1 h-full w-full animate-in fade-in duration-300 bg-[#faf9f5] dark:bg-[#111317] relative overflow-hidden">
+    <div className="flex flex-col flex-1 h-full w-full animate-in fade-in duration-300 bg-[#faf9f5] dark:bg-[#181520] relative overflow-hidden">
       
       {/* HEADER CON ESTADO Y ACCIONES */}
-      <div className="px-4 py-2.5 border-b border-stone-200/80 dark:border-white/[0.08] bg-white/95 dark:bg-[#111317]/95 backdrop-blur-sm shadow-xs flex items-center justify-between z-10 shrink-0">
+      <div className="px-4 py-2.5 border-b border-stone-200/80 dark:border-white/[0.08] bg-white/95 dark:bg-[#181520]/95 backdrop-blur-sm shadow-xs flex items-center justify-between z-10 shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="bg-teal-100 dark:bg-[#132420] text-teal-700 dark:text-teal-300 p-2 rounded-2xl relative shadow-xs">
+          <div className="bg-teal-100 dark:bg-[#1a1724] text-teal-700 dark:text-teal-300 p-2 rounded-2xl relative shadow-xs">
             <Bot size={20} />
-            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-[#111317] rounded-full animate-pulse"></span>
+            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-[#181520] rounded-full animate-pulse"></span>
           </div>
           <div>
-            <h2 className="font-bold text-stone-900 dark:text-[#f3f1ec] leading-tight flex items-center gap-1.5 text-sm">
+            <h2 className="font-bold text-stone-900 dark:text-[#eae6e1] leading-tight flex items-center gap-1.5 text-sm">
               <span>PandaIA</span>
-              <span className="text-xs font-bold text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-[#132420] border border-teal-200/80 dark:border-teal-500/25 px-2 py-0.5 rounded-full tracking-tight">
+              <span className="text-xs font-bold text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-[#1a1724] border border-teal-200/80 dark:border-teal-500/25 px-2 py-0.5 rounded-full tracking-tight">
                 Copiloto
               </span>
             </h2>
@@ -2301,7 +2301,7 @@ function PandaIAView({
           <button 
             type="button"
             onClick={clearChat}
-            className="p-2 text-stone-500 dark:text-[#9ea3ae] hover:text-stone-800 dark:hover:text-[#f3f1ec] hover:bg-stone-100 dark:hover:bg-[#21242c] rounded-xl transition-all active:scale-95"
+            className="p-2 text-stone-500 dark:text-[#a6a1b2] hover:text-stone-800 dark:hover:text-[#eae6e1] hover:bg-stone-100 dark:hover:bg-[#2d273a] rounded-xl transition-all active:scale-95"
             title="Reiniciar conversación con la semana actual"
             aria-label="Reiniciar conversación"
           >
@@ -2320,7 +2320,7 @@ function PandaIAView({
             }`}
           >
             {msg.sender === 'ai' && (
-              <div className="bg-teal-100 dark:bg-[#132420] text-teal-800 dark:text-teal-300 p-1.5 rounded-xl shrink-0 mb-1 shadow-xs">
+              <div className="bg-teal-100 dark:bg-[#1a1724] text-teal-800 dark:text-teal-300 p-1.5 rounded-xl shrink-0 mb-1 shadow-xs">
                 <Bot size={16} />
               </div>
             )}
@@ -2328,8 +2328,8 @@ function PandaIAView({
             <div className={`flex flex-col gap-2 ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
               <div className={`p-4 rounded-3xl shadow-xs text-sm relative group ${
                 msg.sender === 'user' 
-                  ? 'bg-teal-600 text-white rounded-br-none' 
-                  : 'bg-white dark:bg-[#181a20] border border-stone-100 dark:border-white/[0.08] text-stone-800 dark:text-[#f3f1ec] rounded-bl-none shadow-xs'
+                  ? 'bg-terracotta text-white rounded-br-none' 
+                  : 'bg-white dark:bg-[#221d2d] border border-stone-100 dark:border-white/[0.08] text-stone-800 dark:text-[#eae6e1] rounded-bl-none shadow-xs'
               }`}>
                 {msg.sender === 'ai' ? renderFormattedMessage(msg.text) : <p className="leading-relaxed">{msg.text}</p>}
 
@@ -2339,12 +2339,12 @@ function PandaIAView({
                     <button
                       type="button"
                       onClick={() => copyMessage(msg.id, msg.text)}
-                      className="text-xs font-bold text-stone-400 dark:text-[#9ea3ae] hover:text-teal-700 dark:hover:text-teal-300 flex items-center gap-1 transition-colors p-1"
+                      className="text-xs font-bold text-stone-400 dark:text-[#a6a1b2] hover:text-teal-700 dark:hover:text-teal-300 flex items-center gap-1 transition-colors p-1"
                       title="Copiar respuesta"
                     >
                       {copiedId === msg.id ? (
                         <>
-                          <Check size={12} className="text-teal-600 dark:text-teal-400" />
+                          <Check size={12} className="text-terracotta dark:text-teal-400" />
                           <span className="text-teal-700 dark:text-teal-300">Copiado</span>
                         </>
                       ) : (
@@ -2360,18 +2360,18 @@ function PandaIAView({
               
               {/* Tarjeta de Acción / Cita Agendada */}
               {msg.card && (
-                <div className="bg-gradient-to-br from-teal-50 via-emerald-50/40 to-white dark:from-[#181a20] dark:to-[#132420] border border-teal-200 dark:border-teal-500/25 shadow-xs rounded-2xl p-4 w-full max-w-sm animate-in zoom-in-95 duration-200">
+                <div className="bg-gradient-to-br from-teal-50 via-emerald-50/40 to-white dark:from-[#221d2d] dark:to-[#1a1724] border border-teal-200 dark:border-teal-500/25 shadow-xs rounded-2xl p-4 w-full max-w-sm animate-in zoom-in-95 duration-200">
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-1.5 text-teal-900 dark:text-teal-300 font-bold text-xs tracking-tight">
                       <BriefcaseMedical size={15} className="text-teal-700 dark:text-teal-400" />
                       <span>Cita Médica Agendada</span>
                     </div>
-                    <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100/90 dark:bg-[#132420] px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100/90 dark:bg-[#1a1724] px-2 py-0.5 rounded-full">
                       En Agenda
                     </span>
                   </div>
-                  <h5 className="font-bold text-stone-900 dark:text-[#f3f1ec] text-sm">{msg.card.title}</h5>
-                  <p className="text-xs text-stone-600 dark:text-[#9ea3ae] mt-1 leading-relaxed">
+                  <h5 className="font-bold text-stone-900 dark:text-[#eae6e1] text-sm">{msg.card.title}</h5>
+                  <p className="text-xs text-stone-600 dark:text-[#a6a1b2] mt-1 leading-relaxed">
                     {msg.card.desc}
                   </p>
                   
@@ -2379,7 +2379,7 @@ function PandaIAView({
                     <button
                       type="button"
                       onClick={() => setActiveTab("agenda")}
-                      className="mt-3 w-full py-2.5 bg-teal-600 hover:bg-teal-700 active:scale-95 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-xs"
+                      className="mt-3 w-full py-2.5 bg-terracotta hover:bg-terracotta-hover active:scale-95 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-xs"
                     >
                       <Calendar size={13} />
                       <span>Ver en Agenda Médica →</span>
@@ -2393,16 +2393,16 @@ function PandaIAView({
 
         {isTyping && (
           <div className="flex items-end gap-2 max-w-[85%] animate-in fade-in duration-150">
-            <div className="bg-teal-100 dark:bg-[#132420] text-teal-800 dark:text-teal-300 p-1.5 rounded-xl shrink-0 mb-1 shadow-xs">
+            <div className="bg-teal-100 dark:bg-[#1a1724] text-teal-800 dark:text-teal-300 p-1.5 rounded-xl shrink-0 mb-1 shadow-xs">
               <Bot size={16} />
             </div>
-            <div className="bg-white dark:bg-[#181a20] px-4 py-3 rounded-2xl rounded-bl-none shadow-xs border border-stone-100 dark:border-white/[0.08] flex gap-2 items-center">
+            <div className="bg-white dark:bg-[#221d2d] px-4 py-3 rounded-2xl rounded-bl-none shadow-xs border border-stone-100 dark:border-white/[0.08] flex gap-2 items-center">
               <div className="flex gap-1 items-center">
-                <div className="w-2 h-2 bg-teal-600 rounded-full animate-pulse"></div>
-                <div className="w-2 h-2 bg-teal-600 rounded-full animate-pulse" style={{ animationDelay: "0.15s" }}></div>
-                <div className="w-2 h-2 bg-teal-600 rounded-full animate-pulse" style={{ animationDelay: "0.3s" }}></div>
+                <div className="w-2 h-2 bg-terracotta rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-terracotta rounded-full animate-pulse" style={{ animationDelay: "0.15s" }}></div>
+                <div className="w-2 h-2 bg-terracotta rounded-full animate-pulse" style={{ animationDelay: "0.3s" }}></div>
               </div>
-              <span className="text-xs text-stone-400 dark:text-[#9ea3ae] font-medium">PandaIA está respondiendo...</span>
+              <span className="text-xs text-stone-400 dark:text-[#a6a1b2] font-medium">PandaIA está respondiendo...</span>
             </div>
           </div>
         )}
@@ -2411,7 +2411,7 @@ function PandaIAView({
       </div>
 
       {/* INPUT AREA CON SMART CHIPS CONTEXTUALES */}
-      <div className="bg-white dark:bg-[#181a20] border-t border-stone-200 dark:border-white/[0.08] shrink-0">
+      <div className="bg-white dark:bg-[#221d2d] border-t border-stone-200 dark:border-white/[0.08] shrink-0">
         {/* Smart Chips Dinámicos por Trimestre */}
         <div className="flex overflow-x-auto gap-2 p-2.5 no-scrollbar border-b border-stone-100 dark:border-white/[0.06]">
           {smartChips.map((chip, idx) => (
@@ -2419,7 +2419,7 @@ function PandaIAView({
               key={idx}
               type="button"
               onClick={() => handleSend(chip)}
-              className="whitespace-nowrap bg-teal-50/80 dark:bg-[#21242c] border border-teal-200/70 dark:border-white/10 text-teal-800 dark:text-teal-300 text-xs font-semibold px-3.5 py-1.5 rounded-full hover:bg-teal-100 dark:hover:bg-[#282c36] active:scale-95 transition-all shadow-2xs"
+              className="whitespace-nowrap bg-teal-50/80 dark:bg-[#2d273a] border border-teal-200/70 dark:border-white/10 text-teal-800 dark:text-teal-300 text-xs font-semibold px-3.5 py-1.5 rounded-full hover:bg-teal-100 dark:hover:bg-[#383147] active:scale-95 transition-all shadow-2xs"
             >
               {chip}
             </button>
@@ -2428,12 +2428,12 @@ function PandaIAView({
 
         {/* Text Input Ergonómico */}
         <div className="p-2.5">
-          <div className="flex items-end gap-2 bg-stone-50 dark:bg-[#21242c] border border-stone-200 dark:border-white/10 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-teal-500 focus-within:border-transparent transition-all shadow-xs">
+          <div className="flex items-end gap-2 bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-teal-500 focus-within:border-transparent transition-all shadow-xs">
             <button 
               type="button"
               aria-label="Cargar consulta sobre ecografías"
               onClick={() => setIsUltrasoundModalOpen(true)}
-              className="p-2 text-stone-400 dark:text-[#9ea3ae] hover:text-teal-700 dark:hover:text-teal-300 transition-colors shrink-0 rounded-xl hover:bg-white dark:hover:bg-[#181a20]"
+              className="p-2 text-stone-400 dark:text-[#a6a1b2] hover:text-teal-700 dark:hover:text-teal-300 transition-colors shrink-0 rounded-xl hover:bg-white dark:hover:bg-[#221d2d]"
               title="Preguntas frecuentes sobre ecografías"
             >
               <Paperclip size={18} />
@@ -2451,7 +2451,7 @@ function PandaIAView({
                 }
               }}
               placeholder="Pregúntale a PandaIA sobre síntomas, nutrición o citas..." 
-              className="flex-1 bg-transparent border-none focus:outline-none text-base sm:text-sm py-2 resize-none max-h-32 min-h-[40px] text-stone-800 dark:text-[#f3f1ec] placeholder-gray-400 dark:placeholder-[#9ea3ae]/60 overflow-y-auto no-scrollbar"
+              className="flex-1 bg-transparent border-none focus:outline-none text-base sm:text-sm py-2 resize-none max-h-32 min-h-[40px] text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/60 overflow-y-auto no-scrollbar"
             />
             <button 
               type="button"
@@ -2460,8 +2460,8 @@ function PandaIAView({
               disabled={!inputText.trim() || isTyping}
               className={`p-2.5 rounded-xl transition-all shrink-0 active:scale-90 ${
                 inputText.trim() && !isTyping 
-                  ? "bg-teal-600 text-white hover:bg-teal-700 shadow-xs" 
-                  : "bg-stone-200 dark:bg-[#2a2e37] text-stone-400 dark:text-[#9ea3ae]/60 cursor-not-allowed"
+                  ? "bg-terracotta text-white hover:bg-terracotta-hover shadow-xs" 
+                  : "bg-stone-200 dark:bg-[#2a2e37] text-stone-400 dark:text-[#a6a1b2]/60 cursor-not-allowed"
               }`}
             >
               <Send size={16} />
@@ -2479,7 +2479,7 @@ function PandaIAView({
           onClick={(e) => { if (e.target === e.currentTarget) setIsUltrasoundModalOpen(false); }}
           className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150"
         >
-          <div className="bg-white dark:bg-[#181a20] rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in slide-in-from-bottom-4 duration-200 border border-stone-100 dark:border-white/[0.08]">
+          <div className="bg-white dark:bg-[#221d2d] rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in slide-in-from-bottom-4 duration-200 border border-stone-100 dark:border-white/[0.08]">
             <div className="bg-gradient-to-r from-teal-600 to-teal-700 p-4 flex justify-between items-center text-white">
               <div className="flex items-center gap-2">
                 <div className="bg-white/10 p-2 rounded-xl">
@@ -2505,7 +2505,7 @@ function PandaIAView({
             </div>
 
             <div className="p-4 space-y-2 max-h-[70vh] overflow-y-auto">
-              <p className="text-xs text-stone-500 dark:text-[#9ea3ae] mb-3">
+              <p className="text-xs text-stone-500 dark:text-[#a6a1b2] mb-3">
                 Selecciona una consulta frecuente para que PandaIA te explique los valores clínicos con calma:
               </p>
 
@@ -2514,27 +2514,27 @@ function PandaIAView({
                   key={idx}
                   type="button"
                   onClick={() => handleUltrasoundSelect(item.prompt)}
-                  className="w-full text-left p-3.5 rounded-2xl border border-stone-100 dark:border-white/[0.08] bg-stone-50/70 dark:bg-[#21242c]/60 hover:bg-teal-50/60 dark:hover:bg-[#21242c] hover:border-teal-200 dark:hover:border-teal-500/30 transition-all flex items-start justify-between gap-3 group active:scale-[0.99]"
+                  className="w-full text-left p-3.5 rounded-2xl border border-stone-100 dark:border-white/[0.08] bg-stone-50/70 dark:bg-[#2d273a]/60 hover:bg-teal-50/60 dark:hover:bg-[#2d273a] hover:border-teal-200 dark:hover:border-teal-500/30 transition-all flex items-start justify-between gap-3 group active:scale-[0.99]"
                 >
                   <div className="flex-1">
-                    <p className="text-xs font-bold text-stone-900 dark:text-[#f3f1ec] group-hover:text-teal-900 dark:group-hover:text-teal-300 flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0"></span>
+                    <p className="text-xs font-bold text-stone-900 dark:text-[#eae6e1] group-hover:text-teal-900 dark:group-hover:text-teal-300 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-terracotta shrink-0"></span>
                       <span>{item.title}</span>
                     </p>
-                    <p className="text-xs text-stone-500 dark:text-[#9ea3ae] mt-0.5 leading-snug">
+                    <p className="text-xs text-stone-500 dark:text-[#a6a1b2] mt-0.5 leading-snug">
                       {item.desc}
                     </p>
                   </div>
-                  <ChevronRight size={16} className="text-stone-400 dark:text-[#9ea3ae] group-hover:text-teal-600 dark:group-hover:text-teal-300 shrink-0 mt-1" />
+                  <ChevronRight size={16} className="text-stone-400 dark:text-[#a6a1b2] group-hover:text-terracotta dark:group-hover:text-teal-300 shrink-0 mt-1" />
                 </button>
               ))}
             </div>
 
-            <div className="p-3 bg-stone-50 dark:bg-[#181a20] border-t border-stone-100 dark:border-white/[0.08] flex justify-end">
+            <div className="p-3 bg-stone-50 dark:bg-[#221d2d] border-t border-stone-100 dark:border-white/[0.08] flex justify-end">
               <button
                 type="button"
                 onClick={() => setIsUltrasoundModalOpen(false)}
-                className="px-4 py-2 text-xs font-semibold text-stone-600 dark:text-[#9ea3ae] hover:text-stone-800 dark:hover:text-[#f3f1ec] transition-colors"
+                className="px-4 py-2 text-xs font-semibold text-stone-600 dark:text-[#a6a1b2] hover:text-stone-800 dark:hover:text-[#eae6e1] transition-colors"
               >
                 Cancelar
               </button>
@@ -2558,11 +2558,11 @@ function SOSSintomas() {
       icon: <Utensils className="text-amber-500" size={20} />,
       color: "bg-amber-50 dark:bg-[#241b12]",
       content: (
-        <ul className="text-sm text-stone-600 dark:text-[#9ea3ae] space-y-2 mt-2 list-disc pl-5">
-          <li><strong className="text-stone-900 dark:text-[#f3f1ec]">Estómago con colchón:</strong> Coman galletas saladas o tostadas antes de levantarse de la cama.</li>
-          <li><strong className="text-stone-900 dark:text-[#f3f1ec]">Hidratación táctica:</strong> Beber agua muy fría en pequeños tragos. Rodajas de limón o jengibre fresco son magia pura.</li>
-          <li><strong className="text-stone-900 dark:text-[#f3f1ec]">Vitamina B6:</strong> Consulten con su médico materno-fetal si pueden recetar un suplemento de B6.</li>
-          <li><strong className="text-stone-900 dark:text-[#f3f1ec]">Oler alcohol:</strong> Una toallita de alcohol isopropílico bajo la nariz ayuda a cortar el mareo agudo al instante.</li>
+        <ul className="text-sm text-stone-600 dark:text-[#a6a1b2] space-y-2 mt-2 list-disc pl-5">
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Estómago con colchón:</strong> Coman galletas saladas o tostadas antes de levantarse de la cama.</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Hidratación táctica:</strong> Beber agua muy fría en pequeños tragos. Rodajas de limón o jengibre fresco son magia pura.</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Vitamina B6:</strong> Consulten con su médico materno-fetal si pueden recetar un suplemento de B6.</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Oler alcohol:</strong> Una toallita de alcohol isopropílico bajo la nariz ayuda a cortar el mareo agudo al instante.</li>
         </ul>
       )
     },
@@ -2572,11 +2572,11 @@ function SOSSintomas() {
       icon: <Heart className="text-rose-500" size={20} />,
       color: "bg-rose-50 dark:bg-[#251518]",
       content: (
-        <ul className="text-sm text-stone-600 dark:text-[#9ea3ae] space-y-2 mt-2 list-disc pl-5">
-          <li><strong className="text-stone-900 dark:text-[#f3f1ec]">Poco pero seguido:</strong> 5 o 6 comidas pequeñas al día en lugar de 3 grandes para no sobrecargar el esfínter.</li>
-          <li><strong className="text-stone-900 dark:text-[#f3f1ec]">Física básica:</strong> Esperar al menos 2 horas después de cenar para ir a la cama (gravedad a su favor).</li>
-          <li><strong className="text-stone-900 dark:text-[#f3f1ec]">Evitar disparadores:</strong> Cítricos, tomate, chocolate, y comidas muy grasas o picantes.</li>
-          <li><strong className="text-stone-900 dark:text-[#f3f1ec]">Leche fría o almendras:</strong> Neutralizan la acidez al instante de forma natural.</li>
+        <ul className="text-sm text-stone-600 dark:text-[#a6a1b2] space-y-2 mt-2 list-disc pl-5">
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Poco pero seguido:</strong> 5 o 6 comidas pequeñas al día en lugar de 3 grandes para no sobrecargar el esfínter.</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Física básica:</strong> Esperar al menos 2 horas después de cenar para ir a la cama (gravedad a su favor).</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Evitar disparadores:</strong> Cítricos, tomate, chocolate, y comidas muy grasas o picantes.</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Leche fría o almendras:</strong> Neutralizan la acidez al instante de forma natural.</li>
         </ul>
       )
     },
@@ -2586,10 +2586,10 @@ function SOSSintomas() {
       icon: <Activity className="text-blue-500" size={20} />,
       color: "bg-blue-50 dark:bg-[#1a2230]",
       content: (
-        <ul className="text-sm text-stone-600 dark:text-[#9ea3ae] space-y-2 mt-2 list-disc pl-5">
-          <li><strong className="text-stone-900 dark:text-[#f3f1ec]">Compresas tibias:</strong> Aplicar calor en la espalda baja por 15-20 minutos (tú puedes encargarte de prepararlas).</li>
-          <li><strong className="text-stone-900 dark:text-[#f3f1ec]">Postura al dormir:</strong> Siempre del lado izquierdo, con la almohada de embarazo entre las rodillas.</li>
-          <li><strong className="text-stone-900 dark:text-[#f3f1ec]">Estiramientos suaves:</strong> Ayúdala con ejercicios de yoga prenatal (postura del gato-vaca) para aliviar la presión del útero.</li>
+        <ul className="text-sm text-stone-600 dark:text-[#a6a1b2] space-y-2 mt-2 list-disc pl-5">
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Compresas tibias:</strong> Aplicar calor en la espalda baja por 15-20 minutos (tú puedes encargarte de prepararlas).</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Postura al dormir:</strong> Siempre del lado izquierdo, con la almohada de embarazo entre las rodillas.</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Estiramientos suaves:</strong> Ayúdala con ejercicios de yoga prenatal (postura del gato-vaca) para aliviar la presión del útero.</li>
         </ul>
       )
     },
@@ -2613,10 +2613,10 @@ function SOSSintomas() {
   return (
     <div className="flex flex-col py-2 animate-in fade-in duration-300 h-full w-full">
       <div className="text-center mb-6">
-        <h3 className="text-xl font-bold text-stone-800 dark:text-[#f3f1ec] flex justify-center items-center gap-2">
+        <h3 className="text-xl font-bold text-stone-800 dark:text-[#eae6e1] flex justify-center items-center gap-2">
           <HeartPulse className="text-rose-500" /> SOS Mamá
         </h3>
-        <p className="text-sm text-stone-500 dark:text-[#9ea3ae]">Guía rápida de alivio de síntomas</p>
+        <p className="text-sm text-stone-500 dark:text-[#a6a1b2]">Guía rápida de alivio de síntomas</p>
       </div>
 
       {/* Banner de Emergencia Rápida */}
@@ -2639,7 +2639,7 @@ function SOSSintomas() {
             href="https://maps.google.com/?q=hospital+maternidad"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-white dark:bg-[#181a20] hover:bg-rose-100/50 dark:hover:bg-[#21242c] active:scale-95 border border-rose-200 dark:border-rose-500/25 text-rose-700 dark:text-rose-300 font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-xs transition-all"
+            className="bg-white dark:bg-[#221d2d] hover:bg-rose-100/50 dark:hover:bg-[#2d273a] active:scale-95 border border-rose-200 dark:border-rose-500/25 text-rose-700 dark:text-rose-300 font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-xs transition-all"
             aria-label="Ver ruta al hospital más cercano"
           >
             📍 Hospital
@@ -2649,20 +2649,20 @@ function SOSSintomas() {
 
       <div className="space-y-3 overflow-y-auto pb-8">
         {symptoms.map(sym => (
-          <div key={sym.id} className="bg-white dark:bg-[#181a20] rounded-2xl shadow-xs border border-stone-200/80 dark:border-white/[0.08] overflow-hidden">
+          <div key={sym.id} className="bg-white dark:bg-[#221d2d] rounded-2xl shadow-xs border border-stone-200/80 dark:border-white/[0.08] overflow-hidden">
             <button 
               type="button"
               onClick={() => setExpanded(expanded === sym.id ? null : sym.id)}
-              className="w-full p-4 flex items-center justify-between text-left transition-colors hover:bg-stone-50 dark:hover:bg-[#21242c]/50"
+              className="w-full p-4 flex items-center justify-between text-left transition-colors hover:bg-stone-50 dark:hover:bg-[#2d273a]/50"
             >
               <div className="flex items-center gap-3">
                 <div className={`${sym.color} p-2 rounded-full`}>{sym.icon}</div>
-                <span className="font-bold text-stone-800 dark:text-[#f3f1ec]">{sym.title}</span>
+                <span className="font-bold text-stone-800 dark:text-[#eae6e1]">{sym.title}</span>
               </div>
-              {expanded === sym.id ? <ChevronUp size={20} className="text-stone-400 dark:text-[#9ea3ae]" /> : <ChevronDown size={20} className="text-stone-400 dark:text-[#9ea3ae]" />}
+              {expanded === sym.id ? <ChevronUp size={20} className="text-stone-400 dark:text-[#a6a1b2]" /> : <ChevronDown size={20} className="text-stone-400 dark:text-[#a6a1b2]" />}
             </button>
             {expanded === sym.id && (
-              <div className="p-4 pt-0 bg-stone-50 dark:bg-[#21242c]/30 border-t border-stone-100 dark:border-white/[0.06] animate-in slide-in-from-top-2">
+              <div className="p-4 pt-0 bg-stone-50 dark:bg-[#2d273a]/30 border-t border-stone-100 dark:border-white/[0.06] animate-in slide-in-from-top-2">
                 {sym.content}
                 {sym.id === "alarma" && (
                   <div className="mt-4 pt-3 border-t border-rose-200 dark:border-rose-500/30 flex gap-2">
@@ -2676,7 +2676,7 @@ function SOSSintomas() {
                       href="https://maps.google.com/?q=hospital+maternidad"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 bg-white dark:bg-[#181a20] hover:bg-rose-50 dark:hover:bg-[#21242c] active:scale-95 border border-rose-300 dark:border-rose-500/30 text-rose-800 dark:text-rose-300 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
+                      className="flex-1 bg-white dark:bg-[#221d2d] hover:bg-rose-50 dark:hover:bg-[#2d273a] active:scale-95 border border-rose-300 dark:border-rose-500/30 text-rose-800 dark:text-rose-300 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
                     >
                       📍 Ruta al Hospital
                     </a>
@@ -2706,8 +2706,8 @@ function HerramientasView({ showToast, profile }: { showToast: any, profile?: Us
   return (
     <div className="flex flex-col h-full w-full animate-in fade-in slide-in-from-bottom-4 duration-300">
       {/* Sub-navigation sin desplazamiento (100% visible) */}
-      <div className="bg-white dark:bg-[#111317] px-3 py-2.5 shadow-xs border-b border-stone-200/80 dark:border-white/[0.08] sticky top-0 z-10 w-full">
-        <div role="tablist" aria-label="Herramientas de embarazo" className="grid grid-cols-5 gap-1 bg-stone-100/90 dark:bg-[#181a20] p-1 rounded-2xl w-full">
+      <div className="bg-white dark:bg-[#181520] px-3 py-2.5 shadow-xs border-b border-stone-200/80 dark:border-white/[0.08] sticky top-0 z-10 w-full">
+        <div role="tablist" aria-label="Herramientas de embarazo" className="grid grid-cols-5 gap-1 bg-stone-100/90 dark:bg-[#221d2d] p-1 rounded-2xl w-full">
           {tools.map((tool) => {
             const isActive = activeTool === tool.id;
             return (
@@ -2719,11 +2719,11 @@ function HerramientasView({ showToast, profile }: { showToast: any, profile?: Us
                 onClick={() => setActiveTool(tool.id as any)}
                 className={`flex flex-col items-center justify-center py-2 px-0.5 rounded-xl transition-all ${
                   isActive 
-                    ? "bg-white dark:bg-[#21242c] text-teal-700 dark:text-teal-300 shadow-xs font-bold scale-[1.02]" 
-                    : "text-stone-500 dark:text-[#9ea3ae] hover:text-stone-800 dark:hover:text-[#f3f1ec] font-medium"
+                    ? "bg-white dark:bg-[#2d273a] text-teal-700 dark:text-teal-300 shadow-xs font-bold scale-[1.02]" 
+                    : "text-stone-500 dark:text-[#a6a1b2] hover:text-stone-800 dark:hover:text-[#eae6e1] font-medium"
                 }`}
               >
-                <div className={`p-1 rounded-lg ${isActive ? "text-teal-600 dark:text-teal-400" : "text-stone-400 dark:text-[#9ea3ae]"}`}>
+                <div className={`p-1 rounded-lg ${isActive ? "text-terracotta dark:text-teal-400" : "text-stone-400 dark:text-[#a6a1b2]"}`}>
                   {tool.icon}
                 </div>
                 <span className="text-xs leading-tight text-center tracking-tight truncate w-full">
@@ -2962,11 +2962,11 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
       
       {/* HEADER CON PROTOCOLO CARDIFF Y GUÍA */}
       <div className="text-center">
-        <div className="inline-flex items-center gap-1.5 bg-teal-50 dark:bg-[#132420] border border-teal-200/80 dark:border-teal-500/25 px-3 py-1 rounded-full text-xs font-bold text-teal-800 dark:text-teal-300 mb-2 shadow-xs">
-          <Baby size={14} className="text-teal-600 dark:text-teal-400" /> Protocolo Cardiff (Contar hasta 10)
+        <div className="inline-flex items-center gap-1.5 bg-teal-50 dark:bg-[#1a1724] border border-teal-200/80 dark:border-teal-500/25 px-3 py-1 rounded-full text-xs font-bold text-teal-800 dark:text-teal-300 mb-2 shadow-xs">
+          <Baby size={14} className="text-terracotta dark:text-teal-400" /> Protocolo Cardiff (Contar hasta 10)
         </div>
-        <h3 className="text-2xl font-black text-stone-800 dark:text-[#f3f1ec]">Monitor Fetal Inteligente</h3>
-        <p className="text-xs text-stone-500 dark:text-[#9ea3ae] max-w-xs mx-auto mt-1 leading-relaxed">
+        <h3 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1]">Monitor Fetal Inteligente</h3>
+        <p className="text-xs text-stone-500 dark:text-[#a6a1b2] max-w-xs mx-auto mt-1 leading-relaxed">
           Monitorea el bienestar del bebé registrando 10 movimientos activos en menos de 2 horas.
         </p>
 
@@ -2974,9 +2974,9 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
         <button
           type="button"
           onClick={() => setShowGuide(!showGuide)}
-          className="mt-3 text-xs font-bold text-teal-700 dark:text-teal-300 hover:text-teal-900 dark:hover:text-teal-200 inline-flex items-center gap-1 bg-teal-50/60 dark:bg-[#132420] hover:bg-teal-100/70 dark:hover:bg-[#19322c] px-3 py-1.5 rounded-xl border border-teal-200/60 dark:border-teal-500/25 transition-colors"
+          className="mt-3 text-xs font-bold text-teal-700 dark:text-teal-300 hover:text-teal-900 dark:hover:text-teal-200 inline-flex items-center gap-1 bg-teal-50/60 dark:bg-[#1a1724] hover:bg-teal-100/70 dark:hover:bg-[#19322c] px-3 py-1.5 rounded-xl border border-teal-200/60 dark:border-teal-500/25 transition-colors"
         >
-          <Info size={14} className="text-teal-600 dark:text-teal-400" />
+          <Info size={14} className="text-terracotta dark:text-teal-400" />
           <span>{showGuide ? "Ocultar guía clínica" : "¿Cómo y cuándo contar patadas?"}</span>
           {showGuide ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </button>
@@ -2984,29 +2984,29 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
 
       {/* GUÍA MÉDICA DESPLEGABLE */}
       {showGuide && (
-        <div className="bg-gradient-to-br from-teal-50/90 to-emerald-50/70 dark:from-[#181a20] dark:to-[#132420] border border-teal-200 dark:border-teal-500/25 rounded-3xl p-5 text-left text-xs text-stone-700 dark:text-[#f3f1ec]/90 space-y-3 shadow-xs animate-in fade-in slide-in-from-top-2">
+        <div className="bg-gradient-to-br from-teal-50/90 to-emerald-50/70 dark:from-[#221d2d] dark:to-[#1a1724] border border-teal-200 dark:border-teal-500/25 rounded-3xl p-5 text-left text-xs text-stone-700 dark:text-[#eae6e1]/90 space-y-3 shadow-xs animate-in fade-in slide-in-from-top-2">
           <h4 className="font-bold text-teal-900 dark:text-teal-300 text-sm flex items-center gap-2">
             <ClipboardList size={16} className="text-teal-700 dark:text-teal-400" /> Guía Obstétrica: Protocolo Cardiff
           </h4>
-          <ul className="space-y-2 leading-relaxed text-stone-600 dark:text-[#9ea3ae]">
+          <ul className="space-y-2 leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
             <li className="flex items-start gap-2">
-              <span className="text-teal-600 dark:text-teal-400 font-bold">1.</span>
+              <span className="text-terracotta dark:text-teal-400 font-bold">1.</span>
               <span><strong>¿Cuándo iniciar?</strong> Recomendado a partir de la semana 28 (o semana 24 si tu médico lo indicó).</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-teal-600 dark:text-teal-400 font-bold">2.</span>
+              <span className="text-terracotta dark:text-teal-400 font-bold">2.</span>
               <span><strong>Mejor momento:</strong> 30 a 60 minutos después de comer o por la noche, cuando el feto recibe más glucosa y la madre está en reposo.</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-teal-600 dark:text-teal-400 font-bold">3.</span>
+              <span className="text-terracotta dark:text-teal-400 font-bold">3.</span>
               <span><strong>Postura recomendada:</strong> Recuéstate sobre tu costado izquierdo para maximizar la oxigenación placentaria.</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-teal-600 dark:text-teal-400 font-bold">4.</span>
+              <span className="text-terracotta dark:text-teal-400 font-bold">4.</span>
               <span><strong>¿Qué cuenta como movimiento?</strong> Patadas, aleteos, giros o presiones claras. El hipo rítmico no se cuenta como patada voluntaria.</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-teal-600 dark:text-teal-400 font-bold">5.</span>
+              <span className="text-terracotta dark:text-teal-400 font-bold">5.</span>
               <span><strong>Meta normal:</strong> Sentir 10 movimientos. La gran mayoría de bebés lo logra en menos de 30 a 45 minutos.</span>
             </li>
           </ul>
@@ -3045,9 +3045,9 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
       )}
 
       {/* TRACKER VISUAL DE 10 PASOS */}
-      <div className="bg-white dark:bg-[#181a20] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] space-y-3">
+      <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] space-y-3">
         <div className="flex items-center justify-between text-xs font-bold">
-          <span className="text-stone-700 dark:text-[#f3f1ec]">Progreso de la Sesión</span>
+          <span className="text-stone-700 dark:text-[#eae6e1]">Progreso de la Sesión</span>
           <span className="text-teal-700 dark:text-teal-300">{count} de 10 patadas</span>
         </div>
 
@@ -3061,10 +3061,10 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
                 key={idx}
                 className={`h-9 rounded-xl flex items-center justify-center text-xs font-bold transition-all ${
                   isDone
-                    ? "bg-teal-600 text-white shadow-xs scale-100"
+                    ? "bg-terracotta text-white shadow-xs scale-100"
                     : isCurrent
                     ? "bg-amber-100 dark:bg-[#241b12] text-amber-800 dark:text-amber-300 border-2 border-amber-400 animate-pulse scale-105"
-                    : "bg-stone-100 dark:bg-[#21242c] text-stone-400 dark:text-[#9ea3ae]/60"
+                    : "bg-stone-100 dark:bg-[#2d273a] text-stone-400 dark:text-[#a6a1b2]/60"
                 }`}
               >
                 {isDone ? <Check size={14} /> : idx + 1}
@@ -3074,7 +3074,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
         </div>
 
         {/* Barra de progreso suave */}
-        <div className="w-full bg-stone-100 dark:bg-[#21242c] rounded-full h-2 overflow-hidden">
+        <div className="w-full bg-stone-100 dark:bg-[#2d273a] rounded-full h-2 overflow-hidden">
           <div
             className="bg-gradient-to-r from-teal-500 to-emerald-500 h-full transition-all duration-300 rounded-full"
             style={{ width: `${Math.min(100, (count / 10) * 100)}%` }}
@@ -3093,8 +3093,8 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
             count >= 10 
               ? "bg-gradient-to-br from-emerald-500 to-teal-600 dark:from-[#15342c] dark:to-[#0f241e] text-white border-4 border-white dark:border-teal-500/30 cursor-default" 
               : count === 0
-              ? "bg-gradient-to-br from-teal-500 to-teal-700 dark:from-[#132c25] dark:to-[#0d1e19] text-white dark:text-[#f3f1ec] border-4 border-white dark:border-teal-500/30 hover:shadow-teal-200/80 hover:scale-[1.02]"
-              : "bg-gradient-to-br from-teal-500 via-teal-600 to-emerald-600 dark:from-[#183a31] dark:to-[#102721] text-white dark:text-[#f3f1ec] border-4 border-white dark:border-teal-500/40 hover:scale-[1.02]"
+              ? "bg-gradient-to-br from-teal-500 to-teal-700 dark:from-[#221d2d] dark:to-[#181520] text-white dark:text-[#eae6e1] border-4 border-white dark:border-teal-500/30 hover:shadow-teal-200/80 hover:scale-[1.02]"
+              : "bg-gradient-to-br from-teal-500 via-teal-600 to-emerald-600 dark:from-[#183a31] dark:to-[#102721] text-white dark:text-[#eae6e1] border-4 border-white dark:border-teal-500/40 hover:scale-[1.02]"
           }`}
         >
           {count < 10 ? (
@@ -3121,7 +3121,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
           <button
             type="button"
             onClick={handleUndo}
-            className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-stone-600 dark:text-[#f3f1ec] hover:text-stone-900 dark:hover:text-white bg-white dark:bg-[#21242c] border border-stone-200 dark:border-white/10 hover:bg-stone-50 dark:hover:bg-[#2a2e37] px-3.5 py-1.5 rounded-full shadow-xs active:scale-95 transition-all"
+            className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-stone-600 dark:text-[#eae6e1] hover:text-stone-900 dark:hover:text-white bg-white dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 hover:bg-stone-50 dark:hover:bg-[#2a2e37] px-3.5 py-1.5 rounded-full shadow-xs active:scale-95 transition-all"
             aria-label="Deshacer último movimiento registrado"
           >
             <Undo2 size={13} /> Deshacer última patada (-1)
@@ -3130,8 +3130,8 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
 
         {/* Atajo de teclado accesible */}
         {count < 10 && (
-          <div className="mt-3 text-xs text-stone-500 dark:text-[#9ea3ae] font-medium flex items-center gap-1.5 select-none">
-            <kbd className="px-1.5 py-0.5 text-xs font-mono font-semibold bg-stone-100 dark:bg-[#21242c] border border-stone-300 dark:border-white/10 rounded text-stone-700 dark:text-[#f3f1ec] shadow-2xs">
+          <div className="mt-3 text-xs text-stone-500 dark:text-[#a6a1b2] font-medium flex items-center gap-1.5 select-none">
+            <kbd className="px-1.5 py-0.5 text-xs font-mono font-semibold bg-stone-100 dark:bg-[#2d273a] border border-stone-300 dark:border-white/10 rounded text-stone-700 dark:text-[#eae6e1] shadow-2xs">
               Espacio
             </kbd>
             <span>en teclado para registrar movimiento</span>
@@ -3140,15 +3140,15 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
       </div>
 
       {/* TARJETA DE CRONÓMETRO Y ACCIONES DE SESIÓN */}
-      <div className="bg-white dark:bg-[#181a20] w-full rounded-3xl shadow-xs border border-stone-100 dark:border-white/[0.08] p-4 flex flex-col gap-3">
+      <div className="bg-white dark:bg-[#221d2d] w-full rounded-3xl shadow-xs border border-stone-100 dark:border-white/[0.08] p-4 flex flex-col gap-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="bg-teal-50 dark:bg-[#132420] text-teal-700 dark:text-teal-300 p-2.5 rounded-2xl">
-              <Clock size={22} className={startTime ? "animate-pulse text-teal-600 dark:text-teal-400" : ""} />
+            <div className="bg-teal-50 dark:bg-[#1a1724] text-teal-700 dark:text-teal-300 p-2.5 rounded-2xl">
+              <Clock size={22} className={startTime ? "animate-pulse text-terracotta dark:text-teal-400" : ""} />
             </div>
             <div>
               <p className="text-xs text-teal-700 dark:text-teal-300 font-bold tracking-tight">Tiempo de Sesión</p>
-              <p className="text-2xl font-black text-stone-800 dark:text-[#f3f1ec] tracking-tight font-mono tabular-nums">{formatTimer(elapsedSeconds)}</p>
+              <p className="text-2xl font-black text-stone-800 dark:text-[#eae6e1] tracking-tight font-mono tabular-nums">{formatTimer(elapsedSeconds)}</p>
             </div>
           </div>
           
@@ -3168,10 +3168,10 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
             <button
               type="button"
               onClick={() => setShowTimeline(!showTimeline)}
-              className="w-full flex items-center justify-between text-xs font-bold text-stone-600 dark:text-[#9ea3ae] hover:text-teal-700 dark:hover:text-teal-300 py-1 transition-colors"
+              className="w-full flex items-center justify-between text-xs font-bold text-stone-600 dark:text-[#a6a1b2] hover:text-teal-700 dark:hover:text-teal-300 py-1 transition-colors"
             >
               <span className="flex items-center gap-1.5">
-                <Activity size={14} className="text-teal-600 dark:text-teal-400" />
+                <Activity size={14} className="text-terracotta dark:text-teal-400" />
                 <span>Ver ritmo de movimientos ({kicks.length} registrados)</span>
               </span>
               {showTimeline ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -3180,9 +3180,9 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
             {showTimeline && (
               <div className="mt-2.5 space-y-1.5 max-h-48 overflow-y-auto no-scrollbar pt-1">
                 {kicks.map((k, idx) => (
-                  <div key={k.id} className="flex justify-between items-center text-xs bg-slate-50 dark:bg-[#21242c]/60 px-3 py-1.5 rounded-xl border border-slate-100 dark:border-white/[0.06]">
-                    <span className="font-bold text-stone-700 dark:text-[#f3f1ec]">Patada #{idx + 1}</span>
-                    <span className="text-stone-500 dark:text-[#9ea3ae] font-mono">{k.timeStr}</span>
+                  <div key={k.id} className="flex justify-between items-center text-xs bg-slate-50 dark:bg-[#2d273a]/60 px-3 py-1.5 rounded-xl border border-slate-100 dark:border-white/[0.06]">
+                    <span className="font-bold text-stone-700 dark:text-[#eae6e1]">Patada #{idx + 1}</span>
+                    <span className="text-stone-500 dark:text-[#a6a1b2] font-mono">{k.timeStr}</span>
                     <span className="text-teal-700 dark:text-teal-300 font-semibold text-xs">
                       {k.intervalSecs !== null ? `+${formatDurationText(k.intervalSecs)}` : "Inicio"}
                     </span>
@@ -3260,17 +3260,17 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
 
       {/* ESTADÍSTICAS INTELIGENTES Y PROMEDIO */}
       {avgDurationMinutes !== null && (
-        <div className="bg-gradient-to-br from-teal-50/70 to-emerald-50/60 dark:from-[#181a20] dark:to-[#132420] rounded-3xl p-4 border border-teal-100 dark:border-teal-500/25 flex items-center justify-between shadow-xs">
+        <div className="bg-gradient-to-br from-teal-50/70 to-emerald-50/60 dark:from-[#221d2d] dark:to-[#1a1724] rounded-3xl p-4 border border-teal-100 dark:border-teal-500/25 flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="bg-teal-100 dark:bg-[#132420] text-teal-700 dark:text-teal-300 p-2.5 rounded-2xl">
+            <div className="bg-teal-100 dark:bg-[#1a1724] text-teal-700 dark:text-teal-300 p-2.5 rounded-2xl">
               <Trophy size={20} className="text-teal-700 dark:text-teal-400" />
             </div>
             <div>
-              <p className="text-xs font-bold text-stone-800 dark:text-[#f3f1ec]">Promedio Personal (10 Patadas)</p>
+              <p className="text-xs font-bold text-stone-800 dark:text-[#eae6e1]">Promedio Personal (10 Patadas)</p>
               <p className="text-lg font-black text-teal-700 dark:text-teal-300 font-mono">~{avgDurationMinutes} minutos</p>
             </div>
           </div>
-          <span className="text-xs font-bold text-teal-800 dark:text-teal-300 bg-teal-100/80 dark:bg-[#132420] px-2.5 py-1 rounded-full tracking-tight">
+          <span className="text-xs font-bold text-teal-800 dark:text-teal-300 bg-teal-100/80 dark:bg-[#1a1724] px-2.5 py-1 rounded-full tracking-tight">
             Ritmo Normal
           </span>
         </div>
@@ -3279,29 +3279,29 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
       {/* HISTORIAL CLÍNICO DE SESIONES CON PERSISTENCIA */}
       <div>
         <div className="flex justify-between items-center mb-3">
-          <h4 className="font-bold text-stone-800 dark:text-[#f3f1ec] flex items-center gap-2 text-sm">
-            <History size={18} className="text-teal-600 dark:text-teal-300"/> Historial Clínico ({sessions.length})
+          <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] flex items-center gap-2 text-sm">
+            <History size={18} className="text-terracotta dark:text-teal-300"/> Historial Clínico ({sessions.length})
           </h4>
-          <span className="text-xs font-semibold text-stone-500 dark:text-[#9ea3ae]">Guardado automático</span>
+          <span className="text-xs font-semibold text-stone-500 dark:text-[#a6a1b2]">Guardado automático</span>
         </div>
 
         {sessions.length === 0 ? (
-          <div className="bg-stone-50 dark:bg-[#181a20]/60 rounded-2xl p-6 text-center border border-dashed border-stone-200 dark:border-white/[0.08]">
-            <Baby className="mx-auto text-stone-300 dark:text-[#9ea3ae]/50 mb-2" size={32} />
-            <p className="text-stone-500 dark:text-[#9ea3ae] text-xs font-medium">Aún no hay sesiones guardadas. Completa 10 patadas para archivar tu primer registro.</p>
+          <div className="bg-stone-50 dark:bg-[#221d2d]/60 rounded-2xl p-6 text-center border border-dashed border-stone-200 dark:border-white/[0.08]">
+            <Baby className="mx-auto text-stone-300 dark:text-[#a6a1b2]/50 mb-2" size={32} />
+            <p className="text-stone-500 dark:text-[#a6a1b2] text-xs font-medium">Aún no hay sesiones guardadas. Completa 10 patadas para archivar tu primer registro.</p>
           </div>
         ) : (
           <div className="space-y-2.5">
             {sessions.map(s => (
-              <div key={s.id} className="bg-white dark:bg-[#181a20] p-3.5 rounded-2xl border border-stone-200/80 dark:border-white/[0.08] shadow-xs flex justify-between items-center group hover:border-teal-200 dark:hover:border-teal-500/30 transition-all">
+              <div key={s.id} className="bg-white dark:bg-[#221d2d] p-3.5 rounded-2xl border border-stone-200/80 dark:border-white/[0.08] shadow-xs flex justify-between items-center group hover:border-teal-200 dark:hover:border-teal-500/30 transition-all">
                 <div className="flex items-center gap-3">
-                  <div className="bg-emerald-50 dark:bg-[#132420] text-emerald-600 dark:text-teal-300 p-2 rounded-xl shrink-0">
+                  <div className="bg-emerald-50 dark:bg-[#1a1724] text-emerald-600 dark:text-teal-300 p-2 rounded-xl shrink-0">
                     <CheckCircle size={18}/>
                   </div>
                   <div>
-                    <span className="font-bold text-stone-800 dark:text-[#f3f1ec] text-xs leading-tight block">{s.dateFormatted}</span>
+                    <span className="font-bold text-stone-800 dark:text-[#eae6e1] text-xs leading-tight block">{s.dateFormatted}</span>
                     {s.note && (
-                      <span className="text-xs font-medium text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#132420] px-2 py-0.5 rounded-md inline-block mt-0.5">
+                      <span className="text-xs font-medium text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#1a1724] px-2 py-0.5 rounded-md inline-block mt-0.5">
                         {s.note}
                       </span>
                     )}
@@ -3310,14 +3310,14 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
 
                 <div className="flex items-center gap-3">
                   <div className="text-right">
-                    <p className="text-xs font-black text-stone-800 dark:text-[#f3f1ec]">{s.count} patadas</p>
-                    <p className="text-xs font-semibold text-stone-500 dark:text-[#9ea3ae] font-mono">en {s.durationFormatted}</p>
+                    <p className="text-xs font-black text-stone-800 dark:text-[#eae6e1]">{s.count} patadas</p>
+                    <p className="text-xs font-semibold text-stone-500 dark:text-[#a6a1b2] font-mono">en {s.durationFormatted}</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => deleteSession(s.id)}
                     aria-label={`Eliminar sesión de ${s.dateFormatted}`}
-                    className="min-w-[40px] min-h-[40px] flex items-center justify-center text-stone-400 dark:text-[#9ea3ae] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-stone-100 dark:hover:bg-[#21242c] p-2 rounded-xl transition-colors"
+                    className="min-w-[40px] min-h-[40px] flex items-center justify-center text-stone-400 dark:text-[#a6a1b2] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-stone-100 dark:hover:bg-[#2d273a] p-2 rounded-xl transition-colors"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -3479,7 +3479,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
               href="https://maps.google.com/?q=hospital+maternidad"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 bg-white dark:bg-[#181a20] hover:bg-rose-100/50 dark:hover:bg-[#21242c] active:scale-95 border border-rose-300 dark:border-rose-500/30 text-rose-900 dark:text-rose-300 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
+              className="flex-1 bg-white dark:bg-[#221d2d] hover:bg-rose-100/50 dark:hover:bg-[#2d273a] active:scale-95 border border-rose-300 dark:border-rose-500/30 text-rose-900 dark:text-rose-300 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
             >
               📍 Ruta al Hospital
             </a>
@@ -3489,11 +3489,11 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
 
       {/* Tarjetas de Promedios */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white dark:bg-[#181a20] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] flex flex-col items-center justify-center text-center">
+        <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] flex flex-col items-center justify-center text-center">
           <p className="text-xs text-teal-800 dark:text-teal-300 font-bold tracking-tight mb-1">Duración Promedio</p>
           <p className="text-xl font-black text-teal-700 dark:text-teal-300 tabular-nums">{history.length > 0 ? formatTime(avgDuration) : "—"}</p>
         </div>
-        <div className="bg-white dark:bg-[#181a20] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] flex flex-col items-center justify-center text-center">
+        <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] flex flex-col items-center justify-center text-center">
           <p className="text-xs text-rose-800 dark:text-rose-300 font-bold tracking-tight mb-1">Frecuencia Promedio</p>
           <p className="text-xl font-black text-rose-600 dark:text-rose-400 tabular-nums">{avgInterval ? formatTime(avgInterval) : "—"}</p>
         </div>
@@ -3506,7 +3506,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
         className={`w-full py-7 rounded-3xl shadow-xl text-white font-bold text-xl flex flex-col items-center justify-center gap-2 transition-all duration-300 transform active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-teal-400 ${
           isRecording 
             ? "bg-rose-500 hover:bg-rose-600 ring-4 ring-rose-200 dark:ring-rose-500/30" 
-            : "bg-teal-600 hover:bg-teal-700"
+            : "bg-terracotta hover:bg-terracotta-hover"
         }`}
         aria-label={isRecording ? "Detener registro de contracción" : "Iniciar registro de contracción"}
       >
@@ -3523,7 +3523,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
 
       {/* MODO RECUPERACIÓN Y RESPIRACIÓN GUIADA ENTRE CONTRACCIONES */}
       {!isRecording && history.length > 0 && (
-        <div className="bg-gradient-to-br from-teal-50/80 via-emerald-50/50 to-white dark:from-[#181a20] dark:to-[#132420] rounded-3xl p-5 border border-teal-200/80 dark:border-teal-500/25 shadow-xs space-y-4 animate-in fade-in">
+        <div className="bg-gradient-to-br from-teal-50/80 via-emerald-50/50 to-white dark:from-[#221d2d] dark:to-[#1a1724] rounded-3xl p-5 border border-teal-200/80 dark:border-teal-500/25 shadow-xs space-y-4 animate-in fade-in">
           <div className="flex items-center justify-between border-b border-teal-100 dark:border-white/[0.06] pb-2.5">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
@@ -3537,54 +3537,54 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
           {/* Pacer Visual de Respiración */}
           <div className="flex flex-col items-center justify-center py-2 text-center">
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-teal-400/20 to-emerald-400/30 border-2 border-teal-500 flex items-center justify-center animate-pulse motion-reduce:animate-none">
-              <HeartPulse size={32} className="text-teal-600 dark:text-teal-400" />
+              <HeartPulse size={32} className="text-terracotta dark:text-teal-400" />
             </div>
-            <p className="font-bold text-stone-800 dark:text-[#f3f1ec] text-sm mt-3">Inhala lento en 4s ... Exhala suave en 6s</p>
-            <p className="text-xs text-stone-500 dark:text-[#9ea3ae] max-w-xs mt-0.5">
+            <p className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm mt-3">Inhala lento en 4s ... Exhala suave en 6s</p>
+            <p className="text-xs text-stone-500 dark:text-[#a6a1b2] max-w-xs mt-0.5">
               Suelta mandíbula y hombros para relajar la musculatura del suelo pélvico.
             </p>
           </div>
 
           {/* Guía Rápida para el Acompañante */}
-          <div className="bg-white/90 dark:bg-[#21242c]/80 rounded-2xl p-3 border border-teal-100/90 dark:border-white/10 text-xs space-y-1">
+          <div className="bg-white/90 dark:bg-[#2d273a]/80 rounded-2xl p-3 border border-teal-100/90 dark:border-white/10 text-xs space-y-1">
             <p className="font-bold text-teal-900 dark:text-teal-300 flex items-center gap-1">
               <span>🤝 Acompañamiento del Papá / Pareja:</span>
             </p>
-            <p className="text-stone-600 dark:text-[#9ea3ae] leading-relaxed">• Ofrece un sorbo pequeño de agua fresca o bálsamo labial.</p>
-            <p className="text-stone-600 dark:text-[#9ea3ae] leading-relaxed">• Aplica contrapresión firme con el talón de la mano en el sacro (espalda baja).</p>
-            <p className="text-stone-600 dark:text-[#9ea3ae] leading-relaxed">• Recuérdale con voz serena: <em>"Respira profundo, lo estás haciendo genial."</em></p>
+            <p className="text-stone-600 dark:text-[#a6a1b2] leading-relaxed">• Ofrece un sorbo pequeño de agua fresca o bálsamo labial.</p>
+            <p className="text-stone-600 dark:text-[#a6a1b2] leading-relaxed">• Aplica contrapresión firme con el talón de la mano en el sacro (espalda baja).</p>
+            <p className="text-stone-600 dark:text-[#a6a1b2] leading-relaxed">• Recuérdale con voz serena: <em>"Respira profundo, lo estás haciendo genial."</em></p>
           </div>
         </div>
       )}
 
       {/* Historial o Estado Inicial */}
       {history.length === 0 ? (
-        <div className="bg-white dark:bg-[#181a20] rounded-3xl p-6 border border-dashed border-stone-200 dark:border-white/[0.08] text-center shadow-xs">
-          <div className="bg-teal-50 dark:bg-[#132420] w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 text-teal-600 dark:text-teal-300">
+        <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-6 border border-dashed border-stone-200 dark:border-white/[0.08] text-center shadow-xs">
+          <div className="bg-teal-50 dark:bg-[#1a1724] w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 text-terracotta dark:text-teal-300">
             <HeartPulse size={24} />
           </div>
-          <h4 className="font-bold text-stone-800 dark:text-[#f3f1ec] text-sm mb-1">Sin contracciones registradas</h4>
-          <p className="text-xs text-stone-500 dark:text-[#9ea3ae] max-w-xs mx-auto leading-relaxed">
+          <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm mb-1">Sin contracciones registradas</h4>
+          <p className="text-xs text-stone-500 dark:text-[#a6a1b2] max-w-xs mx-auto leading-relaxed">
             Cuando sientas que tu abdomen se tensa o empiece una contracción, toca el botón grande. El sistema calculará la duración, el intervalo y te avisará si cumples la regla 5-1-1 para acudir al hospital.
           </p>
         </div>
       ) : (
         <div className="space-y-3">
           <div className="flex justify-between items-center">
-            <h4 className="font-bold text-stone-800 dark:text-[#f3f1ec] text-sm flex items-center gap-2">
-              <Activity size={18} className="text-teal-600 dark:text-teal-300"/> Historial ({history.length})
+            <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm flex items-center gap-2">
+              <Activity size={18} className="text-terracotta dark:text-teal-300"/> Historial ({history.length})
             </h4>
             <button
               type="button"
               onClick={clearHistory}
-              className="text-xs font-bold text-stone-400 dark:text-[#9ea3ae] hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
+              className="text-xs font-bold text-stone-400 dark:text-[#a6a1b2] hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
             >
               Reiniciar historial
             </button>
           </div>
 
-          <div className="bg-white dark:bg-[#181a20] rounded-3xl shadow-xs border border-stone-200/80 dark:border-white/[0.08] overflow-hidden">
-            <div className="grid grid-cols-4 bg-stone-50 dark:bg-[#21242c]/50 p-3 text-xs font-bold text-stone-500 dark:text-[#9ea3ae] tracking-tight text-center">
+          <div className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-xs border border-stone-200/80 dark:border-white/[0.08] overflow-hidden">
+            <div className="grid grid-cols-4 bg-stone-50 dark:bg-[#2d273a]/50 p-3 text-xs font-bold text-stone-500 dark:text-[#a6a1b2] tracking-tight text-center">
               <div>Hora</div>
               <div>Duración</div>
               <div>Frecuencia</div>
@@ -3592,12 +3592,12 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
             </div>
             <div className="divide-y divide-gray-50 dark:divide-white/[0.06] text-xs text-center">
               {history.map((item) => (
-                <div key={item.id} className="grid grid-cols-4 p-3.5 items-center hover:bg-stone-50/70 dark:hover:bg-[#21242c]/40 transition-colors">
-                  <div className="text-stone-600 dark:text-[#9ea3ae] font-medium">
+                <div key={item.id} className="grid grid-cols-4 p-3.5 items-center hover:bg-stone-50/70 dark:hover:bg-[#2d273a]/40 transition-colors">
+                  <div className="text-stone-600 dark:text-[#a6a1b2] font-medium">
                     {new Date(item.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
                   <div>
-                    <span className="font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#132420] py-1 px-2 rounded-lg inline-block tabular-nums">
+                    <span className="font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#1a1724] py-1 px-2 rounded-lg inline-block tabular-nums">
                       {formatTime(item.duration)}
                     </span>
                   </div>
@@ -3609,7 +3609,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
                       type="button"
                       onClick={() => deleteItem(item.id)}
                       aria-label="Eliminar contracción"
-                      className="min-w-[40px] min-h-[40px] inline-flex items-center justify-center text-stone-400 dark:text-[#9ea3ae] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-stone-100 dark:hover:bg-[#21242c] p-2 rounded-xl transition-colors"
+                      className="min-w-[40px] min-h-[40px] inline-flex items-center justify-center text-stone-400 dark:text-[#a6a1b2] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-stone-100 dark:hover:bg-[#2d273a] p-2 rounded-xl transition-colors"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -3746,8 +3746,8 @@ function VotadorNombres({ showToast }: { showToast: any }) {
     <div className="flex flex-col py-2 animate-in fade-in duration-300 w-full">
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h3 className="text-xl font-bold text-stone-800 dark:text-[#f3f1ec]">Nombres del Bebé</h3>
-          <p className="text-xs text-stone-500 dark:text-[#9ea3ae]">¿Hará match con tu pareja?</p>
+          <h3 className="text-xl font-bold text-stone-800 dark:text-[#eae6e1]">Nombres del Bebé</h3>
+          <p className="text-xs text-stone-500 dark:text-[#a6a1b2]">¿Hará match con tu pareja?</p>
         </div>
         <div className="flex items-center gap-2">
           {matches.length > 0 && (
@@ -3759,7 +3759,7 @@ function VotadorNombres({ showToast }: { showToast: any }) {
             type="button"
             onClick={handleRequestMoreNames}
             disabled={isLoadingMore}
-            className="text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#132420] hover:bg-teal-100 dark:hover:bg-[#19322c] px-3 py-1.5 min-h-[38px] rounded-full border border-teal-200/70 dark:border-teal-500/25 flex items-center gap-1.5 transition-colors disabled:opacity-60 shadow-xs active:scale-95"
+            className="text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#1a1724] hover:bg-teal-100 dark:hover:bg-[#19322c] px-3 py-1.5 min-h-[38px] rounded-full border border-teal-200/70 dark:border-teal-500/25 flex items-center gap-1.5 transition-colors disabled:opacity-60 shadow-xs active:scale-95"
             title="Pedir más nombres a PandaIA"
           >
             {isLoadingMore ? (
@@ -3780,8 +3780,8 @@ function VotadorNombres({ showToast }: { showToast: any }) {
               onClick={() => setGenderFilter(f as any)}
               className={`px-3.5 py-2 min-h-[40px] rounded-full text-xs font-bold uppercase transition-colors whitespace-nowrap active:scale-95 ${
                 genderFilter === f 
-                  ? "bg-teal-600 text-white shadow-xs" 
-                  : "bg-stone-100 dark:bg-[#21242c] text-stone-600 dark:text-[#9ea3ae] hover:bg-stone-200 dark:hover:bg-[#282c36]"
+                  ? "bg-terracotta text-white shadow-xs" 
+                  : "bg-stone-100 dark:bg-[#2d273a] text-stone-600 dark:text-[#a6a1b2] hover:bg-stone-200 dark:hover:bg-[#383147]"
               }`}
             >
               {f}
@@ -3793,7 +3793,7 @@ function VotadorNombres({ showToast }: { showToast: any }) {
           <button
             type="button"
             onClick={undoLastVote}
-            className="text-xs font-bold text-stone-600 dark:text-[#f3f1ec] hover:text-stone-900 dark:hover:text-white bg-white dark:bg-[#21242c] border border-stone-200 dark:border-white/10 hover:bg-stone-100 dark:hover:bg-[#282c36] px-3 py-2 min-h-[40px] rounded-full shadow-xs active:scale-95 transition-all flex items-center gap-1 shrink-0 ml-2"
+            className="text-xs font-bold text-stone-600 dark:text-[#eae6e1] hover:text-stone-900 dark:hover:text-white bg-white dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 hover:bg-stone-100 dark:hover:bg-[#383147] px-3 py-2 min-h-[40px] rounded-full shadow-xs active:scale-95 transition-all flex items-center gap-1 shrink-0 ml-2"
             title="Deshacer el último voto de nombre"
           >
             <Undo2 size={13} /> Deshacer
@@ -3807,21 +3807,21 @@ function VotadorNombres({ showToast }: { showToast: any }) {
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
           style={{ transform: touchStart !== null ? `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.05}deg)` : "translateX(0) rotate(0)", transition: touchStart !== null ? "none" : "transform 0.3s ease-out" }}
-          className="bg-white dark:bg-[#181a20] rounded-3xl shadow-xl border border-stone-100 dark:border-white/[0.08] p-8 flex flex-col items-center text-center relative overflow-hidden mb-6 select-none touch-pan-y w-full"
+          className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-xl border border-stone-100 dark:border-white/[0.08] p-8 flex flex-col items-center text-center relative overflow-hidden mb-6 select-none touch-pan-y w-full"
         >
           <div className="absolute top-0 w-full h-2 bg-gradient-to-r from-teal-400 to-amber-400"></div>
-          <h2 className="text-4xl font-black text-stone-800 dark:text-[#f3f1ec] mb-2 mt-4">{current.text}</h2>
-          <span className="text-xs font-bold uppercase tracking-widest text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#132420] px-3 py-1 rounded-full mb-4">
+          <h2 className="text-4xl font-black text-stone-800 dark:text-[#eae6e1] mb-2 mt-4">{current.text}</h2>
+          <span className="text-xs font-bold uppercase tracking-widest text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#1a1724] px-3 py-1 rounded-full mb-4">
             Origen: {current.origin} • {current.gender}
           </span>
-          <p className="text-sm text-stone-500 dark:text-[#9ea3ae] italic mb-8 max-w-[200px]">"{current.meaning}"</p>
+          <p className="text-sm text-stone-500 dark:text-[#a6a1b2] italic mb-8 max-w-[200px]">"{current.meaning}"</p>
           
           <div className="flex gap-6 w-full justify-center">
             <button 
               type="button"
               onClick={() => vote(current.id, "disliked")} 
               aria-label={`Descartar el nombre ${current.text}`}
-              className="bg-white dark:bg-[#21242c] border-2 border-stone-100 dark:border-white/10 p-5 rounded-full shadow-xs hover:bg-stone-50 dark:hover:bg-[#282c36] text-stone-400 dark:text-[#9ea3ae] hover:text-stone-600 dark:hover:text-[#f3f1ec] transition-transform active:scale-90 focus:outline-none focus:ring-2 focus:ring-rose-300"
+              className="bg-white dark:bg-[#2d273a] border-2 border-stone-100 dark:border-white/10 p-5 rounded-full shadow-xs hover:bg-stone-50 dark:hover:bg-[#383147] text-stone-400 dark:text-[#a6a1b2] hover:text-stone-600 dark:hover:text-[#eae6e1] transition-transform active:scale-90 focus:outline-none focus:ring-2 focus:ring-rose-300"
             >
               <X size={32} />
             </button>
@@ -3836,14 +3836,14 @@ function VotadorNombres({ showToast }: { showToast: any }) {
           </div>
         </div>
       ) : (
-        <div className="bg-gradient-to-br from-teal-50 to-amber-50 dark:from-[#181a20] dark:to-[#132420] rounded-3xl border border-teal-100 dark:border-teal-500/25 p-8 text-center mb-6 shadow-xs flex flex-col items-center w-full">
-            <div className="bg-white dark:bg-[#21242c] p-4 rounded-full mb-4 shadow-xs">
+        <div className="bg-gradient-to-br from-teal-50 to-amber-50 dark:from-[#221d2d] dark:to-[#1a1724] rounded-3xl border border-teal-100 dark:border-teal-500/25 p-8 text-center mb-6 shadow-xs flex flex-col items-center w-full">
+            <div className="bg-white dark:bg-[#2d273a] p-4 rounded-full mb-4 shadow-xs">
               <Sparkles className="text-amber-500" size={32} />
             </div>
-            <h4 className="text-xl font-bold text-stone-800 dark:text-[#f3f1ec] mb-2">
+            <h4 className="text-xl font-bold text-stone-800 dark:text-[#eae6e1] mb-2">
               {matches.length > 0 ? "¡Excelente trabajo en equipo!" : "¡Sigue buscando!"}
             </h4>
-            <p className="text-stone-600 dark:text-[#9ea3ae] text-sm mb-6 leading-relaxed">
+            <p className="text-stone-600 dark:text-[#a6a1b2] text-sm mb-6 leading-relaxed">
               {matches.length > 0 
                 ? `Han coincidido en ${matches.length} nombre${matches.length > 1 ? "s" : ""}. Este bebé ya tiene opciones increíbles.` 
                 : "Has revisado esta lista, pero aún no hay coincidencias. ¡No te rindas, el nombre perfecto está ahí afuera!"}
@@ -3852,7 +3852,7 @@ function VotadorNombres({ showToast }: { showToast: any }) {
               type="button"
               disabled={isLoadingMore}
               onClick={handleRequestMoreNames}
-              className="bg-teal-600 text-white font-bold py-3.5 px-6 rounded-full shadow-md hover:bg-teal-700 transition-colors flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60 w-full max-w-xs"
+              className="bg-terracotta text-white font-bold py-3.5 px-6 rounded-full shadow-md hover:bg-terracotta-hover transition-colors flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60 w-full max-w-xs"
             >
               {isLoadingMore ? (
                 <>
@@ -3871,7 +3871,7 @@ function VotadorNombres({ showToast }: { showToast: any }) {
                  setNames(prev => prev.map(n => ({...n, status: "pending"})));
                  showToast("Nombres restablecidos a pendientes para volver a votar", () => {});
               }}
-              className="mt-4 text-xs font-bold text-stone-500 dark:text-[#9ea3ae] hover:text-stone-700 dark:hover:text-[#f3f1ec] tracking-tight transition-colors focus:outline-none"
+              className="mt-4 text-xs font-bold text-stone-500 dark:text-[#a6a1b2] hover:text-stone-700 dark:hover:text-[#eae6e1] tracking-tight transition-colors focus:outline-none"
             >
               Volver a votar los anteriores
             </button>
@@ -3880,12 +3880,12 @@ function VotadorNombres({ showToast }: { showToast: any }) {
 
       {matches.length > 0 && (
         <div className="mt-4">
-          <h4 className="font-bold text-stone-800 dark:text-[#f3f1ec] mb-3 flex items-center gap-2"><Sparkles size={18} className="text-amber-500"/> ¡It's a Match!</h4>
+          <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] mb-3 flex items-center gap-2"><Sparkles size={18} className="text-amber-500"/> ¡It's a Match!</h4>
           <div className="grid grid-cols-2 gap-3">
             {matches.map(n => (
-              <div key={n.id} className="bg-gradient-to-br from-teal-50 to-white dark:from-[#181a20] dark:to-[#21242c] border border-teal-100 dark:border-white/[0.08] p-4 rounded-2xl flex flex-col items-center justify-center shadow-xs">
+              <div key={n.id} className="bg-gradient-to-br from-teal-50 to-white dark:from-[#221d2d] dark:to-[#2d273a] border border-teal-100 dark:border-white/[0.08] p-4 rounded-2xl flex flex-col items-center justify-center shadow-xs">
                 <Heart size={20} className="text-rose-400 mb-1" fill="currentColor"/>
-                <span className="font-bold text-stone-800 dark:text-[#f3f1ec]">{n.text}</span>
+                <span className="font-bold text-stone-800 dark:text-[#eae6e1]">{n.text}</span>
               </div>
             ))}
           </div>
@@ -4165,11 +4165,11 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
       <div className="no-print space-y-4">
         <div className="flex justify-between items-start gap-3">
           <div>
-            <div className="inline-flex items-center gap-1.5 bg-teal-50 dark:bg-[#132420] border border-teal-200/80 dark:border-teal-500/25 px-2.5 py-0.5 rounded-full text-xs font-bold text-teal-800 dark:text-teal-300 mb-1">
-              <ClipboardList size={13} className="text-teal-600 dark:text-teal-400" /> Plan de Parto Respetado
+            <div className="inline-flex items-center gap-1.5 bg-teal-50 dark:bg-[#1a1724] border border-teal-200/80 dark:border-teal-500/25 px-2.5 py-0.5 rounded-full text-xs font-bold text-teal-800 dark:text-teal-300 mb-1">
+              <ClipboardList size={13} className="text-terracotta dark:text-teal-400" /> Plan de Parto Respetado
             </div>
-            <h3 className="text-2xl font-black text-stone-800 dark:text-[#f3f1ec]">Tu Plan de Parto</h3>
-            <p className="text-xs text-stone-500 dark:text-[#9ea3ae]">
+            <h3 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1]">Tu Plan de Parto</h3>
+            <p className="text-xs text-stone-500 dark:text-[#a6a1b2]">
               Personaliza tus preferencias para el hospital y expórtalas en un PDF oficial.
             </p>
           </div>
@@ -4178,7 +4178,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
             <button
               type="button"
               onClick={handlePrint}
-              className="p-2.5 bg-stone-900 dark:bg-[#21242c] hover:bg-stone-800 dark:hover:bg-[#282c36] text-white rounded-xl shadow-xs transition-all flex items-center gap-1.5 text-xs font-bold active:scale-95 border border-transparent dark:border-white/10"
+              className="p-2.5 bg-stone-900 dark:bg-[#2d273a] hover:bg-stone-800 dark:hover:bg-[#383147] text-white rounded-xl shadow-xs transition-all flex items-center gap-1.5 text-xs font-bold active:scale-95 border border-transparent dark:border-white/10"
               title="Guardar o imprimir en PDF"
             >
               <Printer size={16} />
@@ -4187,7 +4187,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
             <button
               type="button"
               onClick={sharePlanWhatsApp}
-              className="p-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl shadow-xs transition-all flex items-center gap-1.5 text-xs font-bold active:scale-95"
+              className="p-2.5 bg-terracotta hover:bg-terracotta-hover text-white rounded-xl shadow-xs transition-all flex items-center gap-1.5 text-xs font-bold active:scale-95"
               title="Compartir por WhatsApp"
             >
               <Share2 size={16} />
@@ -4196,14 +4196,14 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
         </div>
 
         {/* SELECTOR DE VISTA: WIZARD VS DOCUMENTO OFICIAL */}
-        <div className="flex bg-stone-100 dark:bg-[#181a20] p-1 rounded-2xl border border-transparent dark:border-white/[0.08]">
+        <div className="flex bg-stone-100 dark:bg-[#221d2d] p-1 rounded-2xl border border-transparent dark:border-white/[0.08]">
           <button
             type="button"
             onClick={() => setViewMode("wizard")}
             className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
               viewMode === "wizard" 
-                ? "bg-white dark:bg-[#21242c] text-teal-800 dark:text-teal-300 shadow-xs" 
-                : "text-stone-500 dark:text-[#9ea3ae] hover:text-stone-800 dark:hover:text-[#f3f1ec]"
+                ? "bg-white dark:bg-[#2d273a] text-teal-800 dark:text-teal-300 shadow-xs" 
+                : "text-stone-500 dark:text-[#a6a1b2] hover:text-stone-800 dark:hover:text-[#eae6e1]"
             }`}
           >
             <Edit3 size={14} /> Asistente Paso a Paso ({step}/5)
@@ -4213,8 +4213,8 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
             onClick={() => setViewMode("document")}
             className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
               viewMode === "document" 
-                ? "bg-white dark:bg-[#21242c] text-teal-800 dark:text-teal-300 shadow-xs" 
-                : "text-stone-500 dark:text-[#9ea3ae] hover:text-stone-800 dark:hover:text-[#f3f1ec]"
+                ? "bg-white dark:bg-[#2d273a] text-teal-800 dark:text-teal-300 shadow-xs" 
+                : "text-stone-500 dark:text-[#a6a1b2] hover:text-stone-800 dark:hover:text-[#eae6e1]"
             }`}
           >
             <FileText size={14} /> Vista Previa Documento ({totalCheckedCount} seleccionadas)
@@ -4239,7 +4239,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                   className="flex-1 py-2 min-h-[40px] flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded-full"
                 >
                   <div className={`h-2 w-full rounded-full transition-all duration-300 ${
-                    isPast ? "bg-teal-600" : isCurrent ? "bg-teal-500 ring-2 ring-teal-200 dark:ring-teal-500/30" : "bg-stone-200 dark:bg-[#21242c]"
+                    isPast ? "bg-terracotta" : isCurrent ? "bg-terracotta ring-2 ring-teal-200 dark:ring-teal-500/30" : "bg-stone-200 dark:bg-[#2d273a]"
                   }`} />
                 </button>
               );
@@ -4248,13 +4248,13 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
 
           {/* Current Section Card */}
           {currentSection && (
-            <div className="bg-white dark:bg-[#181a20] rounded-3xl shadow-xs border border-stone-200/80 dark:border-white/[0.08] p-5 space-y-4 animate-in fade-in">
+            <div className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-xs border border-stone-200/80 dark:border-white/[0.08] p-5 space-y-4 animate-in fade-in">
               <div className="border-b border-stone-100 dark:border-white/[0.06] pb-3">
-                <span className="text-xs font-bold tracking-tight text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#132420] px-2.5 py-0.5 rounded-full">
+                <span className="text-xs font-bold tracking-tight text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#1a1724] px-2.5 py-0.5 rounded-full">
                   Paso {step} de 5 · {currentSection.category}
                 </span>
-                <h4 className="text-lg font-black text-stone-800 dark:text-[#f3f1ec] mt-1 leading-tight">{currentSection.title}</h4>
-                <p className="text-xs text-stone-500 dark:text-[#9ea3ae] mt-0.5">{currentSection.subtitle}</p>
+                <h4 className="text-lg font-black text-stone-800 dark:text-[#eae6e1] mt-1 leading-tight">{currentSection.title}</h4>
+                <p className="text-xs text-stone-500 dark:text-[#a6a1b2] mt-0.5">{currentSection.subtitle}</p>
               </div>
 
               {/* Opciones Interactivas con Switches */}
@@ -4264,21 +4264,21 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                     key={opt.id}
                     className={`flex items-start gap-3 p-3.5 rounded-2xl border transition-all cursor-pointer select-none ${
                       opt.checked
-                        ? "bg-teal-50/60 dark:bg-[#21242c] border-teal-200 dark:border-teal-500/30 shadow-xs"
-                        : "bg-white dark:bg-[#181a20] border-stone-200/80 dark:border-white/[0.08] hover:border-stone-300 dark:hover:border-white/20 opacity-70"
+                        ? "bg-teal-50/60 dark:bg-[#2d273a] border-teal-200 dark:border-teal-500/30 shadow-xs"
+                        : "bg-white dark:bg-[#221d2d] border-stone-200/80 dark:border-white/[0.08] hover:border-stone-300 dark:hover:border-white/20 opacity-70"
                     }`}
                   >
                     <input
                       type="checkbox"
                       checked={opt.checked}
                       onChange={() => toggleOption(currentSection.id, opt.id)}
-                      className="mt-1 w-4 h-4 text-teal-600 rounded border-stone-300 dark:border-white/20 dark:bg-[#21242c] focus:ring-teal-500"
+                      className="mt-1 w-4 h-4 text-terracotta rounded border-stone-300 dark:border-white/20 dark:bg-[#2d273a] focus:ring-teal-500"
                     />
                     <div className="flex-1">
-                      <span className={`text-xs font-bold block leading-snug ${opt.checked ? "text-teal-950 dark:text-teal-300" : "text-stone-700 dark:text-[#f3f1ec]"}`}>
+                      <span className={`text-xs font-bold block leading-snug ${opt.checked ? "text-teal-950 dark:text-teal-300" : "text-stone-700 dark:text-[#eae6e1]"}`}>
                         {opt.label}
                       </span>
-                      <span className="text-xs text-stone-500 dark:text-[#9ea3ae] block mt-0.5 leading-relaxed">
+                      <span className="text-xs text-stone-500 dark:text-[#a6a1b2] block mt-0.5 leading-relaxed">
                         {opt.desc}
                       </span>
                     </div>
@@ -4295,7 +4295,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                 type="button"
                 onClick={() => setStep(s => Math.max(1, s - 1))}
                 aria-label="Paso anterior"
-                className="py-3 px-4 bg-stone-100 dark:bg-[#21242c] text-stone-700 dark:text-[#f3f1ec] rounded-2xl hover:bg-stone-200 dark:hover:bg-[#282c36] transition-colors font-bold text-xs flex items-center gap-1 active:scale-95"
+                className="py-3 px-4 bg-stone-100 dark:bg-[#2d273a] text-stone-700 dark:text-[#eae6e1] rounded-2xl hover:bg-stone-200 dark:hover:bg-[#383147] transition-colors font-bold text-xs flex items-center gap-1 active:scale-95"
               >
                 <ArrowLeft size={16} /> Anterior
               </button>
@@ -4305,7 +4305,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
               <button
                 type="button"
                 onClick={() => setStep(s => Math.min(5, s + 1))}
-                className="flex-1 py-3 px-5 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl font-bold text-xs flex justify-center items-center gap-2 transition-all shadow-xs active:scale-95"
+                className="flex-1 py-3 px-5 bg-terracotta hover:bg-terracotta-hover text-white rounded-2xl font-bold text-xs flex justify-center items-center gap-2 transition-all shadow-xs active:scale-95"
               >
                 Siguiente Paso ({step + 1}/5) <ArrowRight size={16} />
               </button>
@@ -4313,7 +4313,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
               <button
                 type="button"
                 onClick={() => setViewMode("document")}
-                className="flex-1 py-3 px-5 bg-stone-900 dark:bg-[#21242c] hover:bg-stone-800 dark:hover:bg-[#282c36] text-white rounded-2xl font-bold text-xs flex justify-center items-center gap-2 transition-all shadow-md active:scale-95 border border-transparent dark:border-white/10"
+                className="flex-1 py-3 px-5 bg-stone-900 dark:bg-[#2d273a] hover:bg-stone-800 dark:hover:bg-[#383147] text-white rounded-2xl font-bold text-xs flex justify-center items-center gap-2 transition-all shadow-md active:scale-95 border border-transparent dark:border-white/10"
               >
                 <FileText size={16} /> Ver Documento Final
               </button>
@@ -4326,84 +4326,84 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
       {viewMode === "document" && (
         <div className="no-print mt-4 space-y-5 animate-in fade-in">
           {/* Card de Datos del Paciente / Hospital */}
-          <div className="bg-white dark:bg-[#181a20] rounded-3xl p-5 shadow-xs border border-stone-100 dark:border-white/[0.08] space-y-3">
+          <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-5 shadow-xs border border-stone-100 dark:border-white/[0.08] space-y-3">
             <div className="flex justify-between items-center border-b border-stone-100 dark:border-white/[0.06] pb-2">
-              <h4 className="text-xs font-bold text-stone-800 dark:text-[#f3f1ec] tracking-tight flex items-center gap-1.5">
-                <Settings size={14} className="text-teal-600 dark:text-teal-400" /> Datos de la Ficha Médica
+              <h4 className="text-xs font-bold text-stone-800 dark:text-[#eae6e1] tracking-tight flex items-center gap-1.5">
+                <Settings size={14} className="text-terracotta dark:text-teal-400" /> Datos de la Ficha Médica
               </h4>
-              <span className="text-xs text-stone-500 dark:text-[#9ea3ae]">Se imprimirán en el encabezado</span>
+              <span className="text-xs text-stone-500 dark:text-[#a6a1b2]">Se imprimirán en el encabezado</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
-                <label htmlFor="plan-mother-name" className="font-semibold text-stone-600 dark:text-[#f3f1ec] block mb-1">Nombre de la Madre:</label>
+                <label htmlFor="plan-mother-name" className="font-semibold text-stone-600 dark:text-[#eae6e1] block mb-1">Nombre de la Madre:</label>
                 <input
                   id="plan-mother-name"
                   type="text"
                   value={patientData.motherName}
                   onChange={e => setPatientData({ ...patientData, motherName: e.target.value })}
                   placeholder="Ej. Sofía Martínez"
-                  className="w-full bg-stone-50 dark:bg-[#21242c] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#f3f1ec] placeholder-gray-400 dark:placeholder-[#9ea3ae]/50 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
 
               <div>
-                <label htmlFor="plan-partner-name" className="font-semibold text-stone-600 dark:text-[#f3f1ec] block mb-1">Acompañante / Pareja:</label>
+                <label htmlFor="plan-partner-name" className="font-semibold text-stone-600 dark:text-[#eae6e1] block mb-1">Acompañante / Pareja:</label>
                 <input
                   id="plan-partner-name"
                   type="text"
                   value={patientData.partnerName}
                   onChange={e => setPatientData({ ...patientData, partnerName: e.target.value })}
                   placeholder="Ej. Carlos Pérez"
-                  className="w-full bg-stone-50 dark:bg-[#21242c] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#f3f1ec] placeholder-gray-400 dark:placeholder-[#9ea3ae]/50 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
 
               <div>
-                <label htmlFor="plan-hospital" className="font-semibold text-stone-600 dark:text-[#f3f1ec] block mb-1">Hospital / Clínica:</label>
+                <label htmlFor="plan-hospital" className="font-semibold text-stone-600 dark:text-[#eae6e1] block mb-1">Hospital / Clínica:</label>
                 <input
                   id="plan-hospital"
                   type="text"
                   value={patientData.hospital}
                   onChange={e => setPatientData({ ...patientData, hospital: e.target.value })}
                   placeholder="Ej. Hospital Materno Infantil"
-                  className="w-full bg-stone-50 dark:bg-[#21242c] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#f3f1ec] placeholder-gray-400 dark:placeholder-[#9ea3ae]/50 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
 
               <div>
-                <label htmlFor="plan-doctor" className="font-semibold text-stone-600 dark:text-[#f3f1ec] block mb-1">Obstetra / Matrona:</label>
+                <label htmlFor="plan-doctor" className="font-semibold text-stone-600 dark:text-[#eae6e1] block mb-1">Obstetra / Matrona:</label>
                 <input
                   id="plan-doctor"
                   type="text"
                   value={patientData.doctor}
                   onChange={e => setPatientData({ ...patientData, doctor: e.target.value })}
                   placeholder="Ej. Dra. Gómez / Matrona de turno"
-                  className="w-full bg-stone-50 dark:bg-[#21242c] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#f3f1ec] placeholder-gray-400 dark:placeholder-[#9ea3ae]/50 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="plan-notes" className="font-semibold text-stone-600 dark:text-[#f3f1ec] block mb-1 text-xs">Observaciones Especiales o Alergias:</label>
+              <label htmlFor="plan-notes" className="font-semibold text-stone-600 dark:text-[#eae6e1] block mb-1 text-xs">Observaciones Especiales o Alergias:</label>
               <textarea
                 id="plan-notes"
                 rows={2}
                 value={patientData.notes}
                 onChange={e => setPatientData({ ...patientData, notes: e.target.value })}
                 placeholder="Ej. Alergia a la penicilina, deseo donar sangre de cordón, etc."
-                className="w-full bg-stone-50 dark:bg-[#21242c] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs text-stone-800 dark:text-[#f3f1ec] placeholder-gray-400 dark:placeholder-[#9ea3ae]/50 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
+                className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
               />
             </div>
           </div>
 
           {/* Resumen Estructurado del Documento */}
-          <div className="bg-white dark:bg-[#181a20] rounded-3xl p-5 shadow-xs border border-stone-100 dark:border-white/[0.08] space-y-4">
+          <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-5 shadow-xs border border-stone-100 dark:border-white/[0.08] space-y-4">
             <div className="flex justify-between items-center border-b border-stone-100 dark:border-white/[0.06] pb-2">
-              <h4 className="text-sm font-bold text-stone-800 dark:text-[#f3f1ec] flex items-center gap-2">
-                <FileText size={16} className="text-teal-600 dark:text-teal-400" /> Vista Previa del Documento
+              <h4 className="text-sm font-bold text-stone-800 dark:text-[#eae6e1] flex items-center gap-2">
+                <FileText size={16} className="text-terracotta dark:text-teal-400" /> Vista Previa del Documento
               </h4>
-              <span className="text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#132420] px-2.5 py-0.5 rounded-full">
+              <span className="text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#1a1724] px-2.5 py-0.5 rounded-full">
                 {totalCheckedCount} deseos activos
               </span>
             </div>
@@ -4412,18 +4412,18 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
               {sections.map(sec => {
                 const active = sec.options.filter(o => o.checked);
                 return (
-                  <div key={sec.id} className="bg-slate-50/70 dark:bg-[#21242c]/50 p-3.5 rounded-2xl border border-slate-100 dark:border-white/[0.06] space-y-2">
-                    <h5 className="font-bold text-stone-900 dark:text-[#f3f1ec] text-xs flex justify-between items-center">
+                  <div key={sec.id} className="bg-slate-50/70 dark:bg-[#2d273a]/50 p-3.5 rounded-2xl border border-slate-100 dark:border-white/[0.06] space-y-2">
+                    <h5 className="font-bold text-stone-900 dark:text-[#eae6e1] text-xs flex justify-between items-center">
                       <span>{sec.title}</span>
-                      <span className="text-stone-500 dark:text-[#9ea3ae] font-normal">{active.length} de {sec.options.length}</span>
+                      <span className="text-stone-500 dark:text-[#a6a1b2] font-normal">{active.length} de {sec.options.length}</span>
                     </h5>
                     {active.length === 0 ? (
-                      <p className="text-stone-400 dark:text-[#9ea3ae]/60 italic text-xs">Sin preferencias seleccionadas en este apartado.</p>
+                      <p className="text-stone-400 dark:text-[#a6a1b2]/60 italic text-xs">Sin preferencias seleccionadas en este apartado.</p>
                     ) : (
                       <ul className="space-y-1.5">
                         {active.map(opt => (
-                          <li key={opt.id} className="flex items-start gap-2 text-stone-700 dark:text-[#f3f1ec]/90">
-                            <CheckCircle2 size={14} className="text-teal-600 dark:text-teal-400 shrink-0 mt-0.5" />
+                          <li key={opt.id} className="flex items-start gap-2 text-stone-700 dark:text-[#eae6e1]/90">
+                            <CheckCircle2 size={14} className="text-terracotta dark:text-teal-400 shrink-0 mt-0.5" />
                             <span><strong>{opt.label}:</strong> {opt.desc}</span>
                           </li>
                         ))}
@@ -4436,7 +4436,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
           </div>
 
           {/* Barra de Acciones de Exportación */}
-          <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-teal-900 dark:from-[#181a20] dark:via-[#1c2027] dark:to-[#132420] border border-transparent dark:border-white/[0.08] text-white p-5 rounded-3xl shadow-lg space-y-3">
+          <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-teal-900 dark:from-[#221d2d] dark:via-[#1c2027] dark:to-[#1a1724] border border-transparent dark:border-white/[0.08] text-white p-5 rounded-3xl shadow-lg space-y-3">
             <div className="flex items-center gap-3">
               <div className="bg-white/10 p-2.5 rounded-2xl">
                 <Printer size={22} className="text-teal-300" />
@@ -4451,7 +4451,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
               <button
                 type="button"
                 onClick={handlePrint}
-                className="py-3 px-4 bg-teal-500 hover:bg-teal-400 text-teal-950 font-bold text-xs rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 active:scale-95"
+                className="py-3 px-4 bg-terracotta hover:bg-teal-400 text-teal-950 font-bold text-xs rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 active:scale-95"
               >
                 <Printer size={15} /> Imprimir / PDF
               </button>

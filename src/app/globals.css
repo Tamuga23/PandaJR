@@ -3,19 +3,33 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #faf9f5;
-  --foreground: #1c1917;
+  /* Fondo cálido alabastro */
+  --background: #fdfbf7;
+  --foreground: #2d2a26;
   --surface-card: #ffffff;
-  --surface-muted: #f4f3ef;
-  --border-subtle: rgba(28, 25, 23, 0.08);
+  --surface-muted: #f5f2eb;
+  --border-subtle: rgba(45, 42, 38, 0.06);
+  
+  /* Brand Accents */
+  --color-terracotta: #e07a64;
+  --color-terracotta-hover: #c96651;
+  --color-sage: #6c9a84;
+  --color-sage-hover: #5a8570;
 }
 
 .dark {
-  --background: #111317;
-  --foreground: #f3f1ec;
-  --surface-card: #181a20;
-  --surface-muted: #21242c;
-  --border-subtle: rgba(255, 255, 255, 0.08);
+  /* Fondo violeta nocturno cálido */
+  --background: #181520;
+  --foreground: #eae6e1;
+  --surface-card: #221d2d;
+  --surface-muted: #2d273a;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  
+  /* Brand Accents */
+  --color-terracotta: #d16e5a;
+  --color-terracotta-hover: #b85c49;
+  --color-sage: #619b7e;
+  --color-sage-hover: #50866b;
 }
 
 @theme inline {
@@ -24,6 +38,10 @@
   --color-surface-card: var(--surface-card);
   --color-surface-muted: var(--surface-muted);
   --color-border-subtle: var(--border-subtle);
+  --color-terracotta: var(--color-terracotta);
+  --color-terracotta-hover: var(--color-terracotta-hover);
+  --color-sage: var(--color-sage);
+  --color-sage-hover: var(--color-sage-hover);
   --font-sans: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
 }
