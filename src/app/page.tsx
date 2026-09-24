@@ -896,6 +896,7 @@ function OnboardingModal({ onComplete, onSkip }: { onComplete: (profile: UserPro
           <div className="space-y-6">
             <h2 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1]">Vincular Cuenta</h2>
             <p className="text-sm text-stone-500 dark:text-[#a6a1b2]">Pídele a tu pareja su código de vinculación para compartir el diario.</p>
+            {errorMsg && <div className="text-sm text-rose-500 bg-rose-50 dark:bg-rose-950/30 p-3 rounded-xl border border-rose-100 dark:border-rose-900 mt-4">{errorMsg}</div>}
             
             <div className="pt-4">
               <label className="text-xs font-bold text-stone-600 dark:text-[#a6a1b2] mb-1 block text-left">Código de invitación</label>
@@ -908,12 +909,12 @@ function OnboardingModal({ onComplete, onSkip }: { onComplete: (profile: UserPro
               />
             </div>
             <button 
-              onClick={handleNext}
-              disabled={code.length < 5}
-              className="w-full bg-sage hover:bg-sage-hover text-white rounded-xl py-3.5 font-bold disabled:opacity-50 transition-all"
-            >
-              Conectar
-            </button>
+                onClick={handleNext}
+                disabled={code.length < 5 || isLoading}
+                className="w-full bg-sage hover:bg-sage-hover text-white rounded-xl py-3.5 font-bold disabled:opacity-50 transition-all"
+              >
+                {isLoading ? "Conectando..." : "Conectar"}
+              </button>
           </div>
         )}
 

@@ -4,7 +4,12 @@ import { signInAnonymously } from "firebase/auth";
 
 // Función auxiliar para generar códigos aleatorios (ej: PANDA-8A2F)
 const generateInviteCode = () => {
-  return 'PANDA-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // No O, 0, I, 1
+  let result = '';
+  for (let i = 0; i < 4; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return 'PANDA-' + result;
 };
 
 export async function ensureAuth() {
@@ -41,7 +46,7 @@ export async function joinPregnancyAsDad(userId: string, inviteCode: string) {
   const querySnapshot = await getDocs(q);
 
   if (querySnapshot.empty) {
-    throw new Error("Código de invitación inválido o caducado.");
+    throw new Error("Código no encontrado. Verifica si es O (letra) o 0 (cero) y vuelve a intentar.");
   }
 
   const pregnancyDoc = querySnapshot.docs[0];
