@@ -17,11 +17,15 @@ export interface UserProfile {
 function ProfileModal({ 
   profile, 
   onSave, 
-  onClose 
+  onClose,
+  isDark,
+  toggleTheme
 }: { 
   profile: UserProfile;
   onSave: (p: UserProfile) => void;
   onClose: () => void;
+  isDark: boolean;
+  toggleTheme: () => void;
 }) {
   const [form, setForm] = useState(profile);
 
@@ -157,6 +161,29 @@ function ProfileModal({
           >
             Cancelar
           </button>
+          
+          {/* Modo Oscuro Toggle */}
+          <div className="flex items-center justify-between p-4 bg-stone-50 dark:bg-[#1a1724] rounded-2xl border border-stone-200/80 dark:border-white/[0.04]">
+            <div className="flex items-center gap-3">
+              <div className="bg-stone-200 dark:bg-[#2d273a] p-2 rounded-xl text-stone-600 dark:text-[#a6a1b2]">
+                {isDark ? <Moon size={18} /> : <Sun size={18} />}
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-bold text-stone-800 dark:text-[#eae6e1]">Modo Oscuro</p>
+                <p className="text-xs text-stone-500 dark:text-[#a6a1b2]">Reduce el brillo de la pantalla</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isDark}
+              onClick={toggleTheme}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isDark ? 'bg-terracotta' : 'bg-stone-300'}`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isDark ? 'translate-x-6' : 'translate-x-1'}`} />
+            </button>
+          </div>
+
           <button
             type="button"
             onClick={() => onSave(form)}
@@ -892,30 +919,7 @@ export default function PandaJRApp() {
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* Switch Ergonómico de Modo Oscuro / Claro */}
-          <button
-            type="button"
-            role="switch"
-            aria-checked={isDark}
-            onClick={toggleTheme}
-            aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-            title={isDark ? "Modo oscuro activo (Toca para modo claro)" : "Modo claro activo (Toca para modo oscuro)"}
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-stone-100 dark:hover:bg-[#2d273a] transition-colors active:scale-95 cursor-pointer touch-manipulation select-none"
-          >
-            <div className={`relative w-12 h-6 rounded-full transition-colors duration-300 p-0.5 border ${
-              isDark ? "bg-[#2d273a] border-white/10" : "bg-stone-200 border-stone-300"
-            }`}>
-              <div
-                className={`w-5 h-5 rounded-full shadow-xs transform transition-transform duration-300 flex items-center justify-center ${
-                  isDark 
-                    ? "translate-x-6 bg-[#221d2d] text-teal-300 border border-white/10" 
-                    : "translate-x-0 bg-white text-amber-500 border border-amber-100"
-                }`}
-              >
-                {isDark ? <Moon size={11} /> : <Sun size={11} />}
-              </div>
-            </div>
-          </button>
+          
 
           {/* Botón Campana de Recordatorio de Cita */}
           {events.length > 0 && (
