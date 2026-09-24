@@ -301,7 +301,7 @@ export function MaletaView({ profile, onClose }: { profile: UserProfile, onClose
                   onClick={() => toggleItem(item.id, bag[item.id] || false)}
                   className={`flex items-center gap-3 p-4 cursor-pointer transition-colors hover:bg-stone-50 dark:hover:bg-white/[0.02] ${i !== list.length - 1 ? 'border-b border-stone-100 dark:border-white/5' : ''}`}
                 >
-                  <div className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${bag[item.id] ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-stone-300 dark:border-stone-600'}`}>
+                  <div className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${bag[item.id] ? 'bg-sage border-sage text-white' : 'border-stone-300 dark:border-stone-600'}`}>
                     {bag[item.id] && <Check size={14} strokeWidth={3} />}
                   </div>
                   <span className={`text-sm font-medium transition-all ${bag[item.id] ? 'text-stone-400 dark:text-stone-500 line-through' : 'text-stone-700 dark:text-stone-200'}`}>
@@ -442,26 +442,26 @@ export function HerramientasView({ showToast, profile }: { showToast: any, profi
   const tools = [
     {
       id: "reproductor",
-      icon: <Music className="text-indigo-500" size={26} />,
+      icon: <Music className="text-stone-3000" size={26} />,
       label: "Panda Audio",
       desc: "Relajación y ruidos",
-      color: "bg-indigo-100 dark:bg-indigo-900/40 border-indigo-200 dark:border-indigo-800/50"
+      color: "bg-sage/10 dark:bg-stone-800/40 border-sage/20 dark:border-sage/20"
     },
 
     {
       id: "story",
-      icon: <Camera className="text-pink-500" size={26} />,
+      icon: <Camera className="text-terracotta" size={26} />,
       label: "Panda Story",
       desc: "Comparte tu avance",
-      color: "bg-pink-100 dark:bg-pink-900/40 border-pink-200 dark:border-pink-800/50"
+      color: "bg-terracotta/10 dark:bg-terracotta/20 border-terracotta/20 dark:border-terracotta/30"
     },
 
     {
       id: "presupuesto",
-      icon: <Wallet className="text-emerald-500" size={26} />,
+      icon: <Wallet className="text-sage" size={26} />,
       label: "Presupuesto",
       desc: "Control de gastos",
-      color: "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-200 dark:border-emerald-800/50",
+      color: "bg-sage/20 dark:bg-sage/20 border-sage/30 dark:border-sage/20",
       
     },
 
@@ -471,7 +471,7 @@ export function HerramientasView({ showToast, profile }: { showToast: any, profi
     { id: "diario", label: "Diario", icon: <FileText size={24} />, desc: "Memorias del bebé", color: "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400", border: "border-indigo-100 dark:border-indigo-500/20" },
     { id: "maleta", label: "Maleta", icon: <Package size={24} />, desc: "Hospital Go-Bag", color: "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400", border: "border-amber-100 dark:border-amber-500/20" },
     { id: "nombres", label: "Nombres", icon: <Users size={24} />, desc: "Votador en pareja", color: "bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400", border: "border-sky-100 dark:border-sky-500/20" },
-    { id: "parto", label: "Plan de Parto", icon: <ClipboardList size={24} />, desc: "PDF Clínico", color: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400", border: "border-emerald-100 dark:border-emerald-500/20" },
+    { id: "parto", label: "Plan de Parto", icon: <ClipboardList size={24} />, desc: "PDF Clínico", color: "bg-emerald-50 text-sage dark:bg-sage/10 dark:text-sage-400", border: "border-emerald-100 dark:border-sage/20" },
       { id: "lecturas", label: "Lecturas", icon: <BookOpen size={24} />, desc: "Por trimestre", color: "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400", border: "border-blue-100 dark:border-blue-500/20" },
   ];
 
@@ -927,7 +927,7 @@ export function ContadorPatadas({ showToast }: { showToast: any }) {
             <>
               <Sparkles size={40} className="text-terracotta/80 mb-1 animate-pulse motion-reduce:animate-none" />
               <span className="text-4xl font-black tracking-tight leading-tight">¡Meta 10!</span>
-              <span className="text-xs font-bold tracking-tight text-emerald-100 mt-1">Completada con éxito</span>
+              <span className="text-xs font-bold tracking-tight text-stone-100 mt-1">Completada con éxito</span>
             </>
           )}
         </button>
@@ -1344,7 +1344,7 @@ export function ContadorContracciones({ showToast }: { showToast: any }) {
         <div className="bg-gradient-to-br from-sage/10/80 via-emerald-50/50 to-white dark:from-[#221d2d] dark:to-[#1a1724] rounded-3xl p-5 border border-sage/30/80 dark:border-sage/100/25 shadow-xs space-y-4 animate-in fade-in">
           <div className="flex items-center justify-between border-b border-sage/20 dark:border-white/[0.06] pb-2.5">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+              <span className="w-2.5 h-2.5 rounded-full bg-sage animate-ping"></span>
               <h4 className="text-xs font-bold text-teal-950 dark:text-sage/80 tracking-tight">Intervalo de Descanso Activo</h4>
             </div>
             <span className="text-xs font-bold text-sage dark:text-sage/80 font-mono tabular-nums">
@@ -2379,14 +2379,14 @@ export function CalculadoraPresupuesto({ onClose }: { onClose: () => void }) {
       <div className="bg-white dark:bg-[#1a1625] w-full max-w-lg sm:rounded-3xl rounded-t-3xl h-[85vh] sm:h-auto max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-stone-200 dark:border-white/10 animate-in slide-in-from-bottom-8">
         
         {/* Header */}
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-500 p-5 shrink-0 flex items-center justify-between text-white relative overflow-hidden">
+        <div className="bg-gradient-to-r from-sage to-[#547a66] p-5 shrink-0 flex items-center justify-between text-white relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
           <div>
             <h2 className="text-xl font-black flex items-center gap-2 relative z-10">
-              <Wallet size={24} className="text-emerald-100" />
+              <Wallet size={24} className="text-stone-100" />
               Presupuesto del Bebé
             </h2>
-            <p className="text-emerald-100/80 text-sm mt-1 relative z-10">Control de gastos y compras</p>
+            <p className="text-stone-100/80 text-sm mt-1 relative z-10">Control de gastos y compras</p>
           </div>
           <button onClick={onClose} className="p-2 bg-black/10 hover:bg-black/20 rounded-full transition-colors relative z-10">
             <X size={20} />
@@ -2401,7 +2401,7 @@ export function CalculadoraPresupuesto({ onClose }: { onClose: () => void }) {
             <div className="flex justify-between items-end mb-4">
               <div>
                 <p className="text-sm font-semibold text-stone-500 dark:text-stone-400">Restante</p>
-                <p className={`text-3xl font-black tracking-tight ${remaining < 0 ? 'text-rose-500' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                <p className={`text-3xl font-black tracking-tight ${remaining < 0 ? 'text-rose-500' : 'text-sage dark:text-sage-400'}`}>
                   ${remaining.toLocaleString()}
                 </p>
               </div>
@@ -2413,7 +2413,7 @@ export function CalculadoraPresupuesto({ onClose }: { onClose: () => void }) {
                     type="number" 
                     value={budget}
                     onChange={(e) => setBudget(Number(e.target.value))}
-                    className="w-20 text-sm font-bold text-stone-700 dark:text-stone-300 bg-transparent border-b border-stone-300 dark:border-stone-600 focus:outline-none focus:border-emerald-500 text-right"
+                    className="w-20 text-sm font-bold text-stone-700 dark:text-stone-300 bg-transparent border-b border-stone-300 dark:border-stone-600 focus:outline-none focus:border-sage text-right"
                   />
                 </div>
               </div>
@@ -2421,7 +2421,7 @@ export function CalculadoraPresupuesto({ onClose }: { onClose: () => void }) {
 
             <div className="h-3 w-full bg-stone-200 dark:bg-stone-800 rounded-full overflow-hidden">
               <div 
-                className={`h-full rounded-full transition-all duration-500 ${progressPercent > 90 ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                className={`h-full rounded-full transition-all duration-500 ${progressPercent > 90 ? 'bg-rose-500' : 'bg-sage'}`}
                 style={{ width: `${progressPercent}%` }}
               ></div>
             </div>
@@ -2432,7 +2432,7 @@ export function CalculadoraPresupuesto({ onClose }: { onClose: () => void }) {
           </div>
 
           {/* Agregar Gasto */}
-          <form onSubmit={addExpense} className="flex gap-2 bg-white dark:bg-[#221d2d] p-3 rounded-2xl border border-stone-200 dark:border-white/10 shadow-sm focus-within:border-emerald-500 transition-colors">
+          <form onSubmit={addExpense} className="flex gap-2 bg-white dark:bg-[#221d2d] p-3 rounded-2xl border border-stone-200 dark:border-white/10 shadow-sm focus-within:border-sage transition-colors">
             <div className="flex-1 flex flex-col gap-2">
               <input 
                 type="text" 
@@ -2464,7 +2464,7 @@ export function CalculadoraPresupuesto({ onClose }: { onClose: () => void }) {
             <button 
               type="submit"
               disabled={!newItem.trim() || !newAmount}
-              className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white p-3 rounded-xl transition-all h-full shrink-0 flex items-center justify-center"
+              className="bg-sage hover:bg-[#547a66] disabled:opacity-50 text-white p-3 rounded-xl transition-all h-full shrink-0 flex items-center justify-center"
             >
               <Plus size={20} />
             </button>
@@ -2483,7 +2483,7 @@ export function CalculadoraPresupuesto({ onClose }: { onClose: () => void }) {
                 {expenses.map(expense => (
                   <div key={expense.id} className="flex items-center justify-between p-3 bg-white dark:bg-[#221d2d] rounded-2xl border border-stone-100 dark:border-white/5 shadow-xs group">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-black text-sm shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-sage/20 dark:bg-sage/20 flex items-center justify-center text-sage dark:text-sage-400 font-black text-sm shrink-0">
                         {expense.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
@@ -2594,39 +2594,36 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
             
             <div 
               ref={storyRef}
-              className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-8 text-stone-800 text-center"
-              style={{
-                background: "linear-gradient(135deg, #e4efe7 0%, #fcfbf9 50%, #fbe9e3 100%)",
-              }}
+              className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-8 text-stone-800 text-center bg-gradient-to-br from-sage/20 via-stone-50 to-terracotta/20"
             >
               <div className="absolute top-6 left-1/2 -translate-x-1/2 opacity-20 flex items-center gap-2">
-                 <span className="font-black text-xl tracking-tighter text-[#547A66]">PandaJR.</span>
+                 <span className="font-black text-xl tracking-tighter text-sage">PandaJR.</span>
               </div>
               
               <div className="mt-8 space-y-2 relative z-10">
-                <p className="text-sm font-bold tracking-widest uppercase text-[#d97757]">
+                <p className="text-sm font-bold tracking-widest uppercase text-terracotta">
                   ¡ESTAMOS EN LA!
                 </p>
-                <h3 className="text-6xl font-black text-[#547A66] tracking-tighter" style={{ fontSize: '3.75rem', lineHeight: '1', fontWeight: '900', color: '#547A66' }}>
+                <h3 className="text-6xl font-black text-sage tracking-tighter" >
                   Semana {week}
                 </h3>
               </div>
 
               <div className="flex-1 flex items-center justify-center relative w-full my-6">
                 <div className="absolute inset-0 bg-white/40 blur-3xl rounded-full"></div>
-                <div className="text-[120px] leading-none drop-shadow-2xl relative z-10 animate-in zoom-in duration-500" style={{ fontSize: '120px', textShadow: '0 25px 25px rgb(0 0 0 / 0.15)' }}>
+                <div className="text-[8rem] leading-none drop-shadow-2xl relative z-10 animate-in zoom-in duration-500" >
                   {emoji}
                 </div>
               </div>
 
-              <div className="bg-white/60 backdrop-blur-md rounded-2xl p-4 w-full relative z-10 shadow-sm border border-white/50" style={{ background: 'rgba(255,255,255,0.6)', borderRadius: '1rem', padding: '1rem' }}>
-                <p className="text-sm font-semibold text-stone-600" style={{ fontSize: '0.875rem', fontWeight: '600', color: '#52525b' }}>
+              <div className="bg-white/60 backdrop-blur-md rounded-2xl p-4 w-full relative z-10 shadow-sm border border-white/50" >
+                <p className="text-sm font-semibold text-stone-600" >
                   Nuestro bebé es del tamaño de:
                 </p>
-                <p className="text-xl font-black text-stone-800 mt-1 capitalize" style={{ fontSize: '1.25rem', fontWeight: '900', color: '#27272a', marginTop: '0.25rem', textTransform: 'capitalize' }}>
+                <p className="text-xl font-black text-stone-800 mt-1 capitalize" >
                   {fruit}
                 </p>
-                <p className="text-xs text-stone-500 mt-1" style={{ fontSize: '0.75rem', color: '#71717a', marginTop: '0.25rem' }}>
+                <p className="text-xs text-stone-500 mt-1" >
                   {weekData.size} • {weekData.weight}
                 </p>
               </div>
@@ -2639,7 +2636,7 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
             {isGenerating && (
               <div className="absolute inset-0 z-30 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center">
                 <div className="w-8 h-8 border-4 border-[#547A66] border-t-[#d97757] rounded-full animate-spin"></div>
-                <p className="mt-4 font-bold text-[#547A66] animate-pulse">Creando magia...</p>
+                <p className="mt-4 font-bold text-sage animate-pulse">Creando magia...</p>
               </div>
             )}
           </div>
@@ -2695,9 +2692,9 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
       <div className="bg-white dark:bg-[#15131a] w-full max-w-md sm:rounded-[2.5rem] rounded-t-[2.5rem] h-[85vh] sm:h-auto max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-white/20 dark:border-white/5 animate-in slide-in-from-bottom-8">
         
         {/* Header con gradiente premium */}
-        <div className="bg-gradient-to-br from-indigo-500 via-purple-500 to-fuchsia-500 p-6 shrink-0 relative overflow-hidden text-white">
+        <div className="bg-gradient-to-br from-[#2a2631] to-[#15131a] border-b border-white/5 p-6 shrink-0 relative overflow-hidden text-white">
           <div className="absolute top-0 right-0 w-48 h-48 bg-white/20 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-900/40 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-stone-800/40 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none"></div>
           
           <div className="relative z-10 flex justify-between items-start">
             <div>
@@ -2707,7 +2704,7 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
               <h2 className="text-2xl font-black tracking-tight leading-none mb-1">
                 Panda Audio
               </h2>
-              <p className="text-indigo-50 text-sm font-medium">Estimulación y relajación</p>
+              <p className="text-stone-300 text-sm font-medium">Estimulación y relajación</p>
             </div>
             <button onClick={onClose} className="p-2 bg-black/10 hover:bg-black/20 backdrop-blur-md rounded-full transition-colors">
               <X size={20} />
@@ -2723,19 +2720,19 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
             <div className="flex bg-stone-200/50 dark:bg-[#221d2d] p-1.5 rounded-2xl">
               <button 
                 onClick={() => setActiveTab("dormir")}
-                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === "dormir" ? "bg-white dark:bg-[#383147] text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-stone-500 dark:text-[#a6a1b2] hover:text-stone-700 dark:hover:text-stone-300"}`}
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === "dormir" ? "bg-white dark:bg-[#383147] text-sage dark:text-sage shadow-sm" : "text-stone-500 dark:text-[#a6a1b2] hover:text-stone-700 dark:hover:text-stone-300"}`}
               >
                 🌙 Dormir
               </button>
               <button 
                 onClick={() => setActiveTab("estimulacion")}
-                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === "estimulacion" ? "bg-white dark:bg-[#383147] text-fuchsia-600 dark:text-fuchsia-400 shadow-sm" : "text-stone-500 dark:text-[#a6a1b2] hover:text-stone-700 dark:hover:text-stone-300"}`}
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === "estimulacion" ? "bg-white dark:bg-[#383147] text-terracotta dark:text-terracotta shadow-sm" : "text-stone-500 dark:text-[#a6a1b2] hover:text-stone-700 dark:hover:text-stone-300"}`}
               >
                 🎵 Estimulación
               </button>
               <button 
                 onClick={() => setActiveTab("latidos")}
-                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === "latidos" ? "bg-white dark:bg-[#383147] text-rose-600 dark:text-rose-400 shadow-sm" : "text-stone-500 dark:text-[#a6a1b2] hover:text-stone-700 dark:hover:text-stone-300"}`}
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === "latidos" ? "bg-white dark:bg-[#383147] text-stone-800 dark:text-stone-200 shadow-sm" : "text-stone-500 dark:text-[#a6a1b2] hover:text-stone-700 dark:hover:text-stone-300"}`}
               >
                 ❤️ Latidos
               </button>
