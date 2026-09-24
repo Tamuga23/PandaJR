@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { usePandaStore } from "@/store/usePandaStore";
 import Image from "next/image";
 import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, AlertCircle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2, Bell, RotateCcw, Trash2, PhoneCall, Check, Undo2, Printer, Copy, Edit3, Sun, Moon } from "lucide-react";
 
@@ -898,7 +899,7 @@ export default function PandaJRApp() {
 
   const toggleTheme = () => {
     const nextDark = !isDark;
-    setIsDark(nextDark);
+    toggleThemeStore(nextDark);
     if (nextDark) {
       document.documentElement.classList.add("dark");
       try { localStorage.setItem("pandajr_theme", "dark"); } catch(e) {}
@@ -919,7 +920,7 @@ export default function PandaJRApp() {
   }, [hasHydrated, profile.name]);
 
   const updateProfile = (updates: Partial<UserProfile>) => {
-    setProfile(prev => {
+    setProfile((prev: any) => {
       const updated = { ...prev, ...updates };
       try {
         localStorage.setItem("pandajr_user_profile", JSON.stringify(updated));
