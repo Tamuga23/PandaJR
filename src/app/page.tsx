@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { usePandaStore } from "@/store/usePandaStore";
-import { ensureAuth, createPregnancyForMom, joinPregnancyAsDad } from "@/lib/firebase/pairing";
+import { ensureAuth, createPregnancyForMom, joinPregnancyAsDad, listenToPregnancy, listenToMomStatus, updatePregnancyWeek, saveMomStatus } from "@/lib/firebase/pairing";
 import Image from "next/image";
 import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, AlertCircle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2, Bell, RotateCcw, Trash2, PhoneCall, Check, Undo2, Printer, Copy, Edit3, Sun, Moon } from "lucide-react";
 
@@ -85,7 +85,7 @@ function ProfileModal({
                 </div>
               </div>
               <button 
-                onClick={() => { if (confirmUnlink) { usePandaStore.getState().setProfile(null); onClose(); } else { setConfirmUnlink(true); setTimeout(() => setConfirmUnlink(false), 3000); } }}
+                onClick={() => { if (confirmUnlink) { usePandaStore.getState().setProfile({ name: "", pregnancyId: "", inviteCode: "" } as any); onClose(); } else { setConfirmUnlink(true); setTimeout(() => setConfirmUnlink(false), 3000); } }}
                 className={`text-xs font-bold min-h-[44px] min-w-[44px] px-4 rounded-lg shadow-sm transition-colors ${confirmUnlink ? 'bg-terracotta/100 text-white border-transparent' : 'text-stone-500 bg-white dark:bg-[#2d273a] border border-stone-200 dark:border-white/[0.06]'}`}
               >
                 {confirmUnlink ? '¿Seguro?' : 'Desvincular'}
@@ -775,8 +775,8 @@ function OnboardingModal({ onComplete, onSkip }: { onComplete: (profile: UserPro
         try {
           const uid = await ensureAuth();
           if (!uid) throw new Error("No auth");
-          const { pregnancyId, babyName } = await joinPregnancyAsDad(uid, code);
-          onComplete({ role: "papa", name: "Copiloto", week: 14, location: "", notes: "", pregnancyId });
+          const { pregnancyId, babyName, week } = await joinPregnancyAsDad(uid, code);
+          onComplete({ role: "papa", name: "Copiloto de " + babyName, week: week || 14, location: "", notes: "", pregnancyId });
         } catch (e: any) {
           setErrorMsg(e.message || "Código inválido");
         } finally {
@@ -962,6 +962,9 @@ export default function PandaJRApp() {
 
   const updateProfile = (updates: Partial<UserProfile>) => {
     setProfile(updates);
+    if (updates.pregnancyId && updates.week) {
+      updatePregnancyWeek(updates.pregnancyId, updates.week);
+    }
   };
   
   const [events, setEvents] = useState([
