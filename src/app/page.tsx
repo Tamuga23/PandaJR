@@ -1273,20 +1273,20 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
       {/* 1. Week Selector & Info */}
       <div className="bg-white dark:bg-[#181a20] rounded-3xl shadow-sm border border-stone-200/80 dark:border-white/[0.08] overflow-hidden transition-colors">
         {/* Selector */}
-        <div className="bg-gradient-to-r from-teal-600 to-teal-500 p-4 text-white flex items-center justify-between">
+        <div className="bg-gradient-to-r from-teal-600 to-teal-500 dark:from-[#132420] dark:to-[#182d27] dark:border-b dark:border-white/[0.08] p-4 text-white dark:text-[#f3f1ec] flex items-center justify-between transition-colors">
           <button aria-label="Semana anterior"
             onClick={() => setWeek(w => Math.max(1, w - 1))}
-            className="p-2 hover:bg-white/20 rounded-full transition-colors"
+            className="p-2 hover:bg-white/20 dark:hover:bg-white/10 rounded-full transition-colors"
           >
             <ChevronLeft size={24} />
           </button>
           <div className="text-center">
-            <p className="text-teal-100 text-xs font-semibold uppercase tracking-wider mb-1">Semana de Gestación</p>
+            <p className="text-teal-100 dark:text-teal-300/80 text-xs font-semibold uppercase tracking-wider mb-1">Semana de Gestación</p>
             <h2 className="text-3xl font-black">{week}</h2>
           </div>
           <button aria-label="Semana siguiente"
             onClick={() => setWeek(w => Math.min(40, w + 1))}
-            className="p-2 hover:bg-white/20 rounded-full transition-colors"
+            className="p-2 hover:bg-white/20 dark:hover:bg-white/10 rounded-full transition-colors"
           >
             <ChevronRight size={24} />
           </button>
@@ -1597,13 +1597,13 @@ function AgendaView({
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 relative h-full flex flex-col">
       {/* Header destacado */}
-      <div className="bg-teal-600 px-6 py-8 text-white rounded-b-3xl shadow-md shrink-0">
-        <p className="text-teal-100 text-sm font-medium mb-1">Etapa actual</p>
-        <h2 className="text-2xl font-bold">Semana {profile.week} <br/><span className="text-lg font-medium text-teal-200">({profile.week <= 13 ? "Primer trimestre" : profile.week <= 27 ? "Segundo trimestre" : "Tercer trimestre"})</span></h2>
-        <div className="mt-4 bg-white/20 rounded-full h-1.5 w-full overflow-hidden">
-          <div className="bg-white h-full transition-all duration-500 rounded-full" style={{ width: `${Math.min(100, Math.round((profile.week / 40) * 100))}%` }}></div>
+      <div className="bg-teal-600 dark:bg-[#132420] dark:border-b dark:border-white/[0.08] px-6 py-7 text-white dark:text-[#f3f1ec] rounded-b-3xl shadow-sm shrink-0 transition-colors">
+        <p className="text-teal-100 dark:text-teal-300/80 text-xs font-semibold uppercase tracking-wider mb-1">Etapa actual</p>
+        <h2 className="text-2xl font-bold tracking-tight">Semana {profile.week} <span className="text-base font-medium text-teal-100/90 dark:text-[#9ea3ae] ml-1">({profile.week <= 13 ? "Primer trimestre" : profile.week <= 27 ? "Segundo trimestre" : "Tercer trimestre"})</span></h2>
+        <div className="mt-3.5 bg-white/20 dark:bg-white/10 rounded-full h-1.5 w-full overflow-hidden">
+          <div className="bg-white dark:bg-teal-400 h-full transition-all duration-500 rounded-full" style={{ width: `${Math.min(100, Math.round((profile.week / 40) * 100))}%` }}></div>
         </div>
-        <p className="text-teal-50 text-xs mt-2 text-right">Faltan {Math.max(0, 40 - profile.week)} semanas</p>
+        <p className="text-teal-50 dark:text-[#9ea3ae] text-xs mt-2 text-right font-medium">Faltan {Math.max(0, 40 - profile.week)} semanas</p>
       </div>
 
       <div className="p-5 flex-1 overflow-y-auto space-y-6 pb-20">
@@ -2451,7 +2451,7 @@ function PandaIAView({
                 }
               }}
               placeholder="Pregúntale a PandaIA sobre síntomas, nutrición o citas..." 
-              className="flex-1 bg-transparent border-none focus:outline-none text-base sm:text-sm py-2 resize-none max-h-32 min-h-[40px] text-gray-800 dark:text-[#f3f1ec] placeholder-gray-400 dark:placeholder-[#9ea3ae]/60"
+              className="flex-1 bg-transparent border-none focus:outline-none text-base sm:text-sm py-2 resize-none max-h-32 min-h-[40px] text-gray-800 dark:text-[#f3f1ec] placeholder-gray-400 dark:placeholder-[#9ea3ae]/60 overflow-y-auto no-scrollbar"
             />
             <button 
               type="button"
@@ -3091,10 +3091,10 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
           aria-label={count >= 10 ? "Meta de 10 patadas completada" : "Registrar movimiento o patada del bebé"}
           className={`relative z-10 w-60 h-60 rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-200 transform active:scale-95 select-none focus:outline-none focus:ring-4 focus:ring-teal-300 dark:focus:ring-teal-600 ${
             count >= 10 
-              ? "bg-gradient-to-br from-emerald-500 to-teal-600 text-white border-4 border-white dark:border-white/[0.12] cursor-default" 
+              ? "bg-gradient-to-br from-emerald-500 to-teal-600 dark:from-[#15342c] dark:to-[#0f241e] text-white border-4 border-white dark:border-teal-500/30 cursor-default" 
               : count === 0
-              ? "bg-gradient-to-br from-teal-500 to-teal-700 text-white border-4 border-white dark:border-white/[0.12] hover:shadow-teal-200/80 hover:scale-[1.02]"
-              : "bg-gradient-to-br from-teal-500 via-teal-600 to-emerald-600 text-white border-4 border-white dark:border-white/[0.12] hover:scale-[1.02]"
+              ? "bg-gradient-to-br from-teal-500 to-teal-700 dark:from-[#132c25] dark:to-[#0d1e19] text-white dark:text-[#f3f1ec] border-4 border-white dark:border-teal-500/30 hover:shadow-teal-200/80 hover:scale-[1.02]"
+              : "bg-gradient-to-br from-teal-500 via-teal-600 to-emerald-600 dark:from-[#183a31] dark:to-[#102721] text-white dark:text-[#f3f1ec] border-4 border-white dark:border-teal-500/40 hover:scale-[1.02]"
           }`}
         >
           {count < 10 ? (
