@@ -190,7 +190,7 @@ export interface AppointmentPrepInfo {
   tip: string;
 }
 
-export function getAppointmentPrep(title: string): AppointmentPrepInfo {
+function getAppointmentPrep(title: string): AppointmentPrepInfo {
   const t = (title || "").toLowerCase();
 
   if (t.includes("ecograf") || t.includes("ultra") || t.includes("tamizaje") || t.includes("scan") || t.includes("sonograf")) {
