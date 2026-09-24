@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import { usePandaStore } from "@/store/usePandaStore";
 import { ensureAuth, createPregnancyForMom, joinPregnancyAsDad, listenToPregnancy, listenToMomStatus, updatePregnancyWeek, saveMomStatus, saveEvents, listenToEvents, saveKickSessions, listenToKickSessions, saveContractions, listenToContractions, saveBabyNames, listenToBabyNames, saveBirthPlan, listenToBirthPlan, saveChecklistProgress, listenToChecklistProgress, saveAppointmentPrep, listenToAppointmentPrep } from "@/lib/firebase/pairing";
 import Image from "next/image";
-import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, AlertCircle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2, Bell, RotateCcw, Trash2, PhoneCall, Check, Undo2, Printer, Copy, Edit3, Sun, Moon } from "lucide-react";
+import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, AlertCircle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2, Bell, RotateCcw, Trash2, PhoneCall, Check, Undo2, Printer, Copy, Edit3, Sun, Moon, BookOpen, ExternalLink } from "lucide-react";
 
 type Tab = "planificacion" | "agenda" | "herramientas" | "pandaia";
 
@@ -70,7 +70,7 @@ function ProfileModal({
         {/* Body */}
         <div className="p-5 space-y-6 overflow-y-auto flex-1">
           
-          {/* Vínculo Familiar */}
+          {/* VÃ­nculo Familiar */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold text-stone-400 dark:text-[#a6a1b2] uppercase tracking-wider">Familia</h4>
             <div className="bg-stone-50 dark:bg-[#1a1724] border border-stone-200 dark:border-white/[0.04] rounded-2xl p-4 flex items-center justify-between">
@@ -80,7 +80,7 @@ function ProfileModal({
                 </div>
                 <div>
                   <p className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm">
-                    {form.role === 'mama' ? 'Modo Mamá' : 'Modo Copiloto'}
+                    {form.role === 'mama' ? 'Modo MamÃ¡' : 'Modo Copiloto'}
                   </p>
                   <p className="text-xs text-stone-500 dark:text-[#a6a1b2]">{form.name}</p>
                 </div>
@@ -89,7 +89,7 @@ function ProfileModal({
                 onClick={() => { if (confirmUnlink) { usePandaStore.getState().setProfile({ name: "", pregnancyId: "", inviteCode: "" } as any); onClose(); } else { setConfirmUnlink(true); setTimeout(() => setConfirmUnlink(false), 3000); } }}
                 className={`text-xs font-bold min-h-[44px] min-w-[44px] px-4 rounded-lg shadow-sm transition-colors ${confirmUnlink ? 'bg-terracotta/100 text-white border-transparent' : 'text-stone-500 bg-white dark:bg-[#2d273a] border border-stone-200 dark:border-white/[0.06]'}`}
               >
-                {confirmUnlink ? '¿Seguro?' : 'Desvincular'}
+                {confirmUnlink ? 'Â¿Seguro?' : 'Desvincular'}
               </button>
             </div>
             
@@ -100,7 +100,7 @@ function ProfileModal({
                     <Sparkles size={16} />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-stone-800 dark:text-white mb-0.5">Tema de Comparación</p>
+                    <p className="text-sm font-bold text-stone-800 dark:text-white mb-0.5">Tema de ComparaciÃ³n</p>
                     <p className="text-xs text-stone-500 dark:text-[#a6a1b2]">Frutas o estilo Geek</p>
                   </div>
                 </div>
@@ -116,19 +116,19 @@ function ProfileModal({
             {form.role === 'mama' && (
               <div className="bg-stone-900 dark:bg-[#2d273a] text-white p-4 rounded-2xl flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] text-stone-400 font-bold uppercase tracking-wider mb-0.5">Código de Pareja</p>
+                  <p className="text-[10px] text-stone-400 font-bold uppercase tracking-wider mb-0.5">CÃ³digo de Pareja</p>
                   <p className="font-mono font-bold tracking-widest text-lg">{form.inviteCode || "PANDA-----"}</p>
                 </div>
-                <button className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-xl transition-colors" aria-label="Copiar código">
+                <button className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-xl transition-colors" aria-label="Copiar cÃ³digo">
                   <ClipboardList size={18} />
                 </button>
               </div>
             )}
           </div>
 
-          {/* Preferencias Médicas */}
+          {/* Preferencias MÃ©dicas */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold text-stone-400 dark:text-[#a6a1b2] uppercase tracking-wider">Gestación & Detalles</h4>
+            <h4 className="text-xs font-bold text-stone-400 dark:text-[#a6a1b2] uppercase tracking-wider">GestaciÃ³n & Detalles</h4>
             
             <div>
               <div className="flex justify-between items-center mb-1">
@@ -143,7 +143,7 @@ function ProfileModal({
             </div>
 
             <div>
-              <label className="text-sm font-bold text-stone-700 dark:text-[#eae6e1] block mb-1">Ciudad o País</label>
+              <label className="text-sm font-bold text-stone-700 dark:text-[#eae6e1] block mb-1">Ciudad o PaÃ­s</label>
               <input 
                 type="text" 
                 value={form.location || ""} 
@@ -204,7 +204,7 @@ function ProfileModal({
   );
 }
 
-// --- SISTEMA DE PREPARACIÓN CLÍNICA Y RECORDATORIOS DE CITAS ---
+// --- SISTEMA DE PREPARACIÃ“N CLÃNICA Y RECORDATORIOS DE CITAS ---
 export interface AppointmentPrepInfo {
   category: string;
   badge: string;
@@ -222,81 +222,81 @@ function getAppointmentPrep(title: string): AppointmentPrepInfo {
 
     if (isT2) {
       return {
-        category: "Ecografía Morfológica (Semanas 20-24)",
-        badge: "Anatomía Detallada",
+        category: "EcografÃ­a MorfolÃ³gica (Semanas 20-24)",
+        badge: "AnatomÃ­a Detallada",
         whatToBring: [
-          "Ropa de dos piezas (blusa y pantalón holgado para facilitar acceso al vientre)",
-          "Carpeta con todas las ecografías y analíticas del primer trimestre",
-          "Snack ligero o zumo de fruta por si el bebé está dormido y el médico pide que camines 10 min",
+          "Ropa de dos piezas (blusa y pantalÃ³n holgado para facilitar acceso al vientre)",
+          "Carpeta con todas las ecografÃ­as y analÃ­ticas del primer trimestre",
+          "Snack ligero o zumo de fruta por si el bebÃ© estÃ¡ dormido y el mÃ©dico pide que camines 10 min",
           "Carnet perinatal y documento de identidad"
         ],
         whatToAsk: [
-          "¿Se observan bien las 4 cámaras cardíacas y el flujo sanguíneo del corazón?",
-          "¿El crecimiento cerebral, renal y óseo (fémur) concuerda con las semanas?",
-          "¿Dónde está ubicada la placenta? (¿descartamos inserción baja o previa?)",
-          "¿La cantidad de líquido amniótico y longitud cervical son óptimas?",
-          "¿Podemos confirmar el sexo y ver el perfil del rostro?"
+          "Â¿Se observan bien las 4 cÃ¡maras cardÃ­acas y el flujo sanguÃ­neo del corazÃ³n?",
+          "Â¿El crecimiento cerebral, renal y Ã³seo (fÃ©mur) concuerda con las semanas?",
+          "Â¿DÃ³nde estÃ¡ ubicada la placenta? (Â¿descartamos inserciÃ³n baja o previa?)",
+          "Â¿La cantidad de lÃ­quido amniÃ³tico y longitud cervical son Ã³ptimas?",
+          "Â¿Podemos confirmar el sexo y ver el perfil del rostro?"
         ],
-        tip: "Esta ecografía es la más minuciosa (dura 30-45 min). No te alarmes si el especialista se queda en silencio varios minutos: está tomando mediciones milimétricas de órganos vitales."
+        tip: "Esta ecografÃ­a es la mÃ¡s minuciosa (dura 30-45 min). No te alarmes si el especialista se queda en silencio varios minutos: estÃ¡ tomando mediciones milimÃ©tricas de Ã³rganos vitales."
       };
     }
 
     if (is3D) {
       return {
-        category: "Ecografía Emocional 3D / 4D / 5D",
-        badge: "Visualización Fetal",
+        category: "EcografÃ­a Emocional 3D / 4D / 5D",
+        badge: "VisualizaciÃ³n Fetal",
         whatToBring: [
-          "Ropa cómoda de dos piezas",
+          "Ropa cÃ³moda de dos piezas",
           "Tomar un vaso de agua o zumo 20 minutos antes para activar el movimiento fetal",
-          "Móvil con suficiente batería y espacio para guardar fotos y clips en video"
+          "MÃ³vil con suficiente baterÃ­a y espacio para guardar fotos y clips en video"
         ],
         whatToAsk: [
-          "¿A quién se parece más el perfil o los rasgos faciales?",
-          "¿Tiene las manitas o el cordón cubriéndose la cara?",
-          "¿Cuál es el peso fetal estimado al día de hoy?"
+          "Â¿A quiÃ©n se parece mÃ¡s el perfil o los rasgos faciales?",
+          "Â¿Tiene las manitas o el cordÃ³n cubriÃ©ndose la cara?",
+          "Â¿CuÃ¡l es el peso fetal estimado al dÃ­a de hoy?"
         ],
-        tip: "Si el bebé está de espaldas, acostarte de lado o caminar unos minutos en la sala suele ayudar a que cambie de postura."
+        tip: "Si el bebÃ© estÃ¡ de espaldas, acostarte de lado o caminar unos minutos en la sala suele ayudar a que cambie de postura."
       };
     }
 
-    // Default Ecografía / Tamizaje 1er trimestre
+    // Default EcografÃ­a / Tamizaje 1er trimestre
     return {
-      category: "Ecografía de Tamizaje (Semanas 11-14)",
-      badge: "Desarrollo y Genética",
+      category: "EcografÃ­a de Tamizaje (Semanas 11-14)",
+      badge: "Desarrollo y GenÃ©tica",
       whatToBring: [
-        "Ropa cómoda de dos piezas (evita vestidos enteros)",
-        "Vejiga moderadamente llena si lo solicitó el centro (2 vasos de agua 45 min antes)",
-        "Resultados del análisis de sangre prenatal o ADN fetal (si ya se realizó)",
-        "Carnet perinatal y seguro médico"
+        "Ropa cÃ³moda de dos piezas (evita vestidos enteros)",
+        "Vejiga moderadamente llena si lo solicitÃ³ el centro (2 vasos de agua 45 min antes)",
+        "Resultados del anÃ¡lisis de sangre prenatal o ADN fetal (si ya se realizÃ³)",
+        "Carnet perinatal y seguro mÃ©dico"
       ],
       whatToAsk: [
-        "¿Cuál es la medida de la Translucencia Nucal (TN) y se visualiza el hueso nasal?",
-        "¿Cuál es la longitud cráneo-caudal (CRL) y la fecha probable de parto recalculada?",
-        "¿A cuántos latidos por minuto (bpm) está latiendo su corazón?",
-        "¿Hay algún indicador que sugiera realizar estudios genéticos complementarios?"
+        "Â¿CuÃ¡l es la medida de la Translucencia Nucal (TN) y se visualiza el hueso nasal?",
+        "Â¿CuÃ¡l es la longitud crÃ¡neo-caudal (CRL) y la fecha probable de parto recalculada?",
+        "Â¿A cuÃ¡ntos latidos por minuto (bpm) estÃ¡ latiendo su corazÃ³n?",
+        "Â¿Hay algÃºn indicador que sugiera realizar estudios genÃ©ticos complementarios?"
       ],
-      tip: "Pídele al especialista que les permita escuchar los latidos y grabar un pequeño fragmento si la clínica lo autoriza."
+      tip: "PÃ­dele al especialista que les permita escuchar los latidos y grabar un pequeÃ±o fragmento si la clÃ­nica lo autoriza."
     };
   }
 
   if (t.includes("lab") || t.includes("sangre") || t.includes("orina") || t.includes("glucosa") || t.includes("curva") || t.includes("o'sullivan") || t.includes("analisis")) {
     const isGlucose = t.includes("glucosa") || t.includes("curva") || t.includes("sullivan") || t.includes("tolerancia");
     return {
-      category: isGlucose ? "Curva de Glucosa (Test O'Sullivan)" : "Exámenes de Laboratorio",
-      badge: isGlucose ? "Prueba Metabólica" : "Analítica Sanguínea",
+      category: isGlucose ? "Curva de Glucosa (Test O'Sullivan)" : "ExÃ¡menes de Laboratorio",
+      badge: isGlucose ? "Prueba MetabÃ³lica" : "AnalÃ­tica SanguÃ­nea",
       whatToBring: [
         "Confirmar horas de ayuno estricto (usualmente 8 a 10 horas de ayuno de comida)",
-        "Botella de agua natural para beber sorbos pequeños si lo permiten",
-        "Limón o toallitas húmedas por si el líquido dulce concentrado produce náuseas",
-        "Libro, podcast o audífonos cargados (la estancia suele ser de 1 a 2 horas entre tomas)",
-        "Merienda o snack nutritivo para comer INMEDIATAMENTE al terminar la última extracción"
+        "Botella de agua natural para beber sorbos pequeÃ±os si lo permiten",
+        "LimÃ³n o toallitas hÃºmedas por si el lÃ­quido dulce concentrado produce nÃ¡useas",
+        "Libro, podcast o audÃ­fonos cargados (la estancia suele ser de 1 a 2 horas entre tomas)",
+        "Merienda o snack nutritivo para comer INMEDIATAMENTE al terminar la Ãºltima extracciÃ³n"
       ],
       whatToAsk: [
-        "¿Cuánto tardan los resultados y me los entregarán a mí o directo al obstetra?",
-        "¿Si siento mareo o náusea durante la hora de espera, a quién debo avisar?",
-        "¿Debo suspender las vitaminas prenatales o el hierro la mañana de la prueba?"
+        "Â¿CuÃ¡nto tardan los resultados y me los entregarÃ¡n a mÃ­ o directo al obstetra?",
+        "Â¿Si siento mareo o nÃ¡usea durante la hora de espera, a quiÃ©n debo avisar?",
+        "Â¿Debo suspender las vitaminas prenatales o el hierro la maÃ±ana de la prueba?"
       ],
-      tip: "Permanece sentada y tranquila durante la hora de espera tras beber la glucosa. Caminar o hacer esfuerzo altera la metabolización del azúcar."
+      tip: "Permanece sentada y tranquila durante la hora de espera tras beber la glucosa. Caminar o hacer esfuerzo altera la metabolizaciÃ³n del azÃºcar."
     };
   }
 
@@ -305,39 +305,39 @@ function getAppointmentPrep(title: string): AppointmentPrepInfo {
       category: "Control Preparto y Monitoreo Fetal",
       badge: "Recta Final",
       whatToBring: [
-        "Plan de Parto impreso (2 copias: una para tu carpeta y otra para el equipo obstétrico)",
-        "Historial completo de embarazo, ecografías y analítica del estreptococo grupo B",
-        "Ropa cómoda para monitoreo en camilla con correas abdominales",
+        "Plan de Parto impreso (2 copias: una para tu carpeta y otra para el equipo obstÃ©trico)",
+        "Historial completo de embarazo, ecografÃ­as y analÃ­tica del estreptococo grupo B",
+        "Ropa cÃ³moda para monitoreo en camilla con correas abdominales",
         "Maleta del hospital verificada (por si se decide ingreso)"
       ],
       whatToAsk: [
-        "¿En qué posición exacta está el bebé (cefálico anterior/posterior o podálico)?",
-        "¿Hay signos de borramiento o dilatación en el cuello uterino?",
-        "¿A partir de qué frecuencia y duración de contracciones regulares debemos ir a urgencias?",
-        "¿Qué opciones de alivio del dolor (epidural, walking, calor local) están disponibles?",
-        "¿Quién del equipo estará de guardia o asistirá el parto?"
+        "Â¿En quÃ© posiciÃ³n exacta estÃ¡ el bebÃ© (cefÃ¡lico anterior/posterior o podÃ¡lico)?",
+        "Â¿Hay signos de borramiento o dilataciÃ³n en el cuello uterino?",
+        "Â¿A partir de quÃ© frecuencia y duraciÃ³n de contracciones regulares debemos ir a urgencias?",
+        "Â¿QuÃ© opciones de alivio del dolor (epidural, walking, calor local) estÃ¡n disponibles?",
+        "Â¿QuiÃ©n del equipo estarÃ¡ de guardia o asistirÃ¡ el parto?"
       ],
-      tip: "Lleva anotadas las dudas de logística: por qué puerta entrar de noche, estacionamiento de urgencias y documentación requerida al llegar."
+      tip: "Lleva anotadas las dudas de logÃ­stica: por quÃ© puerta entrar de noche, estacionamiento de urgencias y documentaciÃ³n requerida al llegar."
     };
   }
 
-  // Consulta Médica Obstétrica General / Control Mensual
+  // Consulta MÃ©dica ObstÃ©trica General / Control Mensual
   return {
-    category: "Consulta Obstétrica de Control",
-    badge: "Chequeo Periódico",
+    category: "Consulta ObstÃ©trica de Control",
+    badge: "Chequeo PeriÃ³dico",
     whatToBring: [
       "Carnet de control perinatal",
       "Registro de presiones arteriales recientes (si te la tomas en casa o farmacia)",
-      "Lista de síntomas o dudas anotadas durante las últimas semanas",
-      "Nombres exactos de cualquier suplemento o vitamina que estés consumiendo"
+      "Lista de sÃ­ntomas o dudas anotadas durante las Ãºltimas semanas",
+      "Nombres exactos de cualquier suplemento o vitamina que estÃ©s consumiendo"
     ],
     whatToAsk: [
-      "¿La ganancia de peso y la altura de fondo uterino van en el percentil esperado?",
-      "¿Los movimientos fetales que percibo son los esperados para esta semana?",
-      "¿Puedo continuar con mi rutina de actividad física o requiere adaptaciones?",
-      "¿Cuáles son los signos de alarma específicos por los que debería acudir a urgencias de inmediato?"
+      "Â¿La ganancia de peso y la altura de fondo uterino van en el percentil esperado?",
+      "Â¿Los movimientos fetales que percibo son los esperados para esta semana?",
+      "Â¿Puedo continuar con mi rutina de actividad fÃ­sica o requiere adaptaciones?",
+      "Â¿CuÃ¡les son los signos de alarma especÃ­ficos por los que deberÃ­a acudir a urgencias de inmediato?"
     ],
-    tip: "Anota tus preguntas en cuanto surjan durante el mes en tu teléfono para no olvidar ninguna en los minutos de consulta."
+    tip: "Anota tus preguntas en cuanto surjan durante el mes en tu telÃ©fono para no olvidar ninguna en los minutos de consulta."
   };
 }
 
@@ -400,15 +400,15 @@ function getCountdownText(eventDate: Date): { text: string; isClose: boolean; da
     return { text: "Cita pasada", isClose: false, daysLeft: diffDays };
   }
   if (diffDays === 0) {
-    return { text: "¡Es hoy!", isClose: true, daysLeft: 0 };
+    return { text: "Â¡Es hoy!", isClose: true, daysLeft: 0 };
   }
   if (diffDays === 1) {
-    return { text: "¡Es mañana!", isClose: true, daysLeft: 1 };
+    return { text: "Â¡Es maÃ±ana!", isClose: true, daysLeft: 1 };
   }
   if (diffDays <= 7) {
-    return { text: `Faltan ${diffDays} días`, isClose: true, daysLeft: diffDays };
+    return { text: `Faltan ${diffDays} dÃ­as`, isClose: true, daysLeft: diffDays };
   }
-  return { text: `En ${diffDays} días`, isClose: false, daysLeft: diffDays };
+  return { text: `En ${diffDays} dÃ­as`, isClose: false, daysLeft: diffDays };
 }
 
 function downloadIcsCalendar(ev: any, prep: AppointmentPrepInfo) {
@@ -425,16 +425,16 @@ function downloadIcsCalendar(ev: any, prep: AppointmentPrepInfo) {
   const dtEnd = `${year}${pad(endDate.getMonth() + 1)}${pad(endDate.getDate())}T${pad(endDate.getHours())}${pad(endDate.getMinutes())}00`;
 
   const description = [
-    `CITA MÉDICA: ${ev.title}`,
+    `CITA MÃ‰DICA: ${ev.title}`,
     `ESPECIALISTA: ${ev.doctor || "Por definir"}`,
     "",
-    "🎒 QUÉ LLEVAR:",
-    ...prep.whatToBring.map(item => `• ${item}`),
+    "ðŸŽ’ QUÃ‰ LLEVAR:",
+    ...prep.whatToBring.map(item => `â€¢ ${item}`),
     "",
-    "❓ PREGUNTAS CLAVE PARA EL MÉDICO:",
-    ...prep.whatToAsk.map(item => `• ${item}`),
+    "â“ PREGUNTAS CLAVE PARA EL MÃ‰DICO:",
+    ...prep.whatToAsk.map(item => `â€¢ ${item}`),
     "",
-    `💡 CONSEJO PANDAJR: ${prep.tip}`
+    `ðŸ’¡ CONSEJO PANDAJR: ${prep.tip}`
   ].join("\\n");
 
   const icsContent = [
@@ -447,19 +447,19 @@ function downloadIcsCalendar(ev: any, prep: AppointmentPrepInfo) {
     `DTSTAMP:${year}${month}${day}T000000Z`,
     `DTSTART:${dtStart}`,
     `DTEND:${dtEnd}`,
-    `SUMMARY:👶 Cita Médica: ${ev.title}`,
+    `SUMMARY:ðŸ‘¶ Cita MÃ©dica: ${ev.title}`,
     `DESCRIPTION:${description}`,
-    `LOCATION:${ev.doctor || "Consultorio médico"}`,
+    `LOCATION:${ev.doctor || "Consultorio mÃ©dico"}`,
     "STATUS:CONFIRMED",
     "BEGIN:VALARM",
     "TRIGGER:-P1D",
     "ACTION:DISPLAY",
-    `DESCRIPTION:Recordatorio PandaJR (24h antes): ${ev.title}. ¡Revisa qué llevar y qué preguntar!`,
+    `DESCRIPTION:Recordatorio PandaJR (24h antes): ${ev.title}. Â¡Revisa quÃ© llevar y quÃ© preguntar!`,
     "END:VALARM",
     "BEGIN:VALARM",
     "TRIGGER:-PT2H",
     "ACTION:DISPLAY",
-    `DESCRIPTION:Recordatorio PandaJR (2h antes): ${ev.title} con ${ev.doctor || "tu médico"}.`,
+    `DESCRIPTION:Recordatorio PandaJR (2h antes): ${ev.title} con ${ev.doctor || "tu mÃ©dico"}.`,
     "END:VALARM",
     "END:VEVENT",
     "END:VCALENDAR"
@@ -490,19 +490,19 @@ function openGoogleCalendar(ev: any, prep: AppointmentPrepInfo) {
   const endIso = `${year}${pad(endDate.getMonth() + 1)}${pad(endDate.getDate())}T${pad(endDate.getHours())}${pad(endDate.getMinutes())}00`;
 
   const details = [
-    `CITA MÉDICA: ${ev.title}`,
+    `CITA MÃ‰DICA: ${ev.title}`,
     `ESPECIALISTA: ${ev.doctor || ""}`,
     "",
-    "🎒 QUÉ LLEVAR:",
-    ...prep.whatToBring.map(i => `• ${i}`),
+    "ðŸŽ’ QUÃ‰ LLEVAR:",
+    ...prep.whatToBring.map(i => `â€¢ ${i}`),
     "",
-    "❓ PREGUNTAS PARA EL DOCTOR:",
-    ...prep.whatToAsk.map(i => `• ${i}`),
+    "â“ PREGUNTAS PARA EL DOCTOR:",
+    ...prep.whatToAsk.map(i => `â€¢ ${i}`),
     "",
     `CONSEJO PANDAJR: ${prep.tip}`
   ].join("\n");
 
-  const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`👶 Cita: ${ev.title}`)}&dates=${startIso}/${endIso}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(ev.doctor || "")}`;
+  const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`ðŸ‘¶ Cita: ${ev.title}`)}&dates=${startIso}/${endIso}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(ev.doctor || "")}`;
   window.open(url, "_blank");
 }
 
@@ -514,13 +514,13 @@ async function requestBrowserNotification(upcomingEvent?: any): Promise<boolean>
     const permission = await Notification.requestPermission();
     if (permission === "granted") {
       if (upcomingEvent) {
-        new Notification(`🔔 PandaJR: Recordatorio de Cita`, {
-          body: `Próxima cita: "${upcomingEvent.title}" el ${upcomingEvent.date} a las ${upcomingEvent.time}. ¡Toca para ver qué llevar y qué preguntar!`,
+        new Notification(`ðŸ”” PandaJR: Recordatorio de Cita`, {
+          body: `PrÃ³xima cita: "${upcomingEvent.title}" el ${upcomingEvent.date} a las ${upcomingEvent.time}. Â¡Toca para ver quÃ© llevar y quÃ© preguntar!`,
           icon: "/icon.jpg"
         });
       } else {
-        new Notification(`🔔 PandaJR: Recordatorios Activados`, {
-          body: `¡Excelente! Te avisaremos de tus citas médicas y te recordaremos qué llevar y qué preguntar antes de salir.`,
+        new Notification(`ðŸ”” PandaJR: Recordatorios Activados`, {
+          body: `Â¡Excelente! Te avisaremos de tus citas mÃ©dicas y te recordaremos quÃ© llevar y quÃ© preguntar antes de salir.`,
           icon: "/icon.jpg"
         });
       }
@@ -600,7 +600,7 @@ function AppointmentPrepModal({
           <button 
             onClick={onClose} 
             className="absolute top-3.5 right-3.5 bg-white/20 hover:bg-white/30 text-white min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full transition-colors active:scale-95"
-            aria-label="Cerrar guía de preparación"
+            aria-label="Cerrar guÃ­a de preparaciÃ³n"
           >
             <X size={20} />
           </button>
@@ -632,15 +632,15 @@ function AppointmentPrepModal({
           <div className="bg-terracotta/10/90 dark:bg-[#241b12] border border-terracotta/30/90 dark:border-terracotta/100/20 rounded-2xl p-3.5 flex gap-3 items-start shadow-xs">
             <Sparkles className="text-terracotta/100 shrink-0 mt-0.5" size={18} />
             <p className="text-xs text-terracotta dark:text-terracotta/30 leading-relaxed font-medium">
-              <strong className="font-bold">Consejo de preparación:</strong> {prep.tip}
+              <strong className="font-bold">Consejo de preparaciÃ³n:</strong> {prep.tip}
             </p>
           </div>
 
-          {/* Sección 1: Qué llevar */}
+          {/* SecciÃ³n 1: QuÃ© llevar */}
           <div>
             <div className="flex items-center justify-between mb-2.5">
               <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm flex items-center gap-2">
-                <ShoppingBag size={17} className="text-terracotta dark:text-sage" /> ¿Qué debes llevar?
+                <ShoppingBag size={17} className="text-terracotta dark:text-sage" /> Â¿QuÃ© debes llevar?
               </h4>
               <span className="text-xs font-semibold text-stone-500 dark:text-[#a6a1b2]">
                 {Object.values(checkedItems).filter(Boolean).length} de {prep.whatToBring.length} listos
@@ -672,7 +672,7 @@ function AppointmentPrepModal({
             </div>
           </div>
 
-          {/* Sección 2: Qué preguntar al médico */}
+          {/* SecciÃ³n 2: QuÃ© preguntar al mÃ©dico */}
           <div>
             <div className="flex items-center justify-between mb-2.5">
               <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm flex items-center gap-2">
@@ -714,7 +714,7 @@ function AppointmentPrepModal({
               <Bell size={15} className="text-terracotta dark:text-sage" /> Sincronizar Alarmas de Recordatorio
             </p>
             <p className="text-xs text-stone-500 dark:text-[#a6a1b2] leading-snug">
-              Añade esta cita a tu calendario del teléfono con 2 alarmas automáticas (24h y 2h antes) y todas estas preguntas guardadas en las notas.
+              AÃ±ade esta cita a tu calendario del telÃ©fono con 2 alarmas automÃ¡ticas (24h y 2h antes) y todas estas preguntas guardadas en las notas.
             </p>
             <div className="grid grid-cols-2 gap-2 pt-1">
               <button
@@ -722,25 +722,25 @@ function AppointmentPrepModal({
                 onClick={() => downloadIcsCalendar(event, prep)}
                 className="py-2.5 px-3 bg-white dark:bg-[#221d2d] hover:bg-stone-100 dark:hover:bg-[#2d273a] text-stone-800 dark:text-[#eae6e1] font-bold text-xs rounded-xl border border-stone-200 dark:border-white/10 shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all text-center"
               >
-                <span>📅 Apple / iCal (.ics)</span>
+                <span>ðŸ“… Apple / iCal (.ics)</span>
               </button>
               <button
                 type="button"
                 onClick={() => openGoogleCalendar(event, prep)}
                 className="py-2.5 px-3 bg-white dark:bg-[#221d2d] hover:bg-stone-100 dark:hover:bg-[#2d273a] text-sage dark:text-sage/80 font-bold text-xs rounded-xl border border-sage/30 dark:border-white/10 shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all text-center"
               >
-                <span>🗓️ Google Calendar</span>
+                <span>ðŸ—“ï¸ Google Calendar</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Footer con botón de consulta a PandaIA */}
+        {/* Footer con botÃ³n de consulta a PandaIA */}
         <div className="p-4 border-t border-stone-200/80 dark:border-white/[0.08] bg-stone-50 dark:bg-[#221d2d] flex gap-2">
           {onAskPandaIA && (
             <button
               type="button"
-              onClick={() => onAskPandaIA(`Tengo una cita de "${event.title}" con ${event.doctor || "mi médico"} el ${event.date}. ¿Qué otros consejos o preparaciones me recomiendas como ${event.title}?`)}
+              onClick={() => onAskPandaIA(`Tengo una cita de "${event.title}" con ${event.doctor || "mi mÃ©dico"} el ${event.date}. Â¿QuÃ© otros consejos o preparaciones me recomiendas como ${event.title}?`)}
               className="flex-1 py-3 px-4 bg-terracotta hover:bg-terracotta-hover text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95"
             >
               <Bot size={16} /> Consultar con PandaIA
@@ -788,7 +788,7 @@ function OnboardingModal({ onComplete, onSkip }: { onComplete: (profile: UserPro
           setStep(3); // Show code
         } catch (e) {
           console.error(e);
-          setErrorMsg("Error al crear. Asegúrate de habilitar Firestore y Auth Anónimo.");
+          setErrorMsg("Error al crear. AsegÃºrate de habilitar Firestore y Auth AnÃ³nimo.");
         } finally {
           setIsLoading(false);
         }
@@ -800,7 +800,7 @@ function OnboardingModal({ onComplete, onSkip }: { onComplete: (profile: UserPro
           const { pregnancyId, babyName, week } = await joinPregnancyAsDad(uid, code);
           onComplete({ role: "papa", name: "Copiloto de " + babyName, week: week || 14, location: "", notes: "", pregnancyId });
         } catch (e: any) {
-          setErrorMsg(e.message || "Código inválido");
+          setErrorMsg(e.message || "CÃ³digo invÃ¡lido");
         } finally {
           setIsLoading(false);
         }
@@ -820,7 +820,7 @@ function OnboardingModal({ onComplete, onSkip }: { onComplete: (profile: UserPro
                 <Image src="/panda-icon.jpg" alt="PandaJR Icon" width={96} height={96} className="w-full h-full object-cover" priority />
               </div>
             <h2 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1]">Bienvenido a PandaJR</h2>
-            <p className="text-sm text-stone-500 dark:text-[#a6a1b2]">¿Quién eres en esta hermosa aventura?</p>
+            <p className="text-sm text-stone-500 dark:text-[#a6a1b2]">Â¿QuiÃ©n eres en esta hermosa aventura?</p>
             
             <div className="space-y-3 mt-4">
               <button 
@@ -828,7 +828,7 @@ function OnboardingModal({ onComplete, onSkip }: { onComplete: (profile: UserPro
                 className={`w-full p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${role === "mama" ? "border-terracotta bg-terracotta/5" : "border-stone-100 dark:border-white/[0.06] hover:border-stone-300 dark:hover:border-white/[0.12]"}`}
               >
                 <Baby size={28} className={role === "mama" ? "text-terracotta" : "text-stone-400"} />
-                <span className={`font-bold ${role === "mama" ? "text-terracotta" : "text-stone-600 dark:text-[#a6a1b2]"}`}>Soy la futura mamá</span>
+                <span className={`font-bold ${role === "mama" ? "text-terracotta" : "text-stone-600 dark:text-[#a6a1b2]"}`}>Soy la futura mamÃ¡</span>
               </button>
               <button 
                 onClick={() => setRole("papa")}
@@ -839,7 +839,7 @@ function OnboardingModal({ onComplete, onSkip }: { onComplete: (profile: UserPro
               </button>
             </div>
 
-          {/* Botón de Skip (P0) */}
+          {/* BotÃ³n de Skip (P0) */}
           <button 
             onClick={() => onSkip && onSkip()} 
             className="w-full mt-4 py-3 min-h-[44px] text-sm font-bold text-stone-400 hover:text-stone-600 dark:text-[#a6a1b2] dark:hover:text-white transition-colors"
@@ -887,7 +887,7 @@ function OnboardingModal({ onComplete, onSkip }: { onComplete: (profile: UserPro
               disabled={!name}
               className="w-full bg-terracotta hover:bg-terracotta-hover text-white rounded-xl py-3.5 font-bold disabled:opacity-50 transition-all"
             >
-              Generar mi código
+              Generar mi cÃ³digo
             </button>
           </div>
         )}
@@ -895,11 +895,11 @@ function OnboardingModal({ onComplete, onSkip }: { onComplete: (profile: UserPro
         {step === 2 && role === "papa" && (
           <div className="space-y-6">
             <h2 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1]">Vincular Cuenta</h2>
-            <p className="text-sm text-stone-500 dark:text-[#a6a1b2]">Pídele a tu pareja su código de vinculación para compartir el diario.</p>
+            <p className="text-sm text-stone-500 dark:text-[#a6a1b2]">PÃ­dele a tu pareja su cÃ³digo de vinculaciÃ³n para compartir el diario.</p>
             {errorMsg && <div className="text-sm text-rose-500 bg-rose-50 dark:bg-rose-950/30 p-3 rounded-xl border border-rose-100 dark:border-rose-900 mt-4">{errorMsg}</div>}
             
             <div className="pt-4">
-              <label className="text-xs font-bold text-stone-600 dark:text-[#a6a1b2] mb-1 block text-left">Código de invitación</label>
+              <label className="text-xs font-bold text-stone-600 dark:text-[#a6a1b2] mb-1 block text-left">CÃ³digo de invitaciÃ³n</label>
               <input 
                 type="text" 
                 value={code}
@@ -923,8 +923,8 @@ function OnboardingModal({ onComplete, onSkip }: { onComplete: (profile: UserPro
             <div className="bg-sage/10 dark:bg-sage/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-2">
               <CheckCircle2 className="text-sage" size={32} />
             </div>
-            <h2 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1]">¡Todo listo!</h2>
-            <p className="text-sm text-stone-500 dark:text-[#a6a1b2]">Comparte este código con tu pareja para que se vincule a tu embarazo.</p>
+            <h2 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1]">Â¡Todo listo!</h2>
+            <p className="text-sm text-stone-500 dark:text-[#a6a1b2]">Comparte este cÃ³digo con tu pareja para que se vincule a tu embarazo.</p>
             
             <div className="bg-stone-50 dark:bg-[#1a1724] p-4 rounded-2xl border border-stone-200 dark:border-white/[0.1]">
               <p className="font-mono text-2xl font-black tracking-widest text-terracotta">{generatedCode}</p>
@@ -967,7 +967,7 @@ export default function PandaJRApp() {
         setRemoteMomStatus({
           text: status.statusText,
           emoji: status.emoji,
-          lastUpdated: "recién actualizado"
+          lastUpdated: "reciÃ©n actualizado"
         });
       });
       return () => {
@@ -1017,11 +1017,11 @@ export default function PandaJRApp() {
   };
   
   const [events, setEvents] = useState([
-    { id: 1, date: "15 Oct", rawDate: "2026-10-15", time: "10:30 AM", title: "Ecografía de las 12 Semanas (Tamizaje)", doctor: "Dra. Ramírez" },
-    { id: 2, date: "28 Oct", rawDate: "2026-10-28", time: "09:00 AM", title: "Exámenes de laboratorio", doctor: "Laboratorio Central" },
+    { id: 1, date: "15 Oct", rawDate: "2026-10-15", time: "10:30 AM", title: "EcografÃ­a de las 12 Semanas (Tamizaje)", doctor: "Dra. RamÃ­rez" },
+    { id: 2, date: "28 Oct", rawDate: "2026-10-28", time: "09:00 AM", title: "ExÃ¡menes de laboratorio", doctor: "Laboratorio Central" },
   ]);
 
-  // Próxima cita cronológica más cercana
+  // PrÃ³xima cita cronolÃ³gica mÃ¡s cercana
   const nextUpcomingEvent = React.useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -1038,10 +1038,10 @@ export default function PandaJRApp() {
     setTimeout(() => setToast(null), 5000);
   };
 
-  // Cargar eventos guardados de localStorage y sincronizar si la pareja compartió citas (?sync_events=)
+  // Cargar eventos guardados de localStorage y sincronizar si la pareja compartiÃ³ citas (?sync_events=)
   useEffect(() => {
     try {
-      // 1. Cargar citas locales del teléfono
+      // 1. Cargar citas locales del telÃ©fono
       const saved = localStorage.getItem("pandajr_events");
       if (saved) {
         const parsed = JSON.parse(saved);
@@ -1050,7 +1050,7 @@ export default function PandaJRApp() {
         }
       }
 
-      // 2. Revisar si se abrió un enlace de sincronización de la pareja
+      // 2. Revisar si se abriÃ³ un enlace de sincronizaciÃ³n de la pareja
       if (typeof window !== "undefined") {
         const params = new URLSearchParams(window.location.search);
         const syncData = params.get("sync_events");
@@ -1060,7 +1060,7 @@ export default function PandaJRApp() {
             if (Array.isArray(decoded) && decoded.length > 0) {
               setEvents(decoded);
               localStorage.setItem("pandajr_events", JSON.stringify(decoded));
-              showToast("¡Agenda sincronizada con tu pareja! 👶", () => {});
+              showToast("Â¡Agenda sincronizada con tu pareja! ðŸ‘¶", () => {});
               setActiveTab("agenda");
               // Limpiar URL sin recargar
               const cleanUrl = new URL(window.location.href);
@@ -1125,7 +1125,7 @@ export default function PandaJRApp() {
         <div className="flex items-center gap-1.5 sm:gap-2">
           
 
-          {/* Botón Campana de Recordatorio de Cita */}
+          {/* BotÃ³n Campana de Recordatorio de Cita */}
           {events.length > 0 && (
             <button
               onClick={() => {
@@ -1140,8 +1140,8 @@ export default function PandaJRApp() {
                   ? "bg-terracotta/10 dark:bg-[#241b12] border-terracotta/30 dark:border-terracotta/100/25 text-terracotta dark:text-terracotta/80 hover:bg-terracotta/20 dark:hover:bg-[#2c2217]" 
                   : "bg-stone-50 dark:bg-[#2d273a] border-stone-200 dark:border-white/10 text-stone-400 dark:text-[#a6a1b2] hover:bg-stone-100 dark:hover:bg-[#2a2e38]"
               }`}
-              title={nextUpcomingEvent ? `Recordatorio de cita: ${nextUpcomingEvent.title}` : "Citas médicas"}
-              aria-label="Recordatorio de citas médicas"
+              title={nextUpcomingEvent ? `Recordatorio de cita: ${nextUpcomingEvent.title}` : "Citas mÃ©dicas"}
+              aria-label="Recordatorio de citas mÃ©dicas"
             >
               <Bell size={16} />
               {nextUpcomingEvent && (
@@ -1153,14 +1153,14 @@ export default function PandaJRApp() {
             </button>
           )}
 
-          {/* Botón Global de Perfil / Switcher */}
+          {/* BotÃ³n Global de Perfil / Switcher */}
           <button
             onClick={() => setIsProfileModalOpen(true)}
             className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-full bg-sage/10 dark:bg-[#1a1724] border border-sage/30/70 dark:border-sage/100/25 hover:bg-sage/20 dark:hover:bg-[#1b322c] transition-all text-xs font-bold text-sage dark:text-sage/80 active:scale-95 shadow-xs"
             title="Configurar tu rol y perfil en este dispositivo"
           >
-            <span className="text-base">{profile.role === "papa" ? "🧔" : "👩"}</span>
-            <span>{profile.name || (profile.role === "papa" ? "Papá" : "Mamá")}</span>
+            <span className="text-base">{profile.role === "papa" ? "ðŸ§”" : "ðŸ‘©"}</span>
+            <span>{profile.name || (profile.role === "papa" ? "PapÃ¡" : "MamÃ¡")}</span>
             <Settings size={13} className="text-terracotta opacity-70 ml-0.5" />
           </button>
         </div>
@@ -1225,7 +1225,7 @@ export default function PandaJRApp() {
         />
       )}
 
-      {/* Modal Guía de Preparación y Recordatorio de Cita */}
+      {/* Modal GuÃ­a de PreparaciÃ³n y Recordatorio de Cita */}
       {selectedPrepEvent && (
         <AppointmentPrepModal
           event={selectedPrepEvent}
@@ -1252,10 +1252,10 @@ export default function PandaJRApp() {
       )}
 
       {/* Bottom Navigation */}
-      <nav aria-label="Navegación principal" className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 dark:bg-[#181520]/95 backdrop-blur-md border-t border-stone-200/80 dark:border-white/[0.08] flex justify-around items-center px-2 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] z-50 transition-colors">
+      <nav aria-label="NavegaciÃ³n principal" className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 dark:bg-[#181520]/95 backdrop-blur-md border-t border-stone-200/80 dark:border-white/[0.08] flex justify-around items-center px-2 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] z-50 transition-colors">
         <NavItem
           icon={<Compass size={24} />}
-          label="Guía"
+          label="GuÃ­a"
           isActive={activeTab === "planificacion"}
           onClick={() => setActiveTab("planificacion")}
         />
@@ -1306,7 +1306,7 @@ function PregnancyProgressBar({ week }: { week: number }) {
       <div className="flex justify-between items-end mb-2 px-1">
         <span className="text-[11px] font-medium text-stone-500 dark:text-[#a6a1b2]">Inicio dulce</span>
         <span className="text-sm font-bold text-stone-800 dark:text-[#eae6e1]">Semana {week} ({Math.round(percent)}%)</span>
-        <span className="text-[11px] font-medium text-stone-500 dark:text-[#a6a1b2]">Llegada soñada</span>
+        <span className="text-[11px] font-medium text-stone-500 dark:text-[#a6a1b2]">Llegada soÃ±ada</span>
       </div>
       <div className="h-2 w-full bg-stone-100 dark:bg-[#2d273a] rounded-full overflow-hidden">
         <div 
@@ -1330,26 +1330,26 @@ function MomStatusCard({ profile, remoteMomStatus }: { profile: UserProfile, rem
             </div>
           </div>
           <div>
-            <h3 className="text-sm font-bold text-stone-800 dark:text-[#eae6e1] leading-tight">¿Cómo se siente {profile.name || "Elena"} hoy?</h3>
+            <h3 className="text-sm font-bold text-stone-800 dark:text-[#eae6e1] leading-tight">Â¿CÃ³mo se siente {profile.name || "Elena"} hoy?</h3>
             <p className="text-xs text-stone-500 dark:text-[#a6a1b2] mt-0.5">Actualizado hace 40 min por ella</p>
           </div>
         </div>
         <div className="hidden sm:flex items-center gap-1.5 bg-terracotta/10 dark:bg-[#2d273a] px-3 py-1.5 rounded-full border border-terracotta/20 dark:border-white/[0.06] shrink-0">
-          <span className="text-xs">💖</span>
+          <span className="text-xs">ðŸ’–</span>
           <span className="text-[11px] font-bold text-terracotta dark:text-terracotta">Muy feliz y relajada</span>
         </div>
       </div>
       
       {/* Mobile status badge fallback */}
       <div className="sm:hidden flex items-center gap-1.5 bg-terracotta/10 dark:bg-[#2d273a] px-3 py-1.5 rounded-full border border-terracotta/20 dark:border-white/[0.06] mb-3 w-fit">
-        <span className="text-xs">💖</span>
+        <span className="text-xs">ðŸ’–</span>
         <span className="text-[11px] font-bold text-terracotta dark:text-terracotta">Muy feliz y relajada</span>
       </div>
       
       {/* Quote bubble */}
       <div className="bg-stone-50 dark:bg-[#1a1724] rounded-2xl p-4 mb-4 border border-stone-100 dark:border-white/[0.04] relative">
         <p className="text-sm italic text-stone-700 dark:text-[#eae6e1]/90">
-          "¡El masaje de pies fue la gloria! Y el bebé no paró de responder a las caricias antes de cenar ✨"
+          "Â¡El masaje de pies fue la gloria! Y el bebÃ© no parÃ³ de responder a las caricias antes de cenar âœ¨"
         </p>
       </div>
 
@@ -1368,17 +1368,17 @@ function MomStatusCard({ profile, remoteMomStatus }: { profile: UserProfile, rem
   );
 }
 
-// --- VISTA 1: GUÍA DEL PAPÁ ---
+// --- VISTA 1: GUÃA DEL PAPÃ ---
 const masterCategories = [
   // TRIMESTRE 1 (Semanas 1-13)
   {
     id: "t1_nutricion", trimester: 1, defaultExpanded: true,
-    title: "Neuro-Nutrición (Pilar 1)",
+    title: "Neuro-NutriciÃ³n (Pilar 1)",
     icon: <Utensils className="text-terracotta/100" size={20} />, color: "bg-terracotta/10",
     tasks: [
-      { id: 110, text: "Garantizar Suplemento de Ácido Fólico diario" },
-      { id: 111, text: "Mantener su termo de agua lleno (volumen amniótico)" },
-      { id: 112, text: "Snacks secos en su buró (contra náuseas matutinas)" },
+      { id: 110, text: "Garantizar Suplemento de Ãcido FÃ³lico diario" },
+      { id: 111, text: "Mantener su termo de agua lleno (volumen amniÃ³tico)" },
+      { id: 112, text: "Snacks secos en su burÃ³ (contra nÃ¡useas matutinas)" },
     ]
   },
   {
@@ -1386,30 +1386,30 @@ const masterCategories = [
     title: "Escudo Ambiental (Pilar 2)",
     icon: <AlertTriangle className="text-terracotta/100" size={20} />, color: "bg-terracotta/10",
     tasks: [
-      { id: 113, text: "Tirar/Donar tuppers de plástico (BPA interfiere hormonas)" },
-      { id: 114, text: "Asumir tú la limpieza con químicos (evitar VOCs)" },
-      { id: 115, text: "Asumir tú la caja del gato 100% (Prevención Toxoplasmosis)" },
+      { id: 113, text: "Tirar/Donar tuppers de plÃ¡stico (BPA interfiere hormonas)" },
+      { id: 114, text: "Asumir tÃº la limpieza con quÃ­micos (evitar VOCs)" },
+      { id: 115, text: "Asumir tÃº la caja del gato 100% (PrevenciÃ³n Toxoplasmosis)" },
     ]
   },
   {
     id: "t1_citas", trimester: 1, defaultExpanded: false,
-    title: "Salud y Citas Médicas",
+    title: "Salud y Citas MÃ©dicas",
     icon: <Activity className="text-terracotta" size={20} />, color: "bg-sage/10",
     tasks: [
-      { id: 101, text: "Agendar primera cita obstétrica" },
-      { id: 102, text: "Preguntar sobre cobertura de seguro médico" },
-      { id: 103, text: "Acompañar a la primera ecografía" },
+      { id: 101, text: "Agendar primera cita obstÃ©trica" },
+      { id: 102, text: "Preguntar sobre cobertura de seguro mÃ©dico" },
+      { id: 103, text: "AcompaÃ±ar a la primera ecografÃ­a" },
     ]
   },
   // TRIMESTRE 2 (Semanas 14-27)
   {
     id: "t2_nutricion", trimester: 2, defaultExpanded: true,
-    title: "Neuro-Nutrición y DHA",
+    title: "Neuro-NutriciÃ³n y DHA",
     icon: <Utensils className="text-terracotta/100" size={20} />, color: "bg-terracotta/10",
     tasks: [
       { id: 210, text: "Suplemento DHA/Omega-3 (Desarrollo corteza frontal)" },
       { id: 211, text: "Garantizar Colina en dieta (Huevos, pollo magro)" },
-      { id: 212, text: "Monitorear hierro (Prevenir anemia por dilución de sangre)" },
+      { id: 212, text: "Monitorear hierro (Prevenir anemia por diluciÃ³n de sangre)" },
     ]
   },
   {
@@ -1418,8 +1418,8 @@ const masterCategories = [
     icon: <Heart className="text-terracotta/100" size={20} />, color: "bg-terracotta/10",
     tasks: [
       { id: 213, text: "Asumir la carga mental de planear las cenas" },
-      { id: 214, text: "Agendarle un masaje prenatal o día de descanso total" },
-      { id: 215, text: "Bloquear críticas o estrés externo hacia ella" },
+      { id: 214, text: "Agendarle un masaje prenatal o dÃ­a de descanso total" },
+      { id: 215, text: "Bloquear crÃ­ticas o estrÃ©s externo hacia ella" },
     ]
   },
   {
@@ -1428,7 +1428,7 @@ const masterCategories = [
     icon: <ShoppingBag className="text-terracotta" size={20} />, color: "bg-sage/10",
     tasks: [
       { id: 204, text: "Cotizar cochecito/carriola" },
-      { id: 205, text: "Comprar almohada de embarazo (Alineación pélvica)" },
+      { id: 205, text: "Comprar almohada de embarazo (AlineaciÃ³n pÃ©lvica)" },
     ]
   },
   // TRIMESTRE 3 (Semanas 28+)
@@ -1438,7 +1438,7 @@ const masterCategories = [
     icon: <Activity className="text-terracotta" size={20} />, color: "bg-sage/10",
     tasks: [
       { id: 310, text: "Vacuna DTPa para ambos (Anticuerpos pasivos al feto)" },
-      { id: 311, text: "Probióticos en dieta (Yogur/Kefir) para sembrar microbioma" },
+      { id: 311, text: "ProbiÃ³ticos en dieta (Yogur/Kefir) para sembrar microbioma" },
       { id: 312, text: "Ejercicios en pelota de pilates para abrir pelvis" },
     ]
   },
@@ -1448,14 +1448,14 @@ const masterCategories = [
     icon: <BriefcaseMedical className="text-terracotta/100" size={20} />, color: "bg-terracotta/10",
     tasks: [
       { id: 301, text: "Documentos de identidad y seguro" },
-      { id: 302, text: "Ropa cómoda para tu pareja" },
-      { id: 303, text: "Primera ropita del bebé" },
-      { id: 304, text: "Snacks (Dátiles para energía durante dilatación)" },
+      { id: 302, text: "Ropa cÃ³moda para tu pareja" },
+      { id: 303, text: "Primera ropita del bebÃ©" },
+      { id: 304, text: "Snacks (DÃ¡tiles para energÃ­a durante dilataciÃ³n)" },
     ]
   },
   {
     id: "t3_logistica", trimester: 3, defaultExpanded: false,
-    title: "Logística del parto",
+    title: "LogÃ­stica del parto",
     icon: <MapPin className="text-terracotta" size={20} />, color: "bg-sage/10",
     tasks: [
       { id: 305, text: "Instalar silla de coche y aprender a usarla" },
@@ -1467,17 +1467,17 @@ const masterCategories = [
 
 function getWeekData(week: number, theme: "frutas"|"geek" = "frutas") {
   const data = [
-    { week: 4, size: { frutas: "Semilla de amapola 🌑", geek: "Dado D20 en miniatura 🎲" }, len: "0.1 cm", weight: "1 g" },
-    { week: 8, size: { frutas: "Frambuesa 🫐", geek: "Ficha de LEGO de 1x1 🧱" }, len: "1.6 cm", weight: "1 g" },
-    { week: 12, size: { frutas: "Ciruela 🍑", geek: "Dado D6 estándar 🎲" }, len: "5.4 cm", weight: "14 g" },
-    { week: 14, size: { frutas: "Limón 🍋", geek: "Goma de borrar ✏️" }, len: "8.7 cm", weight: "43 g" },
-    { week: 16, size: { frutas: "Aguacate 🥑", geek: "Mouse de computadora 🖱️" }, len: "11.6 cm", weight: "100 g" },
-    { week: 20, size: { frutas: "Plátano 🍌", geek: "Control de Nintendo Switch (Joy-Con) 🎮" }, len: "25.6 cm", weight: "300 g" },
-    { week: 24, size: { frutas: "Mazorca de maíz 🌽", geek: "Sable de luz (mango) 🔦" }, len: "30.0 cm", weight: "600 g" },
-    { week: 27, size: { frutas: "Vegetal nutritivo 🥑", geek: "iPad Mini 📱" }, len: "33.8 cm", weight: "2922 g" },
-    { week: 30, size: { frutas: "Repollo 🥬", geek: "Casco de realidad virtual 🥽" }, len: "39.9 cm", weight: "1319 g" },
-    { week: 34, size: { frutas: "Melón cantalupo 🍈", geek: "Consola Steam Deck 🕹️" }, len: "45.0 cm", weight: "2146 g" },
-    { week: 40, size: { frutas: "Sandía pequeña 🍉", geek: "PlayStation 5 (en proporción) 🎮" }, len: "51.2 cm", weight: "3462 g" },
+    { week: 4, size: { frutas: "Semilla de amapola ðŸŒ‘", geek: "Dado D20 en miniatura ðŸŽ²" }, len: "0.1 cm", weight: "1 g" },
+    { week: 8, size: { frutas: "Frambuesa ðŸ«", geek: "Ficha de LEGO de 1x1 ðŸ§±" }, len: "1.6 cm", weight: "1 g" },
+    { week: 12, size: { frutas: "Ciruela ðŸ‘", geek: "Dado D6 estÃ¡ndar ðŸŽ²" }, len: "5.4 cm", weight: "14 g" },
+    { week: 14, size: { frutas: "LimÃ³n ðŸ‹", geek: "Goma de borrar âœï¸" }, len: "8.7 cm", weight: "43 g" },
+    { week: 16, size: { frutas: "Aguacate ðŸ¥‘", geek: "Mouse de computadora ðŸ–±ï¸" }, len: "11.6 cm", weight: "100 g" },
+    { week: 20, size: { frutas: "PlÃ¡tano ðŸŒ", geek: "Control de Nintendo Switch (Joy-Con) ðŸŽ®" }, len: "25.6 cm", weight: "300 g" },
+    { week: 24, size: { frutas: "Mazorca de maÃ­z ðŸŒ½", geek: "Sable de luz (mango) ðŸ”¦" }, len: "30.0 cm", weight: "600 g" },
+    { week: 27, size: { frutas: "Vegetal nutritivo ðŸ¥‘", geek: "iPad Mini ðŸ“±" }, len: "33.8 cm", weight: "2922 g" },
+    { week: 30, size: { frutas: "Repollo ðŸ¥¬", geek: "Casco de realidad virtual ðŸ¥½" }, len: "39.9 cm", weight: "1319 g" },
+    { week: 34, size: { frutas: "MelÃ³n cantalupo ðŸˆ", geek: "Consola Steam Deck ðŸ•¹ï¸" }, len: "45.0 cm", weight: "2146 g" },
+    { week: 40, size: { frutas: "SandÃ­a pequeÃ±a ðŸ‰", geek: "PlayStation 5 (en proporciÃ³n) ðŸŽ®" }, len: "51.2 cm", weight: "3462 g" },
   ];
   let closest = data[0];
   for (let d of data) {
@@ -1487,9 +1487,9 @@ function getWeekData(week: number, theme: "frutas"|"geek" = "frutas") {
     size: closest.size[theme] || closest.size.frutas,
     length: closest.len,
     weight: closest.weight,
-    milestone: week <= 12 ? "Fin de la organogénesis crítica" : week <= 20 ? "Glándula tiroides funcional" : "Desarrollo de sentidos y corteza cerebral",
-    momMission: week <= 12 ? "Tu cuerpo está formando órganos vitales. Prioriza descanso, ácido fólico y evita cargar peso." : week <= 24 ? "Tu bebé ya escucha tu voz. Mantén una dieta rica en hierro y calcio, y camina 20 min diarios." : "Practica ejercicios de Kegel, usa la almohada de embarazo para dormir y prepara tu plan de parto.",
-    dadMission: week <= 12 ? "El cerebro fetal triplica su sinapsis. Prepara cenas ricas en Colina (huevos) y DHA (salmón)." : "Ten lista la logística de transporte, tanque de gasolina lleno y números de emergencia a mano."
+    milestone: week <= 12 ? "Fin de la organogÃ©nesis crÃ­tica" : week <= 20 ? "GlÃ¡ndula tiroides funcional" : "Desarrollo de sentidos y corteza cerebral",
+    momMission: week <= 12 ? "Tu cuerpo estÃ¡ formando Ã³rganos vitales. Prioriza descanso, Ã¡cido fÃ³lico y evita cargar peso." : week <= 24 ? "Tu bebÃ© ya escucha tu voz. MantÃ©n una dieta rica en hierro y calcio, y camina 20 min diarios." : "Practica ejercicios de Kegel, usa la almohada de embarazo para dormir y prepara tu plan de parto.",
+    dadMission: week <= 12 ? "El cerebro fetal triplica su sinapsis. Prepara cenas ricas en Colina (huevos) y DHA (salmÃ³n)." : "Ten lista la logÃ­stica de transporte, tanque de gasolina lleno y nÃºmeros de emergencia a mano."
   };
 }
 
@@ -1605,7 +1605,7 @@ function GuiaPapaView({ showToast, profile, updateProfile, remoteMomStatus }: { 
             <ChevronLeft size={24} />
           </button>
           <div className="text-center">
-            <p className="text-sage/20 dark:text-sage/80/80 text-xs font-semibold tracking-tight mb-1">Semana de Gestación</p>
+            <p className="text-sage/20 dark:text-sage/80/80 text-xs font-semibold tracking-tight mb-1">Semana de GestaciÃ³n</p>
             <h2 className="text-3xl font-black">{week}</h2>
           </div>
           <button aria-label="Semana siguiente"
@@ -1620,7 +1620,7 @@ function GuiaPapaView({ showToast, profile, updateProfile, remoteMomStatus }: { 
         <div className="p-5">
           <div className="flex justify-between items-center mb-4">
             <div>
-              <p className="text-stone-500 dark:text-[#a6a1b2] text-xs uppercase font-bold mb-1">Tamaño comparativo</p>
+              <p className="text-stone-500 dark:text-[#a6a1b2] text-xs uppercase font-bold mb-1">TamaÃ±o comparativo</p>
               <p className="text-xl font-bold text-stone-800 dark:text-[#eae6e1]">{weekData.size}</p>
             </div>
             <div className="bg-sage/10 dark:bg-[#1a1724] p-3 rounded-2xl">
@@ -1651,12 +1651,12 @@ function GuiaPapaView({ showToast, profile, updateProfile, remoteMomStatus }: { 
           <div className="border-t border-stone-100 dark:border-white/[0.06] pt-5 mt-5 pb-5">
             <PregnancyProgressBar week={week} />
           </div>
-        {/* Misión */}
+        {/* MisiÃ³n */}
         <div className="bg-sage/10/70 dark:bg-[#1a1724] border-t border-sage/20 dark:border-sage/100/20 p-5">
           <div className="flex items-center gap-2 mb-2">
             <Trophy size={18} className="text-terracotta dark:text-sage" />
             <h3 className="font-bold text-sage dark:text-sage/80 text-sm">
-              {profile.role === "papa" ? "Misión del Copiloto" : "Tu Misión"}
+              {profile.role === "papa" ? "MisiÃ³n del Copiloto" : "Tu MisiÃ³n"}
             </h3>
           </div>
           <p className="text-sage dark:text-[#eae6e1] text-sm leading-relaxed">
@@ -1802,10 +1802,10 @@ function AgendaView({
   const handleSaveEvent = () => {
     const validationErrors: { title?: string; date?: string } = {};
     if (!newEvent.title.trim()) {
-      validationErrors.title = "El título o motivo de la consulta es obligatorio.";
+      validationErrors.title = "El tÃ­tulo o motivo de la consulta es obligatorio.";
     }
     if (!newEvent.date) {
-      validationErrors.date = "La fecha de la cita médica es obligatoria.";
+      validationErrors.date = "La fecha de la cita mÃ©dica es obligatoria.";
     }
 
     if (Object.keys(validationErrors).length > 0) {
@@ -1872,12 +1872,12 @@ function AgendaView({
 
   const [suggestions, setSuggestions] = React.useState({
     mama: [
-      { id: "m1", text: "Sugerencia: Agendar ecografía de tamizaje (Traslucencia Nucal)." },
+      { id: "m1", text: "Sugerencia: Agendar ecografÃ­a de tamizaje (Traslucencia Nucal)." },
       { id: "m2", text: "Sugerencia: Revisar vitaminas prenatales para el segundo trimestre." }
     ],
     papa: [
-      { id: "p1", text: "Sugerencia: Planificar cómo dar la gran noticia a la familia y amigos." },
-      { id: "p2", text: "Sugerencia: Bloquear agenda para acompañar a la ecografía de las 12 semanas." }
+      { id: "p1", text: "Sugerencia: Planificar cÃ³mo dar la gran noticia a la familia y amigos." },
+      { id: "p2", text: "Sugerencia: Bloquear agenda para acompaÃ±ar a la ecografÃ­a de las 12 semanas." }
     ]
   });
   const [isSuggestionsOpen, setIsSuggestionsOpen] = React.useState(false);
@@ -1897,12 +1897,12 @@ function AgendaView({
       const dataStr = btoa(unescape(encodeURIComponent(JSON.stringify(events))));
       const shareUrl = `${window.location.origin}/?sync_events=${dataStr}`;
       
-      const summary = events.map(e => `• ${e.date} (${e.time}): ${e.title} - ${e.doctor}`).join("\n");
-      const text = `¡Hola amor! Te comparto nuestra agenda médica actualizada de PandaJR:\n\n${summary}\n\n👉 Ábrelo aquí para sincronizarlo en tu teléfono:\n${shareUrl}`;
+      const summary = events.map(e => `â€¢ ${e.date} (${e.time}): ${e.title} - ${e.doctor}`).join("\n");
+      const text = `Â¡Hola amor! Te comparto nuestra agenda mÃ©dica actualizada de PandaJR:\n\n${summary}\n\nðŸ‘‰ Ãbrelo aquÃ­ para sincronizarlo en tu telÃ©fono:\n${shareUrl}`;
 
       if (navigator.share) {
         navigator.share({
-          title: "Agenda Médica PandaJR",
+          title: "Agenda MÃ©dica PandaJR",
           text: text,
         }).catch(() => {});
       } else {
@@ -1910,7 +1910,7 @@ function AgendaView({
       }
     } catch(err) {
       console.error(err);
-      if (showToast) showToast("No se pudo generar el enlace de sincronización", () => {});
+      if (showToast) showToast("No se pudo generar el enlace de sincronizaciÃ³n", () => {});
     }
   };
 
@@ -1938,7 +1938,7 @@ function AgendaView({
 
       <div className="p-5 flex-1 overflow-y-auto space-y-6 pb-20">
         
-        {/* Banner de Recordatorio de Próxima Cita */}
+        {/* Banner de Recordatorio de PrÃ³xima Cita */}
         {nextUpcoming && (
           <button 
             type="button"
@@ -1961,8 +1961,8 @@ function AgendaView({
                   </div>
                   <h4 className="font-bold text-stone-900 dark:text-[#eae6e1] text-base mt-1 leading-tight">{nextUpcoming.title}</h4>
                   <p className="text-xs text-stone-600 dark:text-[#a6a1b2] mt-1 flex items-center gap-2">
-                    <span>📅 {nextUpcoming.date} ({nextUpcoming.time})</span>
-                    {nextUpcoming.doctor && <span>· {nextUpcoming.doctor}</span>}
+                    <span>ðŸ“… {nextUpcoming.date} ({nextUpcoming.time})</span>
+                    {nextUpcoming.doctor && <span>Â· {nextUpcoming.doctor}</span>}
                   </p>
                 </div>
               </div>
@@ -1971,14 +1971,14 @@ function AgendaView({
 
             <div className="mt-3.5 pt-2.5 border-t border-terracotta/30/60 dark:border-terracotta/100/15 flex items-center justify-between text-xs font-bold">
               <span className="flex items-center gap-1.5 text-terracotta dark:text-terracotta/80">
-                <ClipboardList size={13} className="text-terracotta dark:text-terracotta" /> Preparación: ¿Qué llevar y qué preguntar?
+                <ClipboardList size={13} className="text-terracotta dark:text-terracotta" /> PreparaciÃ³n: Â¿QuÃ© llevar y quÃ© preguntar?
               </span>
-              <span className="text-sage dark:text-sage group-hover:underline">Abrir →</span>
+              <span className="text-sage dark:text-sage group-hover:underline">Abrir â†’</span>
             </div>
           </button>
         )}
 
-        {/* Acordeón Compacto de Sugerencias del Copiloto IA */}
+        {/* AcordeÃ³n Compacto de Sugerencias del Copiloto IA */}
         {((profile.role === "mama" ? suggestions.mama : suggestions.papa).length > 0 || isSuggestionsOpen) && (
           <div className="bg-white dark:bg-[#221d2d] rounded-2xl shadow-xs border border-sage/20 dark:border-white/[0.08] overflow-hidden transition-all">
             <button
@@ -2002,7 +2002,7 @@ function AgendaView({
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-sage dark:text-sage/80 bg-sage/20 dark:bg-[#1a1724] px-2 py-0.5 rounded-full tracking-wider uppercase border border-transparent dark:border-sage/100/20">
-                  {profile.role === "mama" ? "Mamá" : "Papá"}
+                  {profile.role === "mama" ? "MamÃ¡" : "PapÃ¡"}
                 </span>
                 <ChevronDown size={16} className={`text-stone-400 dark:text-[#a6a1b2] transition-transform duration-200 ${isSuggestionsOpen ? "rotate-180" : ""}`} />
               </div>
@@ -2027,7 +2027,7 @@ function AgendaView({
                   </div>
                 ))}
                 {(profile.role === "mama" ? suggestions.mama : suggestions.papa).length === 0 && (
-                  <p className="text-xs text-stone-400 dark:text-[#a6a1b2] italic text-center py-2">No hay más sugerencias por ahora.</p>
+                  <p className="text-xs text-stone-400 dark:text-[#a6a1b2] italic text-center py-2">No hay mÃ¡s sugerencias por ahora.</p>
                 )}
               </div>
             )}
@@ -2038,17 +2038,17 @@ function AgendaView({
         <div>
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-bold text-stone-800 dark:text-[#eae6e1] flex items-center gap-2">
-              <Calendar className="text-terracotta dark:text-sage" size={20}/> Agenda Médica
+              <Calendar className="text-terracotta dark:text-sage" size={20}/> Agenda MÃ©dica
             </h3>
             <div className="flex items-center gap-1.5">
               <button
                 onClick={async () => {
                   const ok = await requestBrowserNotification(nextUpcoming);
-                  if (ok) showToast("Recordatorios de citas activados en este teléfono 🔔", () => {});
+                  if (ok) showToast("Recordatorios de citas activados en este telÃ©fono ðŸ””", () => {});
                   else showToast("Permiso de notificaciones del navegador no concedido", () => {});
                 }}
                 className="text-xs font-bold text-sage dark:text-sage/80 bg-sage/10 dark:bg-[#1a1724] hover:bg-sage/20 dark:hover:bg-[#19322c] px-2.5 py-1.5 rounded-xl border border-sage/30/60 dark:border-sage/100/25 flex items-center gap-1 transition-colors shadow-xs active:scale-95"
-                title="Activar alertas en el teléfono"
+                title="Activar alertas en el telÃ©fono"
               >
                 <Bell size={13} /> Alertas
               </button>
@@ -2097,7 +2097,7 @@ function AgendaView({
                       {event.doctor && <p className="text-xs text-stone-500 dark:text-[#a6a1b2] mt-0.5 line-clamp-1">{event.doctor}</p>}
                     </button>
                     
-                    {/* Botón de Preparación Rápida */}
+                    {/* BotÃ³n de PreparaciÃ³n RÃ¡pida */}
                     <div className="flex items-center gap-2 mt-2.5">
                       <button 
                         type="button"
@@ -2105,7 +2105,7 @@ function AgendaView({
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sage/10 dark:bg-[#1a1724] hover:bg-sage/20 dark:hover:bg-[#19322c] text-sage dark:text-sage/80 text-xs font-bold border border-sage/30/70 dark:border-sage/100/25 shadow-xs active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-sage/100"
                       >
                         <ClipboardList size={13} className="text-terracotta dark:text-sage" />
-                        <span>¿Qué llevar y preguntar?</span>
+                        <span>Â¿QuÃ© llevar y preguntar?</span>
                       </button>
                     </div>
                   </div>
@@ -2123,7 +2123,7 @@ function AgendaView({
           </div>
           
           <button onClick={openNew} className="w-full mt-4 py-3 rounded-xl border-2 border-dashed border-sage/30 dark:border-sage/100/30 text-terracotta dark:text-sage/80 font-bold flex items-center justify-center gap-2 hover:bg-sage/10 dark:hover:bg-[#1a1724]/50 transition-colors">
-            <Plus size={18} /> Nueva Cita Médica
+            <Plus size={18} /> Nueva Cita MÃ©dica
           </button>
         </div>
       </div>
@@ -2139,7 +2139,7 @@ function AgendaView({
         >
           <div className="bg-white dark:bg-[#221d2d] w-full max-h-[90%] overflow-y-auto sm:w-[90%] sm:rounded-3xl rounded-t-3xl p-6 pb-12 animate-in slide-in-from-bottom-8 border border-stone-100 dark:border-white/[0.08] shadow-2xl">
             <div className="flex justify-between items-center mb-6">
-              <h3 id="agenda-modal-title" className="text-xl font-bold text-stone-800 dark:text-[#eae6e1]">{editingEvent ? "Editar Cita" : "Nueva Cita Médica"}</h3>
+              <h3 id="agenda-modal-title" className="text-xl font-bold text-stone-800 dark:text-[#eae6e1]">{editingEvent ? "Editar Cita" : "Nueva Cita MÃ©dica"}</h3>
               <button 
                 onClick={closeModal} 
                 className="bg-stone-100 dark:bg-[#2d273a] p-2 rounded-full text-stone-500 dark:text-[#a6a1b2] hover:bg-stone-200 dark:hover:bg-[#2a2d36] transition-colors"
@@ -2152,7 +2152,7 @@ function AgendaView({
             <div className="space-y-4">
               <div>
                 <label htmlFor="event-title" className="text-xs font-bold text-stone-700 dark:text-[#eae6e1] tracking-tight mb-1 flex items-center justify-between">
-                  <span>Título / Motivo <span className="text-terracotta/100">*</span></span>
+                  <span>TÃ­tulo / Motivo <span className="text-terracotta/100">*</span></span>
                   {touched.title && errors.title && (
                     <span className="text-terracotta/100 text-xs font-medium lowercase tracking-normal flex items-center gap-1 animate-in fade-in" role="alert">
                       <AlertCircle size={12} /> {errors.title}
@@ -2167,13 +2167,13 @@ function AgendaView({
                     const val = e.target.value;
                     setNewEvent({...newEvent, title: val});
                     if (touched.title) {
-                      setErrors(prev => ({ ...prev, title: val.trim() ? undefined : "El título o motivo de la consulta es obligatorio." }));
+                      setErrors(prev => ({ ...prev, title: val.trim() ? undefined : "El tÃ­tulo o motivo de la consulta es obligatorio." }));
                     }
                   }}
                   onBlur={() => {
                     setTouched(t => ({ ...t, title: true }));
                     if (!newEvent.title.trim()) {
-                      setErrors(prev => ({ ...prev, title: "El título o motivo de la consulta es obligatorio." }));
+                      setErrors(prev => ({ ...prev, title: "El tÃ­tulo o motivo de la consulta es obligatorio." }));
                     }
                   }}
                   aria-invalid={touched.title && !!errors.title}
@@ -2182,7 +2182,7 @@ function AgendaView({
                       ? "border-terracotta bg-terracotta/10/20 dark:bg-rose-950/20 focus:ring-terracotta"
                       : "border-stone-200 dark:border-white/10 focus:ring-sage/100"
                   }`}
-                  placeholder="Ej. Ecografía Morfológica o Control Prenatal" 
+                  placeholder="Ej. EcografÃ­a MorfolÃ³gica o Control Prenatal" 
                 />
               </div>
               
@@ -2204,13 +2204,13 @@ function AgendaView({
                       const val = e.target.value;
                       setNewEvent({...newEvent, date: val});
                       if (touched.date) {
-                        setErrors(prev => ({ ...prev, date: val ? undefined : "La fecha de la cita médica es obligatoria." }));
+                        setErrors(prev => ({ ...prev, date: val ? undefined : "La fecha de la cita mÃ©dica es obligatoria." }));
                       }
                     }}
                     onBlur={() => {
                       setTouched(t => ({ ...t, date: true }));
                       if (!newEvent.date) {
-                        setErrors(prev => ({ ...prev, date: "La fecha de la cita médica es obligatoria." }));
+                        setErrors(prev => ({ ...prev, date: "La fecha de la cita mÃ©dica es obligatoria." }));
                       }
                     }}
                     aria-invalid={touched.date && !!errors.date}
@@ -2234,14 +2234,14 @@ function AgendaView({
               </div>
               
               <div>
-                <label htmlFor="event-doctor" className="text-xs font-bold text-stone-700 dark:text-[#eae6e1] tracking-tight mb-1 block">Doctor o Clínica</label>
+                <label htmlFor="event-doctor" className="text-xs font-bold text-stone-700 dark:text-[#eae6e1] tracking-tight mb-1 block">Doctor o ClÃ­nica</label>
                 <input 
                   id="event-doctor"
                   type="text" 
                   value={newEvent.doctor} 
                   onChange={e => setNewEvent({...newEvent, doctor: e.target.value})}
                   className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-4 py-3 text-stone-800 dark:text-[#eae6e1] focus:outline-none focus:ring-2 focus:ring-sage/100 placeholder-gray-400 dark:placeholder-[#a6a1b2]/60"
-                  placeholder="Dra. Ramírez / Hospital Los Olivos" 
+                  placeholder="Dra. RamÃ­rez / Hospital Los Olivos" 
                 />
               </div>
               
@@ -2260,7 +2260,7 @@ function AgendaView({
   );
 }
 
-// --- VISTA 3: PANDA IA (ASISTENTE CLÍNICO Y COPILOTO DE PATERNIDAD) ---
+// --- VISTA 3: PANDA IA (ASISTENTE CLÃNICO Y COPILOTO DE PATERNIDAD) ---
 function PandaIAView({ 
   showToast, 
   addEvent, 
@@ -2280,38 +2280,38 @@ function PandaIAView({
     if (week <= 13) {
       return role === "papa" ? [
         "Alimentos con Colina y DHA para el cerebro",
-        "¿Cómo aliviar las náuseas matutinas de mamá?",
-        "Agendar ecografía semana 12 (Traslucencia Nucal)",
-        "Tareas domésticas y químicos que debo asumir hoy"
+        "Â¿CÃ³mo aliviar las nÃ¡useas matutinas de mamÃ¡?",
+        "Agendar ecografÃ­a semana 12 (Traslucencia Nucal)",
+        "Tareas domÃ©sticas y quÃ­micos que debo asumir hoy"
       ] : [
-        "¿Es normal tener tanta fatiga y sueño?",
+        "Â¿Es normal tener tanta fatiga y sueÃ±o?",
         "Alimentos que debo evitar en el 1er trimestre",
-        "¿Cuándo se empieza a notar la pancita?",
+        "Â¿CuÃ¡ndo se empieza a notar la pancita?",
         "Agendar mi control prenatal de este mes"
       ];
     } else if (week <= 27) {
       return role === "papa" ? [
-        "¿Qué evalúa la ecografía morfológica (semana 20)?",
-        "¿Cuándo empezaremos a sentir las patadas?",
-        "Agendar cita para ecografía 3D / 4D",
-        "¿Cómo apoyar a mamá con los dolores de espalda?"
+        "Â¿QuÃ© evalÃºa la ecografÃ­a morfolÃ³gica (semana 20)?",
+        "Â¿CuÃ¡ndo empezaremos a sentir las patadas?",
+        "Agendar cita para ecografÃ­a 3D / 4D",
+        "Â¿CÃ³mo apoyar a mamÃ¡ con los dolores de espalda?"
       ] : [
-        "¿Cuándo se siente el hipo del bebé?",
-        "Cuidados de la piel y suelo pélvico en 2º trimestre",
+        "Â¿CuÃ¡ndo se siente el hipo del bebÃ©?",
+        "Cuidados de la piel y suelo pÃ©lvico en 2Âº trimestre",
         "Alimentos recomendados para prevenir anemia",
-        "¿Qué dudas llevar a la ecografía morfológica?"
+        "Â¿QuÃ© dudas llevar a la ecografÃ­a morfolÃ³gica?"
       ];
     } else {
       return role === "papa" ? [
         "Checklist esencial para la maleta del hospital",
-        "¿Cómo reconocer las contracciones de parto activo?",
+        "Â¿CÃ³mo reconocer las contracciones de parto activo?",
         "Agendar monitoreo fetal preparto",
-        "¿Cómo acompañar a mamá en el dolor de parto?"
+        "Â¿CÃ³mo acompaÃ±ar a mamÃ¡ en el dolor de parto?"
       ] : [
         "Signos de alarma en el tercer trimestre",
-        "Masaje perineal: ¿cómo y cuándo empezar?",
-        "¿Cómo saber si rompí bolsa o es flujo?",
-        "Revisar las cláusulas de nuestro Plan de Parto"
+        "Masaje perineal: Â¿cÃ³mo y cuÃ¡ndo empezar?",
+        "Â¿CÃ³mo saber si rompÃ­ bolsa o es flujo?",
+        "Revisar las clÃ¡usulas de nuestro Plan de Parto"
       ];
     }
   };
@@ -2320,47 +2320,47 @@ function PandaIAView({
     if (week <= 13) {
       return [
         {
-          title: "Ecografía 11-14: Traslucencia Nucal (TN)",
-          desc: "Cribado genético del primer trimestre y hueso nasal",
-          prompt: `¿Qué evalúa la Traslucencia Nucal (TN) y el Hueso Nasal en la ecografía de semana ${week} (semanas 11 a 14)?`
+          title: "EcografÃ­a 11-14: Traslucencia Nucal (TN)",
+          desc: "Cribado genÃ©tico del primer trimestre y hueso nasal",
+          prompt: `Â¿QuÃ© evalÃºa la Traslucencia Nucal (TN) y el Hueso Nasal en la ecografÃ­a de semana ${week} (semanas 11 a 14)?`
         },
         {
           title: `Medidas en Semana ${week}: LCR y DBP`,
-          desc: "Longitud cráneo-raudal y diámetro biparietal del bebé",
-          prompt: `¿Qué significan las medidas LCR (longitud cráneo-raudal) y DBP en mi ecografía de semana ${week}?`
+          desc: "Longitud crÃ¡neo-raudal y diÃ¡metro biparietal del bebÃ©",
+          prompt: `Â¿QuÃ© significan las medidas LCR (longitud crÃ¡neo-raudal) y DBP en mi ecografÃ­a de semana ${week}?`
         },
         {
-          title: "Frecuencia Cardíaca Fetal y Vitalidad",
+          title: "Frecuencia CardÃ­aca Fetal y Vitalidad",
           desc: "Latidos por minuto y flujo en el primer trimestre",
-          prompt: `¿Cuál es el rango normal de latidos cardíacos fetales en la semana ${week} y qué indica la vitalidad?`
+          prompt: `Â¿CuÃ¡l es el rango normal de latidos cardÃ­acos fetales en la semana ${week} y quÃ© indica la vitalidad?`
         },
         {
-          title: "Hematomas Subcoriónicos o Cuello Uterino",
-          desc: "¿Qué significa si el informe menciona hematoma o sangrado?",
-          prompt: `¿Qué significa un hematoma subcoriónico en el primer trimestre (semana ${week}) y qué cuidados se recomiendan?`
+          title: "Hematomas SubcoriÃ³nicos o Cuello Uterino",
+          desc: "Â¿QuÃ© significa si el informe menciona hematoma o sangrado?",
+          prompt: `Â¿QuÃ© significa un hematoma subcoriÃ³nico en el primer trimestre (semana ${week}) y quÃ© cuidados se recomiendan?`
         }
       ];
     } else if (week <= 27) {
       return [
         {
-          title: "Ecografía Morfológica (Semana 20-22)",
-          desc: "Revisión anatómica completa de órganos, corazón y cerebro",
-          prompt: `¿Qué evalúa la ecografía morfológica de alta resolución en esta etapa (semana ${week})?`
+          title: "EcografÃ­a MorfolÃ³gica (Semana 20-22)",
+          desc: "RevisiÃ³n anatÃ³mica completa de Ã³rganos, corazÃ³n y cerebro",
+          prompt: `Â¿QuÃ© evalÃºa la ecografÃ­a morfolÃ³gica de alta resoluciÃ³n en esta etapa (semana ${week})?`
         },
         {
           title: "Medidas Fetales (DBP, LF, CA, CC)",
-          desc: "Diámetros craneales, longitud femoral y perímetro abdominal",
-          prompt: `¿Qué significan las siglas DBP, LF, CA y CC en el informe ecográfico de la semana ${week}?`
+          desc: "DiÃ¡metros craneales, longitud femoral y perÃ­metro abdominal",
+          prompt: `Â¿QuÃ© significan las siglas DBP, LF, CA y CC en el informe ecogrÃ¡fico de la semana ${week}?`
         },
         {
           title: "Percentiles de Crecimiento y Peso Fetal",
-          desc: "¿Cómo interpretar si mi bebé está en percentil 25, 50 o 90?",
-          prompt: `¿Qué significa el percentil fetal de crecimiento y peso estimado en la semana ${week}?`
+          desc: "Â¿CÃ³mo interpretar si mi bebÃ© estÃ¡ en percentil 25, 50 o 90?",
+          prompt: `Â¿QuÃ© significa el percentil fetal de crecimiento y peso estimado en la semana ${week}?`
         },
         {
           title: "Doppler de Arterias Uterinas y Placenta",
-          desc: "¿Qué evalúa el Doppler uterino y la madurez placentaria?",
-          prompt: `¿Qué evalúa el Doppler de arterias uterinas y qué significa el grado placentario en la semana ${week}?`
+          desc: "Â¿QuÃ© evalÃºa el Doppler uterino y la madurez placentaria?",
+          prompt: `Â¿QuÃ© evalÃºa el Doppler de arterias uterinas y quÃ© significa el grado placentario en la semana ${week}?`
         }
       ];
     } else {
@@ -2368,22 +2368,22 @@ function PandaIAView({
         {
           title: `Percentil de Peso en 3er Trimestre (Sem ${week})`,
           desc: "Monitoreo del peso estimado y curvas de crecimiento",
-          prompt: `¿Cómo se evalúa el percentil de peso y crecimiento fetal en la semana ${week}?`
+          prompt: `Â¿CÃ³mo se evalÃºa el percentil de peso y crecimiento fetal en la semana ${week}?`
         },
         {
-          title: "Índice de Líquido Amniótico (ILA)",
-          desc: "¿Qué significa un índice de líquido amniótico normal o alterado?",
-          prompt: `¿Qué significa el Índice de Líquido Amniótico (ILA) en la semana ${week} y cuáles son sus rangos normales?`
+          title: "Ãndice de LÃ­quido AmniÃ³tico (ILA)",
+          desc: "Â¿QuÃ© significa un Ã­ndice de lÃ­quido amniÃ³tico normal o alterado?",
+          prompt: `Â¿QuÃ© significa el Ãndice de LÃ­quido AmniÃ³tico (ILA) en la semana ${week} y cuÃ¡les son sus rangos normales?`
         },
         {
           title: "Doppler Fetal (Arteria Umbilical y Cerebral Media)",
-          desc: "Oxigenación fetal y bienestar hemodinámico",
-          prompt: `¿Qué evalúa el Doppler fetal de arteria umbilical y cerebral media en la semana ${week}?`
+          desc: "OxigenaciÃ³n fetal y bienestar hemodinÃ¡mico",
+          prompt: `Â¿QuÃ© evalÃºa el Doppler fetal de arteria umbilical y cerebral media en la semana ${week}?`
         },
         {
-          title: "Posición Fetal y Grado Placentario",
-          desc: "¿Está en posición cefálica? Grado II / III de placenta",
-          prompt: `¿Qué significa la posición cefálica o podálica y el grado de madurez placentaria en la semana ${week}?`
+          title: "PosiciÃ³n Fetal y Grado Placentario",
+          desc: "Â¿EstÃ¡ en posiciÃ³n cefÃ¡lica? Grado II / III de placenta",
+          prompt: `Â¿QuÃ© significa la posiciÃ³n cefÃ¡lica o podÃ¡lica y el grado de madurez placentaria en la semana ${week}?`
         }
       ];
     }
@@ -2391,8 +2391,8 @@ function PandaIAView({
 
   const getWelcomeText = (week: number, role: "papa" | "mama", name?: string) => {
     return role === "papa"
-      ? `¡Hola ${name || "Papá"}! 🧔 Soy PandaIA, tu copiloto clínico en esta Semana ${week}.\n\nPregúntame sobre el **desarrollo del bebé en la semana ${week}**, neuro-nutrición prenatal (DHA, colina), qué preguntar en la próxima consulta médica, o pídeme que **agende una cita médica** para ustedes directamente en la Agenda.`
-      : `¡Hola ${name || "Mamá"}! 👩 Soy PandaIA, tu espacio de orientación y tranquilidad en esta Semana ${week}.\n\nPuedes consultarme sobre los cambios y síntomas de la **semana ${week}**, nutrición o pedirme que **registre tus próximas citas médicas**.`;
+      ? `Â¡Hola ${name || "PapÃ¡"}! ðŸ§” Soy PandaIA, tu copiloto clÃ­nico en esta Semana ${week}.\n\nPregÃºntame sobre el **desarrollo del bebÃ© en la semana ${week}**, neuro-nutriciÃ³n prenatal (DHA, colina), quÃ© preguntar en la prÃ³xima consulta mÃ©dica, o pÃ­deme que **agende una cita mÃ©dica** para ustedes directamente en la Agenda.`
+      : `Â¡Hola ${name || "MamÃ¡"}! ðŸ‘© Soy PandaIA, tu espacio de orientaciÃ³n y tranquilidad en esta Semana ${week}.\n\nPuedes consultarme sobre los cambios y sÃ­ntomas de la **semana ${week}**, nutriciÃ³n o pedirme que **registre tus prÃ³ximas citas mÃ©dicas**.`;
   };
 
   const [messages, setMessages] = useState<any[]>(() => [
@@ -2416,7 +2416,7 @@ function PandaIAView({
     setSmartChips(getContextualChips(profile.week || 14, profile.role));
   }, [profile.week, profile.role]);
 
-  // Sincronizar mensaje de bienvenida automáticamente con la semana y rol elegidos
+  // Sincronizar mensaje de bienvenida automÃ¡ticamente con la semana y rol elegidos
   useEffect(() => {
     setMessages(prev => {
       if (prev.length === 1 && prev[0].id === 1) {
@@ -2426,7 +2426,7 @@ function PandaIAView({
     });
   }, [profile.week, profile.role, profile.name]);
 
-  // Si se envió una consulta desde otra pantalla (ej. modal de preparación)
+  // Si se enviÃ³ una consulta desde otra pantalla (ej. modal de preparaciÃ³n)
   useEffect(() => {
     if (initialQuery) {
       setInputText(initialQuery);
@@ -2435,7 +2435,7 @@ function PandaIAView({
     }
   }, [initialQuery, clearInitialQuery]);
 
-  // Atajo de teclado: Escape para cerrar el decodificador de ecografías
+  // Atajo de teclado: Escape para cerrar el decodificador de ecografÃ­as
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -2452,7 +2452,7 @@ function PandaIAView({
     try {
       navigator.clipboard.writeText(text);
       setCopiedId(id);
-      showToast?.("Mensaje copiado al portapapeles 📋", () => {});
+      showToast?.("Mensaje copiado al portapapeles ðŸ“‹", () => {});
       setTimeout(() => setCopiedId(null), 2000);
     } catch(e) {}
   };
@@ -2462,7 +2462,7 @@ function PandaIAView({
       { id: Date.now(), sender: "ai", text: getWelcomeText(profile.week || 14, profile.role, profile.name) }
     ]);
     setSmartChips(getContextualChips(profile.week || 14, profile.role));
-    showToast?.(`Conversación reiniciada para la Semana ${profile.week || 14} ✨`, () => {});
+    showToast?.(`ConversaciÃ³n reiniciada para la Semana ${profile.week || 14} âœ¨`, () => {});
   };
 
   const handleUltrasoundSelect = (query: string) => {
@@ -2491,7 +2491,7 @@ function PandaIAView({
             trimester: (profile.week || 14) <= 13 ? 1 : (profile.week || 14) <= 27 ? 2 : 3,
             userRole: profile.role,
             userName: profile.name || "",
-            userProfile: profile.role === "papa" ? `Papá${profile.name ? ` (${profile.name})` : ""}` : `Mamá${profile.name ? ` (${profile.name})` : ""}`,
+            userProfile: profile.role === "papa" ? `PapÃ¡${profile.name ? ` (${profile.name})` : ""}` : `MamÃ¡${profile.name ? ` (${profile.name})` : ""}`,
             location: profile.location || "No especificada",
             notes: profile.notes || "Embarazo primerizo"
           }
@@ -2504,7 +2504,7 @@ function PandaIAView({
 
       const data = await response.json();
 
-      // Si Gemini detectó y extrajo una cita médica, agendarla en la Agenda
+      // Si Gemini detectÃ³ y extrajo una cita mÃ©dica, agendarla en la Agenda
       if (data.appointment && addEvent) {
         addEvent(
           data.appointment.title,
@@ -2513,7 +2513,7 @@ function PandaIAView({
           data.appointment.doctor || "Generado por PandaIA",
           data.appointment.rawDate
         );
-        showToast?.(`Cita agendada: ${data.appointment.title} 📅`, () => {});
+        showToast?.(`Cita agendada: ${data.appointment.title} ðŸ“…`, () => {});
       }
 
       setMessages(prev => [...prev, {
@@ -2522,7 +2522,7 @@ function PandaIAView({
         text: data.reply || "He procesado tu consulta.",
         card: data.card || (data.appointment ? {
           title: data.appointment.title,
-          desc: `Programada para el ${data.appointment.date} (${data.appointment.time || "Hora por definir"}). ¡Ya está en tu Agenda Médica!`
+          desc: `Programada para el ${data.appointment.date} (${data.appointment.time || "Hora por definir"}). Â¡Ya estÃ¡ en tu Agenda MÃ©dica!`
         } : undefined)
       }]);
     } catch (err: any) {
@@ -2530,14 +2530,14 @@ function PandaIAView({
       setMessages(prev => [...prev, {
         id: Date.now(),
         sender: "ai",
-        text: "No pude conectar con el asistente en este momento. Por favor revisa tu conexión a internet o verifica tu configuración de Gemini."
+        text: "No pude conectar con el asistente en este momento. Por favor revisa tu conexiÃ³n a internet o verifica tu configuraciÃ³n de Gemini."
       }]);
     } finally {
       setIsTyping(false);
     }
   };
 
-  // Renderizador de Markdown simple para formato clínico
+  // Renderizador de Markdown simple para formato clÃ­nico
   const renderFormattedMessage = (text: string) => {
     const lines = text.split("\n");
     return lines.map((line, idx) => {
@@ -2571,8 +2571,8 @@ function PandaIAView({
         );
       }
 
-      const isBullet = trimmed.startsWith("• ") || trimmed.startsWith("- ") || trimmed.startsWith("* ");
-      const cleanLine = isBullet ? trimmed.replace(/^([•\-*]\s+)/, "") : line;
+      const isBullet = trimmed.startsWith("â€¢ ") || trimmed.startsWith("- ") || trimmed.startsWith("* ");
+      const cleanLine = isBullet ? trimmed.replace(/^([â€¢\-*]\s+)/, "") : line;
 
       const parts = cleanLine.split(/(\*\*.*?\*\*)/g);
       const content = parts.map((part, pIdx) => {
@@ -2585,7 +2585,7 @@ function PandaIAView({
       if (isBullet) {
         return (
           <div key={idx} className="flex items-start gap-2 my-1 pl-1">
-            <span className="text-terracotta dark:text-sage font-bold shrink-0 mt-0.5">•</span>
+            <span className="text-terracotta dark:text-sage font-bold shrink-0 mt-0.5">â€¢</span>
             <span className="flex-1 leading-relaxed text-stone-700 dark:text-[#eae6e1]/90">{content}</span>
           </div>
         );
@@ -2621,8 +2621,8 @@ function PandaIAView({
               </span>
             </h2>
             <p className="text-xs font-semibold text-sage dark:text-sage/80 flex items-center gap-1.5">
-              <span>{profile.role === "papa" ? "🧔 Modo Papá" : "👩 Modo Mamá"}{profile.name ? ` (${profile.name})` : ""}</span>
-              <span>· Sem {profile.week}</span>
+              <span>{profile.role === "papa" ? "ðŸ§” Modo PapÃ¡" : "ðŸ‘© Modo MamÃ¡"}{profile.name ? ` (${profile.name})` : ""}</span>
+              <span>Â· Sem {profile.week}</span>
             </p>
           </div>
         </div>
@@ -2632,8 +2632,8 @@ function PandaIAView({
             type="button"
             onClick={clearChat}
             className="p-2 text-stone-500 dark:text-[#a6a1b2] hover:text-stone-800 dark:hover:text-[#eae6e1] hover:bg-stone-100 dark:hover:bg-[#2d273a] rounded-xl transition-all active:scale-95"
-            title="Reiniciar conversación con la semana actual"
-            aria-label="Reiniciar conversación"
+            title="Reiniciar conversaciÃ³n con la semana actual"
+            aria-label="Reiniciar conversaciÃ³n"
           >
             <RotateCcw size={16} />
           </button>
@@ -2663,7 +2663,7 @@ function PandaIAView({
               }`}>
                 {msg.sender === 'ai' ? renderFormattedMessage(msg.text) : <p className="leading-relaxed">{msg.text}</p>}
 
-                {/* Botón de Copiar para Mensajes del Asistente */}
+                {/* BotÃ³n de Copiar para Mensajes del Asistente */}
                 {msg.sender === 'ai' && (
                   <div className="pt-2 mt-2 border-t border-stone-100 dark:border-white/[0.06] flex justify-end">
                     <button
@@ -2688,13 +2688,13 @@ function PandaIAView({
                 )}
               </div>
               
-              {/* Tarjeta de Acción / Cita Agendada */}
+              {/* Tarjeta de AcciÃ³n / Cita Agendada */}
               {msg.card && (
                 <div className="bg-gradient-to-br from-sage/10 via-emerald-50/40 to-white dark:from-[#221d2d] dark:to-[#1a1724] border border-sage/30 dark:border-sage/100/25 shadow-xs rounded-2xl p-4 w-full max-w-sm animate-in zoom-in-95 duration-200">
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-1.5 text-sage dark:text-sage/80 font-bold text-xs tracking-tight">
                       <BriefcaseMedical size={15} className="text-sage dark:text-sage" />
-                      <span>Cita Médica Agendada</span>
+                      <span>Cita MÃ©dica Agendada</span>
                     </div>
                     <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100/90 dark:bg-[#1a1724] px-2 py-0.5 rounded-full">
                       En Agenda
@@ -2712,7 +2712,7 @@ function PandaIAView({
                       className="mt-3 w-full py-2.5 bg-terracotta hover:bg-terracotta-hover active:scale-95 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-xs"
                     >
                       <Calendar size={13} />
-                      <span>Ver en Agenda Médica →</span>
+                      <span>Ver en Agenda MÃ©dica â†’</span>
                     </button>
                   )}
                 </div>
@@ -2732,7 +2732,7 @@ function PandaIAView({
                 <div className="w-2 h-2 bg-terracotta rounded-full animate-pulse" style={{ animationDelay: "0.15s" }}></div>
                 <div className="w-2 h-2 bg-terracotta rounded-full animate-pulse" style={{ animationDelay: "0.3s" }}></div>
               </div>
-              <span className="text-xs text-stone-400 dark:text-[#a6a1b2] font-medium">PandaIA está respondiendo...</span>
+              <span className="text-xs text-stone-400 dark:text-[#a6a1b2] font-medium">PandaIA estÃ¡ respondiendo...</span>
             </div>
           </div>
         )}
@@ -2742,7 +2742,7 @@ function PandaIAView({
 
       {/* INPUT AREA CON SMART CHIPS CONTEXTUALES */}
       <div className="bg-white dark:bg-[#221d2d] border-t border-stone-200 dark:border-white/[0.08] shrink-0">
-        {/* Smart Chips Dinámicos por Trimestre */}
+        {/* Smart Chips DinÃ¡micos por Trimestre */}
         <div className="flex overflow-x-auto gap-2 p-2.5 no-scrollbar border-b border-stone-100 dark:border-white/[0.06]">
           {smartChips.map((chip, idx) => (
             <button 
@@ -2756,15 +2756,15 @@ function PandaIAView({
           ))}
         </div>
 
-        {/* Text Input Ergonómico */}
+        {/* Text Input ErgonÃ³mico */}
         <div className="p-2.5">
           <div className="flex items-end gap-2 bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-sage/100 focus-within:border-transparent transition-all shadow-xs">
             <button 
               type="button"
-              aria-label="Cargar consulta sobre ecografías"
+              aria-label="Cargar consulta sobre ecografÃ­as"
               onClick={() => setIsUltrasoundModalOpen(true)}
               className="p-2 text-stone-400 dark:text-[#a6a1b2] hover:text-sage dark:hover:text-sage/80 transition-colors shrink-0 rounded-xl hover:bg-white dark:hover:bg-[#221d2d]"
-              title="Preguntas frecuentes sobre ecografías"
+              title="Preguntas frecuentes sobre ecografÃ­as"
             >
               <Paperclip size={18} />
             </button>
@@ -2780,7 +2780,7 @@ function PandaIAView({
                   handleSend(inputText);
                 }
               }}
-              placeholder="Pregúntale a PandaIA sobre síntomas, nutrición o citas..." 
+              placeholder="PregÃºntale a PandaIA sobre sÃ­ntomas, nutriciÃ³n o citas..." 
               className="flex-1 bg-transparent border-none focus:outline-none text-base sm:text-sm py-2 resize-none max-h-32 min-h-[40px] text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/60 overflow-y-auto no-scrollbar"
             />
             <button 
@@ -2800,7 +2800,7 @@ function PandaIAView({
         </div>
       </div>
 
-      {/* MODAL / SHEET DECODIFICADOR DE ECOGRAFÍAS */}
+      {/* MODAL / SHEET DECODIFICADOR DE ECOGRAFÃAS */}
       {isUltrasoundModalOpen && (
         <div 
           role="dialog"
@@ -2817,10 +2817,10 @@ function PandaIAView({
                 </div>
                 <div>
                   <h3 id="ultrasound-modal-title" className="font-bold text-sm leading-tight">
-                    Decodificador de Ecografía
+                    Decodificador de EcografÃ­a
                   </h3>
                   <p className="text-xs text-sage/20">
-                    Preguntas rápidas para interpretar tu ecografía
+                    Preguntas rÃ¡pidas para interpretar tu ecografÃ­a
                   </p>
                 </div>
               </div>
@@ -2828,7 +2828,7 @@ function PandaIAView({
                 type="button"
                 onClick={() => setIsUltrasoundModalOpen(false)}
                 className="text-sage/20 hover:text-white p-1 rounded-lg transition-colors"
-                aria-label="Cerrar ventana de ecografías"
+                aria-label="Cerrar ventana de ecografÃ­as"
               >
                 <X size={20} />
               </button>
@@ -2836,7 +2836,7 @@ function PandaIAView({
 
             <div className="p-4 space-y-2 max-h-[70vh] overflow-y-auto">
               <p className="text-xs text-stone-500 dark:text-[#a6a1b2] mb-3">
-                Selecciona una consulta frecuente para que PandaIA te explique los valores clínicos con calma:
+                Selecciona una consulta frecuente para que PandaIA te explique los valores clÃ­nicos con calma:
               </p>
 
               {getUltrasoundItems(profile.week || 14).map((item, idx) => (
@@ -2884,15 +2884,15 @@ function SOSSintomas() {
   const symptoms = [
     {
       id: "mareos",
-      title: "Náuseas y Mareos",
+      title: "NÃ¡useas y Mareos",
       icon: <Utensils className="text-terracotta/100" size={20} />,
       color: "bg-terracotta/10 dark:bg-[#241b12]",
       content: (
         <ul className="text-sm text-stone-600 dark:text-[#a6a1b2] space-y-2 mt-2 list-disc pl-5">
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Estómago con colchón:</strong> Coman galletas saladas o tostadas antes de levantarse de la cama.</li>
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Hidratación táctica:</strong> Beber agua muy fría en pequeños tragos. Rodajas de limón o jengibre fresco son magia pura.</li>
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Vitamina B6:</strong> Consulten con su médico materno-fetal si pueden recetar un suplemento de B6.</li>
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Oler alcohol:</strong> Una toallita de alcohol isopropílico bajo la nariz ayuda a cortar el mareo agudo al instante.</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">EstÃ³mago con colchÃ³n:</strong> Coman galletas saladas o tostadas antes de levantarse de la cama.</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">HidrataciÃ³n tÃ¡ctica:</strong> Beber agua muy frÃ­a en pequeÃ±os tragos. Rodajas de limÃ³n o jengibre fresco son magia pura.</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Vitamina B6:</strong> Consulten con su mÃ©dico materno-fetal si pueden recetar un suplemento de B6.</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Oler alcohol:</strong> Una toallita de alcohol isopropÃ­lico bajo la nariz ayuda a cortar el mareo agudo al instante.</li>
         </ul>
       )
     },
@@ -2903,38 +2903,38 @@ function SOSSintomas() {
       color: "bg-terracotta/10 dark:bg-[#251518]",
       content: (
         <ul className="text-sm text-stone-600 dark:text-[#a6a1b2] space-y-2 mt-2 list-disc pl-5">
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Poco pero seguido:</strong> 5 o 6 comidas pequeñas al día en lugar de 3 grandes para no sobrecargar el esfínter.</li>
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Física básica:</strong> Esperar al menos 2 horas después de cenar para ir a la cama (gravedad a su favor).</li>
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Evitar disparadores:</strong> Cítricos, tomate, chocolate, y comidas muy grasas o picantes.</li>
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Leche fría o almendras:</strong> Neutralizan la acidez al instante de forma natural.</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Poco pero seguido:</strong> 5 o 6 comidas pequeÃ±as al dÃ­a en lugar de 3 grandes para no sobrecargar el esfÃ­nter.</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">FÃ­sica bÃ¡sica:</strong> Esperar al menos 2 horas despuÃ©s de cenar para ir a la cama (gravedad a su favor).</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Evitar disparadores:</strong> CÃ­tricos, tomate, chocolate, y comidas muy grasas o picantes.</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Leche frÃ­a o almendras:</strong> Neutralizan la acidez al instante de forma natural.</li>
         </ul>
       )
     },
     {
       id: "ciatica",
-      title: "Dolor de Espalda (Ciática)",
+      title: "Dolor de Espalda (CiÃ¡tica)",
       icon: <Activity className="text-blue-500" size={20} />,
       color: "bg-blue-50 dark:bg-[#1a2230]",
       content: (
         <ul className="text-sm text-stone-600 dark:text-[#a6a1b2] space-y-2 mt-2 list-disc pl-5">
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Compresas tibias:</strong> Aplicar calor en la espalda baja por 15-20 minutos (tú puedes encargarte de prepararlas).</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Compresas tibias:</strong> Aplicar calor en la espalda baja por 15-20 minutos (tÃº puedes encargarte de prepararlas).</li>
           <li><strong className="text-stone-900 dark:text-[#eae6e1]">Postura al dormir:</strong> Siempre del lado izquierdo, con la almohada de embarazo entre las rodillas.</li>
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Estiramientos suaves:</strong> Ayúdala con ejercicios de yoga prenatal (postura del gato-vaca) para aliviar la presión del útero.</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Estiramientos suaves:</strong> AyÃºdala con ejercicios de yoga prenatal (postura del gato-vaca) para aliviar la presiÃ³n del Ãºtero.</li>
         </ul>
       )
     },
     {
       id: "alarma",
-      title: "🚨 Señales de Alarma Médica",
+      title: "ðŸš¨ SeÃ±ales de Alarma MÃ©dica",
       icon: <AlertTriangle className="text-rose-600 dark:text-terracotta" size={20} />,
       color: "bg-terracotta/10 dark:bg-[#251518]",
       content: (
         <ul className="text-sm text-rose-800 dark:text-rose-300 font-medium space-y-2 mt-2 list-disc pl-5">
-          <li><strong className="text-rose-950 dark:text-rose-200">Sangrado vaginal</strong> (cualquier cantidad, contactar al médico).</li>
-          <li><strong className="text-rose-950 dark:text-rose-200">Dolor abdominal intenso</strong> o cólicos persistentes que no ceden al descansar.</li>
-          <li><strong className="text-rose-950 dark:text-rose-200">Dolor de cabeza severo</strong> o visión borrosa (riesgo de preeclampsia).</li>
-          <li><strong className="text-rose-950 dark:text-rose-200">Hinchazón repentina extrema</strong> en cara, manos o pies.</li>
-          <li><strong className="text-rose-950 dark:text-rose-200">Disminución de movimientos fetales</strong> (si sienten menos de 10 en 2 horas después de la semana 24).</li>
+          <li><strong className="text-rose-950 dark:text-rose-200">Sangrado vaginal</strong> (cualquier cantidad, contactar al mÃ©dico).</li>
+          <li><strong className="text-rose-950 dark:text-rose-200">Dolor abdominal intenso</strong> o cÃ³licos persistentes que no ceden al descansar.</li>
+          <li><strong className="text-rose-950 dark:text-rose-200">Dolor de cabeza severo</strong> o visiÃ³n borrosa (riesgo de preeclampsia).</li>
+          <li><strong className="text-rose-950 dark:text-rose-200">HinchazÃ³n repentina extrema</strong> en cara, manos o pies.</li>
+          <li><strong className="text-rose-950 dark:text-rose-200">DisminuciÃ³n de movimientos fetales</strong> (si sienten menos de 10 en 2 horas despuÃ©s de la semana 24).</li>
         </ul>
       )
     }
@@ -2944,30 +2944,30 @@ function SOSSintomas() {
     <div className="flex flex-col py-2 animate-in fade-in duration-300 h-full w-full">
       
 
-      {/* Banner de Emergencia Rápida */}
+      {/* Banner de Emergencia RÃ¡pida */}
       <div className="bg-gradient-to-r from-terracotta/10 to-red-50 dark:from-[#251518] dark:to-[#201316] border border-rose-200 dark:border-terracotta/100/25 rounded-2xl p-4 mb-4 flex items-center justify-between gap-3 shadow-xs">
         <div>
           <h4 className="font-bold text-rose-800 dark:text-rose-300 text-sm flex items-center gap-1.5">
-            <AlertTriangle size={16} className="text-rose-600 shrink-0" /> ¿Emergencia o Alarma?
+            <AlertTriangle size={16} className="text-rose-600 shrink-0" /> Â¿Emergencia o Alarma?
           </h4>
-          <p className="text-xs text-rose-600 dark:text-terracotta mt-0.5">Acceso rápido ante signos de alerta</p>
+          <p className="text-xs text-rose-600 dark:text-terracotta mt-0.5">Acceso rÃ¡pido ante signos de alerta</p>
         </div>
         <div className="flex gap-2 shrink-0">
           <a
             href="tel:911"
             className="bg-rose-600 hover:bg-terracotta active:scale-95 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-xs transition-all"
-            aria-label="Llamar a Urgencias médicas"
+            aria-label="Llamar a Urgencias mÃ©dicas"
           >
-            📞 Llamar
+            ðŸ“ž Llamar
           </a>
           <a
             href="https://maps.google.com/?q=hospital+maternidad"
             target="_blank"
             rel="noopener noreferrer"
             className="bg-white dark:bg-[#221d2d] hover:bg-terracotta/20/50 dark:hover:bg-[#2d273a] active:scale-95 border border-rose-200 dark:border-terracotta/100/25 text-terracotta dark:text-rose-300 font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-xs transition-all"
-            aria-label="Ver ruta al hospital más cercano"
+            aria-label="Ver ruta al hospital mÃ¡s cercano"
           >
-            📍 Hospital
+            ðŸ“ Hospital
           </a>
         </div>
       </div>
@@ -2995,7 +2995,7 @@ function SOSSintomas() {
                       href="tel:911"
                       className="flex-1 bg-rose-600 hover:bg-terracotta active:scale-95 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
                     >
-                      📞 Llamar al Obstetra / 911
+                      ðŸ“ž Llamar al Obstetra / 911
                     </a>
                     <a
                       href="https://maps.google.com/?q=hospital+maternidad"
@@ -3003,7 +3003,7 @@ function SOSSintomas() {
                       rel="noopener noreferrer"
                       className="flex-1 bg-white dark:bg-[#221d2d] hover:bg-terracotta/10 dark:hover:bg-[#2d273a] active:scale-95 border border-rose-300 dark:border-terracotta/100/30 text-rose-800 dark:text-rose-300 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
                     >
-                      📍 Ruta al Hospital
+                      ðŸ“ Ruta al Hospital
                     </a>
                   </div>
                 )}
@@ -3046,7 +3046,7 @@ function DiarioView({ profile, onClose }: { profile: UserProfile, onClose: () =>
           <textarea 
             value={newEntry}
             onChange={e => setNewEntry(e.target.value)}
-            placeholder="Escribe un recuerdo, un pensamiento o un mensaje para el bebé..."
+            placeholder="Escribe un recuerdo, un pensamiento o un mensaje para el bebÃ©..."
             className="w-full bg-transparent resize-none h-24 text-stone-800 dark:text-white placeholder:text-stone-400 dark:placeholder:text-stone-600 focus:outline-none"
           />
           <div className="flex justify-between items-center mt-2 border-t border-stone-100 dark:border-white/5 pt-3">
@@ -3067,7 +3067,7 @@ function DiarioView({ profile, onClose }: { profile: UserProfile, onClose: () =>
               <div className="w-16 h-16 bg-sage/20 rounded-full flex items-center justify-center mx-auto mb-4 text-sage">
                 <FileText size={24} />
               </div>
-              <h3 className="font-bold text-stone-800 dark:text-white mb-1">El diario está vacío</h3>
+              <h3 className="font-bold text-stone-800 dark:text-white mb-1">El diario estÃ¡ vacÃ­o</h3>
               <p className="text-sm text-stone-500 dark:text-stone-400">Escribe el primer recuerdo de este hermoso viaje.</p>
             </div>
           ) : (
@@ -3116,27 +3116,27 @@ function MaletaView({ profile, onClose }: { profile: UserProfile, onClose: () =>
 
   const items = {
     mama: [
-      { id: 'm1', label: 'Documentos médicos y de identidad' },
-      { id: 'm2', label: 'Ropa cómoda y batas (abiertas adelante)' },
+      { id: 'm1', label: 'Documentos mÃ©dicos y de identidad' },
+      { id: 'm2', label: 'Ropa cÃ³moda y batas (abiertas adelante)' },
       { id: 'm3', label: 'Pantuflas y calcetines gruesos' },
-      { id: 'm4', label: 'Artículos de aseo personal' },
+      { id: 'm4', label: 'ArtÃ­culos de aseo personal' },
       { id: 'm5', label: 'Ropa interior desechable o grande' },
       { id: 'm6', label: 'Ropa para salir del hospital' }
     ],
     bebe: [
-      { id: 'b1', label: 'Pañales de recién nacido' },
-      { id: 'b2', label: 'Toallitas húmedas' },
+      { id: 'b1', label: 'PaÃ±ales de reciÃ©n nacido' },
+      { id: 'b2', label: 'Toallitas hÃºmedas' },
       { id: 'b3', label: 'Bodys y pijamas (3-4 mudas)' },
-      { id: 'b4', label: 'Manta de algodón o lana' },
+      { id: 'b4', label: 'Manta de algodÃ³n o lana' },
       { id: 'b5', label: 'Gorrito y calcetines' },
       { id: 'b6', label: 'Asiento de auto (instalado)' }
     ],
     papa: [
       { id: 'p1', label: 'Snacks y botellas de agua' },
       { id: 'p2', label: 'Cargador de celular (cable largo)' },
-      { id: 'p3', label: 'Ropa de cambio cómoda' },
-      { id: 'p4', label: 'Artículos de aseo personal' },
-      { id: 'p5', label: 'Cámara o espacio en celular' }
+      { id: 'p3', label: 'Ropa de cambio cÃ³moda' },
+      { id: 'p4', label: 'ArtÃ­culos de aseo personal' },
+      { id: 'p5', label: 'CÃ¡mara o espacio en celular' }
     ]
   };
 
@@ -3147,7 +3147,7 @@ function MaletaView({ profile, onClose }: { profile: UserProfile, onClose: () =>
         {Object.entries(items).map(([category, list]) => (
           <div key={category}>
             <h3 className="font-black text-sm text-stone-400 uppercase tracking-wider mb-3">
-              {category === 'mama' ? 'Para Mamá' : category === 'bebe' ? 'Para el Bebé' : 'Para Papá / Copiloto'}
+              {category === 'mama' ? 'Para MamÃ¡' : category === 'bebe' ? 'Para el BebÃ©' : 'Para PapÃ¡ / Copiloto'}
             </h3>
             <div className="bg-white dark:bg-[#181a20] rounded-2xl shadow-sm border border-stone-200 dark:border-white/[0.05] overflow-hidden">
               {list.map((item, i) => (
@@ -3173,17 +3173,136 @@ function MaletaView({ profile, onClose }: { profile: UserProfile, onClose: () =>
 }
 
 
+
+function LecturasView({ week, onClose, showToast }: { week: number, onClose: () => void, showToast: any }) {
+  const currentTrimester = week <= 13 ? 1 : week <= 27 ? 2 : 3;
+  const [selectedTri, setSelectedTri] = useState(currentTrimester);
+
+  const articles = {
+    1: [
+      {
+        title: "Sobreviviendo a las NÃ¡useas Matutinas",
+        desc: "Estrategias de neuro-nutriciÃ³n e hidrataciÃ³n tÃ¡ctica para las primeras semanas.",
+        readTime: "4 min",
+        type: "ArtÃ­culo",
+        url: "#"
+      },
+      {
+        title: "El Ãcido FÃ³lico y el Tubo Neural",
+        desc: "Por quÃ© este suplemento es el superhÃ©roe indiscutible del primer trimestre.",
+        readTime: "3 min",
+        type: "Ciencia",
+        url: "#"
+      },
+      {
+        title: "Comunicando la Noticia",
+        desc: "Â¿CuÃ¡ndo y cÃ³mo decirle a la familia, amigos y al trabajo? Tiempos recomendados.",
+        readTime: "5 min",
+        type: "GuÃ­a",
+        url: "#"
+      }
+    ],
+    2: [
+      {
+        title: "Desarrollo Cerebral y Omega-3 (DHA)",
+        desc: "La importancia del pescado bajo en mercurio en el segundo trimestre para su corteza frontal.",
+        readTime: "6 min",
+        type: "NutriciÃ³n",
+        url: "#"
+      },
+      {
+        title: "Conectando con tu BebÃ©",
+        desc: "El oÃ­do fetal se desarrolla: cÃ³mo la voz de papÃ¡ y mamÃ¡ estimulan su cerebro en esta etapa.",
+        readTime: "4 min",
+        type: "ArtÃ­culo",
+        url: "#"
+      },
+      {
+        title: "Preparando el 'Nido'",
+        desc: "Toxinas a evitar al pintar el cuarto o armar muebles nuevos.",
+        readTime: "5 min",
+        type: "GuÃ­a Ambiental",
+        url: "#"
+      }
+    ],
+    3: [
+      {
+        title: "Entendiendo las Contracciones",
+        desc: "Braxton Hicks vs. Trabajo de Parto real. QuÃ© es y cÃ³mo aplicar la regla del 5-1-1.",
+        readTime: "4 min",
+        type: "GuÃ­a MÃ©dica",
+        url: "#"
+      },
+      {
+        title: "Masaje Perineal y PreparaciÃ³n",
+        desc: "TÃ©cnicas basadas en evidencia para reducir el riesgo de desgarros en el parto vaginal.",
+        readTime: "7 min",
+        type: "ArtÃ­culo",
+        url: "#"
+      },
+      {
+        title: "El Cuarto Trimestre (Posparto)",
+        desc: "Salud mental materna, privaciÃ³n de sueÃ±o y cÃ³mo el copiloto debe tomar el mando de la casa.",
+        readTime: "8 min",
+        type: "Lectura Esencial",
+        url: "#"
+      }
+    ]
+  };
+
+  return (
+    <div className="w-full flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-300">
+      <div className="px-1 py-3 flex gap-2 overflow-x-auto hide-scrollbar shrink-0 mb-2">
+        {[1, 2, 3].map(t => (
+          <button 
+            key={t}
+            onClick={() => setSelectedTri(t)}
+            className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${selectedTri === t ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-md' : 'bg-stone-200 dark:bg-[#2d273a] text-stone-600 dark:text-[#a6a1b2]'}`}
+          >
+            Trimestre ${t}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex-1 space-y-4 pb-12">
+        {articles[selectedTri as 1|2|3].map((art, i) => (
+          <div key={i} onClick={() => alert("ArtÃ­culo completo prÃ³ximamente...")} className="bg-white dark:bg-[#221d2d] border border-stone-200 dark:border-white/[0.06] rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
+            <div className="flex justify-between items-start mb-2">
+              <span className="text-[10px] uppercase tracking-wider font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-2 py-0.5 rounded-full">
+                {art.type}
+              </span>
+              <span className="text-xs font-medium text-stone-400 dark:text-[#a6a1b2] flex items-center gap-1">
+                <Clock size={12} /> {art.readTime}
+              </span>
+            </div>
+            <h3 className="text-base font-bold text-stone-800 dark:text-[#eae6e1] leading-tight mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              {art.title}
+            </h3>
+            <p className="text-sm text-stone-600 dark:text-[#a6a1b2] leading-relaxed">
+              {art.desc}
+            </p>
+            <div className="mt-4 flex items-center text-xs font-bold text-blue-500 dark:text-blue-400 gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+              Leer artÃ­culo <ExternalLink size={14} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function HerramientasView({ showToast, profile }: { showToast: any, profile?: UserProfile }) {
   const [activeTool, setActiveTool] = useState<any>(null);
 
   const tools = [
-    { id: "sos", label: "SOS Síntomas", icon: <HeartPulse size={24} />, desc: "Síntomas de alarma", color: "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400", border: "border-rose-100 dark:border-rose-500/20" },
+    { id: "sos", label: "SOS SÃ­ntomas", icon: <HeartPulse size={24} />, desc: "SÃ­ntomas de alarma", color: "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400", border: "border-rose-100 dark:border-rose-500/20" },
     { id: "contracciones", label: "Contracciones", icon: <Activity size={24} />, desc: "Contador 5-1-1", color: "bg-terracotta/10 text-terracotta", border: "border-terracotta/20" },
     { id: "patadas", label: "Patadas", icon: <Baby size={24} />, desc: "Monitor Cardiff", color: "bg-sage/10 text-sage", border: "border-sage/20" },
-    { id: "diario", label: "Diario", icon: <FileText size={24} />, desc: "Memorias del bebé", color: "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400", border: "border-indigo-100 dark:border-indigo-500/20" },
+    { id: "diario", label: "Diario", icon: <FileText size={24} />, desc: "Memorias del bebÃ©", color: "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400", border: "border-indigo-100 dark:border-indigo-500/20" },
     { id: "maleta", label: "Maleta", icon: <Package size={24} />, desc: "Hospital Go-Bag", color: "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400", border: "border-amber-100 dark:border-amber-500/20" },
     { id: "nombres", label: "Nombres", icon: <Users size={24} />, desc: "Votador en pareja", color: "bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400", border: "border-sky-100 dark:border-sky-500/20" },
-    { id: "parto", label: "Plan de Parto", icon: <ClipboardList size={24} />, desc: "PDF Clínico", color: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400", border: "border-emerald-100 dark:border-emerald-500/20" },
+    { id: "parto", label: "Plan de Parto", icon: <ClipboardList size={24} />, desc: "PDF ClÃ­nico", color: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400", border: "border-emerald-100 dark:border-emerald-500/20" },
+      { id: "lecturas", label: "Lecturas", icon: <BookOpen size={24} />, desc: "Por trimestre", color: "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400", border: "border-blue-100 dark:border-blue-500/20" },
   ];
 
   if (activeTool) {
@@ -3207,6 +3326,7 @@ function HerramientasView({ showToast, profile }: { showToast: any, profile?: Us
           {activeTool === 'contracciones' && <ContadorContracciones showToast={showToast} />}
           {activeTool === 'nombres' && <VotadorNombres showToast={showToast} />}
           {activeTool === 'parto' && <PlanParto profile={profile} showToast={showToast} />}
+          {activeTool === 'lecturas' && profile && <LecturasView week={profile.week} onClose={() => setActiveTool(null)} showToast={showToast} />}
         </div>
       </div>
     );
@@ -3232,8 +3352,8 @@ function HerramientasView({ showToast, profile }: { showToast: any, profile?: Us
               <HeartPulse size={28} />
             </div>
             <div className="text-left">
-              <h3 className="font-bold text-lg leading-tight">SOS Síntomas</h3>
-              <p className="text-rose-100 text-xs">Cuándo ir a urgencias</p>
+              <h3 className="font-bold text-lg leading-tight">SOS SÃ­ntomas</h3>
+              <p className="text-rose-100 text-xs">CuÃ¡ndo ir a urgencias</p>
             </div>
           </div>
           <ChevronRight size={24} className="opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
@@ -3298,7 +3418,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
         }
       } catch (e) {}
     }
-    // Sesiones de referencia clínica inicial
+    // Sesiones de referencia clÃ­nica inicial
     return [
       {
         id: 1,
@@ -3312,11 +3432,11 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
       {
         id: 2,
         timestamp: Date.now() - 172800000,
-        dateFormatted: "Hace 2 días, 01:15 PM",
+        dateFormatted: "Hace 2 dÃ­as, 01:15 PM",
         count: 10,
         durationSeconds: 1020,
         durationFormatted: "17 min",
-        note: "Después de almorzar"
+        note: "DespuÃ©s de almorzar"
       }
     ];
   });
@@ -3329,7 +3449,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
     } catch (e) {}
   }, [sessions]);
 
-  // Cronómetro activo durante la sesión
+  // CronÃ³metro activo durante la sesiÃ³n
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (startTime && count < 10) {
@@ -3371,7 +3491,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
       setElapsedSeconds(0);
     }
 
-    // Vibración táctil si el dispositivo lo soporta (iPhone/Android)
+    // VibraciÃ³n tÃ¡ctil si el dispositivo lo soporta (iPhone/Android)
     if (typeof navigator !== "undefined" && navigator.vibrate) {
       try {
         navigator.vibrate(35);
@@ -3400,7 +3520,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
       setCompletedSession(newSessionItem);
       setSessions(prev => [newSessionItem, ...prev]);
       setStartTime(null);
-      showToast("🎉 ¡Meta de 10 patadas alcanzada! Sesión guardada.", () => {});
+      showToast("ðŸŽ‰ Â¡Meta de 10 patadas alcanzada! SesiÃ³n guardada.", () => {});
     }
   };
 
@@ -3412,7 +3532,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
       setStartTime(null);
       setElapsedSeconds(0);
     }
-    showToast("Último movimiento deshecho (-1)", () => {});
+    showToast("Ãšltimo movimiento deshecho (-1)", () => {});
   };
 
   // Atajo de teclado: Barra espaciadora para registrar patada
@@ -3452,7 +3572,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
     const sessionToRestore = sessions.find(s => s.id === id);
     setSessions(prev => prev.filter(s => s.id !== id));
     if (sessionToRestore) {
-      showToast("Sesión eliminada del historial", () => {
+      showToast("SesiÃ³n eliminada del historial", () => {
         setSessions(prev => [sessionToRestore, ...prev].sort((a, b) => b.timestamp - a.timestamp));
       });
     }
@@ -3462,98 +3582,98 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
     if (!completedSession) return;
     setSessions(prev => prev.map(s => s.id === completedSession.id ? { ...s, note: noteText } : s));
     setSelectedNote(noteText);
-    showToast("Nota de la sesión guardada", () => {});
+    showToast("Nota de la sesiÃ³n guardada", () => {});
   };
 
-  // Estadísticas inteligentes
+  // EstadÃ­sticas inteligentes
   const validSessions = sessions.filter(s => s.count === 10);
   const avgDurationMinutes = validSessions.length > 0
     ? Math.round(validSessions.reduce((acc, s) => acc + (s.durationSeconds / 60), 0) / validSessions.length)
     : null;
 
-  // Alerta de más de 90 min (Cardiff timeout warning)
+  // Alerta de mÃ¡s de 90 min (Cardiff timeout warning)
   const isOvertime = startTime !== null && elapsedSeconds >= 5400 && count < 10;
 
   return (
     <div className="flex flex-col py-2 animate-in fade-in duration-300 w-full space-y-6">
       
-      {/* HEADER CON PROTOCOLO CARDIFF Y GUÍA */}
+      {/* HEADER CON PROTOCOLO CARDIFF Y GUÃA */}
       <div className="text-center">
         <div className="inline-flex items-center gap-1.5 bg-sage/10 dark:bg-[#1a1724] border border-sage/30/80 dark:border-sage/100/25 px-3 py-1 rounded-full text-xs font-bold text-sage dark:text-sage/80 mb-2 shadow-xs">
           <Baby size={14} className="text-terracotta dark:text-sage" /> Protocolo Cardiff (Contar hasta 10)
         </div>
         <h3 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1]">Monitor Fetal Inteligente</h3>
         <p className="text-xs text-stone-500 dark:text-[#a6a1b2] max-w-xs mx-auto mt-1 leading-relaxed">
-          Monitorea el bienestar del bebé registrando 10 movimientos activos en menos de 2 horas.
+          Monitorea el bienestar del bebÃ© registrando 10 movimientos activos en menos de 2 horas.
         </p>
 
-        {/* Botón para desplegar guía médica */}
+        {/* BotÃ³n para desplegar guÃ­a mÃ©dica */}
         <button
           type="button"
           onClick={() => setShowGuide(!showGuide)}
           className="mt-3 text-xs font-bold text-sage dark:text-sage/80 hover:text-sage dark:hover:text-sage/30 inline-flex items-center gap-1 bg-sage/10/60 dark:bg-[#1a1724] hover:bg-sage/20/70 dark:hover:bg-[#19322c] px-3 py-1.5 rounded-xl border border-sage/30/60 dark:border-sage/100/25 transition-colors"
         >
           <Info size={14} className="text-terracotta dark:text-sage" />
-          <span>{showGuide ? "Ocultar guía clínica" : "¿Cómo y cuándo contar patadas?"}</span>
+          <span>{showGuide ? "Ocultar guÃ­a clÃ­nica" : "Â¿CÃ³mo y cuÃ¡ndo contar patadas?"}</span>
           {showGuide ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </button>
       </div>
 
-      {/* GUÍA MÉDICA DESPLEGABLE */}
+      {/* GUÃA MÃ‰DICA DESPLEGABLE */}
       {showGuide && (
         <div className="bg-gradient-to-br from-sage/10/90 to-emerald-50/70 dark:from-[#221d2d] dark:to-[#1a1724] border border-sage/30 dark:border-sage/100/25 rounded-3xl p-5 text-left text-xs text-stone-700 dark:text-[#eae6e1]/90 space-y-3 shadow-xs animate-in fade-in slide-in-from-top-2">
           <h4 className="font-bold text-sage dark:text-sage/80 text-sm flex items-center gap-2">
-            <ClipboardList size={16} className="text-sage dark:text-sage" /> Guía Obstétrica: Protocolo Cardiff
+            <ClipboardList size={16} className="text-sage dark:text-sage" /> GuÃ­a ObstÃ©trica: Protocolo Cardiff
           </h4>
           <ul className="space-y-2 leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
             <li className="flex items-start gap-2">
               <span className="text-terracotta dark:text-sage font-bold">1.</span>
-              <span><strong>¿Cuándo iniciar?</strong> Recomendado a partir de la semana 28 (o semana 24 si tu médico lo indicó).</span>
+              <span><strong>Â¿CuÃ¡ndo iniciar?</strong> Recomendado a partir de la semana 28 (o semana 24 si tu mÃ©dico lo indicÃ³).</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-terracotta dark:text-sage font-bold">2.</span>
-              <span><strong>Mejor momento:</strong> 30 a 60 minutos después de comer o por la noche, cuando el feto recibe más glucosa y la madre está en reposo.</span>
+              <span><strong>Mejor momento:</strong> 30 a 60 minutos despuÃ©s de comer o por la noche, cuando el feto recibe mÃ¡s glucosa y la madre estÃ¡ en reposo.</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-terracotta dark:text-sage font-bold">3.</span>
-              <span><strong>Postura recomendada:</strong> Recuéstate sobre tu costado izquierdo para maximizar la oxigenación placentaria.</span>
+              <span><strong>Postura recomendada:</strong> RecuÃ©state sobre tu costado izquierdo para maximizar la oxigenaciÃ³n placentaria.</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-terracotta dark:text-sage font-bold">4.</span>
-              <span><strong>¿Qué cuenta como movimiento?</strong> Patadas, aleteos, giros o presiones claras. El hipo rítmico no se cuenta como patada voluntaria.</span>
+              <span><strong>Â¿QuÃ© cuenta como movimiento?</strong> Patadas, aleteos, giros o presiones claras. El hipo rÃ­tmico no se cuenta como patada voluntaria.</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-terracotta dark:text-sage font-bold">5.</span>
-              <span><strong>Meta normal:</strong> Sentir 10 movimientos. La gran mayoría de bebés lo logra en menos de 30 a 45 minutos.</span>
+              <span><strong>Meta normal:</strong> Sentir 10 movimientos. La gran mayorÃ­a de bebÃ©s lo logra en menos de 30 a 45 minutos.</span>
             </li>
           </ul>
         </div>
       )}
 
-      {/* ALERTA CLÍNICA CARDIFF (>90 MIN) */}
+      {/* ALERTA CLÃNICA CARDIFF (>90 MIN) */}
       {isOvertime && (
         <div className="bg-terracotta/10 dark:bg-[#241b12] border-2 border-terracotta/80 dark:border-terracotta/100/40 rounded-3xl p-4 text-left shadow-md animate-in fade-in" role="alert">
           <div className="flex gap-3 items-start">
             <AlertTriangle className="text-amber-600 shrink-0 mt-0.5" size={22} />
             <div>
-              <h4 className="font-bold text-terracotta dark:text-terracotta/80 text-sm">Sesión Prolongada (+90 min sin 10 patadas)</h4>
+              <h4 className="font-bold text-terracotta dark:text-terracotta/80 text-sm">SesiÃ³n Prolongada (+90 min sin 10 patadas)</h4>
               <p className="text-xs text-terracotta dark:text-terracotta/30 mt-1 leading-relaxed">
-                Si el bebé está inactivo, prueba estos pasos clínicos de estimulación:
+                Si el bebÃ© estÃ¡ inactivo, prueba estos pasos clÃ­nicos de estimulaciÃ³n:
               </p>
               <ul className="text-xs text-terracotta/90 dark:text-terracotta/30/90 list-disc list-inside mt-1.5 space-y-0.5">
-                <li>Bebe un vaso de agua muy fría o jugo de frutas natural.</li>
-                <li>Recuéstate 20 minutos sobre tu costado izquierdo en completo silencio.</li>
-                <li>Toca suavemente tu abdomen o pon música suave.</li>
+                <li>Bebe un vaso de agua muy frÃ­a o jugo de frutas natural.</li>
+                <li>RecuÃ©state 20 minutos sobre tu costado izquierdo en completo silencio.</li>
+                <li>Toca suavemente tu abdomen o pon mÃºsica suave.</li>
               </ul>
               <p className="text-xs font-semibold text-rose-800 dark:text-rose-300 mt-2">
-                Si tras 2 horas completas el bebé no alcanza 10 movimientos o notas una reducción drástica, contacta a tu equipo médico de inmediato.
+                Si tras 2 horas completas el bebÃ© no alcanza 10 movimientos o notas una reducciÃ³n drÃ¡stica, contacta a tu equipo mÃ©dico de inmediato.
               </p>
               <div className="mt-3 pt-2.5 border-t border-terracotta/30 dark:border-terracotta/100/30 flex gap-2">
                 <a
                   href="tel:911"
                   className="inline-flex items-center gap-1.5 bg-rose-600 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-xs hover:bg-terracotta active:scale-95 transition-all"
                 >
-                  <PhoneCall size={14} /> Llamada al Médico / SOS
+                  <PhoneCall size={14} /> Llamada al MÃ©dico / SOS
                 </a>
               </div>
             </div>
@@ -3564,7 +3684,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
       {/* TRACKER VISUAL DE 10 PASOS */}
       <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] space-y-3">
         <div className="flex items-center justify-between text-xs font-bold">
-          <span className="text-stone-700 dark:text-[#eae6e1]">Progreso de la Sesión</span>
+          <span className="text-stone-700 dark:text-[#eae6e1]">Progreso de la SesiÃ³n</span>
           <span className="text-sage dark:text-sage/80">{count} de 10 patadas</span>
         </div>
 
@@ -3599,13 +3719,13 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
         </div>
       </div>
 
-      {/* BOTÓN PRINCIPAL DE CONTEO ERGONÓMICO */}
+      {/* BOTÃ“N PRINCIPAL DE CONTEO ERGONÃ“MICO */}
       <div className="relative flex flex-col items-center justify-center py-2">
         <button 
           type="button"
           onClick={handleKick}
           disabled={count >= 10}
-          aria-label={count >= 10 ? "Meta de 10 patadas completada" : "Registrar movimiento o patada del bebé"}
+          aria-label={count >= 10 ? "Meta de 10 patadas completada" : "Registrar movimiento o patada del bebÃ©"}
           className={`relative z-10 w-60 h-60 rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-200 transform active:scale-95 select-none focus:outline-none focus:ring-4 focus:ring-sage/80 dark:focus:ring-sage ${
             count >= 10 
               ? "bg-gradient-to-br from-emerald-500 to-sage dark:from-[#15342c] dark:to-[#0f241e] text-white border-4 border-white dark:border-sage/100/30 cursor-default" 
@@ -3621,27 +3741,27 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
                 {count === 0 ? "Toca para Iniciar" : "Registrar Patada"}
               </span>
               <span className="text-xs text-sage/20 mt-1 opacity-90 font-medium">
-                {count === 0 ? "1ª patada activa el tiempo" : `Faltan ${10 - count} para la meta`}
+                {count === 0 ? "1Âª patada activa el tiempo" : `Faltan ${10 - count} para la meta`}
               </span>
             </>
           ) : (
             <>
               <Sparkles size={40} className="text-terracotta/80 mb-1 animate-pulse motion-reduce:animate-none" />
-              <span className="text-4xl font-black tracking-tight leading-tight">¡Meta 10!</span>
-              <span className="text-xs font-bold tracking-tight text-emerald-100 mt-1">Completada con éxito</span>
+              <span className="text-4xl font-black tracking-tight leading-tight">Â¡Meta 10!</span>
+              <span className="text-xs font-bold tracking-tight text-emerald-100 mt-1">Completada con Ã©xito</span>
             </>
           )}
         </button>
 
-        {/* Botón Deshacer (-1) cuando hay conteo activo */}
+        {/* BotÃ³n Deshacer (-1) cuando hay conteo activo */}
         {count > 0 && count < 10 && (
           <button
             type="button"
             onClick={handleUndo}
             className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-stone-600 dark:text-[#eae6e1] hover:text-stone-900 dark:hover:text-white bg-white dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 hover:bg-stone-50 dark:hover:bg-[#2a2e37] px-3.5 py-1.5 rounded-full shadow-xs active:scale-95 transition-all"
-            aria-label="Deshacer último movimiento registrado"
+            aria-label="Deshacer Ãºltimo movimiento registrado"
           >
-            <Undo2 size={13} /> Deshacer última patada (-1)
+            <Undo2 size={13} /> Deshacer Ãºltima patada (-1)
           </button>
         )}
 
@@ -3656,7 +3776,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
         )}
       </div>
 
-      {/* TARJETA DE CRONÓMETRO Y ACCIONES DE SESIÓN */}
+      {/* TARJETA DE CRONÃ“METRO Y ACCIONES DE SESIÃ“N */}
       <div className="bg-white dark:bg-[#221d2d] w-full rounded-3xl shadow-xs border border-stone-100 dark:border-white/[0.08] p-4 flex flex-col gap-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
@@ -3664,7 +3784,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
               <Clock size={22} className={startTime ? "animate-pulse text-terracotta dark:text-sage" : ""} />
             </div>
             <div>
-              <p className="text-xs text-sage dark:text-sage/80 font-bold tracking-tight">Tiempo de Sesión</p>
+              <p className="text-xs text-sage dark:text-sage/80 font-bold tracking-tight">Tiempo de SesiÃ³n</p>
               <p className="text-2xl font-black text-stone-800 dark:text-[#eae6e1] tracking-tight font-mono tabular-nums">{formatTimer(elapsedSeconds)}</p>
             </div>
           </div>
@@ -3673,7 +3793,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
             type="button"
             onClick={reset} 
             className="text-terracotta dark:text-rose-300 hover:text-rose-800 dark:hover:text-rose-200 font-bold text-xs bg-terracotta/10/70 dark:bg-[#251518] hover:bg-terracotta/20/80 dark:hover:bg-[#301c20] px-3.5 py-2 rounded-xl transition-colors tracking-tight flex items-center gap-1.5 active:scale-95 border border-rose-200/60 dark:border-terracotta/100/25"
-            title="Reiniciar conteo y cronómetro"
+            title="Reiniciar conteo y cronÃ³metro"
           >
             <RotateCcw size={13} /> Reiniciar
           </button>
@@ -3711,7 +3831,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
         )}
       </div>
 
-      {/* TARJETA DE CELEBRACIÓN Y NOTA AL COMPLETAR */}
+      {/* TARJETA DE CELEBRACIÃ“N Y NOTA AL COMPLETAR */}
       {completedSession && (
         <div className="bg-gradient-to-br from-emerald-500 to-sage text-white rounded-3xl p-5 shadow-lg space-y-4 animate-in zoom-in-95 duration-200">
           <div className="flex items-start justify-between">
@@ -3720,7 +3840,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
                 <Sparkles size={24} className="text-terracotta/80" />
               </div>
               <div>
-                <h4 className="text-lg font-black leading-tight">¡Sesión Exitosa Registrada!</h4>
+                <h4 className="text-lg font-black leading-tight">Â¡SesiÃ³n Exitosa Registrada!</h4>
                 <p className="text-xs text-sage/20 mt-0.5">10 movimientos completados en {completedSession.durationFormatted}</p>
               </div>
             </div>
@@ -3728,26 +3848,26 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
               type="button"
               onClick={() => setCompletedSession(null)}
               className="text-white/80 hover:text-white min-w-[40px] min-h-[40px] flex items-center justify-center p-2 rounded-xl hover:bg-white/10 transition-colors"
-              aria-label="Cerrar aviso de sesión completada"
+              aria-label="Cerrar aviso de sesiÃ³n completada"
             >
               <X size={18} />
             </button>
           </div>
 
           <p className="text-xs text-sage/10 leading-relaxed bg-white/10 p-3 rounded-2xl">
-            ⚡ <strong>Evaluación médica:</strong> Tu bebé mostró un ritmo activo y reactivo saludable. La sesión ya está registrada en el historial.
+            âš¡ <strong>EvaluaciÃ³n mÃ©dica:</strong> Tu bebÃ© mostrÃ³ un ritmo activo y reactivo saludable. La sesiÃ³n ya estÃ¡ registrada en el historial.
           </p>
 
           <div>
-            <p className="text-xs font-bold tracking-tight text-sage/30 mb-2">Añadir contexto a la sesión:</p>
+            <p className="text-xs font-bold tracking-tight text-sage/30 mb-2">AÃ±adir contexto a la sesiÃ³n:</p>
             <div className="flex flex-wrap gap-1.5">
               {[
-                "🍽️ Después de comer",
-                "🛏️ En reposo",
-                "🎶 Con música",
-                "🌙 Por la noche",
-                "☀️ En la mañana",
-                "🚶 Tras caminar"
+                "ðŸ½ï¸ DespuÃ©s de comer",
+                "ðŸ›ï¸ En reposo",
+                "ðŸŽ¶ Con mÃºsica",
+                "ðŸŒ™ Por la noche",
+                "â˜€ï¸ En la maÃ±ana",
+                "ðŸš¶ Tras caminar"
               ].map(note => (
                 <button
                   key={note}
@@ -3770,12 +3890,12 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
             onClick={reset}
             className="w-full py-3 bg-white text-sage rounded-2xl font-bold text-xs hover:bg-sage/10 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2"
           >
-            <RotateCcw size={14} /> Iniciar Nueva Sesión
+            <RotateCcw size={14} /> Iniciar Nueva SesiÃ³n
           </button>
         </div>
       )}
 
-      {/* ESTADÍSTICAS INTELIGENTES Y PROMEDIO */}
+      {/* ESTADÃSTICAS INTELIGENTES Y PROMEDIO */}
       {avgDurationMinutes !== null && (
         <div className="bg-gradient-to-br from-sage/10/70 to-emerald-50/60 dark:from-[#221d2d] dark:to-[#1a1724] rounded-3xl p-4 border border-sage/20 dark:border-sage/100/25 flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-3">
@@ -3793,19 +3913,19 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
         </div>
       )}
 
-      {/* HISTORIAL CLÍNICO DE SESIONES CON PERSISTENCIA */}
+      {/* HISTORIAL CLÃNICO DE SESIONES CON PERSISTENCIA */}
       <div>
         <div className="flex justify-between items-center mb-3">
           <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] flex items-center gap-2 text-sm">
-            <History size={18} className="text-terracotta dark:text-sage/80"/> Historial Clínico ({sessions.length})
+            <History size={18} className="text-terracotta dark:text-sage/80"/> Historial ClÃ­nico ({sessions.length})
           </h4>
-          <span className="text-xs font-semibold text-stone-500 dark:text-[#a6a1b2]">Guardado automático</span>
+          <span className="text-xs font-semibold text-stone-500 dark:text-[#a6a1b2]">Guardado automÃ¡tico</span>
         </div>
 
         {sessions.length === 0 ? (
           <div className="bg-stone-50 dark:bg-[#221d2d]/60 rounded-2xl p-6 text-center border border-dashed border-stone-200 dark:border-white/[0.08]">
             <Baby className="mx-auto text-stone-300 dark:text-[#a6a1b2]/50 mb-2" size={32} />
-            <p className="text-stone-500 dark:text-[#a6a1b2] text-xs font-medium">Aún no hay sesiones guardadas. Completa 10 patadas para archivar tu primer registro.</p>
+            <p className="text-stone-500 dark:text-[#a6a1b2] text-xs font-medium">AÃºn no hay sesiones guardadas. Completa 10 patadas para archivar tu primer registro.</p>
           </div>
         ) : (
           <div className="space-y-2.5">
@@ -3833,7 +3953,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
                   <button
                     type="button"
                     onClick={() => deleteSession(s.id)}
-                    aria-label={`Eliminar sesión de ${s.dateFormatted}`}
+                    aria-label={`Eliminar sesiÃ³n de ${s.dateFormatted}`}
                     className="min-w-[40px] min-h-[40px] flex items-center justify-center text-stone-400 dark:text-[#a6a1b2] hover:text-rose-600 dark:hover:text-terracotta hover:bg-stone-100 dark:hover:bg-[#2d273a] p-2 rounded-xl transition-colors"
                   >
                     <Trash2 size={16} />
@@ -3878,7 +3998,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
     } catch (e) {}
   }, [history]);
 
-  // Cronómetro de contracción activa
+  // CronÃ³metro de contracciÃ³n activa
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isRecording && startTime) {
@@ -3889,7 +4009,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
     return () => clearInterval(interval);
   }, [isRecording, startTime]);
 
-  // Cronómetro de intervalo de descanso entre contracciones
+  // CronÃ³metro de intervalo de descanso entre contracciones
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (!isRecording && lastEndedAt) {
@@ -3959,15 +4079,15 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
   const deleteItem = (id: number) => {
     const backup = [...history];
     setHistory(prev => prev.filter(h => h.id !== id));
-    showToast("Contracción eliminada", () => setHistory(backup));
+    showToast("ContracciÃ³n eliminada", () => setHistory(backup));
   };
 
-  // Cálculos de promedios
+  // CÃ¡lculos de promedios
   const avgDuration = history.length > 0 ? Math.round(history.reduce((acc, h) => acc + h.duration, 0) / history.length) : 0;
   const intervals = history.filter(h => h.interval !== null);
   const avgInterval = intervals.length > 0 ? Math.round(intervals.reduce((acc, h) => acc + (h.interval || 0), 0) / intervals.length) : 0;
 
-  // Regla 5-1-1: Frecuencia <= 5-6 min (360s), Duración >= 45s, al menos 3 consecutivas
+  // Regla 5-1-1: Frecuencia <= 5-6 min (360s), DuraciÃ³n >= 45s, al menos 3 consecutivas
   const is511 = history.length >= 3 && avgDuration >= 45 && avgInterval > 0 && avgInterval <= 360;
 
   return (
@@ -3981,7 +4101,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
               <AlertTriangle size={24} />
             </div>
             <div>
-              <h4 className="font-bold text-rose-950 dark:text-rose-300 text-sm">¡Regla 5-1-1 Detectada! (Parto Activo)</h4>
+              <h4 className="font-bold text-rose-950 dark:text-rose-300 text-sm">Â¡Regla 5-1-1 Detectada! (Parto Activo)</h4>
               <p className="text-rose-800 dark:text-rose-300/90 text-xs mt-1 leading-snug">
                 Tus contracciones vienen cada ~{Math.round(avgInterval / 60)} min y duran ~{avgDuration}s. Es momento de acudir al hospital o contactar a tu obstetra o matrona.
               </p>
@@ -3992,7 +4112,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
               href="tel:911"
               className="flex-1 bg-rose-600 hover:bg-terracotta active:scale-95 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
             >
-              📞 Llamar al Obstetra
+              ðŸ“ž Llamar al Obstetra
             </a>
             <a
               href="https://maps.google.com/?q=hospital+maternidad"
@@ -4000,7 +4120,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
               rel="noopener noreferrer"
               className="flex-1 bg-white dark:bg-[#221d2d] hover:bg-terracotta/20/50 dark:hover:bg-[#2d273a] active:scale-95 border border-rose-300 dark:border-terracotta/100/30 text-terracotta dark:text-rose-300 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
             >
-              📍 Ruta al Hospital
+              ðŸ“ Ruta al Hospital
             </a>
           </div>
         </div>
@@ -4009,16 +4129,16 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
       {/* Tarjetas de Promedios */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] flex flex-col items-center justify-center text-center">
-          <p className="text-xs text-sage dark:text-sage/80 font-bold tracking-tight mb-1">Duración Promedio</p>
-          <p className="text-xl font-black text-sage dark:text-sage/80 tabular-nums">{history.length > 0 ? formatTime(avgDuration) : "—"}</p>
+          <p className="text-xs text-sage dark:text-sage/80 font-bold tracking-tight mb-1">DuraciÃ³n Promedio</p>
+          <p className="text-xl font-black text-sage dark:text-sage/80 tabular-nums">{history.length > 0 ? formatTime(avgDuration) : "â€”"}</p>
         </div>
         <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] flex flex-col items-center justify-center text-center">
           <p className="text-xs text-rose-800 dark:text-rose-300 font-bold tracking-tight mb-1">Frecuencia Promedio</p>
-          <p className="text-xl font-black text-rose-600 dark:text-terracotta tabular-nums">{avgInterval ? formatTime(avgInterval) : "—"}</p>
+          <p className="text-xl font-black text-rose-600 dark:text-terracotta tabular-nums">{avgInterval ? formatTime(avgInterval) : "â€”"}</p>
         </div>
       </div>
       
-      {/* Botón Principal del Cronómetro */}
+      {/* BotÃ³n Principal del CronÃ³metro */}
       <button 
         type="button"
         onClick={toggleRecording}
@@ -4027,12 +4147,12 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
             ? "bg-terracotta/100 hover:bg-rose-600 ring-4 ring-rose-200 dark:ring-terracotta/100/30" 
             : "bg-terracotta hover:bg-terracotta-hover"
         }`}
-        aria-label={isRecording ? "Detener registro de contracción" : "Iniciar registro de contracción"}
+        aria-label={isRecording ? "Detener registro de contracciÃ³n" : "Iniciar registro de contracciÃ³n"}
       >
         <div className="flex items-center gap-2">
           {isRecording ? <Square size={32} /> : <Play size={32} />}
           <span className="text-2xl font-black tracking-tight tabular-nums">
-            {isRecording ? formatTime(currentDuration) : "Iniciar Contracción"}
+            {isRecording ? formatTime(currentDuration) : "Iniciar ContracciÃ³n"}
           </span>
         </div>
         <span className="text-xs font-medium opacity-90">
@@ -4040,7 +4160,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
         </span>
       </button>
 
-      {/* MODO RECUPERACIÓN Y RESPIRACIÓN GUIADA ENTRE CONTRACCIONES */}
+      {/* MODO RECUPERACIÃ“N Y RESPIRACIÃ“N GUIADA ENTRE CONTRACCIONES */}
       {!isRecording && history.length > 0 && (
         <div className="bg-gradient-to-br from-sage/10/80 via-emerald-50/50 to-white dark:from-[#221d2d] dark:to-[#1a1724] rounded-3xl p-5 border border-sage/30/80 dark:border-sage/100/25 shadow-xs space-y-4 animate-in fade-in">
           <div className="flex items-center justify-between border-b border-sage/20 dark:border-white/[0.06] pb-2.5">
@@ -4053,25 +4173,25 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
             </span>
           </div>
 
-          {/* Pacer Visual de Respiración */}
+          {/* Pacer Visual de RespiraciÃ³n */}
           <div className="flex flex-col items-center justify-center py-2 text-center">
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-sage/20 to-emerald-400/30 border-2 border-sage/100 flex items-center justify-center animate-pulse motion-reduce:animate-none">
               <HeartPulse size={32} className="text-terracotta dark:text-sage" />
             </div>
             <p className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm mt-3">Inhala lento en 4s ... Exhala suave en 6s</p>
             <p className="text-xs text-stone-500 dark:text-[#a6a1b2] max-w-xs mt-0.5">
-              Suelta mandíbula y hombros para relajar la musculatura del suelo pélvico.
+              Suelta mandÃ­bula y hombros para relajar la musculatura del suelo pÃ©lvico.
             </p>
           </div>
 
-          {/* Guía Rápida para el Acompañante */}
+          {/* GuÃ­a RÃ¡pida para el AcompaÃ±ante */}
           <div className="bg-white/90 dark:bg-[#2d273a]/80 rounded-2xl p-3 border border-sage/20/90 dark:border-white/10 text-xs space-y-1">
             <p className="font-bold text-sage dark:text-sage/80 flex items-center gap-1">
-              <span>🤝 Acompañamiento del Papá / Pareja:</span>
+              <span>ðŸ¤ AcompaÃ±amiento del PapÃ¡ / Pareja:</span>
             </p>
-            <p className="text-stone-600 dark:text-[#a6a1b2] leading-relaxed">• Ofrece un sorbo pequeño de agua fresca o bálsamo labial.</p>
-            <p className="text-stone-600 dark:text-[#a6a1b2] leading-relaxed">• Aplica contrapresión firme con el talón de la mano en el sacro (espalda baja).</p>
-            <p className="text-stone-600 dark:text-[#a6a1b2] leading-relaxed">• Recuérdale con voz serena: <em>"Respira profundo, lo estás haciendo genial."</em></p>
+            <p className="text-stone-600 dark:text-[#a6a1b2] leading-relaxed">â€¢ Ofrece un sorbo pequeÃ±o de agua fresca o bÃ¡lsamo labial.</p>
+            <p className="text-stone-600 dark:text-[#a6a1b2] leading-relaxed">â€¢ Aplica contrapresiÃ³n firme con el talÃ³n de la mano en el sacro (espalda baja).</p>
+            <p className="text-stone-600 dark:text-[#a6a1b2] leading-relaxed">â€¢ RecuÃ©rdale con voz serena: <em>"Respira profundo, lo estÃ¡s haciendo genial."</em></p>
           </div>
         </div>
       )}
@@ -4084,7 +4204,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
           </div>
           <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm mb-1">Sin contracciones registradas</h4>
           <p className="text-xs text-stone-500 dark:text-[#a6a1b2] max-w-xs mx-auto leading-relaxed">
-            Cuando sientas que tu abdomen se tensa o empiece una contracción, toca el botón grande. El sistema calculará la duración, el intervalo y te avisará si cumples la regla 5-1-1 para acudir al hospital.
+            Cuando sientas que tu abdomen se tensa o empiece una contracciÃ³n, toca el botÃ³n grande. El sistema calcularÃ¡ la duraciÃ³n, el intervalo y te avisarÃ¡ si cumples la regla 5-1-1 para acudir al hospital.
           </p>
         </div>
       ) : (
@@ -4105,7 +4225,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
           <div className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-xs border border-stone-200/80 dark:border-white/[0.08] overflow-hidden">
             <div className="grid grid-cols-4 bg-stone-50 dark:bg-[#2d273a]/50 p-3 text-xs font-bold text-stone-500 dark:text-[#a6a1b2] tracking-tight text-center">
               <div>Hora</div>
-              <div>Duración</div>
+              <div>DuraciÃ³n</div>
               <div>Frecuencia</div>
               <div>Quitar</div>
             </div>
@@ -4121,13 +4241,13 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
                     </span>
                   </div>
                   <div className="font-bold text-rose-600 dark:text-terracotta tabular-nums">
-                    {item.interval ? formatTime(item.interval) : "—"}
+                    {item.interval ? formatTime(item.interval) : "â€”"}
                   </div>
                   <div>
                     <button
                       type="button"
                       onClick={() => deleteItem(item.id)}
-                      aria-label="Eliminar contracción"
+                      aria-label="Eliminar contracciÃ³n"
                       className="min-w-[40px] min-h-[40px] inline-flex items-center justify-center text-stone-400 dark:text-[#a6a1b2] hover:text-rose-600 dark:hover:text-terracotta hover:bg-stone-100 dark:hover:bg-[#2d273a] p-2 rounded-xl transition-colors"
                     >
                       <Trash2 size={16} />
@@ -4166,17 +4286,17 @@ function VotadorNombres({ showToast }: { showToast: any }) {
       } catch (e) {}
     }
     return [
-      { id: 1, text: "Valentina", origin: "Latín", meaning: "Valerosa, vigorosa.", status: "pending", partnerLiked: true, gender: "niña" },
-      { id: 2, text: "Mateo", origin: "Hebreo", meaning: "El gran regalo de Dios.", status: "pending", partnerLiked: false, gender: "niño" },
+      { id: 1, text: "Valentina", origin: "LatÃ­n", meaning: "Valerosa, vigorosa.", status: "pending", partnerLiked: true, gender: "niÃ±a" },
+      { id: 2, text: "Mateo", origin: "Hebreo", meaning: "El gran regalo de Dios.", status: "pending", partnerLiked: false, gender: "niÃ±o" },
       { id: 3, text: "Noa", origin: "Hebreo", meaning: "Delicia, descanso.", status: "pending", partnerLiked: true, gender: "neutro" },
-      { id: 4, text: "Emilio", origin: "Latín", meaning: "El que se esfuerza.", status: "pending", partnerLiked: true, gender: "niño" },
-      { id: 5, text: "Lucía", origin: "Latín", meaning: "La que nació a la luz del día.", status: "pending", partnerLiked: false, gender: "niña" },
+      { id: 4, text: "Emilio", origin: "LatÃ­n", meaning: "El que se esfuerza.", status: "pending", partnerLiked: true, gender: "niÃ±o" },
+      { id: 5, text: "LucÃ­a", origin: "LatÃ­n", meaning: "La que naciÃ³ a la luz del dÃ­a.", status: "pending", partnerLiked: false, gender: "niÃ±a" },
       { id: 6, text: "Alex", origin: "Griego", meaning: "Defensor/a.", status: "pending", partnerLiked: true, gender: "neutro" },
     ];
   });
 
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [genderFilter, setGenderFilter] = useState<"todos"|"niño"|"niña"|"neutro">("todos");
+  const [genderFilter, setGenderFilter] = useState<"todos"|"niÃ±o"|"niÃ±a"|"neutro">("todos");
 
   useEffect(() => {
     try {
@@ -4209,7 +4329,7 @@ function VotadorNombres({ showToast }: { showToast: any }) {
         const formatted = data.names.map((item: any, idx: number) => ({
           id: Date.now() + idx,
           text: item.text,
-          origin: item.origin || "Inspiración",
+          origin: item.origin || "InspiraciÃ³n",
           meaning: item.meaning || "Significado especial",
           gender: item.gender || (genderFilter === "todos" ? "neutro" : genderFilter),
           status: "pending",
@@ -4218,11 +4338,11 @@ function VotadorNombres({ showToast }: { showToast: any }) {
 
         setNames(prev => [...prev, ...formatted]);
         const msg = data.source === "gemini" 
-          ? `¡PandaIA generó ${formatted.length} nuevos nombres únicos con IA! ✨` 
-          : `¡${formatted.length} nuevos nombres únicos listos para votar! 👶`;
+          ? `Â¡PandaIA generÃ³ ${formatted.length} nuevos nombres Ãºnicos con IA! âœ¨` 
+          : `Â¡${formatted.length} nuevos nombres Ãºnicos listos para votar! ðŸ‘¶`;
         showToast(msg, () => {});
       } else {
-        showToast("No hay más nombres disponibles para este filtro.", () => {});
+        showToast("No hay mÃ¡s nombres disponibles para este filtro.", () => {});
       }
     } catch (err) {
       console.error(err);
@@ -4246,7 +4366,7 @@ function VotadorNombres({ showToast }: { showToast: any }) {
     if (lastVotedId !== null) {
       setNames(prev => prev.map(n => n.id === lastVotedId ? { ...n, status: "pending" } : n));
       setLastVotedId(null);
-      showToast("Último voto deshecho", () => {});
+      showToast("Ãšltimo voto deshecho", () => {});
     }
   };
 
@@ -4278,8 +4398,8 @@ function VotadorNombres({ showToast }: { showToast: any }) {
     <div className="flex flex-col py-2 animate-in fade-in duration-300 w-full">
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h3 className="text-xl font-bold text-stone-800 dark:text-[#eae6e1]">Nombres del Bebé</h3>
-          <p className="text-xs text-stone-500 dark:text-[#a6a1b2]">¿Hará match con tu pareja?</p>
+          <h3 className="text-xl font-bold text-stone-800 dark:text-[#eae6e1]">Nombres del BebÃ©</h3>
+          <p className="text-xs text-stone-500 dark:text-[#a6a1b2]">Â¿HarÃ¡ match con tu pareja?</p>
         </div>
         <div className="flex items-center gap-2">
           {matches.length > 0 && (
@@ -4292,7 +4412,7 @@ function VotadorNombres({ showToast }: { showToast: any }) {
             onClick={handleRequestMoreNames}
             disabled={isLoadingMore}
             className="text-xs font-bold text-sage dark:text-sage/80 bg-sage/10 dark:bg-[#1a1724] hover:bg-sage/20 dark:hover:bg-[#19322c] px-3 py-1.5 min-h-[38px] rounded-full border border-sage/30/70 dark:border-sage/100/25 flex items-center gap-1.5 transition-colors disabled:opacity-60 shadow-xs active:scale-95"
-            title="Pedir más nombres a PandaIA"
+            title="Pedir mÃ¡s nombres a PandaIA"
           >
             {isLoadingMore ? (
               <div className="w-3 h-3 border-2 border-sage dark:border-sage/80 border-t-transparent rounded-full animate-spin"></div>
@@ -4306,7 +4426,7 @@ function VotadorNombres({ showToast }: { showToast: any }) {
 
       <div className="flex items-center justify-between mb-4">
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-          {["todos", "niña", "niño", "neutro"].map(f => (
+          {["todos", "niÃ±a", "niÃ±o", "neutro"].map(f => (
             <button 
               key={f}
               onClick={() => setGenderFilter(f as any)}
@@ -4326,7 +4446,7 @@ function VotadorNombres({ showToast }: { showToast: any }) {
             type="button"
             onClick={undoLastVote}
             className="text-xs font-bold text-stone-600 dark:text-[#eae6e1] hover:text-stone-900 dark:hover:text-white bg-white dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 hover:bg-stone-100 dark:hover:bg-[#383147] px-3 py-2 min-h-[40px] rounded-full shadow-xs active:scale-95 transition-all flex items-center gap-1 shrink-0 ml-2"
-            title="Deshacer el último voto de nombre"
+            title="Deshacer el Ãºltimo voto de nombre"
           >
             <Undo2 size={13} /> Deshacer
           </button>
@@ -4344,7 +4464,7 @@ function VotadorNombres({ showToast }: { showToast: any }) {
           <div className="absolute top-0 w-full h-2 bg-gradient-to-r from-sage to-terracotta"></div>
           <h2 className="text-4xl font-black text-stone-800 dark:text-[#eae6e1] mb-2 mt-4">{current.text}</h2>
           <span className="text-xs font-bold uppercase tracking-widest text-sage dark:text-sage/80 bg-sage/10 dark:bg-[#1a1724] px-3 py-1 rounded-full mb-4">
-            Origen: {current.origin} • {current.gender}
+            Origen: {current.origin} â€¢ {current.gender}
           </span>
           <p className="text-sm text-stone-500 dark:text-[#a6a1b2] italic mb-8 max-w-[200px]">"{current.meaning}"</p>
           
@@ -4373,12 +4493,12 @@ function VotadorNombres({ showToast }: { showToast: any }) {
               <Sparkles className="text-terracotta/100" size={32} />
             </div>
             <h4 className="text-xl font-bold text-stone-800 dark:text-[#eae6e1] mb-2">
-              {matches.length > 0 ? "¡Excelente trabajo en equipo!" : "¡Sigue buscando!"}
+              {matches.length > 0 ? "Â¡Excelente trabajo en equipo!" : "Â¡Sigue buscando!"}
             </h4>
             <p className="text-stone-600 dark:text-[#a6a1b2] text-sm mb-6 leading-relaxed">
               {matches.length > 0 
-                ? `Han coincidido en ${matches.length} nombre${matches.length > 1 ? "s" : ""}. Este bebé ya tiene opciones increíbles.` 
-                : "Has revisado esta lista, pero aún no hay coincidencias. ¡No te rindas, el nombre perfecto está ahí afuera!"}
+                ? `Han coincidido en ${matches.length} nombre${matches.length > 1 ? "s" : ""}. Este bebÃ© ya tiene opciones increÃ­bles.` 
+                : "Has revisado esta lista, pero aÃºn no hay coincidencias. Â¡No te rindas, el nombre perfecto estÃ¡ ahÃ­ afuera!"}
             </p>
             <button 
               type="button"
@@ -4389,11 +4509,11 @@ function VotadorNombres({ showToast }: { showToast: any }) {
               {isLoadingMore ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Buscando nombres únicos...</span>
+                  <span>Buscando nombres Ãºnicos...</span>
                 </>
               ) : (
                 <>
-                  <Bot size={18} /> Pedir más ideas a PandaIA
+                  <Bot size={18} /> Pedir mÃ¡s ideas a PandaIA
                 </>
               )}
             </button>
@@ -4412,7 +4532,7 @@ function VotadorNombres({ showToast }: { showToast: any }) {
 
       {matches.length > 0 && (
         <div className="mt-4">
-          <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] mb-3 flex items-center gap-2"><Sparkles size={18} className="text-terracotta/100"/> ¡It's a Match!</h4>
+          <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] mb-3 flex items-center gap-2"><Sparkles size={18} className="text-terracotta/100"/> Â¡It's a Match!</h4>
           <div className="grid grid-cols-2 gap-3">
             {matches.map(n => (
               <div key={n.id} className="bg-gradient-to-br from-sage/10 to-white dark:from-[#221d2d] dark:to-[#2d273a] border border-sage/20 dark:border-white/[0.08] p-4 rounded-2xl flex flex-col items-center justify-center shadow-xs">
@@ -4446,66 +4566,66 @@ const DEFAULT_PLAN_SECTIONS: PlanSection[] = [
   {
     id: 1,
     category: "Ambiente",
-    title: "1. Acompañamiento y Ambiente de Parto",
+    title: "1. AcompaÃ±amiento y Ambiente de Parto",
     subtitle: "Tus preferencias para un entorno sereno, seguro y respetado.",
     options: [
-      { id: "a1", label: "Acompañante continuo en todo momento", desc: "Deseo que mi pareja o acompañante esté presente en dilatación, expulsivo y recuperación sin interrupción.", checked: true },
-      { id: "a2", label: "Ambiente con luz tenue y silencioso", desc: "Reducir la iluminación artificial y el ruido en la sala para favorecer la producción de oxitocina natural.", checked: true },
-      { id: "a3", label: "Música propia y ropa cómoda", desc: "Llevaré mi propia lista de música relajante y ropa personal en lugar de la bata institucional abierta.", checked: true },
-      { id: "a4", label: "Libertad de movimiento y esferodinamia", desc: "Poder caminar, cambiar de postura libremente y utilizar pelota de pilates durante la fase de dilatación.", checked: true },
-      { id: "a5", label: "Hidratación y líquidos claros", desc: "Poder beber agua, infusiones o caldos ligeros para mantener energía durante el trabajo de parto.", checked: true },
-      { id: "a6", label: "Acceso a ducha o hidroterapia con agua caliente", desc: "Uso del agua tibia como método fisiológico y natural para el alivio del dolor de las contracciones.", checked: true }
+      { id: "a1", label: "AcompaÃ±ante continuo en todo momento", desc: "Deseo que mi pareja o acompaÃ±ante estÃ© presente en dilataciÃ³n, expulsivo y recuperaciÃ³n sin interrupciÃ³n.", checked: true },
+      { id: "a2", label: "Ambiente con luz tenue y silencioso", desc: "Reducir la iluminaciÃ³n artificial y el ruido en la sala para favorecer la producciÃ³n de oxitocina natural.", checked: true },
+      { id: "a3", label: "MÃºsica propia y ropa cÃ³moda", desc: "LlevarÃ© mi propia lista de mÃºsica relajante y ropa personal en lugar de la bata institucional abierta.", checked: true },
+      { id: "a4", label: "Libertad de movimiento y esferodinamia", desc: "Poder caminar, cambiar de postura libremente y utilizar pelota de pilates durante la fase de dilataciÃ³n.", checked: true },
+      { id: "a5", label: "HidrataciÃ³n y lÃ­quidos claros", desc: "Poder beber agua, infusiones o caldos ligeros para mantener energÃ­a durante el trabajo de parto.", checked: true },
+      { id: "a6", label: "Acceso a ducha o hidroterapia con agua caliente", desc: "Uso del agua tibia como mÃ©todo fisiolÃ³gico y natural para el alivio del dolor de las contracciones.", checked: true }
     ]
   },
   {
     id: 2,
     category: "Dolor y Procedimientos",
-    title: "2. Manejo del Dolor y Procedimientos Médicos",
-    subtitle: "Intervenciones farmacológicas y monitoreo clínico informado.",
+    title: "2. Manejo del Dolor y Procedimientos MÃ©dicos",
+    subtitle: "Intervenciones farmacolÃ³gicas y monitoreo clÃ­nico informado.",
     options: [
-      { id: "d1", label: "Alivio no farmacológico primero", desc: "Masajes lumbares por mi acompañante, técnicas de respiración guiada, compresas y libertad postural.", checked: true },
-      { id: "d2", label: "Anestesia Epidural a demanda informada", desc: "Deseo que la epidural esté disponible y se aplique cuando yo lo solicite expresamente, sin apresurar.", checked: true },
-      { id: "d3", label: "Rotura espontánea de bolsa amniótica", desc: "Permitir que las membranas rompan de forma fisiológica; evitar la amniotomía artificial rutinaria.", checked: true },
-      { id: "d4", label: "Uso de Oxitocina sintética solo con justificación", desc: "No administrar goteo de oxitocina de rutina para acelerar el parto, salvo necesidad médica justificada.", checked: true },
-      { id: "d5", label: "Mínimo número de tactos vaginales", desc: "Realizar exploraciones vaginales únicamente cuando sea indispensable y avisando previamente con delicadeza.", checked: true }
+      { id: "d1", label: "Alivio no farmacolÃ³gico primero", desc: "Masajes lumbares por mi acompaÃ±ante, tÃ©cnicas de respiraciÃ³n guiada, compresas y libertad postural.", checked: true },
+      { id: "d2", label: "Anestesia Epidural a demanda informada", desc: "Deseo que la epidural estÃ© disponible y se aplique cuando yo lo solicite expresamente, sin apresurar.", checked: true },
+      { id: "d3", label: "Rotura espontÃ¡nea de bolsa amniÃ³tica", desc: "Permitir que las membranas rompan de forma fisiolÃ³gica; evitar la amniotomÃ­a artificial rutinaria.", checked: true },
+      { id: "d4", label: "Uso de Oxitocina sintÃ©tica solo con justificaciÃ³n", desc: "No administrar goteo de oxitocina de rutina para acelerar el parto, salvo necesidad mÃ©dica justificada.", checked: true },
+      { id: "d5", label: "MÃ­nimo nÃºmero de tactos vaginales", desc: "Realizar exploraciones vaginales Ãºnicamente cuando sea indispensable y avisando previamente con delicadeza.", checked: true }
     ]
   },
   {
     id: 3,
     category: "Expulsivo",
     title: "3. Periodo Expulsivo y Nacimiento",
-    subtitle: "Cómo deseas vivir el momento exacto en que nace tu bebé.",
+    subtitle: "CÃ³mo deseas vivir el momento exacto en que nace tu bebÃ©.",
     options: [
-      { id: "e1", label: "Libertad de postura para dar a luz", desc: "Poder parir en la postura más instintiva y cómoda (semisentada, cuclillas, lateral o cuatro apoyos), evitando litotomía forzada.", checked: true },
-      { id: "e2", label: "Pujos espontáneos y fisiológicos", desc: "Pujar al compás natural de mis contracciones corporales en vez de pujos dirigidos en apnea forzada.", checked: true },
-      { id: "e3", label: "Protección perineal (No episiotomía de rutina)", desc: "Aplicación de compresas tibias y masajes perineales; realizar episiotomía solo ante riesgo fetal inminente.", checked: true },
-      { id: "e4", label: "Corte del cordón por el padre / acompañante", desc: "Deseo que mi acompañante tenga la oportunidad de cortar el cordón umbilical guiado por la matrona.", checked: true },
-      { id: "e5", label: "Contacto visual o tocar la cabecita al coronar", desc: "Deseo poder ver con espejo o tocar suavemente a mi bebé cuando empiece a coronar.", checked: false }
+      { id: "e1", label: "Libertad de postura para dar a luz", desc: "Poder parir en la postura mÃ¡s instintiva y cÃ³moda (semisentada, cuclillas, lateral o cuatro apoyos), evitando litotomÃ­a forzada.", checked: true },
+      { id: "e2", label: "Pujos espontÃ¡neos y fisiolÃ³gicos", desc: "Pujar al compÃ¡s natural de mis contracciones corporales en vez de pujos dirigidos en apnea forzada.", checked: true },
+      { id: "e3", label: "ProtecciÃ³n perineal (No episiotomÃ­a de rutina)", desc: "AplicaciÃ³n de compresas tibias y masajes perineales; realizar episiotomÃ­a solo ante riesgo fetal inminente.", checked: true },
+      { id: "e4", label: "Corte del cordÃ³n por el padre / acompaÃ±ante", desc: "Deseo que mi acompaÃ±ante tenga la oportunidad de cortar el cordÃ³n umbilical guiado por la matrona.", checked: true },
+      { id: "e5", label: "Contacto visual o tocar la cabecita al coronar", desc: "Deseo poder ver con espejo o tocar suavemente a mi bebÃ© cuando empiece a coronar.", checked: false }
     ]
   },
   {
     id: 4,
-    category: "Recién Nacido",
-    title: "4. Cuidados Inmediatos del Recién Nacido (Hora Dorada)",
-    subtitle: "Apego temprano, corte de cordón y alimentación inicial.",
+    category: "ReciÃ©n Nacido",
+    title: "4. Cuidados Inmediatos del ReciÃ©n Nacido (Hora Dorada)",
+    subtitle: "Apego temprano, corte de cordÃ³n y alimentaciÃ³n inicial.",
     options: [
-      { id: "n1", label: "Corte tardío del cordón umbilical", desc: "Esperar al menos 2 a 3 minutos o hasta que el cordón deje de pulsar para maximizar el aporte de hierro y células madre.", checked: true },
-      { id: "n2", label: "Contacto Piel con Piel inmediato e ininterrumpido", desc: "Colocar al bebé directamente sobre mi pecho desnudo al nacer durante la primera hora de vida (Hora Dorada).", checked: true },
-      { id: "n3", label: "Retrasar procedimientos de rutina no urgentes", desc: "Pesar, medir, bañar y administrar gotas/vitamina K solo después de la primera hora de apego sobre el pecho.", checked: true },
-      { id: "n4", label: "Inicio precoz de Lactancia Materna", desc: "Facilitar el primer agarre espontáneo al pecho durante los primeros 60 minutos de vida con apoyo de matrona.", checked: true },
-      { id: "n5", label: "No suministrar suero, fórmula ni chupetes", desc: "Alimentación exclusiva al pecho salvo prescripción médica estricta y previamente consensuada con los padres.", checked: true }
+      { id: "n1", label: "Corte tardÃ­o del cordÃ³n umbilical", desc: "Esperar al menos 2 a 3 minutos o hasta que el cordÃ³n deje de pulsar para maximizar el aporte de hierro y cÃ©lulas madre.", checked: true },
+      { id: "n2", label: "Contacto Piel con Piel inmediato e ininterrumpido", desc: "Colocar al bebÃ© directamente sobre mi pecho desnudo al nacer durante la primera hora de vida (Hora Dorada).", checked: true },
+      { id: "n3", label: "Retrasar procedimientos de rutina no urgentes", desc: "Pesar, medir, baÃ±ar y administrar gotas/vitamina K solo despuÃ©s de la primera hora de apego sobre el pecho.", checked: true },
+      { id: "n4", label: "Inicio precoz de Lactancia Materna", desc: "Facilitar el primer agarre espontÃ¡neo al pecho durante los primeros 60 minutos de vida con apoyo de matrona.", checked: true },
+      { id: "n5", label: "No suministrar suero, fÃ³rmula ni chupetes", desc: "AlimentaciÃ³n exclusiva al pecho salvo prescripciÃ³n mÃ©dica estricta y previamente consensuada con los padres.", checked: true }
     ]
   },
   {
     id: 5,
-    category: "Cesárea y Notas",
-    title: "5. En caso de Cesárea y Cuidados Especiales",
-    subtitle: "Cesárea humanizada y notas médicas particulares.",
+    category: "CesÃ¡rea y Notas",
+    title: "5. En caso de CesÃ¡rea y Cuidados Especiales",
+    subtitle: "CesÃ¡rea humanizada y notas mÃ©dicas particulares.",
     options: [
-      { id: "c1", label: "Acompañante presente en quirófano", desc: "Que mi pareja esté a mi lado en todo momento durante la cesárea y en la sala de recuperación postoperatoria.", checked: true },
-      { id: "c2", label: "Piel con piel inmediato en quirófano o con el padre", desc: "Si la madre no puede por la intervención, que el padre realice el contacto piel con piel sin separarse del bebé.", checked: true },
-      { id: "c3", label: "Bajar pantalla en el alumbramiento", desc: "Permitirnos ver el momento exacto en que sacan al bebé si las condiciones quirúrgicas lo permiten.", checked: true },
-      { id: "c4", label: "Co-alojamiento conjunto 24 horas en habitación", desc: "Que el recién nacido permanezca en todo momento en la habitación con la madre, sin traslados rutinarios a nido.", checked: true }
+      { id: "c1", label: "AcompaÃ±ante presente en quirÃ³fano", desc: "Que mi pareja estÃ© a mi lado en todo momento durante la cesÃ¡rea y en la sala de recuperaciÃ³n postoperatoria.", checked: true },
+      { id: "c2", label: "Piel con piel inmediato en quirÃ³fano o con el padre", desc: "Si la madre no puede por la intervenciÃ³n, que el padre realice el contacto piel con piel sin separarse del bebÃ©.", checked: true },
+      { id: "c3", label: "Bajar pantalla en el alumbramiento", desc: "Permitirnos ver el momento exacto en que sacan al bebÃ© si las condiciones quirÃºrgicas lo permiten.", checked: true },
+      { id: "c4", label: "Co-alojamiento conjunto 24 horas en habitaciÃ³n", desc: "Que el reciÃ©n nacido permanezca en todo momento en la habitaciÃ³n con la madre, sin traslados rutinarios a nido.", checked: true }
     ]
   }
 ];
@@ -4537,7 +4657,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
     return {
       motherName: profile?.role === "mama" ? profile.name : "",
       partnerName: profile?.role === "papa" ? profile.name : "",
-      hospital: profile?.location || "Hospital / Clínica de Maternidad",
+      hospital: profile?.location || "Hospital / ClÃ­nica de Maternidad",
       week: profile?.week || 36,
       doctor: "",
       notes: profile?.notes || ""
@@ -4577,7 +4697,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
   };
 
   const handlePrint = () => {
-    showToast("Generando vista de impresión para PDF... 📄", () => {});
+    showToast("Generando vista de impresiÃ³n para PDF... ðŸ“„", () => {});
     setTimeout(() => {
       window.print();
     }, 150);
@@ -4586,22 +4706,22 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
   const sharePlanWhatsApp = () => {
     try {
       const checkedOptions = sections.flatMap(sec => 
-        sec.options.filter(o => o.checked).map(o => `• [${sec.category}] ${o.label}`)
+        sec.options.filter(o => o.checked).map(o => `â€¢ [${sec.category}] ${o.label}`)
       );
 
       const text = [
-        `📋 *PLAN DE PARTO Y NACIMIENTO PANDAJR*`,
-        `🤰 *Madre:* ${patientData.motherName || "Gestante"}`,
-        `🧔 *Acompañante:* ${patientData.partnerName || "Pareja"}`,
-        `🏥 *Centro Médico:* ${patientData.hospital}`,
-        `📅 *Semana de Gestación:* ${patientData.week}`,
-        patientData.doctor ? `🩺 *Especialista:* ${patientData.doctor}` : "",
+        `ðŸ“‹ *PLAN DE PARTO Y NACIMIENTO PANDAJR*`,
+        `ðŸ¤° *Madre:* ${patientData.motherName || "Gestante"}`,
+        `ðŸ§” *AcompaÃ±ante:* ${patientData.partnerName || "Pareja"}`,
+        `ðŸ¥ *Centro MÃ©dico:* ${patientData.hospital}`,
+        `ðŸ“… *Semana de GestaciÃ³n:* ${patientData.week}`,
+        patientData.doctor ? `ðŸ©º *Especialista:* ${patientData.doctor}` : "",
         "",
-        `✨ *PREFERENCIAS Y CLÁUSULAS ACTIVAS (${checkedOptions.length}):*`,
+        `âœ¨ *PREFERENCIAS Y CLÃUSULAS ACTIVAS (${checkedOptions.length}):*`,
         ...checkedOptions,
         "",
-        patientData.notes ? `📝 *Notas Especiales:* ${patientData.notes}\n` : "",
-        `👉 *Documento generado y coordinado con PandaJR*`
+        patientData.notes ? `ðŸ“ *Notas Especiales:* ${patientData.notes}\n` : "",
+        `ðŸ‘‰ *Documento generado y coordinado con PandaJR*`
       ].filter(Boolean).join("\n");
 
       if (navigator.share) {
@@ -4620,7 +4740,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
 
   const resetToDefaults = () => {
     setSections(DEFAULT_PLAN_SECTIONS);
-    showToast("Plan restablecido a los valores clínicos recomendados", () => {});
+    showToast("Plan restablecido a los valores clÃ­nicos recomendados", () => {});
   };
 
   const currentSection = sections.find(s => s.id === step);
@@ -4634,7 +4754,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
         <div className="border-b-2 border-sage pb-4 flex justify-between items-end">
           <div>
             <h1 className="text-2xl font-black tracking-tight text-sage">PLAN DE PARTO Y NACIMIENTO INFORMADO</h1>
-            <p className="text-xs text-stone-600 mt-0.5">Expresión de voluntades y preferencias clínicas para la atención del parto y recién nacido</p>
+            <p className="text-xs text-stone-600 mt-0.5">ExpresiÃ³n de voluntades y preferencias clÃ­nicas para la atenciÃ³n del parto y reciÃ©n nacido</p>
           </div>
           <div className="text-right text-xs text-stone-500 font-mono">
             <p>PandaJR Copiloto Fetal</p>
@@ -4642,27 +4762,27 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
           </div>
         </div>
 
-        {/* Ficha de Identificación de Pacientes */}
+        {/* Ficha de IdentificaciÃ³n de Pacientes */}
         <div className="grid grid-cols-2 gap-4 bg-stone-50 border border-stone-200 p-4 rounded-xl text-xs">
           <div>
             <p><strong>Madre Gestante:</strong> {patientData.motherName || "Por definir"}</p>
-            <p className="mt-1"><strong>Acompañante / Pareja:</strong> {patientData.partnerName || "Por definir"}</p>
+            <p className="mt-1"><strong>AcompaÃ±ante / Pareja:</strong> {patientData.partnerName || "Por definir"}</p>
             <p className="mt-1"><strong>Semana Gestacional:</strong> Semana {patientData.week}</p>
           </div>
           <div>
-            <p><strong>Hospital / Clínica:</strong> {patientData.hospital || "Centro de maternidad"}</p>
+            <p><strong>Hospital / ClÃ­nica:</strong> {patientData.hospital || "Centro de maternidad"}</p>
             <p className="mt-1"><strong>Obstetra / Matrona:</strong> {patientData.doctor || "Equipo de guardia"}</p>
             {patientData.notes && <p className="mt-1"><strong>Observaciones:</strong> {patientData.notes}</p>}
           </div>
         </div>
 
-        {/* Cláusula Introductoria de Respeto Clínico */}
+        {/* ClÃ¡usula Introductoria de Respeto ClÃ­nico */}
         <blockquote className="bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-xl text-xs text-stone-700 italic flex items-start gap-2.5">
-          <span className="text-sage font-serif text-lg leading-none select-none shrink-0" aria-hidden="true">“</span>
+          <span className="text-sage font-serif text-lg leading-none select-none shrink-0" aria-hidden="true">â€œ</span>
           <p className="flex-1">
-            A la atención del equipo obstétrico y pediátrico: Este plan expresa nuestros deseos y preferencias para el proceso de parto y postparto inmediato, entendiendo siempre que la salud y seguridad de la madre y del bebé priman ante cualquier eventualidad médica imprevista.
+            A la atenciÃ³n del equipo obstÃ©trico y pediÃ¡trico: Este plan expresa nuestros deseos y preferencias para el proceso de parto y postparto inmediato, entendiendo siempre que la salud y seguridad de la madre y del bebÃ© priman ante cualquier eventualidad mÃ©dica imprevista.
           </p>
-          <span className="text-sage font-serif text-lg leading-none select-none shrink-0 self-end" aria-hidden="true">”</span>
+          <span className="text-sage font-serif text-lg leading-none select-none shrink-0 self-end" aria-hidden="true">â€</span>
         </blockquote>
 
         {/* Secciones y Preferencias Seleccionadas */}
@@ -4676,7 +4796,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                 <ul className="space-y-1 text-xs text-stone-800 pt-1">
                   {activeOpts.map(opt => (
                     <li key={opt.id} className="flex items-start gap-2">
-                      <span className="text-sage font-bold">☑</span>
+                      <span className="text-sage font-bold">â˜‘</span>
                       <div>
                         <strong>{opt.label}:</strong> <span className="text-stone-600">{opt.desc}</span>
                       </div>
@@ -4688,24 +4808,24 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
           })}
         </div>
 
-        {/* Sección de Firmas Formales */}
+        {/* SecciÃ³n de Firmas Formales */}
         <div className="pt-8 mt-8 border-t border-stone-300 grid grid-cols-3 gap-6 text-center text-xs break-inside-avoid">
           <div className="border-t border-stone-400 pt-2">
             <p className="font-bold text-stone-800">{patientData.motherName || "Firma de la Madre"}</p>
             <p className="text-xs text-stone-500">Madre Gestante</p>
           </div>
           <div className="border-t border-stone-400 pt-2">
-            <p className="font-bold text-stone-800">{patientData.partnerName || "Firma del Acompañante"}</p>
-            <p className="text-xs text-stone-500">Pareja / Acompañante</p>
+            <p className="font-bold text-stone-800">{patientData.partnerName || "Firma del AcompaÃ±ante"}</p>
+            <p className="text-xs text-stone-500">Pareja / AcompaÃ±ante</p>
           </div>
           <div className="border-t border-stone-400 pt-2">
-            <p className="font-bold text-stone-800">Recibido por Equipo Obstétrico</p>
+            <p className="font-bold text-stone-800">Recibido por Equipo ObstÃ©trico</p>
             <p className="text-xs text-stone-500">Firma y Sello del Profesional</p>
           </div>
         </div>
       </div>
 
-      {/* HEADER DE CONTROL EN LA APLICACIÓN (NO-PRINT) */}
+      {/* HEADER DE CONTROL EN LA APLICACIÃ“N (NO-PRINT) */}
       <div className="no-print space-y-4">
         <div className="flex justify-between items-start gap-3">
           <div>
@@ -4714,7 +4834,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
             </div>
             <h3 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1]">Tu Plan de Parto</h3>
             <p className="text-xs text-stone-500 dark:text-[#a6a1b2]">
-              Personaliza tus preferencias para el hospital y expórtalas en un PDF oficial.
+              Personaliza tus preferencias para el hospital y expÃ³rtalas en un PDF oficial.
             </p>
           </div>
 
@@ -4795,7 +4915,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
             <div className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-xs border border-stone-200/80 dark:border-white/[0.08] p-5 space-y-4 animate-in fade-in">
               <div className="border-b border-stone-100 dark:border-white/[0.06] pb-3">
                 <span className="text-xs font-bold tracking-tight text-sage dark:text-sage/80 bg-sage/10 dark:bg-[#1a1724] px-2.5 py-0.5 rounded-full">
-                  Paso {step} de 5 · {currentSection.category}
+                  Paso {step} de 5 Â· {currentSection.category}
                 </span>
                 <h4 className="text-lg font-black text-stone-800 dark:text-[#eae6e1] mt-1 leading-tight">{currentSection.title}</h4>
                 <p className="text-xs text-stone-500 dark:text-[#a6a1b2] mt-0.5">{currentSection.subtitle}</p>
@@ -4832,7 +4952,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
             </div>
           )}
 
-          {/* Botones de Navegación del Wizard */}
+          {/* Botones de NavegaciÃ³n del Wizard */}
           <div className="flex gap-2 pt-2">
             {step > 1 && (
               <button
@@ -4873,9 +4993,9 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
           <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-5 shadow-xs border border-stone-100 dark:border-white/[0.08] space-y-3">
             <div className="flex justify-between items-center border-b border-stone-100 dark:border-white/[0.06] pb-2">
               <h4 className="text-xs font-bold text-stone-800 dark:text-[#eae6e1] tracking-tight flex items-center gap-1.5">
-                <Settings size={14} className="text-terracotta dark:text-sage" /> Datos de la Ficha Médica
+                <Settings size={14} className="text-terracotta dark:text-sage" /> Datos de la Ficha MÃ©dica
               </h4>
-              <span className="text-xs text-stone-500 dark:text-[#a6a1b2]">Se imprimirán en el encabezado</span>
+              <span className="text-xs text-stone-500 dark:text-[#a6a1b2]">Se imprimirÃ¡n en el encabezado</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -4886,25 +5006,25 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                   type="text"
                   value={patientData.motherName}
                   onChange={e => setPatientData({ ...patientData, motherName: e.target.value })}
-                  placeholder="Ej. Sofía Martínez"
+                  placeholder="Ej. SofÃ­a MartÃ­nez"
                   className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-sage/100"
                 />
               </div>
 
               <div>
-                <label htmlFor="plan-partner-name" className="font-semibold text-stone-600 dark:text-[#eae6e1] block mb-1">Acompañante / Pareja:</label>
+                <label htmlFor="plan-partner-name" className="font-semibold text-stone-600 dark:text-[#eae6e1] block mb-1">AcompaÃ±ante / Pareja:</label>
                 <input
                   id="plan-partner-name"
                   type="text"
                   value={patientData.partnerName}
                   onChange={e => setPatientData({ ...patientData, partnerName: e.target.value })}
-                  placeholder="Ej. Carlos Pérez"
+                  placeholder="Ej. Carlos PÃ©rez"
                   className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-sage/100"
                 />
               </div>
 
               <div>
-                <label htmlFor="plan-hospital" className="font-semibold text-stone-600 dark:text-[#eae6e1] block mb-1">Hospital / Clínica:</label>
+                <label htmlFor="plan-hospital" className="font-semibold text-stone-600 dark:text-[#eae6e1] block mb-1">Hospital / ClÃ­nica:</label>
                 <input
                   id="plan-hospital"
                   type="text"
@@ -4922,7 +5042,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                   type="text"
                   value={patientData.doctor}
                   onChange={e => setPatientData({ ...patientData, doctor: e.target.value })}
-                  placeholder="Ej. Dra. Gómez / Matrona de turno"
+                  placeholder="Ej. Dra. GÃ³mez / Matrona de turno"
                   className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-sage/100"
                 />
               </div>
@@ -4935,7 +5055,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                 rows={2}
                 value={patientData.notes}
                 onChange={e => setPatientData({ ...patientData, notes: e.target.value })}
-                placeholder="Ej. Alergia a la penicilina, deseo donar sangre de cordón, etc."
+                placeholder="Ej. Alergia a la penicilina, deseo donar sangre de cordÃ³n, etc."
                 className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-sage/100 resize-none"
               />
             </div>
@@ -4979,15 +5099,15 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
             </div>
           </div>
 
-          {/* Barra de Acciones de Exportación */}
+          {/* Barra de Acciones de ExportaciÃ³n */}
           <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-sage dark:from-[#221d2d] dark:via-[#1c2027] dark:to-[#1a1724] border border-transparent dark:border-white/[0.08] text-white p-5 rounded-3xl shadow-lg space-y-3">
             <div className="flex items-center gap-3">
               <div className="bg-white/10 p-2.5 rounded-2xl">
                 <Printer size={22} className="text-sage/80" />
               </div>
               <div>
-                <h4 className="font-bold text-sm">¿Todo listo para el día del parto?</h4>
-                <p className="text-xs text-stone-300">Imprime 2 copias (una para el historial y otra para la matrona) o guárdalo como PDF en tu teléfono.</p>
+                <h4 className="font-bold text-sm">Â¿Todo listo para el dÃ­a del parto?</h4>
+                <p className="text-xs text-stone-300">Imprime 2 copias (una para el historial y otra para la matrona) o guÃ¡rdalo como PDF en tu telÃ©fono.</p>
               </div>
             </div>
 
