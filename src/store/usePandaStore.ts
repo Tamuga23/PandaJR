@@ -8,6 +8,7 @@ export interface UserProfile {
   location?: string;
   notes?: string;
   pregnancyId?: string;
+  inviteCode?: string;
 }
 
 interface PandaState {

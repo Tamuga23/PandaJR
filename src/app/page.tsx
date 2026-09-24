@@ -15,6 +15,7 @@ export interface UserProfile {
   location?: string;
   notes?: string;
   pregnancyId?: string;
+  inviteCode?: string;
 }
 
 function ProfileModal({ 
@@ -84,7 +85,7 @@ function ProfileModal({
                 </div>
               </div>
               <button 
-                onClick={() => confirmUnlink ? null : setConfirmUnlink(true)}
+                onClick={() => { if (confirmUnlink) { usePandaStore.getState().setProfile(null); onClose(); } else { setConfirmUnlink(true); setTimeout(() => setConfirmUnlink(false), 3000); } }}
                 className={`text-xs font-bold min-h-[44px] min-w-[44px] px-4 rounded-lg shadow-sm transition-colors ${confirmUnlink ? 'bg-terracotta/100 text-white border-transparent' : 'text-stone-500 bg-white dark:bg-[#2d273a] border border-stone-200 dark:border-white/[0.06]'}`}
               >
                 {confirmUnlink ? '¿Seguro?' : 'Desvincular'}
@@ -94,7 +95,7 @@ function ProfileModal({
               <div className="bg-stone-900 dark:bg-[#2d273a] text-white p-4 rounded-2xl flex items-center justify-between">
                 <div>
                   <p className="text-[10px] text-stone-400 font-bold uppercase tracking-wider mb-0.5">Código de Pareja</p>
-                  <p className="font-mono font-bold tracking-widest text-lg">PANDA-7284</p>
+                  <p className="font-mono font-bold tracking-widest text-lg">{form.inviteCode || "PANDA-----"}</p>
                 </div>
                 <button className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-xl transition-colors" aria-label="Copiar código">
                   <ClipboardList size={18} />
@@ -783,7 +784,7 @@ function OnboardingModal({ onComplete, onSkip }: { onComplete: (profile: UserPro
         }
       }
     } else if (step === 3) {
-      onComplete({ role: "mama", name, week, location: "", notes: "", pregnancyId: tempPregnancyId });
+      onComplete({ role: "mama", name, week, location: "", notes: "", pregnancyId: tempPregnancyId, inviteCode: generatedCode });
     }
   };
 

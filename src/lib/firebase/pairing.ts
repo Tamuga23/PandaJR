@@ -68,7 +68,6 @@ export async function joinPregnancyAsDad(userId: string, inviteCode: string) {
 
     return { success: true, pregnancyId, babyName: pregnancyDoc.data().babyName };
   } catch (error) {
-    console.error("Error joining pregnancy:", error);
     throw error;
   }
 }
