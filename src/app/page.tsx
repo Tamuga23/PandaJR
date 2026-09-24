@@ -340,11 +340,12 @@ function OnboardingModal({ onComplete, onSkip }: { onComplete: (profile: UserPro
             </div>
             <button 
               onClick={handleNext}
-              disabled={!name}
-              className="w-full bg-terracotta hover:bg-terracotta-hover text-white rounded-xl py-3.5 font-bold disabled:opacity-50 transition-all"
-            >
-              Generar mi código
-            </button>
+              disabled={!name || isLoading}
+                className="w-full bg-terracotta hover:bg-terracotta-hover text-white rounded-xl py-3.5 font-bold disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+              >
+                {isLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                {isLoading ? "Generando..." : "Generar mi código"}
+              </button>
           </div>
         )}
 
@@ -367,10 +368,11 @@ function OnboardingModal({ onComplete, onSkip }: { onComplete: (profile: UserPro
             <button 
                 onClick={handleNext}
                 disabled={code.length < 5 || isLoading}
-                className="w-full bg-sage hover:bg-sage-hover text-white rounded-xl py-3.5 font-bold disabled:opacity-50 transition-all"
-              >
-                {isLoading ? "Conectando..." : "Conectar"}
-              </button>
+                className="w-full bg-sage hover:bg-sage-hover text-white rounded-xl py-3.5 font-bold disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                >
+                  {isLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                  {isLoading ? "Conectando..." : "Conectar"}
+                </button>
           </div>
         )}
 
@@ -387,11 +389,22 @@ function OnboardingModal({ onComplete, onSkip }: { onComplete: (profile: UserPro
             </div>
             
             <button 
-              onClick={handleNext}
-              className="w-full bg-stone-900 hover:bg-stone-800 dark:bg-[#eae6e1] dark:hover:bg-white dark:text-stone-900 text-white rounded-xl py-3.5 font-bold transition-all"
-            >
-              Entrar al Diario
-            </button>
+                onClick={() => {
+                  const text = `¡Hola! Únete a nuestro diario de embarazo en PandaJR. Nuestro código de vinculación es: ${generatedCode}`;
+                  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                }}
+                className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl py-3.5 font-bold transition-all flex items-center justify-center gap-2 shadow-sm mb-3"
+              >
+                <Share2 size={20} />
+                Compartir por WhatsApp
+              </button>
+              
+              <button 
+                onClick={handleNext}
+                className="w-full bg-stone-900 hover:bg-stone-800 dark:bg-[#eae6e1] dark:hover:bg-white dark:text-stone-900 text-white rounded-xl py-3.5 font-bold transition-all"
+              >
+                Entrar al Diario
+              </button>
           </div>
         )}
       </div>
