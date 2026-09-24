@@ -2557,31 +2557,42 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
     }
   };
 
-  const shareStory = async () => {
+    const shareStory = async () => {
     if (!imageUrl) return;
+
+    const triggerDownload = () => {
+      const a = document.createElement('a');
+      a.href = imageUrl;
+      a.download = `pandajr-semana-${week}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+
+    if (!navigator.share || !navigator.canShare) {
+      triggerDownload();
+      return;
+    }
+
     try {
       const res = await fetch(imageUrl);
       const blob = await res.blob();
       const file = new File([blob], `pandajr-semana-${week}.png`, { type: 'image/png' });
-      
-      if (navigator.share) {
+
+      if (navigator.canShare({ files: [file] })) {
         await navigator.share({
           title: `¡Estamos en la semana ${week}!`,
           text: `Nuestro bebé es del tamaño de un ${fruit}. Sigue nuestro embarazo con PandaJR.`,
           files: [file]
         });
       } else {
-        const a = document.createElement('a');
-        a.href = imageUrl;
-        a.download = `pandajr-semana-${week}.png`;
-        a.click();
+        triggerDownload();
       }
-    } catch (e) {
+    } catch (e: any) {
       console.log("Error sharing:", e);
-      const a = document.createElement('a');
-      a.href = imageUrl;
-      a.download = `pandajr-semana-${week}.png`;
-      a.click();
+      if (e.name !== 'AbortError') {
+        triggerDownload();
+      }
     }
   };
 
@@ -2647,12 +2658,7 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
               <img src={imageUrl} alt="PandaJR Story" className="absolute inset-0 w-full h-full object-cover z-20" />
             )}
             
-            {isGenerating && (
-              <div className="absolute inset-0 z-30 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center">
-                <div className="w-8 h-8 border-4 border-[#547A66] border-t-[#d97757] rounded-full animate-spin"></div>
-                <p className="mt-4 font-bold text-sage animate-pulse">Creando magia...</p>
-              </div>
-            )}
+            
           </div>
 
           <div className="w-full flex flex-col gap-3">
