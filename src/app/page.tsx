@@ -1483,11 +1483,10 @@ function getWeekData(week: number) {
 }
 
 function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, profile: UserProfile, updateProfile: (u: Partial<UserProfile>) => void }) {
-  const week = profile.week || 14;
-  const setWeek = (updater: number | ((w: number) => number)) => {
-    const nextWeek = typeof updater === "function" ? updater(week) : updater;
-    updateProfile({ week: nextWeek });
-  };
+  const [week, setWeek] = useState(profile.week || 14);
+  useEffect(() => {
+    if (profile.week) setWeek(profile.week);
+  }, [profile.week]);
   const weekData = getWeekData(week);
 
   // Checklist state
