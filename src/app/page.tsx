@@ -3860,15 +3860,15 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
 
           <div>
             <p className="text-xs font-bold tracking-tight text-sage/30 mb-2">Añadir contexto a la sesión:</p>
-            <div className="flex flex-wrap gap-1.5">
-              {[
-                "�x��️ Después de comer",
-                "�x:�️ En reposo",
-                "�x}� Con música",
-                "�xR" Por la noche",
-                "â˜€ï¸ En la mañana",
-                "�xa� Tras caminar"
-              ].map(note => (
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  "🍽️ Después de comer",
+                  "🛋️ En reposo",
+                  "🎵 Con música",
+                  "🌙 Por la noche",
+                  "☀️ En la mañana",
+                  "🚶 Tras caminar"
+                ].map(note => (
                 <button
                   key={note}
                   type="button"
