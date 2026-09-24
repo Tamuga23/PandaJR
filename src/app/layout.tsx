@@ -19,7 +19,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: "#0d9488",
+  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#f8fafc" }, { media: "(prefers-color-scheme: dark)", color: "#0c0a10" }],
 };
 
 export const metadata: Metadata = {
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "PandaJR",
   },
   authors: [{ name: "PandaJR" }],
@@ -60,12 +60,12 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/icon.jpg" },
+      { url: "/logo.png" },
       { url: "/og-image.jpg" },
     ],
-    shortcut: "/icon.jpg",
+    shortcut: "/logo.png",
     apple: [
-      { url: "/apple-icon.jpg" },
+      { url: "/logo.png" },
       { url: "/og-image.jpg" },
     ],
   },
