@@ -1002,6 +1002,8 @@ export default function PandaJRApp() {
             setIsProfileModalOpen(false);
           }}
           onClose={() => setIsProfileModalOpen(false)}
+          isDark={isDark}
+          toggleTheme={toggleTheme}
         />
       )}
 
