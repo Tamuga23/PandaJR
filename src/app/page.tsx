@@ -387,7 +387,7 @@ function parseEventDate(ev: { rawDate?: string; date?: string; time?: string }):
   return null;
 }
 
-export function getCountdownText(eventDate: Date): { text: string; isClose: boolean; daysLeft: number } {
+function getCountdownText(eventDate: Date): { text: string; isClose: boolean; daysLeft: number } {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const target = new Date(eventDate);
@@ -3028,17 +3028,7 @@ function DiarioView({ profile, onClose }: { profile: UserProfile, onClose: () =>
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-stone-50 dark:bg-black overflow-y-auto animate-in slide-in-from-bottom-4">
-      <div className="sticky top-0 z-10 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-stone-200 dark:border-white/10 px-4 py-4 flex items-center gap-3">
-        <button onClick={onClose} className="w-10 h-10 rounded-full bg-stone-100 dark:bg-white/5 flex items-center justify-center text-stone-600 dark:text-stone-300">
-          <ArrowLeft size={20} />
-        </button>
-        <div>
-          <h2 className="font-bold text-lg text-stone-800 dark:text-white leading-tight">Diario de a Dos 📖</h2>
-          <p className="text-xs text-stone-500 dark:text-[#a6a1b2]">Memorias sincronizadas para el bebé</p>
-        </div>
-      </div>
-
+    <div className="w-full">
       <div className="p-4 max-w-lg mx-auto">
         <div className="bg-white dark:bg-[#181a20] rounded-2xl p-4 shadow-sm border border-stone-200 dark:border-white/[0.05] mb-6">
           <textarea 
@@ -3137,17 +3127,7 @@ function MaletaView({ profile, onClose }: { profile: UserProfile, onClose: () =>
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-stone-50 dark:bg-black overflow-y-auto animate-in slide-in-from-bottom-4">
-      <div className="sticky top-0 z-10 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-stone-200 dark:border-white/10 px-4 py-4 flex items-center gap-3">
-        <button onClick={onClose} className="w-10 h-10 rounded-full bg-stone-100 dark:bg-white/5 flex items-center justify-center text-stone-600 dark:text-stone-300">
-          <ArrowLeft size={20} />
-        </button>
-        <div>
-          <h2 className="font-bold text-lg text-stone-800 dark:text-white leading-tight">Maleta del Hospital 🧳</h2>
-          <p className="text-xs text-stone-500 dark:text-[#a6a1b2]">Lista sincronizada (Go Bag)</p>
-        </div>
-      </div>
-
+    <div className="w-full">
       <div className="p-4 max-w-lg mx-auto space-y-6 pb-20">
         
         {Object.entries(items).map(([category, list]) => (
@@ -3178,66 +3158,94 @@ function MaletaView({ profile, onClose }: { profile: UserProfile, onClose: () =>
   );
 }
 
-function HerramientasView({ showToast, profile }: { showToast: any, profile?: UserProfile }) {
 
-  const [activeTool, setActiveTool] = useState<any>("sos");
+function HerramientasView({ showToast, profile }: { showToast: any, profile?: UserProfile }) {
+  const [activeTool, setActiveTool] = useState<any>(null);
 
   const tools = [
-      { id: "sos", label: "SOS Mamá", icon: <HeartPulse size={16} /> },
-      { id: "patadas", label: "Patadas", icon: <Baby size={16} /> },
-      { id: "contracciones", label: "Contracc.", icon: <Activity size={16} /> },
-      { id: "nombres", label: "Nombres", icon: <Users size={16} /> },
-      { id: "parto", label: "Parto", icon: <ClipboardList size={16} /> },
-      { id: "diario", label: "Diario", icon: <FileText size={16} /> },
-      { id: "maleta", label: "Maleta", icon: <Package size={16} /> }
-    ];
+    { id: "sos", label: "SOS Mamá", icon: <HeartPulse size={24} />, desc: "Síntomas de alarma", color: "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400", border: "border-rose-100 dark:border-rose-500/20" },
+    { id: "contracciones", label: "Contracciones", icon: <Activity size={24} />, desc: "Contador 5-1-1", color: "bg-terracotta/10 text-terracotta", border: "border-terracotta/20" },
+    { id: "patadas", label: "Patadas", icon: <Baby size={24} />, desc: "Monitor Cardiff", color: "bg-sage/10 text-sage", border: "border-sage/20" },
+    { id: "diario", label: "Diario", icon: <FileText size={24} />, desc: "Memorias del bebé", color: "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400", border: "border-indigo-100 dark:border-indigo-500/20" },
+    { id: "maleta", label: "Maleta", icon: <Package size={24} />, desc: "Hospital Go-Bag", color: "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400", border: "border-amber-100 dark:border-amber-500/20" },
+    { id: "nombres", label: "Nombres", icon: <Users size={24} />, desc: "Votador en pareja", color: "bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400", border: "border-sky-100 dark:border-sky-500/20" },
+    { id: "parto", label: "Plan de Parto", icon: <ClipboardList size={24} />, desc: "PDF Clínico", color: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400", border: "border-emerald-100 dark:border-emerald-500/20" },
+  ];
 
-  return (
-    <div className="flex flex-col h-full w-full animate-in fade-in slide-in-from-bottom-4 duration-300">
-      {/* Sub-navigation sin desplazamiento (100% visible) */}
-      <div className="bg-white dark:bg-[#181520] px-3 py-2.5 shadow-xs border-b border-stone-200/80 dark:border-white/[0.08] sticky top-0 z-10 w-full">
-        <div role="tablist" aria-label="Herramientas de embarazo" className="flex gap-1 bg-stone-100/90 dark:bg-[#221d2d] p-1 rounded-2xl w-full overflow-x-auto snap-x">
-          {tools.map((tool) => {
-            const isActive = activeTool === tool.id;
-            return (
-              <button
-                key={tool.id}
-                type="button"
-                role="tab"
-                aria-selected={isActive}
-                onClick={() => setActiveTool(tool.id as any)}
-                className={`flex flex-col items-center justify-center py-2 px-0.5 rounded-xl transition-all ${
-                  isActive 
-                    ? "bg-white dark:bg-[#2d273a] text-sage dark:text-sage/80 shadow-xs font-bold scale-[1.02]" 
-                    : "text-stone-500 dark:text-[#a6a1b2] hover:text-stone-800 dark:hover:text-[#eae6e1] font-medium"
-                }`}
-              >
-                <div className={`p-1 rounded-lg ${isActive ? "text-terracotta dark:text-sage" : "text-stone-400 dark:text-[#a6a1b2]"}`}>
-                  {tool.icon}
-                </div>
-                <span className="text-xs leading-tight text-center tracking-tight truncate w-full">
-                  {tool.label}
-                </span>
-              </button>
-            );
-          })}
+  if (activeTool) {
+    const tool = tools.find(t => t.id === activeTool);
+    return (
+      <div className="flex flex-col h-full w-full bg-stone-50 dark:bg-[#120f18] animate-in fade-in zoom-in-95 duration-200">
+        <div className="sticky top-0 z-20 bg-white/80 dark:bg-[#181520]/80 backdrop-blur-md px-4 py-3 flex items-center gap-3 border-b border-stone-200 dark:border-white/5">
+          <button onClick={() => setActiveTool(null)} className="w-10 h-10 rounded-full bg-stone-100 dark:bg-white/5 flex items-center justify-center text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-white/10 transition-colors">
+            <ArrowLeft size={20} />
+          </button>
+          <div>
+            <h2 className="font-bold text-lg text-stone-800 dark:text-white leading-tight">{tool?.label}</h2>
+            <p className="text-[10px] uppercase tracking-wider text-stone-500 dark:text-[#a6a1b2] font-bold">{tool?.desc}</p>
+          </div>
         </div>
-      </div>
-
-      <div className="p-5 flex-1 overflow-y-auto w-full">
-        
+        <div className="flex-1 overflow-y-auto">
           {activeTool === 'diario' && profile && <DiarioView profile={profile} onClose={() => setActiveTool(null)} />}
           {activeTool === 'maleta' && profile && <MaletaView profile={profile} onClose={() => setActiveTool(null)} />}
-          <div className={activeTool === "sos" ? "block w-full h-full" : "hidden"}><SOSSintomas /></div>
+          {activeTool === 'sos' && <SOSSintomas />}
+          {activeTool === 'patadas' && <ContadorPatadas showToast={showToast} />}
+          {activeTool === 'contracciones' && <ContadorContracciones showToast={showToast} />}
+          {activeTool === 'nombres' && <VotadorNombres showToast={showToast} />}
+          {activeTool === 'parto' && <PlanParto profile={profile} showToast={showToast} />}
+        </div>
+      </div>
+    );
+  }
 
-        <div className={activeTool === "patadas" ? "block w-full" : "hidden"}><ContadorPatadas showToast={showToast} /></div>
-        <div className={activeTool === "contracciones" ? "block w-full" : "hidden"}><ContadorContracciones showToast={showToast} /></div>
-        <div className={activeTool === "nombres" ? "block w-full" : "hidden"}><VotadorNombres showToast={showToast} /></div>
-        <div className={activeTool === "parto" ? "block w-full h-full" : "hidden"}><PlanParto profile={profile} showToast={showToast} /></div>
+  return (
+    <div className="flex flex-col h-full w-full bg-stone-50 dark:bg-[#120f18] p-5 overflow-y-auto animate-in fade-in slide-in-from-bottom-4 duration-300">
+      <div className="mb-6 mt-4">
+        <h1 className="text-2xl font-black text-stone-800 dark:text-white tracking-tight leading-none mb-1">
+          Herramientas
+        </h1>
+        <p className="text-sm text-stone-500 dark:text-[#a6a1b2]">Todo lo que necesitas a un toque de distancia.</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 pb-20">
+        {/* SOS takes full width */}
+        <button 
+          onClick={() => setActiveTool('sos')}
+          className="col-span-2 bg-rose-500 text-white rounded-2xl p-4 flex items-center justify-between shadow-sm border border-rose-600/50 hover:bg-rose-600 transition-colors group"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <HeartPulse size={28} />
+            </div>
+            <div className="text-left">
+              <h3 className="font-bold text-lg leading-tight">SOS Síntomas</h3>
+              <p className="text-rose-100 text-xs">Cuándo ir a urgencias</p>
+            </div>
+          </div>
+          <ChevronRight size={24} className="opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+        </button>
+
+        {/* Other tools */}
+        {tools.filter(t => t.id !== 'sos').map(tool => (
+          <button 
+            key={tool.id}
+            onClick={() => setActiveTool(tool.id)}
+            className={`bg-white dark:bg-[#181520] rounded-2xl p-4 flex flex-col gap-3 shadow-sm border border-stone-200/60 dark:border-white/[0.04] hover:border-stone-300 dark:hover:border-white/10 hover:shadow-md transition-all text-left group`}
+          >
+            <div className={`w-12 h-12 rounded-2xl ${tool.color} border ${tool.border} flex items-center justify-center group-hover:scale-105 transition-transform`}>
+              {tool.icon}
+            </div>
+            <div>
+              <h3 className="font-bold text-stone-800 dark:text-white text-sm">{tool.label}</h3>
+              <p className="text-[11px] text-stone-500 dark:text-[#a6a1b2] font-medium leading-tight mt-0.5">{tool.desc}</p>
+            </div>
+          </button>
+        ))}
       </div>
     </div>
   );
 }
+
 
 interface KickRecord {
   id: number;
