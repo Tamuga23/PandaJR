@@ -62,7 +62,7 @@ function ProfileModal({
 
           {/* Selector de Rol */}
           <div>
-            <label className="text-xs font-bold text-stone-600 dark:text-[#9ea3ae] uppercase tracking-wider block mb-1">
+            <label className="text-xs font-bold text-stone-600 dark:text-[#9ea3ae] tracking-tight block mb-1">
               Rol en este dispositivo
             </label>
             <div className="grid grid-cols-2 gap-2 bg-stone-100 dark:bg-[#21242c] p-1 rounded-xl">
@@ -89,7 +89,7 @@ function ProfileModal({
 
           {/* Nombre / Apodo */}
           <div>
-            <label htmlFor="profile-name" className="text-xs font-bold text-stone-600 dark:text-[#9ea3ae] uppercase tracking-wider block mb-1">
+            <label htmlFor="profile-name" className="text-xs font-bold text-stone-600 dark:text-[#9ea3ae] tracking-tight block mb-1">
               Nombre o Apodo (Opcional)
             </label>
             <input
@@ -104,7 +104,7 @@ function ProfileModal({
 
           {/* Semana de Gestación */}
           <div>
-            <label htmlFor="profile-week" className="text-xs font-bold text-stone-600 dark:text-[#9ea3ae] uppercase tracking-wider block mb-1">
+            <label htmlFor="profile-week" className="text-xs font-bold text-stone-600 dark:text-[#9ea3ae] tracking-tight block mb-1">
               Semana de Gestación Actual
             </label>
             <input
@@ -120,7 +120,7 @@ function ProfileModal({
 
           {/* Ubicación / Ciudad (Opcional) */}
           <div>
-            <label htmlFor="profile-location" className="text-xs font-bold text-stone-600 dark:text-[#9ea3ae] uppercase tracking-wider block mb-1">
+            <label htmlFor="profile-location" className="text-xs font-bold text-stone-600 dark:text-[#9ea3ae] tracking-tight block mb-1">
               Ciudad o País (Opcional)
             </label>
             <input
@@ -135,7 +135,7 @@ function ProfileModal({
 
           {/* Notas personales o médicas */}
           <div>
-            <label htmlFor="profile-notes" className="text-xs font-bold text-stone-600 dark:text-[#9ea3ae] uppercase tracking-wider block mb-1">
+            <label htmlFor="profile-notes" className="text-xs font-bold text-stone-600 dark:text-[#9ea3ae] tracking-tight block mb-1">
               Notas de rutina o preferencias
             </label>
             <textarea
@@ -560,7 +560,7 @@ function AppointmentPrepModal({
       aria-labelledby="prep-modal-title"
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in"
     >
-      <div className="bg-white dark:bg-slate-900 w-full max-h-[92vh] sm:max-w-md sm:rounded-3xl rounded-t-3xl overflow-hidden shadow-2xl flex flex-col animate-in slide-in-from-bottom-6 border border-gray-100 dark:border-slate-800">
+      <div className="bg-white dark:bg-[#181a20] w-full max-h-[92vh] sm:max-w-md sm:rounded-3xl rounded-t-3xl overflow-hidden shadow-2xl flex flex-col animate-in slide-in-from-bottom-6 border border-stone-100 dark:border-white/[0.08]">
         {/* Header con gradiente */}
         <div className="bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-600 p-5 text-white shrink-0 relative">
           <button 
@@ -572,11 +572,11 @@ function AppointmentPrepModal({
           </button>
           
           <div className="flex items-center gap-2 mb-2">
-            <span className="bg-white/20 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full tracking-wide">
+            <span className="bg-white/20 text-white text-xs font-bold px-2.5 py-0.5 rounded-full tracking-wide">
               {prep.badge}
             </span>
             {countdown && (
-              <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${countdown.isClose ? "bg-amber-400 text-amber-950 font-black shadow-xs" : "bg-teal-800/80 text-teal-100"}`}>
+              <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${countdown.isClose ? "bg-amber-400 text-amber-950 font-black shadow-xs" : "bg-teal-800/80 text-teal-100"}`}>
                 {countdown.text}
               </span>
             )}
@@ -608,7 +608,7 @@ function AppointmentPrepModal({
               <h4 className="font-bold text-stone-800 dark:text-[#f3f1ec] text-sm flex items-center gap-2">
                 <ShoppingBag size={17} className="text-teal-600 dark:text-teal-400" /> ¿Qué debes llevar?
               </h4>
-              <span className="text-[11px] font-semibold text-stone-500 dark:text-[#9ea3ae]">
+              <span className="text-xs font-semibold text-stone-500 dark:text-[#9ea3ae]">
                 {Object.values(checkedItems).filter(Boolean).length} de {prep.whatToBring.length} listos
               </span>
             </div>
@@ -644,7 +644,7 @@ function AppointmentPrepModal({
               <h4 className="font-bold text-stone-800 dark:text-[#f3f1ec] text-sm flex items-center gap-2">
                 <ClipboardList size={17} className="text-teal-600 dark:text-teal-400" /> Preguntas clave para el doctor
               </h4>
-              <span className="text-[11px] font-semibold text-stone-500 dark:text-[#9ea3ae]">
+              <span className="text-xs font-semibold text-stone-500 dark:text-[#9ea3ae]">
                 {Object.values(checkedQuestions).filter(Boolean).length} de {prep.whatToAsk.length} hechas
               </span>
             </div>
@@ -679,7 +679,7 @@ function AppointmentPrepModal({
             <p className="text-xs font-bold text-stone-700 dark:text-[#f3f1ec] flex items-center gap-1.5">
               <Bell size={15} className="text-teal-600 dark:text-teal-400" /> Sincronizar Alarmas de Recordatorio
             </p>
-            <p className="text-[11px] text-stone-500 dark:text-[#9ea3ae] leading-snug">
+            <p className="text-xs text-stone-500 dark:text-[#9ea3ae] leading-snug">
               Añade esta cita a tu calendario del teléfono con 2 alarmas automáticas (24h y 2h antes) y todas estas preguntas guardadas en las notas.
             </p>
             <div className="grid grid-cols-2 gap-2 pt-1">
@@ -1016,11 +1016,11 @@ export default function PandaJRApp() {
 
       {/* Floating Toast Notification with Undo */}
       {toast && (
-        <div className="fixed bottom-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.5rem))] left-4 right-4 max-w-[calc(28rem-2rem)] mx-auto bg-gray-900/95 text-white px-4 py-3 rounded-2xl shadow-2xl z-50 flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-3 duration-200 backdrop-blur-sm border border-gray-800">
+        <div className="fixed bottom-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.5rem))] left-4 right-4 max-w-[calc(28rem-2rem)] mx-auto bg-stone-900/95 text-white px-4 py-3 rounded-2xl shadow-2xl z-50 flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-3 duration-200 backdrop-blur-sm border border-gray-800">
           <span className="text-sm font-medium">{toast.message}</span>
           <button 
             onClick={() => { toast.onUndo(); setToast(null); }}
-            className="text-teal-400 font-bold text-xs uppercase tracking-wider hover:text-teal-300 transition-colors px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 shrink-0"
+            className="text-teal-400 font-bold text-xs tracking-tight hover:text-teal-300 transition-colors px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 shrink-0"
           >
             Deshacer
           </button>
@@ -1281,7 +1281,7 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
             <ChevronLeft size={24} />
           </button>
           <div className="text-center">
-            <p className="text-teal-100 dark:text-teal-300/80 text-xs font-semibold uppercase tracking-wider mb-1">Semana de Gestación</p>
+            <p className="text-teal-100 dark:text-teal-300/80 text-xs font-semibold tracking-tight mb-1">Semana de Gestación</p>
             <h2 className="text-3xl font-black">{week}</h2>
           </div>
           <button aria-label="Semana siguiente"
@@ -1598,7 +1598,7 @@ function AgendaView({
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 relative h-full flex flex-col">
       {/* Header destacado */}
       <div className="bg-teal-600 dark:bg-[#132420] dark:border-b dark:border-white/[0.08] px-6 py-7 text-white dark:text-[#f3f1ec] rounded-b-3xl shadow-sm shrink-0 transition-colors">
-        <p className="text-teal-100 dark:text-teal-300/80 text-xs font-semibold uppercase tracking-wider mb-1">Etapa actual</p>
+        <p className="text-teal-100 dark:text-teal-300/80 text-xs font-semibold tracking-tight mb-1">Etapa actual</p>
         <h2 className="text-2xl font-bold tracking-tight">Semana {profile.week} <span className="text-base font-medium text-teal-100/90 dark:text-[#9ea3ae] ml-1">({profile.week <= 13 ? "Primer trimestre" : profile.week <= 27 ? "Segundo trimestre" : "Tercer trimestre"})</span></h2>
         <div className="mt-3.5 bg-white/20 dark:bg-white/10 rounded-full h-1.5 w-full overflow-hidden">
           <div className="bg-white dark:bg-teal-400 h-full transition-all duration-500 rounded-full" style={{ width: `${Math.min(100, Math.round((profile.week / 40) * 100))}%` }}></div>
@@ -1622,7 +1622,7 @@ function AgendaView({
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-900 dark:text-amber-200 bg-amber-200/80 dark:bg-amber-500/20 px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-bold tracking-tight text-amber-900 dark:text-amber-200 bg-amber-200/80 dark:bg-amber-500/20 px-2 py-0.5 rounded-full">
                       Recordatorio de Cita
                     </span>
                     <span className="text-xs font-bold text-amber-950 dark:text-amber-300">
@@ -1665,13 +1665,13 @@ function AgendaView({
                   <span className="text-xs font-bold text-stone-800 dark:text-[#f3f1ec] block">
                     Sugerencias del Copiloto IA ({(profile.role === "mama" ? suggestions.mama : suggestions.papa).length})
                   </span>
-                  <span className="text-[11px] text-stone-500 dark:text-[#9ea3ae] block">
+                  <span className="text-xs text-stone-500 dark:text-[#9ea3ae] block">
                     {isSuggestionsOpen ? "Toca para ocultar" : "Toca para ver recomendaciones para ti"}
                   </span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-teal-800 dark:text-teal-300 bg-teal-100 dark:bg-[#132420] px-2 py-0.5 rounded-full tracking-wider uppercase border border-transparent dark:border-teal-500/20">
+                <span className="text-xs font-bold text-teal-800 dark:text-teal-300 bg-teal-100 dark:bg-[#132420] px-2 py-0.5 rounded-full tracking-wider uppercase border border-transparent dark:border-teal-500/20">
                   {profile.role === "mama" ? "Mamá" : "Papá"}
                 </span>
                 <ChevronDown size={16} className={`text-stone-400 dark:text-[#9ea3ae] transition-transform duration-200 ${isSuggestionsOpen ? "rotate-180" : ""}`} />
@@ -1707,7 +1707,7 @@ function AgendaView({
         {/* Citas */}
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-gray-800 dark:text-[#f3f1ec] flex items-center gap-2">
+            <h3 className="text-lg font-bold text-stone-800 dark:text-[#f3f1ec] flex items-center gap-2">
               <Calendar className="text-teal-500 dark:text-teal-400" size={20}/> Agenda Médica
             </h3>
             <div className="flex items-center gap-1.5">
@@ -1736,13 +1736,13 @@ function AgendaView({
           
           <div className="space-y-3">
             {events.length === 0 && (
-              <div className="bg-gray-50 dark:bg-[#181a20]/60 rounded-2xl p-6 text-center border border-dashed border-gray-200 dark:border-white/[0.08]">
-                <Calendar className="mx-auto text-gray-300 dark:text-[#9ea3ae]/60 mb-2" size={32} />
-                <p className="text-gray-500 dark:text-[#9ea3ae] text-sm font-medium">No hay citas agendadas</p>
+              <div className="bg-stone-50 dark:bg-[#181a20]/60 rounded-2xl p-6 text-center border border-dashed border-stone-200 dark:border-white/[0.08]">
+                <Calendar className="mx-auto text-stone-300 dark:text-[#9ea3ae]/60 mb-2" size={32} />
+                <p className="text-stone-500 dark:text-[#9ea3ae] text-sm font-medium">No hay citas agendadas</p>
               </div>
             )}
             {events.map(event => (
-              <div key={event.id} className="bg-white dark:bg-[#181a20] rounded-2xl p-4 shadow-xs border border-gray-200/80 dark:border-white/[0.08] flex items-start gap-4 relative group transition-colors">
+              <div key={event.id} className="bg-white dark:bg-[#181a20] rounded-2xl p-4 shadow-xs border border-stone-200/80 dark:border-white/[0.08] flex items-start gap-4 relative group transition-colors">
                 <div className="flex-1 flex items-start gap-4">
                   <button 
                     type="button"
@@ -1760,11 +1760,11 @@ function AgendaView({
                       className="text-left group/title focus:outline-none focus:ring-2 focus:ring-teal-500 rounded block w-full"
                       aria-label={`Editar cita: ${event.title}, el ${event.date}`}
                     >
-                      <h4 className="font-bold text-gray-800 dark:text-[#f3f1ec] text-base leading-snug group-hover/title:text-teal-700 dark:group-hover/title:text-teal-300 transition-colors">{event.title}</h4>
-                      <div className="flex items-center gap-3 mt-1 text-sm text-gray-500 dark:text-[#9ea3ae]">
+                      <h4 className="font-bold text-stone-800 dark:text-[#f3f1ec] text-base leading-snug group-hover/title:text-teal-700 dark:group-hover/title:text-teal-300 transition-colors">{event.title}</h4>
+                      <div className="flex items-center gap-3 mt-1 text-sm text-stone-500 dark:text-[#9ea3ae]">
                         <span className="flex items-center gap-1"><Clock size={14} /> {event.time}</span>
                       </div>
-                      {event.doctor && <p className="text-xs text-gray-500 dark:text-[#9ea3ae] mt-0.5 line-clamp-1">{event.doctor}</p>}
+                      {event.doctor && <p className="text-xs text-stone-500 dark:text-[#9ea3ae] mt-0.5 line-clamp-1">{event.doctor}</p>}
                     </button>
                     
                     {/* Botón de Preparación Rápida */}
@@ -1784,7 +1784,7 @@ function AgendaView({
                   type="button"
                   onClick={() => deleteEvent(event.id)} 
                   aria-label={`Eliminar cita: ${event.title}`} 
-                  className="min-w-[40px] min-h-[40px] flex items-center justify-center text-gray-400 dark:text-[#9ea3ae] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-gray-100 dark:hover:bg-[#21242c] transition-colors p-2 z-10 rounded-xl"
+                  className="min-w-[40px] min-h-[40px] flex items-center justify-center text-stone-400 dark:text-[#9ea3ae] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-stone-100 dark:hover:bg-[#21242c] transition-colors p-2 z-10 rounded-xl"
                 >
                   <X size={18}/>
                 </button>
@@ -1805,14 +1805,14 @@ function AgendaView({
           aria-modal="true"
           aria-labelledby="agenda-modal-title"
           onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
-          className="absolute inset-0 bg-gray-900/40 dark:bg-black/70 z-50 flex items-end sm:items-center justify-center animate-in fade-in duration-200"
+          className="absolute inset-0 bg-stone-900/40 dark:bg-black/70 z-50 flex items-end sm:items-center justify-center animate-in fade-in duration-200"
         >
-          <div className="bg-white dark:bg-[#181a20] w-full max-h-[90%] overflow-y-auto sm:w-[90%] sm:rounded-3xl rounded-t-3xl p-6 pb-12 animate-in slide-in-from-bottom-8 border border-gray-100 dark:border-white/[0.08] shadow-2xl">
+          <div className="bg-white dark:bg-[#181a20] w-full max-h-[90%] overflow-y-auto sm:w-[90%] sm:rounded-3xl rounded-t-3xl p-6 pb-12 animate-in slide-in-from-bottom-8 border border-stone-100 dark:border-white/[0.08] shadow-2xl">
             <div className="flex justify-between items-center mb-6">
-              <h3 id="agenda-modal-title" className="text-xl font-bold text-gray-800 dark:text-[#f3f1ec]">{editingEvent ? "Editar Cita" : "Nueva Cita Médica"}</h3>
+              <h3 id="agenda-modal-title" className="text-xl font-bold text-stone-800 dark:text-[#f3f1ec]">{editingEvent ? "Editar Cita" : "Nueva Cita Médica"}</h3>
               <button 
                 onClick={closeModal} 
-                className="bg-gray-100 dark:bg-[#21242c] p-2 rounded-full text-gray-500 dark:text-[#9ea3ae] hover:bg-gray-200 dark:hover:bg-[#2a2d36] transition-colors"
+                className="bg-stone-100 dark:bg-[#21242c] p-2 rounded-full text-stone-500 dark:text-[#9ea3ae] hover:bg-stone-200 dark:hover:bg-[#2a2d36] transition-colors"
                 aria-label="Cerrar modal de cita"
               >
                 <X size={20} />
@@ -1821,10 +1821,10 @@ function AgendaView({
             
             <div className="space-y-4">
               <div>
-                <label htmlFor="event-title" className="text-xs font-bold text-gray-700 dark:text-[#f3f1ec] uppercase tracking-wider mb-1 flex items-center justify-between">
+                <label htmlFor="event-title" className="text-xs font-bold text-stone-700 dark:text-[#f3f1ec] tracking-tight mb-1 flex items-center justify-between">
                   <span>Título / Motivo <span className="text-rose-500">*</span></span>
                   {touched.title && errors.title && (
-                    <span className="text-rose-500 text-[11px] font-medium lowercase tracking-normal flex items-center gap-1 animate-in fade-in" role="alert">
+                    <span className="text-rose-500 text-xs font-medium lowercase tracking-normal flex items-center gap-1 animate-in fade-in" role="alert">
                       <AlertCircle size={12} /> {errors.title}
                     </span>
                   )}
@@ -1847,10 +1847,10 @@ function AgendaView({
                     }
                   }}
                   aria-invalid={touched.title && !!errors.title}
-                  className={`w-full bg-gray-50 dark:bg-[#21242c] border rounded-xl px-4 py-3 text-gray-800 dark:text-[#f3f1ec] transition-colors focus:outline-none focus:ring-2 placeholder-gray-400 dark:placeholder-[#9ea3ae]/60 ${
+                  className={`w-full bg-stone-50 dark:bg-[#21242c] border rounded-xl px-4 py-3 text-stone-800 dark:text-[#f3f1ec] transition-colors focus:outline-none focus:ring-2 placeholder-gray-400 dark:placeholder-[#9ea3ae]/60 ${
                     touched.title && errors.title
                       ? "border-rose-400 bg-rose-50/20 dark:bg-rose-950/20 focus:ring-rose-400"
-                      : "border-gray-200 dark:border-white/10 focus:ring-teal-500"
+                      : "border-stone-200 dark:border-white/10 focus:ring-teal-500"
                   }`}
                   placeholder="Ej. Ecografía Morfológica o Control Prenatal" 
                 />
@@ -1858,10 +1858,10 @@ function AgendaView({
               
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <label htmlFor="event-date" className="text-xs font-bold text-gray-700 dark:text-[#f3f1ec] uppercase tracking-wider mb-1 flex items-center justify-between">
+                  <label htmlFor="event-date" className="text-xs font-bold text-stone-700 dark:text-[#f3f1ec] tracking-tight mb-1 flex items-center justify-between">
                     <span>Fecha <span className="text-rose-500">*</span></span>
                     {touched.date && errors.date && (
-                      <span className="text-rose-500 text-[11px] font-medium lowercase tracking-normal flex items-center gap-1 animate-in fade-in" role="alert">
+                      <span className="text-rose-500 text-xs font-medium lowercase tracking-normal flex items-center gap-1 animate-in fade-in" role="alert">
                         <AlertCircle size={12} /> Requerida
                       </span>
                     )}
@@ -1884,33 +1884,33 @@ function AgendaView({
                       }
                     }}
                     aria-invalid={touched.date && !!errors.date}
-                    className={`w-full bg-gray-50 dark:bg-[#21242c] border rounded-xl px-4 py-3 text-gray-800 dark:text-[#f3f1ec] transition-colors focus:outline-none focus:ring-2 ${
+                    className={`w-full bg-stone-50 dark:bg-[#21242c] border rounded-xl px-4 py-3 text-stone-800 dark:text-[#f3f1ec] transition-colors focus:outline-none focus:ring-2 ${
                       touched.date && errors.date
                         ? "border-rose-400 bg-rose-50/20 dark:bg-rose-950/20 focus:ring-rose-400"
-                        : "border-gray-200 dark:border-white/10 focus:ring-teal-500"
+                        : "border-stone-200 dark:border-white/10 focus:ring-teal-500"
                     }`} 
                   />
                 </div>
                 <div className="flex-1">
-                  <label htmlFor="event-time" className="text-xs font-bold text-gray-700 dark:text-[#f3f1ec] uppercase tracking-wider mb-1 block">Hora</label>
+                  <label htmlFor="event-time" className="text-xs font-bold text-stone-700 dark:text-[#f3f1ec] tracking-tight mb-1 block">Hora</label>
                   <input 
                     id="event-time"
                     type="time" 
                     value={newEvent.time} 
                     onChange={e => setNewEvent({...newEvent, time: e.target.value})}
-                    className="w-full bg-gray-50 dark:bg-[#21242c] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-800 dark:text-[#f3f1ec] focus:outline-none focus:ring-2 focus:ring-teal-500" 
+                    className="w-full bg-stone-50 dark:bg-[#21242c] border border-stone-200 dark:border-white/10 rounded-xl px-4 py-3 text-stone-800 dark:text-[#f3f1ec] focus:outline-none focus:ring-2 focus:ring-teal-500" 
                   />
                 </div>
               </div>
               
               <div>
-                <label htmlFor="event-doctor" className="text-xs font-bold text-gray-700 dark:text-[#f3f1ec] uppercase tracking-wider mb-1 block">Doctor o Clínica</label>
+                <label htmlFor="event-doctor" className="text-xs font-bold text-stone-700 dark:text-[#f3f1ec] tracking-tight mb-1 block">Doctor o Clínica</label>
                 <input 
                   id="event-doctor"
                   type="text" 
                   value={newEvent.doctor} 
                   onChange={e => setNewEvent({...newEvent, doctor: e.target.value})}
-                  className="w-full bg-gray-50 dark:bg-[#21242c] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-800 dark:text-[#f3f1ec] focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder-gray-400 dark:placeholder-[#9ea3ae]/60"
+                  className="w-full bg-stone-50 dark:bg-[#21242c] border border-stone-200 dark:border-white/10 rounded-xl px-4 py-3 text-stone-800 dark:text-[#f3f1ec] focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder-gray-400 dark:placeholder-[#9ea3ae]/60"
                   placeholder="Dra. Ramírez / Hospital Los Olivos" 
                 />
               </div>
@@ -2233,9 +2233,9 @@ function PandaIAView({
         const parts = itemContent.split(/(\*\*.*?\*\*)/g);
         return (
           <div key={idx} className="flex items-start gap-2 my-1 pl-1">
-            <span className="text-[11px] font-bold text-teal-800 dark:text-teal-200 bg-teal-100/90 dark:bg-[#132420] px-1.5 py-0.5 rounded-md shrink-0 mt-0.5">{num}</span>
-            <span className="flex-1 leading-relaxed text-gray-700 dark:text-[#f3f1ec]/90">
-              {parts.map((p, pIdx) => p.startsWith("**") && p.endsWith("**") ? <strong key={pIdx} className="font-bold text-gray-900 dark:text-[#f3f1ec]">{p.slice(2, -2)}</strong> : p)}
+            <span className="text-xs font-bold text-teal-800 dark:text-teal-200 bg-teal-100/90 dark:bg-[#132420] px-1.5 py-0.5 rounded-md shrink-0 mt-0.5">{num}</span>
+            <span className="flex-1 leading-relaxed text-stone-700 dark:text-[#f3f1ec]/90">
+              {parts.map((p, pIdx) => p.startsWith("**") && p.endsWith("**") ? <strong key={pIdx} className="font-bold text-stone-900 dark:text-[#f3f1ec]">{p.slice(2, -2)}</strong> : p)}
             </span>
           </div>
         );
@@ -2247,7 +2247,7 @@ function PandaIAView({
       const parts = cleanLine.split(/(\*\*.*?\*\*)/g);
       const content = parts.map((part, pIdx) => {
         if (part.startsWith("**") && part.endsWith("**")) {
-          return <strong key={pIdx} className="font-bold text-gray-900 dark:text-[#f3f1ec]">{part.slice(2, -2)}</strong>;
+          return <strong key={pIdx} className="font-bold text-stone-900 dark:text-[#f3f1ec]">{part.slice(2, -2)}</strong>;
         }
         return part;
       });
@@ -2256,7 +2256,7 @@ function PandaIAView({
         return (
           <div key={idx} className="flex items-start gap-2 my-1 pl-1">
             <span className="text-teal-600 dark:text-teal-400 font-bold shrink-0 mt-0.5">•</span>
-            <span className="flex-1 leading-relaxed text-gray-700 dark:text-[#f3f1ec]/90">{content}</span>
+            <span className="flex-1 leading-relaxed text-stone-700 dark:text-[#f3f1ec]/90">{content}</span>
           </div>
         );
       }
@@ -2277,16 +2277,16 @@ function PandaIAView({
     <div className="flex flex-col flex-1 h-full w-full animate-in fade-in duration-300 bg-[#faf9f5] dark:bg-[#111317] relative overflow-hidden">
       
       {/* HEADER CON ESTADO Y ACCIONES */}
-      <div className="px-4 py-2.5 border-b border-gray-200/80 dark:border-white/[0.08] bg-white/95 dark:bg-[#111317]/95 backdrop-blur-sm shadow-xs flex items-center justify-between z-10 shrink-0">
+      <div className="px-4 py-2.5 border-b border-stone-200/80 dark:border-white/[0.08] bg-white/95 dark:bg-[#111317]/95 backdrop-blur-sm shadow-xs flex items-center justify-between z-10 shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="bg-teal-100 dark:bg-[#132420] text-teal-700 dark:text-teal-300 p-2 rounded-2xl relative shadow-xs">
             <Bot size={20} />
             <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-[#111317] rounded-full animate-pulse"></span>
           </div>
           <div>
-            <h2 className="font-bold text-gray-900 dark:text-[#f3f1ec] leading-tight flex items-center gap-1.5 text-sm">
+            <h2 className="font-bold text-stone-900 dark:text-[#f3f1ec] leading-tight flex items-center gap-1.5 text-sm">
               <span>PandaIA</span>
-              <span className="text-[10px] font-bold text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-[#132420] border border-teal-200/80 dark:border-teal-500/25 px-2 py-0.5 rounded-full uppercase tracking-wider">
+              <span className="text-xs font-bold text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-[#132420] border border-teal-200/80 dark:border-teal-500/25 px-2 py-0.5 rounded-full tracking-tight">
                 Copiloto
               </span>
             </h2>
@@ -2301,7 +2301,7 @@ function PandaIAView({
           <button 
             type="button"
             onClick={clearChat}
-            className="p-2 text-gray-500 dark:text-[#9ea3ae] hover:text-gray-800 dark:hover:text-[#f3f1ec] hover:bg-gray-100 dark:hover:bg-[#21242c] rounded-xl transition-all active:scale-95"
+            className="p-2 text-stone-500 dark:text-[#9ea3ae] hover:text-stone-800 dark:hover:text-[#f3f1ec] hover:bg-stone-100 dark:hover:bg-[#21242c] rounded-xl transition-all active:scale-95"
             title="Reiniciar conversación con la semana actual"
             aria-label="Reiniciar conversación"
           >
@@ -2329,17 +2329,17 @@ function PandaIAView({
               <div className={`p-4 rounded-3xl shadow-xs text-sm relative group ${
                 msg.sender === 'user' 
                   ? 'bg-teal-600 text-white rounded-br-none' 
-                  : 'bg-white dark:bg-[#181a20] border border-gray-100 dark:border-white/[0.08] text-gray-800 dark:text-[#f3f1ec] rounded-bl-none shadow-xs'
+                  : 'bg-white dark:bg-[#181a20] border border-stone-100 dark:border-white/[0.08] text-stone-800 dark:text-[#f3f1ec] rounded-bl-none shadow-xs'
               }`}>
                 {msg.sender === 'ai' ? renderFormattedMessage(msg.text) : <p className="leading-relaxed">{msg.text}</p>}
 
                 {/* Botón de Copiar para Mensajes del Asistente */}
                 {msg.sender === 'ai' && (
-                  <div className="pt-2 mt-2 border-t border-gray-100 dark:border-white/[0.06] flex justify-end">
+                  <div className="pt-2 mt-2 border-t border-stone-100 dark:border-white/[0.06] flex justify-end">
                     <button
                       type="button"
                       onClick={() => copyMessage(msg.id, msg.text)}
-                      className="text-[11px] font-bold text-gray-400 dark:text-[#9ea3ae] hover:text-teal-700 dark:hover:text-teal-300 flex items-center gap-1 transition-colors p-1"
+                      className="text-xs font-bold text-stone-400 dark:text-[#9ea3ae] hover:text-teal-700 dark:hover:text-teal-300 flex items-center gap-1 transition-colors p-1"
                       title="Copiar respuesta"
                     >
                       {copiedId === msg.id ? (
@@ -2362,16 +2362,16 @@ function PandaIAView({
               {msg.card && (
                 <div className="bg-gradient-to-br from-teal-50 via-emerald-50/40 to-white dark:from-[#181a20] dark:to-[#132420] border border-teal-200 dark:border-teal-500/25 shadow-xs rounded-2xl p-4 w-full max-w-sm animate-in zoom-in-95 duration-200">
                   <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-1.5 text-teal-900 dark:text-teal-300 font-bold text-xs uppercase tracking-wider">
+                    <div className="flex items-center gap-1.5 text-teal-900 dark:text-teal-300 font-bold text-xs tracking-tight">
                       <BriefcaseMedical size={15} className="text-teal-700 dark:text-teal-400" />
                       <span>Cita Médica Agendada</span>
                     </div>
-                    <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100/90 dark:bg-[#132420] px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100/90 dark:bg-[#132420] px-2 py-0.5 rounded-full">
                       En Agenda
                     </span>
                   </div>
-                  <h5 className="font-bold text-gray-900 dark:text-[#f3f1ec] text-sm">{msg.card.title}</h5>
-                  <p className="text-xs text-gray-600 dark:text-[#9ea3ae] mt-1 leading-relaxed">
+                  <h5 className="font-bold text-stone-900 dark:text-[#f3f1ec] text-sm">{msg.card.title}</h5>
+                  <p className="text-xs text-stone-600 dark:text-[#9ea3ae] mt-1 leading-relaxed">
                     {msg.card.desc}
                   </p>
                   
@@ -2396,13 +2396,13 @@ function PandaIAView({
             <div className="bg-teal-100 dark:bg-[#132420] text-teal-800 dark:text-teal-300 p-1.5 rounded-xl shrink-0 mb-1 shadow-xs">
               <Bot size={16} />
             </div>
-            <div className="bg-white dark:bg-[#181a20] px-4 py-3 rounded-2xl rounded-bl-none shadow-xs border border-gray-100 dark:border-white/[0.08] flex gap-2 items-center">
+            <div className="bg-white dark:bg-[#181a20] px-4 py-3 rounded-2xl rounded-bl-none shadow-xs border border-stone-100 dark:border-white/[0.08] flex gap-2 items-center">
               <div className="flex gap-1 items-center">
                 <div className="w-2 h-2 bg-teal-600 rounded-full animate-pulse"></div>
                 <div className="w-2 h-2 bg-teal-600 rounded-full animate-pulse" style={{ animationDelay: "0.15s" }}></div>
                 <div className="w-2 h-2 bg-teal-600 rounded-full animate-pulse" style={{ animationDelay: "0.3s" }}></div>
               </div>
-              <span className="text-xs text-gray-400 dark:text-[#9ea3ae] font-medium">PandaIA está respondiendo...</span>
+              <span className="text-xs text-stone-400 dark:text-[#9ea3ae] font-medium">PandaIA está respondiendo...</span>
             </div>
           </div>
         )}
@@ -2411,9 +2411,9 @@ function PandaIAView({
       </div>
 
       {/* INPUT AREA CON SMART CHIPS CONTEXTUALES */}
-      <div className="bg-white dark:bg-[#181a20] border-t border-gray-200 dark:border-white/[0.08] shrink-0">
+      <div className="bg-white dark:bg-[#181a20] border-t border-stone-200 dark:border-white/[0.08] shrink-0">
         {/* Smart Chips Dinámicos por Trimestre */}
-        <div className="flex overflow-x-auto gap-2 p-2.5 no-scrollbar border-b border-gray-100 dark:border-white/[0.06]">
+        <div className="flex overflow-x-auto gap-2 p-2.5 no-scrollbar border-b border-stone-100 dark:border-white/[0.06]">
           {smartChips.map((chip, idx) => (
             <button 
               key={idx}
@@ -2428,12 +2428,12 @@ function PandaIAView({
 
         {/* Text Input Ergonómico */}
         <div className="p-2.5">
-          <div className="flex items-end gap-2 bg-gray-50 dark:bg-[#21242c] border border-gray-200 dark:border-white/10 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-teal-500 focus-within:border-transparent transition-all shadow-xs">
+          <div className="flex items-end gap-2 bg-stone-50 dark:bg-[#21242c] border border-stone-200 dark:border-white/10 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-teal-500 focus-within:border-transparent transition-all shadow-xs">
             <button 
               type="button"
               aria-label="Cargar consulta sobre ecografías"
               onClick={() => setIsUltrasoundModalOpen(true)}
-              className="p-2 text-gray-400 dark:text-[#9ea3ae] hover:text-teal-700 dark:hover:text-teal-300 transition-colors shrink-0 rounded-xl hover:bg-white dark:hover:bg-[#181a20]"
+              className="p-2 text-stone-400 dark:text-[#9ea3ae] hover:text-teal-700 dark:hover:text-teal-300 transition-colors shrink-0 rounded-xl hover:bg-white dark:hover:bg-[#181a20]"
               title="Preguntas frecuentes sobre ecografías"
             >
               <Paperclip size={18} />
@@ -2451,7 +2451,7 @@ function PandaIAView({
                 }
               }}
               placeholder="Pregúntale a PandaIA sobre síntomas, nutrición o citas..." 
-              className="flex-1 bg-transparent border-none focus:outline-none text-base sm:text-sm py-2 resize-none max-h-32 min-h-[40px] text-gray-800 dark:text-[#f3f1ec] placeholder-gray-400 dark:placeholder-[#9ea3ae]/60 overflow-y-auto no-scrollbar"
+              className="flex-1 bg-transparent border-none focus:outline-none text-base sm:text-sm py-2 resize-none max-h-32 min-h-[40px] text-stone-800 dark:text-[#f3f1ec] placeholder-gray-400 dark:placeholder-[#9ea3ae]/60 overflow-y-auto no-scrollbar"
             />
             <button 
               type="button"
@@ -2461,7 +2461,7 @@ function PandaIAView({
               className={`p-2.5 rounded-xl transition-all shrink-0 active:scale-90 ${
                 inputText.trim() && !isTyping 
                   ? "bg-teal-600 text-white hover:bg-teal-700 shadow-xs" 
-                  : "bg-gray-200 dark:bg-[#2a2e37] text-gray-400 dark:text-[#9ea3ae]/60 cursor-not-allowed"
+                  : "bg-stone-200 dark:bg-[#2a2e37] text-stone-400 dark:text-[#9ea3ae]/60 cursor-not-allowed"
               }`}
             >
               <Send size={16} />
@@ -2479,7 +2479,7 @@ function PandaIAView({
           onClick={(e) => { if (e.target === e.currentTarget) setIsUltrasoundModalOpen(false); }}
           className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150"
         >
-          <div className="bg-white dark:bg-[#181a20] rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in slide-in-from-bottom-4 duration-200 border border-gray-100 dark:border-white/[0.08]">
+          <div className="bg-white dark:bg-[#181a20] rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in slide-in-from-bottom-4 duration-200 border border-stone-100 dark:border-white/[0.08]">
             <div className="bg-gradient-to-r from-teal-600 to-teal-700 p-4 flex justify-between items-center text-white">
               <div className="flex items-center gap-2">
                 <div className="bg-white/10 p-2 rounded-xl">
@@ -2489,7 +2489,7 @@ function PandaIAView({
                   <h3 id="ultrasound-modal-title" className="font-bold text-sm leading-tight">
                     Decodificador de Ecografía
                   </h3>
-                  <p className="text-[11px] text-teal-100">
+                  <p className="text-xs text-teal-100">
                     Preguntas rápidas para interpretar tu ecografía
                   </p>
                 </div>
@@ -2505,7 +2505,7 @@ function PandaIAView({
             </div>
 
             <div className="p-4 space-y-2 max-h-[70vh] overflow-y-auto">
-              <p className="text-xs text-gray-500 dark:text-[#9ea3ae] mb-3">
+              <p className="text-xs text-stone-500 dark:text-[#9ea3ae] mb-3">
                 Selecciona una consulta frecuente para que PandaIA te explique los valores clínicos con calma:
               </p>
 
@@ -2514,27 +2514,27 @@ function PandaIAView({
                   key={idx}
                   type="button"
                   onClick={() => handleUltrasoundSelect(item.prompt)}
-                  className="w-full text-left p-3.5 rounded-2xl border border-gray-100 dark:border-white/[0.08] bg-gray-50/70 dark:bg-[#21242c]/60 hover:bg-teal-50/60 dark:hover:bg-[#21242c] hover:border-teal-200 dark:hover:border-teal-500/30 transition-all flex items-start justify-between gap-3 group active:scale-[0.99]"
+                  className="w-full text-left p-3.5 rounded-2xl border border-stone-100 dark:border-white/[0.08] bg-stone-50/70 dark:bg-[#21242c]/60 hover:bg-teal-50/60 dark:hover:bg-[#21242c] hover:border-teal-200 dark:hover:border-teal-500/30 transition-all flex items-start justify-between gap-3 group active:scale-[0.99]"
                 >
                   <div className="flex-1">
-                    <p className="text-xs font-bold text-gray-900 dark:text-[#f3f1ec] group-hover:text-teal-900 dark:group-hover:text-teal-300 flex items-center gap-1.5">
+                    <p className="text-xs font-bold text-stone-900 dark:text-[#f3f1ec] group-hover:text-teal-900 dark:group-hover:text-teal-300 flex items-center gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0"></span>
                       <span>{item.title}</span>
                     </p>
-                    <p className="text-[11px] text-gray-500 dark:text-[#9ea3ae] mt-0.5 leading-snug">
+                    <p className="text-xs text-stone-500 dark:text-[#9ea3ae] mt-0.5 leading-snug">
                       {item.desc}
                     </p>
                   </div>
-                  <ChevronRight size={16} className="text-gray-400 dark:text-[#9ea3ae] group-hover:text-teal-600 dark:group-hover:text-teal-300 shrink-0 mt-1" />
+                  <ChevronRight size={16} className="text-stone-400 dark:text-[#9ea3ae] group-hover:text-teal-600 dark:group-hover:text-teal-300 shrink-0 mt-1" />
                 </button>
               ))}
             </div>
 
-            <div className="p-3 bg-gray-50 dark:bg-[#181a20] border-t border-gray-100 dark:border-white/[0.08] flex justify-end">
+            <div className="p-3 bg-stone-50 dark:bg-[#181a20] border-t border-stone-100 dark:border-white/[0.08] flex justify-end">
               <button
                 type="button"
                 onClick={() => setIsUltrasoundModalOpen(false)}
-                className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-[#9ea3ae] hover:text-gray-800 dark:hover:text-[#f3f1ec] transition-colors"
+                className="px-4 py-2 text-xs font-semibold text-stone-600 dark:text-[#9ea3ae] hover:text-stone-800 dark:hover:text-[#f3f1ec] transition-colors"
               >
                 Cancelar
               </button>
@@ -2558,11 +2558,11 @@ function SOSSintomas() {
       icon: <Utensils className="text-amber-500" size={20} />,
       color: "bg-amber-50 dark:bg-[#241b12]",
       content: (
-        <ul className="text-sm text-gray-600 dark:text-[#9ea3ae] space-y-2 mt-2 list-disc pl-5">
-          <li><strong className="text-gray-900 dark:text-[#f3f1ec]">Estómago con colchón:</strong> Coman galletas saladas o tostadas antes de levantarse de la cama.</li>
-          <li><strong className="text-gray-900 dark:text-[#f3f1ec]">Hidratación táctica:</strong> Beber agua muy fría en pequeños tragos. Rodajas de limón o jengibre fresco son magia pura.</li>
-          <li><strong className="text-gray-900 dark:text-[#f3f1ec]">Vitamina B6:</strong> Consulten con su médico materno-fetal si pueden recetar un suplemento de B6.</li>
-          <li><strong className="text-gray-900 dark:text-[#f3f1ec]">Oler alcohol:</strong> Una toallita de alcohol isopropílico bajo la nariz ayuda a cortar el mareo agudo al instante.</li>
+        <ul className="text-sm text-stone-600 dark:text-[#9ea3ae] space-y-2 mt-2 list-disc pl-5">
+          <li><strong className="text-stone-900 dark:text-[#f3f1ec]">Estómago con colchón:</strong> Coman galletas saladas o tostadas antes de levantarse de la cama.</li>
+          <li><strong className="text-stone-900 dark:text-[#f3f1ec]">Hidratación táctica:</strong> Beber agua muy fría en pequeños tragos. Rodajas de limón o jengibre fresco son magia pura.</li>
+          <li><strong className="text-stone-900 dark:text-[#f3f1ec]">Vitamina B6:</strong> Consulten con su médico materno-fetal si pueden recetar un suplemento de B6.</li>
+          <li><strong className="text-stone-900 dark:text-[#f3f1ec]">Oler alcohol:</strong> Una toallita de alcohol isopropílico bajo la nariz ayuda a cortar el mareo agudo al instante.</li>
         </ul>
       )
     },
@@ -2572,11 +2572,11 @@ function SOSSintomas() {
       icon: <Heart className="text-rose-500" size={20} />,
       color: "bg-rose-50 dark:bg-[#251518]",
       content: (
-        <ul className="text-sm text-gray-600 dark:text-[#9ea3ae] space-y-2 mt-2 list-disc pl-5">
-          <li><strong className="text-gray-900 dark:text-[#f3f1ec]">Poco pero seguido:</strong> 5 o 6 comidas pequeñas al día en lugar de 3 grandes para no sobrecargar el esfínter.</li>
-          <li><strong className="text-gray-900 dark:text-[#f3f1ec]">Física básica:</strong> Esperar al menos 2 horas después de cenar para ir a la cama (gravedad a su favor).</li>
-          <li><strong className="text-gray-900 dark:text-[#f3f1ec]">Evitar disparadores:</strong> Cítricos, tomate, chocolate, y comidas muy grasas o picantes.</li>
-          <li><strong className="text-gray-900 dark:text-[#f3f1ec]">Leche fría o almendras:</strong> Neutralizan la acidez al instante de forma natural.</li>
+        <ul className="text-sm text-stone-600 dark:text-[#9ea3ae] space-y-2 mt-2 list-disc pl-5">
+          <li><strong className="text-stone-900 dark:text-[#f3f1ec]">Poco pero seguido:</strong> 5 o 6 comidas pequeñas al día en lugar de 3 grandes para no sobrecargar el esfínter.</li>
+          <li><strong className="text-stone-900 dark:text-[#f3f1ec]">Física básica:</strong> Esperar al menos 2 horas después de cenar para ir a la cama (gravedad a su favor).</li>
+          <li><strong className="text-stone-900 dark:text-[#f3f1ec]">Evitar disparadores:</strong> Cítricos, tomate, chocolate, y comidas muy grasas o picantes.</li>
+          <li><strong className="text-stone-900 dark:text-[#f3f1ec]">Leche fría o almendras:</strong> Neutralizan la acidez al instante de forma natural.</li>
         </ul>
       )
     },
@@ -2586,10 +2586,10 @@ function SOSSintomas() {
       icon: <Activity className="text-blue-500" size={20} />,
       color: "bg-blue-50 dark:bg-[#1a2230]",
       content: (
-        <ul className="text-sm text-gray-600 dark:text-[#9ea3ae] space-y-2 mt-2 list-disc pl-5">
-          <li><strong className="text-gray-900 dark:text-[#f3f1ec]">Compresas tibias:</strong> Aplicar calor en la espalda baja por 15-20 minutos (tú puedes encargarte de prepararlas).</li>
-          <li><strong className="text-gray-900 dark:text-[#f3f1ec]">Postura al dormir:</strong> Siempre del lado izquierdo, con la almohada de embarazo entre las rodillas.</li>
-          <li><strong className="text-gray-900 dark:text-[#f3f1ec]">Estiramientos suaves:</strong> Ayúdala con ejercicios de yoga prenatal (postura del gato-vaca) para aliviar la presión del útero.</li>
+        <ul className="text-sm text-stone-600 dark:text-[#9ea3ae] space-y-2 mt-2 list-disc pl-5">
+          <li><strong className="text-stone-900 dark:text-[#f3f1ec]">Compresas tibias:</strong> Aplicar calor en la espalda baja por 15-20 minutos (tú puedes encargarte de prepararlas).</li>
+          <li><strong className="text-stone-900 dark:text-[#f3f1ec]">Postura al dormir:</strong> Siempre del lado izquierdo, con la almohada de embarazo entre las rodillas.</li>
+          <li><strong className="text-stone-900 dark:text-[#f3f1ec]">Estiramientos suaves:</strong> Ayúdala con ejercicios de yoga prenatal (postura del gato-vaca) para aliviar la presión del útero.</li>
         </ul>
       )
     },
@@ -2613,10 +2613,10 @@ function SOSSintomas() {
   return (
     <div className="flex flex-col py-2 animate-in fade-in duration-300 h-full w-full">
       <div className="text-center mb-6">
-        <h3 className="text-xl font-bold text-gray-800 dark:text-[#f3f1ec] flex justify-center items-center gap-2">
+        <h3 className="text-xl font-bold text-stone-800 dark:text-[#f3f1ec] flex justify-center items-center gap-2">
           <HeartPulse className="text-rose-500" /> SOS Mamá
         </h3>
-        <p className="text-sm text-gray-500 dark:text-[#9ea3ae]">Guía rápida de alivio de síntomas</p>
+        <p className="text-sm text-stone-500 dark:text-[#9ea3ae]">Guía rápida de alivio de síntomas</p>
       </div>
 
       {/* Banner de Emergencia Rápida */}
@@ -2649,20 +2649,20 @@ function SOSSintomas() {
 
       <div className="space-y-3 overflow-y-auto pb-8">
         {symptoms.map(sym => (
-          <div key={sym.id} className="bg-white dark:bg-[#181a20] rounded-2xl shadow-xs border border-gray-200/80 dark:border-white/[0.08] overflow-hidden">
+          <div key={sym.id} className="bg-white dark:bg-[#181a20] rounded-2xl shadow-xs border border-stone-200/80 dark:border-white/[0.08] overflow-hidden">
             <button 
               type="button"
               onClick={() => setExpanded(expanded === sym.id ? null : sym.id)}
-              className="w-full p-4 flex items-center justify-between text-left transition-colors hover:bg-gray-50 dark:hover:bg-[#21242c]/50"
+              className="w-full p-4 flex items-center justify-between text-left transition-colors hover:bg-stone-50 dark:hover:bg-[#21242c]/50"
             >
               <div className="flex items-center gap-3">
                 <div className={`${sym.color} p-2 rounded-full`}>{sym.icon}</div>
-                <span className="font-bold text-gray-800 dark:text-[#f3f1ec]">{sym.title}</span>
+                <span className="font-bold text-stone-800 dark:text-[#f3f1ec]">{sym.title}</span>
               </div>
-              {expanded === sym.id ? <ChevronUp size={20} className="text-gray-400 dark:text-[#9ea3ae]" /> : <ChevronDown size={20} className="text-gray-400 dark:text-[#9ea3ae]" />}
+              {expanded === sym.id ? <ChevronUp size={20} className="text-stone-400 dark:text-[#9ea3ae]" /> : <ChevronDown size={20} className="text-stone-400 dark:text-[#9ea3ae]" />}
             </button>
             {expanded === sym.id && (
-              <div className="p-4 pt-0 bg-gray-50 dark:bg-[#21242c]/30 border-t border-gray-100 dark:border-white/[0.06] animate-in slide-in-from-top-2">
+              <div className="p-4 pt-0 bg-stone-50 dark:bg-[#21242c]/30 border-t border-stone-100 dark:border-white/[0.06] animate-in slide-in-from-top-2">
                 {sym.content}
                 {sym.id === "alarma" && (
                   <div className="mt-4 pt-3 border-t border-rose-200 dark:border-rose-500/30 flex gap-2">
@@ -2706,8 +2706,8 @@ function HerramientasView({ showToast, profile }: { showToast: any, profile?: Us
   return (
     <div className="flex flex-col h-full w-full animate-in fade-in slide-in-from-bottom-4 duration-300">
       {/* Sub-navigation sin desplazamiento (100% visible) */}
-      <div className="bg-white dark:bg-[#111317] px-3 py-2.5 shadow-xs border-b border-gray-200/80 dark:border-white/[0.08] sticky top-0 z-10 w-full">
-        <div role="tablist" aria-label="Herramientas de embarazo" className="grid grid-cols-5 gap-1 bg-gray-100/90 dark:bg-[#181a20] p-1 rounded-2xl w-full">
+      <div className="bg-white dark:bg-[#111317] px-3 py-2.5 shadow-xs border-b border-stone-200/80 dark:border-white/[0.08] sticky top-0 z-10 w-full">
+        <div role="tablist" aria-label="Herramientas de embarazo" className="grid grid-cols-5 gap-1 bg-stone-100/90 dark:bg-[#181a20] p-1 rounded-2xl w-full">
           {tools.map((tool) => {
             const isActive = activeTool === tool.id;
             return (
@@ -2720,13 +2720,13 @@ function HerramientasView({ showToast, profile }: { showToast: any, profile?: Us
                 className={`flex flex-col items-center justify-center py-2 px-0.5 rounded-xl transition-all ${
                   isActive 
                     ? "bg-white dark:bg-[#21242c] text-teal-700 dark:text-teal-300 shadow-xs font-bold scale-[1.02]" 
-                    : "text-gray-500 dark:text-[#9ea3ae] hover:text-gray-800 dark:hover:text-[#f3f1ec] font-medium"
+                    : "text-stone-500 dark:text-[#9ea3ae] hover:text-stone-800 dark:hover:text-[#f3f1ec] font-medium"
                 }`}
               >
-                <div className={`p-1 rounded-lg ${isActive ? "text-teal-600 dark:text-teal-400" : "text-gray-400 dark:text-[#9ea3ae]"}`}>
+                <div className={`p-1 rounded-lg ${isActive ? "text-teal-600 dark:text-teal-400" : "text-stone-400 dark:text-[#9ea3ae]"}`}>
                   {tool.icon}
                 </div>
-                <span className="text-[10px] leading-tight text-center tracking-tight truncate w-full">
+                <span className="text-xs leading-tight text-center tracking-tight truncate w-full">
                   {tool.label}
                 </span>
               </button>
@@ -2965,8 +2965,8 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
         <div className="inline-flex items-center gap-1.5 bg-teal-50 dark:bg-[#132420] border border-teal-200/80 dark:border-teal-500/25 px-3 py-1 rounded-full text-xs font-bold text-teal-800 dark:text-teal-300 mb-2 shadow-xs">
           <Baby size={14} className="text-teal-600 dark:text-teal-400" /> Protocolo Cardiff (Contar hasta 10)
         </div>
-        <h3 className="text-2xl font-black text-gray-800 dark:text-[#f3f1ec]">Monitor Fetal Inteligente</h3>
-        <p className="text-xs text-gray-500 dark:text-[#9ea3ae] max-w-xs mx-auto mt-1 leading-relaxed">
+        <h3 className="text-2xl font-black text-stone-800 dark:text-[#f3f1ec]">Monitor Fetal Inteligente</h3>
+        <p className="text-xs text-stone-500 dark:text-[#9ea3ae] max-w-xs mx-auto mt-1 leading-relaxed">
           Monitorea el bienestar del bebé registrando 10 movimientos activos en menos de 2 horas.
         </p>
 
@@ -2984,11 +2984,11 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
 
       {/* GUÍA MÉDICA DESPLEGABLE */}
       {showGuide && (
-        <div className="bg-gradient-to-br from-teal-50/90 to-emerald-50/70 dark:from-[#181a20] dark:to-[#132420] border border-teal-200 dark:border-teal-500/25 rounded-3xl p-5 text-left text-xs text-gray-700 dark:text-[#f3f1ec]/90 space-y-3 shadow-xs animate-in fade-in slide-in-from-top-2">
+        <div className="bg-gradient-to-br from-teal-50/90 to-emerald-50/70 dark:from-[#181a20] dark:to-[#132420] border border-teal-200 dark:border-teal-500/25 rounded-3xl p-5 text-left text-xs text-stone-700 dark:text-[#f3f1ec]/90 space-y-3 shadow-xs animate-in fade-in slide-in-from-top-2">
           <h4 className="font-bold text-teal-900 dark:text-teal-300 text-sm flex items-center gap-2">
             <ClipboardList size={16} className="text-teal-700 dark:text-teal-400" /> Guía Obstétrica: Protocolo Cardiff
           </h4>
-          <ul className="space-y-2 leading-relaxed text-gray-600 dark:text-[#9ea3ae]">
+          <ul className="space-y-2 leading-relaxed text-stone-600 dark:text-[#9ea3ae]">
             <li className="flex items-start gap-2">
               <span className="text-teal-600 dark:text-teal-400 font-bold">1.</span>
               <span><strong>¿Cuándo iniciar?</strong> Recomendado a partir de la semana 28 (o semana 24 si tu médico lo indicó).</span>
@@ -3028,7 +3028,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
                 <li>Recuéstate 20 minutos sobre tu costado izquierdo en completo silencio.</li>
                 <li>Toca suavemente tu abdomen o pon música suave.</li>
               </ul>
-              <p className="text-[11px] font-semibold text-rose-800 dark:text-rose-300 mt-2">
+              <p className="text-xs font-semibold text-rose-800 dark:text-rose-300 mt-2">
                 Si tras 2 horas completas el bebé no alcanza 10 movimientos o notas una reducción drástica, contacta a tu equipo médico de inmediato.
               </p>
               <div className="mt-3 pt-2.5 border-t border-amber-200 dark:border-amber-500/30 flex gap-2">
@@ -3045,9 +3045,9 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
       )}
 
       {/* TRACKER VISUAL DE 10 PASOS */}
-      <div className="bg-white dark:bg-[#181a20] rounded-3xl p-4 shadow-xs border border-gray-100 dark:border-white/[0.08] space-y-3">
+      <div className="bg-white dark:bg-[#181a20] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] space-y-3">
         <div className="flex items-center justify-between text-xs font-bold">
-          <span className="text-gray-700 dark:text-[#f3f1ec]">Progreso de la Sesión</span>
+          <span className="text-stone-700 dark:text-[#f3f1ec]">Progreso de la Sesión</span>
           <span className="text-teal-700 dark:text-teal-300">{count} de 10 patadas</span>
         </div>
 
@@ -3064,7 +3064,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
                     ? "bg-teal-600 text-white shadow-xs scale-100"
                     : isCurrent
                     ? "bg-amber-100 dark:bg-[#241b12] text-amber-800 dark:text-amber-300 border-2 border-amber-400 animate-pulse scale-105"
-                    : "bg-gray-100 dark:bg-[#21242c] text-gray-400 dark:text-[#9ea3ae]/60"
+                    : "bg-stone-100 dark:bg-[#21242c] text-stone-400 dark:text-[#9ea3ae]/60"
                 }`}
               >
                 {isDone ? <Check size={14} /> : idx + 1}
@@ -3074,7 +3074,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
         </div>
 
         {/* Barra de progreso suave */}
-        <div className="w-full bg-gray-100 dark:bg-[#21242c] rounded-full h-2 overflow-hidden">
+        <div className="w-full bg-stone-100 dark:bg-[#21242c] rounded-full h-2 overflow-hidden">
           <div
             className="bg-gradient-to-r from-teal-500 to-emerald-500 h-full transition-all duration-300 rounded-full"
             style={{ width: `${Math.min(100, (count / 10) * 100)}%` }}
@@ -3103,7 +3103,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
               <span className="text-xs font-black uppercase tracking-widest mt-2 bg-white/20 px-3 py-1 rounded-full text-teal-50">
                 {count === 0 ? "Toca para Iniciar" : "Registrar Patada"}
               </span>
-              <span className="text-[10px] text-teal-100 mt-1 opacity-90 font-medium">
+              <span className="text-xs text-teal-100 mt-1 opacity-90 font-medium">
                 {count === 0 ? "1ª patada activa el tiempo" : `Faltan ${10 - count} para la meta`}
               </span>
             </>
@@ -3111,7 +3111,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
             <>
               <Sparkles size={40} className="text-amber-300 mb-1 animate-pulse motion-reduce:animate-none" />
               <span className="text-4xl font-black tracking-tight leading-tight">¡Meta 10!</span>
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-100 mt-1">Completada con éxito</span>
+              <span className="text-xs font-bold tracking-tight text-emerald-100 mt-1">Completada con éxito</span>
             </>
           )}
         </button>
@@ -3121,7 +3121,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
           <button
             type="button"
             onClick={handleUndo}
-            className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 dark:text-[#f3f1ec] hover:text-gray-900 dark:hover:text-white bg-white dark:bg-[#21242c] border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-[#2a2e37] px-3.5 py-1.5 rounded-full shadow-xs active:scale-95 transition-all"
+            className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-stone-600 dark:text-[#f3f1ec] hover:text-stone-900 dark:hover:text-white bg-white dark:bg-[#21242c] border border-stone-200 dark:border-white/10 hover:bg-stone-50 dark:hover:bg-[#2a2e37] px-3.5 py-1.5 rounded-full shadow-xs active:scale-95 transition-all"
             aria-label="Deshacer último movimiento registrado"
           >
             <Undo2 size={13} /> Deshacer última patada (-1)
@@ -3130,8 +3130,8 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
 
         {/* Atajo de teclado accesible */}
         {count < 10 && (
-          <div className="mt-3 text-[11px] text-gray-500 dark:text-[#9ea3ae] font-medium flex items-center gap-1.5 select-none">
-            <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-gray-100 dark:bg-[#21242c] border border-gray-300 dark:border-white/10 rounded text-gray-700 dark:text-[#f3f1ec] shadow-2xs">
+          <div className="mt-3 text-xs text-stone-500 dark:text-[#9ea3ae] font-medium flex items-center gap-1.5 select-none">
+            <kbd className="px-1.5 py-0.5 text-xs font-mono font-semibold bg-stone-100 dark:bg-[#21242c] border border-stone-300 dark:border-white/10 rounded text-stone-700 dark:text-[#f3f1ec] shadow-2xs">
               Espacio
             </kbd>
             <span>en teclado para registrar movimiento</span>
@@ -3140,22 +3140,22 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
       </div>
 
       {/* TARJETA DE CRONÓMETRO Y ACCIONES DE SESIÓN */}
-      <div className="bg-white dark:bg-[#181a20] w-full rounded-3xl shadow-xs border border-gray-100 dark:border-white/[0.08] p-4 flex flex-col gap-3">
+      <div className="bg-white dark:bg-[#181a20] w-full rounded-3xl shadow-xs border border-stone-100 dark:border-white/[0.08] p-4 flex flex-col gap-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="bg-teal-50 dark:bg-[#132420] text-teal-700 dark:text-teal-300 p-2.5 rounded-2xl">
               <Clock size={22} className={startTime ? "animate-pulse text-teal-600 dark:text-teal-400" : ""} />
             </div>
             <div>
-              <p className="text-[11px] text-teal-700 dark:text-teal-300 font-bold uppercase tracking-wider">Tiempo de Sesión</p>
-              <p className="text-2xl font-black text-gray-800 dark:text-[#f3f1ec] tracking-tight font-mono tabular-nums">{formatTimer(elapsedSeconds)}</p>
+              <p className="text-xs text-teal-700 dark:text-teal-300 font-bold tracking-tight">Tiempo de Sesión</p>
+              <p className="text-2xl font-black text-stone-800 dark:text-[#f3f1ec] tracking-tight font-mono tabular-nums">{formatTimer(elapsedSeconds)}</p>
             </div>
           </div>
           
           <button 
             type="button"
             onClick={reset} 
-            className="text-rose-700 dark:text-rose-300 hover:text-rose-800 dark:hover:text-rose-200 font-bold text-xs bg-rose-50/70 dark:bg-[#251518] hover:bg-rose-100/80 dark:hover:bg-[#301c20] px-3.5 py-2 rounded-xl transition-colors uppercase tracking-wider flex items-center gap-1.5 active:scale-95 border border-rose-200/60 dark:border-rose-500/25"
+            className="text-rose-700 dark:text-rose-300 hover:text-rose-800 dark:hover:text-rose-200 font-bold text-xs bg-rose-50/70 dark:bg-[#251518] hover:bg-rose-100/80 dark:hover:bg-[#301c20] px-3.5 py-2 rounded-xl transition-colors tracking-tight flex items-center gap-1.5 active:scale-95 border border-rose-200/60 dark:border-rose-500/25"
             title="Reiniciar conteo y cronómetro"
           >
             <RotateCcw size={13} /> Reiniciar
@@ -3164,11 +3164,11 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
 
         {/* Desplegable de Ritmo/Timeline de Patadas Registradas */}
         {kicks.length > 0 && (
-          <div className="pt-2 border-t border-gray-100 dark:border-white/[0.06]">
+          <div className="pt-2 border-t border-stone-100 dark:border-white/[0.06]">
             <button
               type="button"
               onClick={() => setShowTimeline(!showTimeline)}
-              className="w-full flex items-center justify-between text-xs font-bold text-gray-600 dark:text-[#9ea3ae] hover:text-teal-700 dark:hover:text-teal-300 py-1 transition-colors"
+              className="w-full flex items-center justify-between text-xs font-bold text-stone-600 dark:text-[#9ea3ae] hover:text-teal-700 dark:hover:text-teal-300 py-1 transition-colors"
             >
               <span className="flex items-center gap-1.5">
                 <Activity size={14} className="text-teal-600 dark:text-teal-400" />
@@ -3181,9 +3181,9 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
               <div className="mt-2.5 space-y-1.5 max-h-48 overflow-y-auto no-scrollbar pt-1">
                 {kicks.map((k, idx) => (
                   <div key={k.id} className="flex justify-between items-center text-xs bg-slate-50 dark:bg-[#21242c]/60 px-3 py-1.5 rounded-xl border border-slate-100 dark:border-white/[0.06]">
-                    <span className="font-bold text-gray-700 dark:text-[#f3f1ec]">Patada #{idx + 1}</span>
-                    <span className="text-gray-500 dark:text-[#9ea3ae] font-mono">{k.timeStr}</span>
-                    <span className="text-teal-700 dark:text-teal-300 font-semibold text-[11px]">
+                    <span className="font-bold text-stone-700 dark:text-[#f3f1ec]">Patada #{idx + 1}</span>
+                    <span className="text-stone-500 dark:text-[#9ea3ae] font-mono">{k.timeStr}</span>
+                    <span className="text-teal-700 dark:text-teal-300 font-semibold text-xs">
                       {k.intervalSecs !== null ? `+${formatDurationText(k.intervalSecs)}` : "Inicio"}
                     </span>
                   </div>
@@ -3222,7 +3222,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
           </p>
 
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-wider text-teal-200 mb-2">Añadir contexto a la sesión:</p>
+            <p className="text-xs font-bold tracking-tight text-teal-200 mb-2">Añadir contexto a la sesión:</p>
             <div className="flex flex-wrap gap-1.5">
               {[
                 "🍽️ Después de comer",
@@ -3266,11 +3266,11 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
               <Trophy size={20} className="text-teal-700 dark:text-teal-400" />
             </div>
             <div>
-              <p className="text-xs font-bold text-gray-800 dark:text-[#f3f1ec]">Promedio Personal (10 Patadas)</p>
+              <p className="text-xs font-bold text-stone-800 dark:text-[#f3f1ec]">Promedio Personal (10 Patadas)</p>
               <p className="text-lg font-black text-teal-700 dark:text-teal-300 font-mono">~{avgDurationMinutes} minutos</p>
             </div>
           </div>
-          <span className="text-[10px] font-bold text-teal-800 dark:text-teal-300 bg-teal-100/80 dark:bg-[#132420] px-2.5 py-1 rounded-full uppercase tracking-wider">
+          <span className="text-xs font-bold text-teal-800 dark:text-teal-300 bg-teal-100/80 dark:bg-[#132420] px-2.5 py-1 rounded-full tracking-tight">
             Ritmo Normal
           </span>
         </div>
@@ -3279,29 +3279,29 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
       {/* HISTORIAL CLÍNICO DE SESIONES CON PERSISTENCIA */}
       <div>
         <div className="flex justify-between items-center mb-3">
-          <h4 className="font-bold text-gray-800 dark:text-[#f3f1ec] flex items-center gap-2 text-sm">
+          <h4 className="font-bold text-stone-800 dark:text-[#f3f1ec] flex items-center gap-2 text-sm">
             <History size={18} className="text-teal-600 dark:text-teal-300"/> Historial Clínico ({sessions.length})
           </h4>
-          <span className="text-[11px] font-semibold text-gray-500 dark:text-[#9ea3ae]">Guardado automático</span>
+          <span className="text-xs font-semibold text-stone-500 dark:text-[#9ea3ae]">Guardado automático</span>
         </div>
 
         {sessions.length === 0 ? (
-          <div className="bg-gray-50 dark:bg-[#181a20]/60 rounded-2xl p-6 text-center border border-dashed border-gray-200 dark:border-white/[0.08]">
-            <Baby className="mx-auto text-gray-300 dark:text-[#9ea3ae]/50 mb-2" size={32} />
-            <p className="text-gray-500 dark:text-[#9ea3ae] text-xs font-medium">Aún no hay sesiones guardadas. Completa 10 patadas para archivar tu primer registro.</p>
+          <div className="bg-stone-50 dark:bg-[#181a20]/60 rounded-2xl p-6 text-center border border-dashed border-stone-200 dark:border-white/[0.08]">
+            <Baby className="mx-auto text-stone-300 dark:text-[#9ea3ae]/50 mb-2" size={32} />
+            <p className="text-stone-500 dark:text-[#9ea3ae] text-xs font-medium">Aún no hay sesiones guardadas. Completa 10 patadas para archivar tu primer registro.</p>
           </div>
         ) : (
           <div className="space-y-2.5">
             {sessions.map(s => (
-              <div key={s.id} className="bg-white dark:bg-[#181a20] p-3.5 rounded-2xl border border-gray-200/80 dark:border-white/[0.08] shadow-xs flex justify-between items-center group hover:border-teal-200 dark:hover:border-teal-500/30 transition-all">
+              <div key={s.id} className="bg-white dark:bg-[#181a20] p-3.5 rounded-2xl border border-stone-200/80 dark:border-white/[0.08] shadow-xs flex justify-between items-center group hover:border-teal-200 dark:hover:border-teal-500/30 transition-all">
                 <div className="flex items-center gap-3">
                   <div className="bg-emerald-50 dark:bg-[#132420] text-emerald-600 dark:text-teal-300 p-2 rounded-xl shrink-0">
                     <CheckCircle size={18}/>
                   </div>
                   <div>
-                    <span className="font-bold text-gray-800 dark:text-[#f3f1ec] text-xs leading-tight block">{s.dateFormatted}</span>
+                    <span className="font-bold text-stone-800 dark:text-[#f3f1ec] text-xs leading-tight block">{s.dateFormatted}</span>
                     {s.note && (
-                      <span className="text-[10px] font-medium text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#132420] px-2 py-0.5 rounded-md inline-block mt-0.5">
+                      <span className="text-xs font-medium text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#132420] px-2 py-0.5 rounded-md inline-block mt-0.5">
                         {s.note}
                       </span>
                     )}
@@ -3310,14 +3310,14 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
 
                 <div className="flex items-center gap-3">
                   <div className="text-right">
-                    <p className="text-xs font-black text-gray-800 dark:text-[#f3f1ec]">{s.count} patadas</p>
-                    <p className="text-[11px] font-semibold text-gray-500 dark:text-[#9ea3ae] font-mono">en {s.durationFormatted}</p>
+                    <p className="text-xs font-black text-stone-800 dark:text-[#f3f1ec]">{s.count} patadas</p>
+                    <p className="text-xs font-semibold text-stone-500 dark:text-[#9ea3ae] font-mono">en {s.durationFormatted}</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => deleteSession(s.id)}
                     aria-label={`Eliminar sesión de ${s.dateFormatted}`}
-                    className="min-w-[40px] min-h-[40px] flex items-center justify-center text-gray-400 dark:text-[#9ea3ae] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-gray-100 dark:hover:bg-[#21242c] p-2 rounded-xl transition-colors"
+                    className="min-w-[40px] min-h-[40px] flex items-center justify-center text-stone-400 dark:text-[#9ea3ae] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-stone-100 dark:hover:bg-[#21242c] p-2 rounded-xl transition-colors"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -3489,12 +3489,12 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
 
       {/* Tarjetas de Promedios */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white dark:bg-[#181a20] rounded-3xl p-4 shadow-xs border border-gray-100 dark:border-white/[0.08] flex flex-col items-center justify-center text-center">
-          <p className="text-xs text-teal-800 dark:text-teal-300 font-bold uppercase tracking-wider mb-1">Duración Promedio</p>
+        <div className="bg-white dark:bg-[#181a20] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] flex flex-col items-center justify-center text-center">
+          <p className="text-xs text-teal-800 dark:text-teal-300 font-bold tracking-tight mb-1">Duración Promedio</p>
           <p className="text-xl font-black text-teal-700 dark:text-teal-300 tabular-nums">{history.length > 0 ? formatTime(avgDuration) : "—"}</p>
         </div>
-        <div className="bg-white dark:bg-[#181a20] rounded-3xl p-4 shadow-xs border border-gray-100 dark:border-white/[0.08] flex flex-col items-center justify-center text-center">
-          <p className="text-xs text-rose-800 dark:text-rose-300 font-bold uppercase tracking-wider mb-1">Frecuencia Promedio</p>
+        <div className="bg-white dark:bg-[#181a20] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] flex flex-col items-center justify-center text-center">
+          <p className="text-xs text-rose-800 dark:text-rose-300 font-bold tracking-tight mb-1">Frecuencia Promedio</p>
           <p className="text-xl font-black text-rose-600 dark:text-rose-400 tabular-nums">{avgInterval ? formatTime(avgInterval) : "—"}</p>
         </div>
       </div>
@@ -3527,7 +3527,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
           <div className="flex items-center justify-between border-b border-teal-100 dark:border-white/[0.06] pb-2.5">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-              <h4 className="text-xs font-bold text-teal-950 dark:text-teal-300 uppercase tracking-wider">Intervalo de Descanso Activo</h4>
+              <h4 className="text-xs font-bold text-teal-950 dark:text-teal-300 tracking-tight">Intervalo de Descanso Activo</h4>
             </div>
             <span className="text-xs font-bold text-teal-700 dark:text-teal-300 font-mono tabular-nums">
               Descanso: {formatTime(restSeconds)}
@@ -3539,8 +3539,8 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-teal-400/20 to-emerald-400/30 border-2 border-teal-500 flex items-center justify-center animate-pulse motion-reduce:animate-none">
               <HeartPulse size={32} className="text-teal-600 dark:text-teal-400" />
             </div>
-            <p className="font-bold text-gray-800 dark:text-[#f3f1ec] text-sm mt-3">Inhala lento en 4s ... Exhala suave en 6s</p>
-            <p className="text-xs text-gray-500 dark:text-[#9ea3ae] max-w-xs mt-0.5">
+            <p className="font-bold text-stone-800 dark:text-[#f3f1ec] text-sm mt-3">Inhala lento en 4s ... Exhala suave en 6s</p>
+            <p className="text-xs text-stone-500 dark:text-[#9ea3ae] max-w-xs mt-0.5">
               Suelta mandíbula y hombros para relajar la musculatura del suelo pélvico.
             </p>
           </div>
@@ -3550,41 +3550,41 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
             <p className="font-bold text-teal-900 dark:text-teal-300 flex items-center gap-1">
               <span>🤝 Acompañamiento del Papá / Pareja:</span>
             </p>
-            <p className="text-gray-600 dark:text-[#9ea3ae] leading-relaxed">• Ofrece un sorbo pequeño de agua fresca o bálsamo labial.</p>
-            <p className="text-gray-600 dark:text-[#9ea3ae] leading-relaxed">• Aplica contrapresión firme con el talón de la mano en el sacro (espalda baja).</p>
-            <p className="text-gray-600 dark:text-[#9ea3ae] leading-relaxed">• Recuérdale con voz serena: <em>"Respira profundo, lo estás haciendo genial."</em></p>
+            <p className="text-stone-600 dark:text-[#9ea3ae] leading-relaxed">• Ofrece un sorbo pequeño de agua fresca o bálsamo labial.</p>
+            <p className="text-stone-600 dark:text-[#9ea3ae] leading-relaxed">• Aplica contrapresión firme con el talón de la mano en el sacro (espalda baja).</p>
+            <p className="text-stone-600 dark:text-[#9ea3ae] leading-relaxed">• Recuérdale con voz serena: <em>"Respira profundo, lo estás haciendo genial."</em></p>
           </div>
         </div>
       )}
 
       {/* Historial o Estado Inicial */}
       {history.length === 0 ? (
-        <div className="bg-white dark:bg-[#181a20] rounded-3xl p-6 border border-dashed border-gray-200 dark:border-white/[0.08] text-center shadow-xs">
+        <div className="bg-white dark:bg-[#181a20] rounded-3xl p-6 border border-dashed border-stone-200 dark:border-white/[0.08] text-center shadow-xs">
           <div className="bg-teal-50 dark:bg-[#132420] w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 text-teal-600 dark:text-teal-300">
             <HeartPulse size={24} />
           </div>
-          <h4 className="font-bold text-gray-800 dark:text-[#f3f1ec] text-sm mb-1">Sin contracciones registradas</h4>
-          <p className="text-xs text-gray-500 dark:text-[#9ea3ae] max-w-xs mx-auto leading-relaxed">
+          <h4 className="font-bold text-stone-800 dark:text-[#f3f1ec] text-sm mb-1">Sin contracciones registradas</h4>
+          <p className="text-xs text-stone-500 dark:text-[#9ea3ae] max-w-xs mx-auto leading-relaxed">
             Cuando sientas que tu abdomen se tensa o empiece una contracción, toca el botón grande. El sistema calculará la duración, el intervalo y te avisará si cumples la regla 5-1-1 para acudir al hospital.
           </p>
         </div>
       ) : (
         <div className="space-y-3">
           <div className="flex justify-between items-center">
-            <h4 className="font-bold text-gray-800 dark:text-[#f3f1ec] text-sm flex items-center gap-2">
+            <h4 className="font-bold text-stone-800 dark:text-[#f3f1ec] text-sm flex items-center gap-2">
               <Activity size={18} className="text-teal-600 dark:text-teal-300"/> Historial ({history.length})
             </h4>
             <button
               type="button"
               onClick={clearHistory}
-              className="text-[11px] font-bold text-gray-400 dark:text-[#9ea3ae] hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
+              className="text-xs font-bold text-stone-400 dark:text-[#9ea3ae] hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
             >
               Reiniciar historial
             </button>
           </div>
 
-          <div className="bg-white dark:bg-[#181a20] rounded-3xl shadow-xs border border-gray-200/80 dark:border-white/[0.08] overflow-hidden">
-            <div className="grid grid-cols-4 bg-gray-50 dark:bg-[#21242c]/50 p-3 text-xs font-bold text-gray-500 dark:text-[#9ea3ae] uppercase tracking-wider text-center">
+          <div className="bg-white dark:bg-[#181a20] rounded-3xl shadow-xs border border-stone-200/80 dark:border-white/[0.08] overflow-hidden">
+            <div className="grid grid-cols-4 bg-stone-50 dark:bg-[#21242c]/50 p-3 text-xs font-bold text-stone-500 dark:text-[#9ea3ae] tracking-tight text-center">
               <div>Hora</div>
               <div>Duración</div>
               <div>Frecuencia</div>
@@ -3592,8 +3592,8 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
             </div>
             <div className="divide-y divide-gray-50 dark:divide-white/[0.06] text-xs text-center">
               {history.map((item) => (
-                <div key={item.id} className="grid grid-cols-4 p-3.5 items-center hover:bg-gray-50/70 dark:hover:bg-[#21242c]/40 transition-colors">
-                  <div className="text-gray-600 dark:text-[#9ea3ae] font-medium">
+                <div key={item.id} className="grid grid-cols-4 p-3.5 items-center hover:bg-stone-50/70 dark:hover:bg-[#21242c]/40 transition-colors">
+                  <div className="text-stone-600 dark:text-[#9ea3ae] font-medium">
                     {new Date(item.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
                   <div>
@@ -3609,7 +3609,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
                       type="button"
                       onClick={() => deleteItem(item.id)}
                       aria-label="Eliminar contracción"
-                      className="min-w-[40px] min-h-[40px] inline-flex items-center justify-center text-gray-400 dark:text-[#9ea3ae] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-gray-100 dark:hover:bg-[#21242c] p-2 rounded-xl transition-colors"
+                      className="min-w-[40px] min-h-[40px] inline-flex items-center justify-center text-stone-400 dark:text-[#9ea3ae] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-stone-100 dark:hover:bg-[#21242c] p-2 rounded-xl transition-colors"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -3746,8 +3746,8 @@ function VotadorNombres({ showToast }: { showToast: any }) {
     <div className="flex flex-col py-2 animate-in fade-in duration-300 w-full">
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h3 className="text-xl font-bold text-gray-800 dark:text-[#f3f1ec]">Nombres del Bebé</h3>
-          <p className="text-xs text-gray-500 dark:text-[#9ea3ae]">¿Hará match con tu pareja?</p>
+          <h3 className="text-xl font-bold text-stone-800 dark:text-[#f3f1ec]">Nombres del Bebé</h3>
+          <p className="text-xs text-stone-500 dark:text-[#9ea3ae]">¿Hará match con tu pareja?</p>
         </div>
         <div className="flex items-center gap-2">
           {matches.length > 0 && (
@@ -3781,7 +3781,7 @@ function VotadorNombres({ showToast }: { showToast: any }) {
               className={`px-3.5 py-2 min-h-[40px] rounded-full text-xs font-bold uppercase transition-colors whitespace-nowrap active:scale-95 ${
                 genderFilter === f 
                   ? "bg-teal-600 text-white shadow-xs" 
-                  : "bg-gray-100 dark:bg-[#21242c] text-gray-600 dark:text-[#9ea3ae] hover:bg-gray-200 dark:hover:bg-[#282c36]"
+                  : "bg-stone-100 dark:bg-[#21242c] text-stone-600 dark:text-[#9ea3ae] hover:bg-stone-200 dark:hover:bg-[#282c36]"
               }`}
             >
               {f}
@@ -3793,7 +3793,7 @@ function VotadorNombres({ showToast }: { showToast: any }) {
           <button
             type="button"
             onClick={undoLastVote}
-            className="text-xs font-bold text-gray-600 dark:text-[#f3f1ec] hover:text-gray-900 dark:hover:text-white bg-white dark:bg-[#21242c] border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-[#282c36] px-3 py-2 min-h-[40px] rounded-full shadow-xs active:scale-95 transition-all flex items-center gap-1 shrink-0 ml-2"
+            className="text-xs font-bold text-stone-600 dark:text-[#f3f1ec] hover:text-stone-900 dark:hover:text-white bg-white dark:bg-[#21242c] border border-stone-200 dark:border-white/10 hover:bg-stone-100 dark:hover:bg-[#282c36] px-3 py-2 min-h-[40px] rounded-full shadow-xs active:scale-95 transition-all flex items-center gap-1 shrink-0 ml-2"
             title="Deshacer el último voto de nombre"
           >
             <Undo2 size={13} /> Deshacer
@@ -3807,21 +3807,21 @@ function VotadorNombres({ showToast }: { showToast: any }) {
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
           style={{ transform: touchStart !== null ? `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.05}deg)` : "translateX(0) rotate(0)", transition: touchStart !== null ? "none" : "transform 0.3s ease-out" }}
-          className="bg-white dark:bg-[#181a20] rounded-3xl shadow-xl border border-gray-100 dark:border-white/[0.08] p-8 flex flex-col items-center text-center relative overflow-hidden mb-6 select-none touch-pan-y w-full"
+          className="bg-white dark:bg-[#181a20] rounded-3xl shadow-xl border border-stone-100 dark:border-white/[0.08] p-8 flex flex-col items-center text-center relative overflow-hidden mb-6 select-none touch-pan-y w-full"
         >
           <div className="absolute top-0 w-full h-2 bg-gradient-to-r from-teal-400 to-amber-400"></div>
-          <h2 className="text-4xl font-black text-gray-800 dark:text-[#f3f1ec] mb-2 mt-4">{current.text}</h2>
+          <h2 className="text-4xl font-black text-stone-800 dark:text-[#f3f1ec] mb-2 mt-4">{current.text}</h2>
           <span className="text-xs font-bold uppercase tracking-widest text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#132420] px-3 py-1 rounded-full mb-4">
             Origen: {current.origin} • {current.gender}
           </span>
-          <p className="text-sm text-gray-500 dark:text-[#9ea3ae] italic mb-8 max-w-[200px]">"{current.meaning}"</p>
+          <p className="text-sm text-stone-500 dark:text-[#9ea3ae] italic mb-8 max-w-[200px]">"{current.meaning}"</p>
           
           <div className="flex gap-6 w-full justify-center">
             <button 
               type="button"
               onClick={() => vote(current.id, "disliked")} 
               aria-label={`Descartar el nombre ${current.text}`}
-              className="bg-white dark:bg-[#21242c] border-2 border-gray-100 dark:border-white/10 p-5 rounded-full shadow-xs hover:bg-gray-50 dark:hover:bg-[#282c36] text-gray-400 dark:text-[#9ea3ae] hover:text-gray-600 dark:hover:text-[#f3f1ec] transition-transform active:scale-90 focus:outline-none focus:ring-2 focus:ring-rose-300"
+              className="bg-white dark:bg-[#21242c] border-2 border-stone-100 dark:border-white/10 p-5 rounded-full shadow-xs hover:bg-stone-50 dark:hover:bg-[#282c36] text-stone-400 dark:text-[#9ea3ae] hover:text-stone-600 dark:hover:text-[#f3f1ec] transition-transform active:scale-90 focus:outline-none focus:ring-2 focus:ring-rose-300"
             >
               <X size={32} />
             </button>
@@ -3840,10 +3840,10 @@ function VotadorNombres({ showToast }: { showToast: any }) {
             <div className="bg-white dark:bg-[#21242c] p-4 rounded-full mb-4 shadow-xs">
               <Sparkles className="text-amber-500" size={32} />
             </div>
-            <h4 className="text-xl font-bold text-gray-800 dark:text-[#f3f1ec] mb-2">
+            <h4 className="text-xl font-bold text-stone-800 dark:text-[#f3f1ec] mb-2">
               {matches.length > 0 ? "¡Excelente trabajo en equipo!" : "¡Sigue buscando!"}
             </h4>
-            <p className="text-gray-600 dark:text-[#9ea3ae] text-sm mb-6 leading-relaxed">
+            <p className="text-stone-600 dark:text-[#9ea3ae] text-sm mb-6 leading-relaxed">
               {matches.length > 0 
                 ? `Han coincidido en ${matches.length} nombre${matches.length > 1 ? "s" : ""}. Este bebé ya tiene opciones increíbles.` 
                 : "Has revisado esta lista, pero aún no hay coincidencias. ¡No te rindas, el nombre perfecto está ahí afuera!"}
@@ -3871,7 +3871,7 @@ function VotadorNombres({ showToast }: { showToast: any }) {
                  setNames(prev => prev.map(n => ({...n, status: "pending"})));
                  showToast("Nombres restablecidos a pendientes para volver a votar", () => {});
               }}
-              className="mt-4 text-xs font-bold text-gray-500 dark:text-[#9ea3ae] hover:text-gray-700 dark:hover:text-[#f3f1ec] uppercase tracking-wider transition-colors focus:outline-none"
+              className="mt-4 text-xs font-bold text-stone-500 dark:text-[#9ea3ae] hover:text-stone-700 dark:hover:text-[#f3f1ec] tracking-tight transition-colors focus:outline-none"
             >
               Volver a votar los anteriores
             </button>
@@ -3880,12 +3880,12 @@ function VotadorNombres({ showToast }: { showToast: any }) {
 
       {matches.length > 0 && (
         <div className="mt-4">
-          <h4 className="font-bold text-gray-800 dark:text-[#f3f1ec] mb-3 flex items-center gap-2"><Sparkles size={18} className="text-amber-500"/> ¡It's a Match!</h4>
+          <h4 className="font-bold text-stone-800 dark:text-[#f3f1ec] mb-3 flex items-center gap-2"><Sparkles size={18} className="text-amber-500"/> ¡It's a Match!</h4>
           <div className="grid grid-cols-2 gap-3">
             {matches.map(n => (
               <div key={n.id} className="bg-gradient-to-br from-teal-50 to-white dark:from-[#181a20] dark:to-[#21242c] border border-teal-100 dark:border-white/[0.08] p-4 rounded-2xl flex flex-col items-center justify-center shadow-xs">
                 <Heart size={20} className="text-rose-400 mb-1" fill="currentColor"/>
-                <span className="font-bold text-gray-800 dark:text-[#f3f1ec]">{n.text}</span>
+                <span className="font-bold text-stone-800 dark:text-[#f3f1ec]">{n.text}</span>
               </div>
             ))}
           </div>
@@ -4090,16 +4090,16 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
         <div className="border-b-2 border-teal-800 pb-4 flex justify-between items-end">
           <div>
             <h1 className="text-2xl font-black tracking-tight text-teal-900">PLAN DE PARTO Y NACIMIENTO INFORMADO</h1>
-            <p className="text-xs text-gray-600 mt-0.5">Expresión de voluntades y preferencias clínicas para la atención del parto y recién nacido</p>
+            <p className="text-xs text-stone-600 mt-0.5">Expresión de voluntades y preferencias clínicas para la atención del parto y recién nacido</p>
           </div>
-          <div className="text-right text-xs text-gray-500 font-mono">
+          <div className="text-right text-xs text-stone-500 font-mono">
             <p>PandaJR Copiloto Fetal</p>
             <p>Fecha: {new Date().toLocaleDateString("es-ES")}</p>
           </div>
         </div>
 
         {/* Ficha de Identificación de Pacientes */}
-        <div className="grid grid-cols-2 gap-4 bg-gray-50 border border-gray-200 p-4 rounded-xl text-xs">
+        <div className="grid grid-cols-2 gap-4 bg-stone-50 border border-stone-200 p-4 rounded-xl text-xs">
           <div>
             <p><strong>Madre Gestante:</strong> {patientData.motherName || "Por definir"}</p>
             <p className="mt-1"><strong>Acompañante / Pareja:</strong> {patientData.partnerName || "Por definir"}</p>
@@ -4113,7 +4113,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
         </div>
 
         {/* Cláusula Introductoria de Respeto Clínico */}
-        <blockquote className="bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-xl text-xs text-gray-700 italic flex items-start gap-2.5">
+        <blockquote className="bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-xl text-xs text-stone-700 italic flex items-start gap-2.5">
           <span className="text-teal-700 font-serif text-lg leading-none select-none shrink-0" aria-hidden="true">“</span>
           <p className="flex-1">
             A la atención del equipo obstétrico y pediátrico: Este plan expresa nuestros deseos y preferencias para el proceso de parto y postparto inmediato, entendiendo siempre que la salud y seguridad de la madre y del bebé priman ante cualquier eventualidad médica imprevista.
@@ -4128,13 +4128,13 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
             if (activeOpts.length === 0) return null;
             return (
               <div key={sec.id} className="space-y-1.5 break-inside-avoid">
-                <h3 className="font-bold text-teal-950 text-sm border-b border-gray-200 pb-1 uppercase tracking-wider">{sec.title}</h3>
-                <ul className="space-y-1 text-xs text-gray-800 pt-1">
+                <h3 className="font-bold text-teal-950 text-sm border-b border-stone-200 pb-1 tracking-tight">{sec.title}</h3>
+                <ul className="space-y-1 text-xs text-stone-800 pt-1">
                   {activeOpts.map(opt => (
                     <li key={opt.id} className="flex items-start gap-2">
                       <span className="text-teal-700 font-bold">☑</span>
                       <div>
-                        <strong>{opt.label}:</strong> <span className="text-gray-600">{opt.desc}</span>
+                        <strong>{opt.label}:</strong> <span className="text-stone-600">{opt.desc}</span>
                       </div>
                     </li>
                   ))}
@@ -4145,18 +4145,18 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
         </div>
 
         {/* Sección de Firmas Formales */}
-        <div className="pt-8 mt-8 border-t border-gray-300 grid grid-cols-3 gap-6 text-center text-xs break-inside-avoid">
-          <div className="border-t border-gray-400 pt-2">
-            <p className="font-bold text-gray-800">{patientData.motherName || "Firma de la Madre"}</p>
-            <p className="text-[11px] text-gray-500">Madre Gestante</p>
+        <div className="pt-8 mt-8 border-t border-stone-300 grid grid-cols-3 gap-6 text-center text-xs break-inside-avoid">
+          <div className="border-t border-stone-400 pt-2">
+            <p className="font-bold text-stone-800">{patientData.motherName || "Firma de la Madre"}</p>
+            <p className="text-xs text-stone-500">Madre Gestante</p>
           </div>
-          <div className="border-t border-gray-400 pt-2">
-            <p className="font-bold text-gray-800">{patientData.partnerName || "Firma del Acompañante"}</p>
-            <p className="text-[11px] text-gray-500">Pareja / Acompañante</p>
+          <div className="border-t border-stone-400 pt-2">
+            <p className="font-bold text-stone-800">{patientData.partnerName || "Firma del Acompañante"}</p>
+            <p className="text-xs text-stone-500">Pareja / Acompañante</p>
           </div>
-          <div className="border-t border-gray-400 pt-2">
-            <p className="font-bold text-gray-800">Recibido por Equipo Obstétrico</p>
-            <p className="text-[11px] text-gray-500">Firma y Sello del Profesional</p>
+          <div className="border-t border-stone-400 pt-2">
+            <p className="font-bold text-stone-800">Recibido por Equipo Obstétrico</p>
+            <p className="text-xs text-stone-500">Firma y Sello del Profesional</p>
           </div>
         </div>
       </div>
@@ -4168,8 +4168,8 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
             <div className="inline-flex items-center gap-1.5 bg-teal-50 dark:bg-[#132420] border border-teal-200/80 dark:border-teal-500/25 px-2.5 py-0.5 rounded-full text-xs font-bold text-teal-800 dark:text-teal-300 mb-1">
               <ClipboardList size={13} className="text-teal-600 dark:text-teal-400" /> Plan de Parto Respetado
             </div>
-            <h3 className="text-2xl font-black text-gray-800 dark:text-[#f3f1ec]">Tu Plan de Parto</h3>
-            <p className="text-xs text-gray-500 dark:text-[#9ea3ae]">
+            <h3 className="text-2xl font-black text-stone-800 dark:text-[#f3f1ec]">Tu Plan de Parto</h3>
+            <p className="text-xs text-stone-500 dark:text-[#9ea3ae]">
               Personaliza tus preferencias para el hospital y expórtalas en un PDF oficial.
             </p>
           </div>
@@ -4178,7 +4178,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
             <button
               type="button"
               onClick={handlePrint}
-              className="p-2.5 bg-gray-900 dark:bg-[#21242c] hover:bg-gray-800 dark:hover:bg-[#282c36] text-white rounded-xl shadow-xs transition-all flex items-center gap-1.5 text-xs font-bold active:scale-95 border border-transparent dark:border-white/10"
+              className="p-2.5 bg-stone-900 dark:bg-[#21242c] hover:bg-stone-800 dark:hover:bg-[#282c36] text-white rounded-xl shadow-xs transition-all flex items-center gap-1.5 text-xs font-bold active:scale-95 border border-transparent dark:border-white/10"
               title="Guardar o imprimir en PDF"
             >
               <Printer size={16} />
@@ -4196,14 +4196,14 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
         </div>
 
         {/* SELECTOR DE VISTA: WIZARD VS DOCUMENTO OFICIAL */}
-        <div className="flex bg-gray-100 dark:bg-[#181a20] p-1 rounded-2xl border border-transparent dark:border-white/[0.08]">
+        <div className="flex bg-stone-100 dark:bg-[#181a20] p-1 rounded-2xl border border-transparent dark:border-white/[0.08]">
           <button
             type="button"
             onClick={() => setViewMode("wizard")}
             className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
               viewMode === "wizard" 
                 ? "bg-white dark:bg-[#21242c] text-teal-800 dark:text-teal-300 shadow-xs" 
-                : "text-gray-500 dark:text-[#9ea3ae] hover:text-gray-800 dark:hover:text-[#f3f1ec]"
+                : "text-stone-500 dark:text-[#9ea3ae] hover:text-stone-800 dark:hover:text-[#f3f1ec]"
             }`}
           >
             <Edit3 size={14} /> Asistente Paso a Paso ({step}/5)
@@ -4214,7 +4214,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
             className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
               viewMode === "document" 
                 ? "bg-white dark:bg-[#21242c] text-teal-800 dark:text-teal-300 shadow-xs" 
-                : "text-gray-500 dark:text-[#9ea3ae] hover:text-gray-800 dark:hover:text-[#f3f1ec]"
+                : "text-stone-500 dark:text-[#9ea3ae] hover:text-stone-800 dark:hover:text-[#f3f1ec]"
             }`}
           >
             <FileText size={14} /> Vista Previa Documento ({totalCheckedCount} seleccionadas)
@@ -4239,7 +4239,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                   className="flex-1 py-2 min-h-[40px] flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded-full"
                 >
                   <div className={`h-2 w-full rounded-full transition-all duration-300 ${
-                    isPast ? "bg-teal-600" : isCurrent ? "bg-teal-500 ring-2 ring-teal-200 dark:ring-teal-500/30" : "bg-gray-200 dark:bg-[#21242c]"
+                    isPast ? "bg-teal-600" : isCurrent ? "bg-teal-500 ring-2 ring-teal-200 dark:ring-teal-500/30" : "bg-stone-200 dark:bg-[#21242c]"
                   }`} />
                 </button>
               );
@@ -4248,13 +4248,13 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
 
           {/* Current Section Card */}
           {currentSection && (
-            <div className="bg-white dark:bg-[#181a20] rounded-3xl shadow-xs border border-gray-200/80 dark:border-white/[0.08] p-5 space-y-4 animate-in fade-in">
-              <div className="border-b border-gray-100 dark:border-white/[0.06] pb-3">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#132420] px-2.5 py-0.5 rounded-full">
+            <div className="bg-white dark:bg-[#181a20] rounded-3xl shadow-xs border border-stone-200/80 dark:border-white/[0.08] p-5 space-y-4 animate-in fade-in">
+              <div className="border-b border-stone-100 dark:border-white/[0.06] pb-3">
+                <span className="text-xs font-bold tracking-tight text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#132420] px-2.5 py-0.5 rounded-full">
                   Paso {step} de 5 · {currentSection.category}
                 </span>
-                <h4 className="text-lg font-black text-gray-800 dark:text-[#f3f1ec] mt-1 leading-tight">{currentSection.title}</h4>
-                <p className="text-xs text-gray-500 dark:text-[#9ea3ae] mt-0.5">{currentSection.subtitle}</p>
+                <h4 className="text-lg font-black text-stone-800 dark:text-[#f3f1ec] mt-1 leading-tight">{currentSection.title}</h4>
+                <p className="text-xs text-stone-500 dark:text-[#9ea3ae] mt-0.5">{currentSection.subtitle}</p>
               </div>
 
               {/* Opciones Interactivas con Switches */}
@@ -4265,20 +4265,20 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                     className={`flex items-start gap-3 p-3.5 rounded-2xl border transition-all cursor-pointer select-none ${
                       opt.checked
                         ? "bg-teal-50/60 dark:bg-[#21242c] border-teal-200 dark:border-teal-500/30 shadow-xs"
-                        : "bg-white dark:bg-[#181a20] border-gray-200/80 dark:border-white/[0.08] hover:border-gray-300 dark:hover:border-white/20 opacity-70"
+                        : "bg-white dark:bg-[#181a20] border-stone-200/80 dark:border-white/[0.08] hover:border-stone-300 dark:hover:border-white/20 opacity-70"
                     }`}
                   >
                     <input
                       type="checkbox"
                       checked={opt.checked}
                       onChange={() => toggleOption(currentSection.id, opt.id)}
-                      className="mt-1 w-4 h-4 text-teal-600 rounded border-gray-300 dark:border-white/20 dark:bg-[#21242c] focus:ring-teal-500"
+                      className="mt-1 w-4 h-4 text-teal-600 rounded border-stone-300 dark:border-white/20 dark:bg-[#21242c] focus:ring-teal-500"
                     />
                     <div className="flex-1">
-                      <span className={`text-xs font-bold block leading-snug ${opt.checked ? "text-teal-950 dark:text-teal-300" : "text-gray-700 dark:text-[#f3f1ec]"}`}>
+                      <span className={`text-xs font-bold block leading-snug ${opt.checked ? "text-teal-950 dark:text-teal-300" : "text-stone-700 dark:text-[#f3f1ec]"}`}>
                         {opt.label}
                       </span>
-                      <span className="text-[11px] text-gray-500 dark:text-[#9ea3ae] block mt-0.5 leading-relaxed">
+                      <span className="text-xs text-stone-500 dark:text-[#9ea3ae] block mt-0.5 leading-relaxed">
                         {opt.desc}
                       </span>
                     </div>
@@ -4295,7 +4295,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                 type="button"
                 onClick={() => setStep(s => Math.max(1, s - 1))}
                 aria-label="Paso anterior"
-                className="py-3 px-4 bg-gray-100 dark:bg-[#21242c] text-gray-700 dark:text-[#f3f1ec] rounded-2xl hover:bg-gray-200 dark:hover:bg-[#282c36] transition-colors font-bold text-xs flex items-center gap-1 active:scale-95"
+                className="py-3 px-4 bg-stone-100 dark:bg-[#21242c] text-stone-700 dark:text-[#f3f1ec] rounded-2xl hover:bg-stone-200 dark:hover:bg-[#282c36] transition-colors font-bold text-xs flex items-center gap-1 active:scale-95"
               >
                 <ArrowLeft size={16} /> Anterior
               </button>
@@ -4313,7 +4313,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
               <button
                 type="button"
                 onClick={() => setViewMode("document")}
-                className="flex-1 py-3 px-5 bg-gray-900 dark:bg-[#21242c] hover:bg-gray-800 dark:hover:bg-[#282c36] text-white rounded-2xl font-bold text-xs flex justify-center items-center gap-2 transition-all shadow-md active:scale-95 border border-transparent dark:border-white/10"
+                className="flex-1 py-3 px-5 bg-stone-900 dark:bg-[#21242c] hover:bg-stone-800 dark:hover:bg-[#282c36] text-white rounded-2xl font-bold text-xs flex justify-center items-center gap-2 transition-all shadow-md active:scale-95 border border-transparent dark:border-white/10"
               >
                 <FileText size={16} /> Ver Documento Final
               </button>
@@ -4326,81 +4326,81 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
       {viewMode === "document" && (
         <div className="no-print mt-4 space-y-5 animate-in fade-in">
           {/* Card de Datos del Paciente / Hospital */}
-          <div className="bg-white dark:bg-[#181a20] rounded-3xl p-5 shadow-xs border border-gray-100 dark:border-white/[0.08] space-y-3">
-            <div className="flex justify-between items-center border-b border-gray-100 dark:border-white/[0.06] pb-2">
-              <h4 className="text-xs font-bold text-gray-800 dark:text-[#f3f1ec] uppercase tracking-wider flex items-center gap-1.5">
+          <div className="bg-white dark:bg-[#181a20] rounded-3xl p-5 shadow-xs border border-stone-100 dark:border-white/[0.08] space-y-3">
+            <div className="flex justify-between items-center border-b border-stone-100 dark:border-white/[0.06] pb-2">
+              <h4 className="text-xs font-bold text-stone-800 dark:text-[#f3f1ec] tracking-tight flex items-center gap-1.5">
                 <Settings size={14} className="text-teal-600 dark:text-teal-400" /> Datos de la Ficha Médica
               </h4>
-              <span className="text-[10px] text-gray-500 dark:text-[#9ea3ae]">Se imprimirán en el encabezado</span>
+              <span className="text-xs text-stone-500 dark:text-[#9ea3ae]">Se imprimirán en el encabezado</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
-                <label htmlFor="plan-mother-name" className="font-semibold text-gray-600 dark:text-[#f3f1ec] block mb-1">Nombre de la Madre:</label>
+                <label htmlFor="plan-mother-name" className="font-semibold text-stone-600 dark:text-[#f3f1ec] block mb-1">Nombre de la Madre:</label>
                 <input
                   id="plan-mother-name"
                   type="text"
                   value={patientData.motherName}
                   onChange={e => setPatientData({ ...patientData, motherName: e.target.value })}
                   placeholder="Ej. Sofía Martínez"
-                  className="w-full bg-gray-50 dark:bg-[#21242c] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-gray-800 dark:text-[#f3f1ec] placeholder-gray-400 dark:placeholder-[#9ea3ae]/50 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full bg-stone-50 dark:bg-[#21242c] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#f3f1ec] placeholder-gray-400 dark:placeholder-[#9ea3ae]/50 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
 
               <div>
-                <label htmlFor="plan-partner-name" className="font-semibold text-gray-600 dark:text-[#f3f1ec] block mb-1">Acompañante / Pareja:</label>
+                <label htmlFor="plan-partner-name" className="font-semibold text-stone-600 dark:text-[#f3f1ec] block mb-1">Acompañante / Pareja:</label>
                 <input
                   id="plan-partner-name"
                   type="text"
                   value={patientData.partnerName}
                   onChange={e => setPatientData({ ...patientData, partnerName: e.target.value })}
                   placeholder="Ej. Carlos Pérez"
-                  className="w-full bg-gray-50 dark:bg-[#21242c] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-gray-800 dark:text-[#f3f1ec] placeholder-gray-400 dark:placeholder-[#9ea3ae]/50 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full bg-stone-50 dark:bg-[#21242c] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#f3f1ec] placeholder-gray-400 dark:placeholder-[#9ea3ae]/50 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
 
               <div>
-                <label htmlFor="plan-hospital" className="font-semibold text-gray-600 dark:text-[#f3f1ec] block mb-1">Hospital / Clínica:</label>
+                <label htmlFor="plan-hospital" className="font-semibold text-stone-600 dark:text-[#f3f1ec] block mb-1">Hospital / Clínica:</label>
                 <input
                   id="plan-hospital"
                   type="text"
                   value={patientData.hospital}
                   onChange={e => setPatientData({ ...patientData, hospital: e.target.value })}
                   placeholder="Ej. Hospital Materno Infantil"
-                  className="w-full bg-gray-50 dark:bg-[#21242c] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-gray-800 dark:text-[#f3f1ec] placeholder-gray-400 dark:placeholder-[#9ea3ae]/50 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full bg-stone-50 dark:bg-[#21242c] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#f3f1ec] placeholder-gray-400 dark:placeholder-[#9ea3ae]/50 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
 
               <div>
-                <label htmlFor="plan-doctor" className="font-semibold text-gray-600 dark:text-[#f3f1ec] block mb-1">Obstetra / Matrona:</label>
+                <label htmlFor="plan-doctor" className="font-semibold text-stone-600 dark:text-[#f3f1ec] block mb-1">Obstetra / Matrona:</label>
                 <input
                   id="plan-doctor"
                   type="text"
                   value={patientData.doctor}
                   onChange={e => setPatientData({ ...patientData, doctor: e.target.value })}
                   placeholder="Ej. Dra. Gómez / Matrona de turno"
-                  className="w-full bg-gray-50 dark:bg-[#21242c] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-gray-800 dark:text-[#f3f1ec] placeholder-gray-400 dark:placeholder-[#9ea3ae]/50 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full bg-stone-50 dark:bg-[#21242c] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#f3f1ec] placeholder-gray-400 dark:placeholder-[#9ea3ae]/50 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="plan-notes" className="font-semibold text-gray-600 dark:text-[#f3f1ec] block mb-1 text-xs">Observaciones Especiales o Alergias:</label>
+              <label htmlFor="plan-notes" className="font-semibold text-stone-600 dark:text-[#f3f1ec] block mb-1 text-xs">Observaciones Especiales o Alergias:</label>
               <textarea
                 id="plan-notes"
                 rows={2}
                 value={patientData.notes}
                 onChange={e => setPatientData({ ...patientData, notes: e.target.value })}
                 placeholder="Ej. Alergia a la penicilina, deseo donar sangre de cordón, etc."
-                className="w-full bg-gray-50 dark:bg-[#21242c] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs text-gray-800 dark:text-[#f3f1ec] placeholder-gray-400 dark:placeholder-[#9ea3ae]/50 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
+                className="w-full bg-stone-50 dark:bg-[#21242c] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs text-stone-800 dark:text-[#f3f1ec] placeholder-gray-400 dark:placeholder-[#9ea3ae]/50 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
               />
             </div>
           </div>
 
           {/* Resumen Estructurado del Documento */}
-          <div className="bg-white dark:bg-[#181a20] rounded-3xl p-5 shadow-xs border border-gray-100 dark:border-white/[0.08] space-y-4">
-            <div className="flex justify-between items-center border-b border-gray-100 dark:border-white/[0.06] pb-2">
-              <h4 className="text-sm font-bold text-gray-800 dark:text-[#f3f1ec] flex items-center gap-2">
+          <div className="bg-white dark:bg-[#181a20] rounded-3xl p-5 shadow-xs border border-stone-100 dark:border-white/[0.08] space-y-4">
+            <div className="flex justify-between items-center border-b border-stone-100 dark:border-white/[0.06] pb-2">
+              <h4 className="text-sm font-bold text-stone-800 dark:text-[#f3f1ec] flex items-center gap-2">
                 <FileText size={16} className="text-teal-600 dark:text-teal-400" /> Vista Previa del Documento
               </h4>
               <span className="text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-[#132420] px-2.5 py-0.5 rounded-full">
@@ -4413,16 +4413,16 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                 const active = sec.options.filter(o => o.checked);
                 return (
                   <div key={sec.id} className="bg-slate-50/70 dark:bg-[#21242c]/50 p-3.5 rounded-2xl border border-slate-100 dark:border-white/[0.06] space-y-2">
-                    <h5 className="font-bold text-gray-900 dark:text-[#f3f1ec] text-xs flex justify-between items-center">
+                    <h5 className="font-bold text-stone-900 dark:text-[#f3f1ec] text-xs flex justify-between items-center">
                       <span>{sec.title}</span>
-                      <span className="text-gray-500 dark:text-[#9ea3ae] font-normal">{active.length} de {sec.options.length}</span>
+                      <span className="text-stone-500 dark:text-[#9ea3ae] font-normal">{active.length} de {sec.options.length}</span>
                     </h5>
                     {active.length === 0 ? (
-                      <p className="text-gray-400 dark:text-[#9ea3ae]/60 italic text-[11px]">Sin preferencias seleccionadas en este apartado.</p>
+                      <p className="text-stone-400 dark:text-[#9ea3ae]/60 italic text-xs">Sin preferencias seleccionadas en este apartado.</p>
                     ) : (
                       <ul className="space-y-1.5">
                         {active.map(opt => (
-                          <li key={opt.id} className="flex items-start gap-2 text-gray-700 dark:text-[#f3f1ec]/90">
+                          <li key={opt.id} className="flex items-start gap-2 text-stone-700 dark:text-[#f3f1ec]/90">
                             <CheckCircle2 size={14} className="text-teal-600 dark:text-teal-400 shrink-0 mt-0.5" />
                             <span><strong>{opt.label}:</strong> {opt.desc}</span>
                           </li>
@@ -4443,7 +4443,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
               </div>
               <div>
                 <h4 className="font-bold text-sm">¿Todo listo para el día del parto?</h4>
-                <p className="text-xs text-gray-300">Imprime 2 copias (una para el historial y otra para la matrona) o guárdalo como PDF en tu teléfono.</p>
+                <p className="text-xs text-stone-300">Imprime 2 copias (una para el historial y otra para la matrona) o guárdalo como PDF en tu teléfono.</p>
               </div>
             </div>
 
@@ -4468,7 +4468,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
               <button
                 type="button"
                 onClick={resetToDefaults}
-                className="text-[11px] text-gray-400 hover:text-white underline transition-colors"
+                className="text-xs text-stone-400 hover:text-white underline transition-colors"
               >
                 Restablecer opciones predeterminadas
               </button>
