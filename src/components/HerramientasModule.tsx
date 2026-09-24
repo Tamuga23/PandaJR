@@ -1,7 +1,8 @@
+"use client";
+
 import html2canvas from 'html2canvas';
 import { getWeekData } from "./weekData";
-﻿"use client";
-
+﻿
 import React, { useState, useEffect, useRef } from "react";
 import { usePandaStore } from "@/store/usePandaStore";
 import { ensureAuth, createPregnancyForMom, joinPregnancyAsDad, listenToPregnancy, listenToMomStatus, updatePregnancyWeek, saveMomStatus, saveEvents, listenToEvents, saveKickSessions, listenToKickSessions, saveContractions, listenToContractions, saveBabyNames, listenToBabyNames, saveBirthPlan, listenToBirthPlan, saveChecklistProgress, listenToChecklistProgress, saveAppointmentPrep, listenToAppointmentPrep } from "@/lib/firebase/pairing";

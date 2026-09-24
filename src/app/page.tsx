@@ -1,7 +1,8 @@
+"use client";
+
 import { AgendaView, AppointmentPrepModal, parseEventDate } from "@/components/AgendaModule";
 import { HerramientasView } from "@/components/HerramientasModule";
-﻿"use client";
-
+﻿
 import React, { useState, useEffect } from "react";
 import { usePandaStore } from "@/store/usePandaStore";
 import { ensureAuth, createPregnancyForMom, joinPregnancyAsDad, listenToPregnancy, listenToMomStatus, updatePregnancyWeek, saveMomStatus, saveEvents, listenToEvents, saveKickSessions, listenToKickSessions, saveContractions, listenToContractions, saveBabyNames, listenToBabyNames, saveBirthPlan, listenToBirthPlan, saveChecklistProgress, listenToChecklistProgress, saveAppointmentPrep, listenToAppointmentPrep } from "@/lib/firebase/pairing";
