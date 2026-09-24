@@ -443,7 +443,7 @@ export function HerramientasView({ showToast, profile }: { showToast: any, profi
     {
       id: "reproductor",
       icon: <Music className="text-indigo-500" size={26} />,
-      title: "Panda Audio",
+      label: "Panda Audio",
       desc: "Relajación y ruidos",
       color: "bg-indigo-100 dark:bg-indigo-900/40 border-indigo-200 dark:border-indigo-800/50"
     },
@@ -451,7 +451,7 @@ export function HerramientasView({ showToast, profile }: { showToast: any, profi
     {
       id: "story",
       icon: <Camera className="text-pink-500" size={26} />,
-      title: "Panda Story",
+      label: "Panda Story",
       desc: "Comparte tu avance",
       color: "bg-pink-100 dark:bg-pink-900/40 border-pink-200 dark:border-pink-800/50"
     },
@@ -459,7 +459,7 @@ export function HerramientasView({ showToast, profile }: { showToast: any, profi
     {
       id: "presupuesto",
       icon: <Wallet className="text-emerald-500" size={26} />,
-      title: "Presupuesto",
+      label: "Presupuesto",
       desc: "Control de gastos",
       color: "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-200 dark:border-emerald-800/50",
       
@@ -479,7 +479,11 @@ export function HerramientasView({ showToast, profile }: { showToast: any, profi
     const tool = tools.find(t => t.id === activeTool);
     return (
       <div className="flex flex-col h-full w-full bg-stone-50 dark:bg-[#120f18] animate-in fade-in zoom-in-95 duration-200">
-        <div className="sticky top-0 z-20 bg-white/80 dark:bg-[#181520]/80 backdrop-blur-md px-4 py-3 flex items-center gap-3 border-b border-stone-200 dark:border-white/5">
+        
+        {/* Only show generic header if it's not one of our new custom modal tools */}
+        {!['presupuesto', 'story', 'reproductor'].includes(activeTool) && (
+          <div className="sticky top-0 z-20 bg-white/80 dark:bg-[#181520]/80 backdrop-blur-md px-4 py-3 flex items-center gap-3 border-b border-stone-200 dark:border-white/5">
+
           <button onClick={() => setActiveTool(null)} className="w-10 h-10 rounded-full bg-stone-100 dark:bg-white/5 flex items-center justify-center text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-white/10 transition-colors">
             <ArrowLeft size={20} />
           </button>
@@ -488,6 +492,7 @@ export function HerramientasView({ showToast, profile }: { showToast: any, profi
             <p className="text-[10px] uppercase tracking-wider text-stone-500 dark:text-[#a6a1b2] font-bold">{tool?.desc}</p>
           </div>
         </div>
+        )}
         <div className="flex-1 overflow-y-auto p-4">
           {activeTool === 'diario' && profile && <DiarioView profile={profile} onClose={() => setActiveTool(null)} />}
           {activeTool === 'maleta' && profile && <MaletaView profile={profile} onClose={() => setActiveTool(null)} />}
@@ -497,6 +502,10 @@ export function HerramientasView({ showToast, profile }: { showToast: any, profi
           {activeTool === 'nombres' && <VotadorNombres showToast={showToast} />}
           {activeTool === 'parto' && <PlanParto profile={profile} showToast={showToast} />}
           {activeTool === 'lecturas' && profile && <LecturasView week={profile.week} onClose={() => setActiveTool(null)} showToast={showToast} />}
+          {activeTool === 'presupuesto' && <CalculadoraPresupuesto onClose={() => setActiveTool(null)} />}
+          {activeTool === 'story' && <PandaStoryGenerator profile={profile} onClose={() => setActiveTool(null)} />}
+          {activeTool === 'reproductor' && <ReproductorView onClose={() => setActiveTool(null)} />}
+
         </div>
       </div>
     );
