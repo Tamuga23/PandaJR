@@ -6,7 +6,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { usePandaStore } from "@/store/usePandaStore";
 import { ensureAuth, createPregnancyForMom, joinPregnancyAsDad, listenToPregnancy, listenToMomStatus, updatePregnancyWeek, saveMomStatus, saveEvents, listenToEvents, saveKickSessions, listenToKickSessions, saveContractions, listenToContractions, saveBabyNames, listenToBabyNames, saveBirthPlan, listenToBirthPlan, saveChecklistProgress, listenToChecklistProgress, saveAppointmentPrep, listenToAppointmentPrep } from "@/lib/firebase/pairing";
 import Image from "next/image";
-import { Camera, Wand2, Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, AlertCircle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2, Bell, RotateCcw, Trash2, PhoneCall, Check, Undo2, Printer, Copy, Edit3, Sun, Moon, BookOpen, ExternalLink , Wallet } from "lucide-react";
+import { Camera, Wand2, Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, AlertCircle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2, Bell, RotateCcw, Trash2, PhoneCall, Check, Undo2, Printer, Copy, Edit3, Sun, Moon, BookOpen, ExternalLink , Wallet, Music } from "lucide-react";
 
 type Tab = "planificacion" | "agenda" | "herramientas" | "pandaia";
 
@@ -439,6 +439,14 @@ export function HerramientasView({ showToast, profile }: { showToast: any, profi
   const [activeTool, setActiveTool] = useState<any>(null);
 
   const tools = [
+    {
+      id: "reproductor",
+      icon: <Music className="text-indigo-500" size={26} />,
+      title: "Panda Audio",
+      desc: "Relajación y ruidos",
+      color: "bg-indigo-100 dark:bg-indigo-900/40 border-indigo-200 dark:border-indigo-800/50"
+    },
+
     {
       id: "story",
       icon: <Camera className="text-pink-500" size={26} />,
@@ -2652,6 +2660,104 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
                 </button>
               </div>
             )}
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+
+// --- REPRODUCTOR DE ESTIMULACIÓN ---
+export function ReproductorView({ onClose }: { onClose: () => void }) {
+  const [activeTab, setActiveTab] = useState<"dormir" | "estimulacion" | "latidos">("dormir");
+
+  const playlists = {
+    dormir: "https://open.spotify.com/embed/playlist/37i9dQZF1DXcVDmeug1vF1?utm_source=generator&theme=0",
+    estimulacion: "https://open.spotify.com/embed/playlist/37i9dQZF1DX5I05jXpeO1B?utm_source=generator&theme=0",
+    latidos: "https://open.spotify.com/embed/playlist/64qO4w74wNf0JqUOPZfE4F?utm_source=generator&theme=0"
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 dark:bg-black/90 backdrop-blur-md z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-[#15131a] w-full max-w-md sm:rounded-[2.5rem] rounded-t-[2.5rem] h-[85vh] sm:h-auto max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-white/20 dark:border-white/5 animate-in slide-in-from-bottom-8">
+        
+        {/* Header con gradiente premium */}
+        <div className="bg-gradient-to-br from-indigo-500 via-purple-500 to-fuchsia-500 p-6 shrink-0 relative overflow-hidden text-white">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-white/20 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-900/40 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none"></div>
+          
+          <div className="relative z-10 flex justify-between items-start">
+            <div>
+              <div className="bg-white/20 backdrop-blur-md w-10 h-10 rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-white/20">
+                <Music size={20} className="text-white" />
+              </div>
+              <h2 className="text-2xl font-black tracking-tight leading-none mb-1">
+                Panda Audio
+              </h2>
+              <p className="text-indigo-50 text-sm font-medium">Estimulación y relajación</p>
+            </div>
+            <button onClick={onClose} className="p-2 bg-black/10 hover:bg-black/20 backdrop-blur-md rounded-full transition-colors">
+              <X size={20} />
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto bg-stone-50 dark:bg-[#15131a] flex flex-col">
+          
+          {/* Custom Tabs */}
+          <div className="px-4 pt-6 pb-2">
+            <div className="flex bg-stone-200/50 dark:bg-[#221d2d] p-1.5 rounded-2xl">
+              <button 
+                onClick={() => setActiveTab("dormir")}
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === "dormir" ? "bg-white dark:bg-[#383147] text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-stone-500 dark:text-[#a6a1b2] hover:text-stone-700 dark:hover:text-stone-300"}`}
+              >
+                🌙 Dormir
+              </button>
+              <button 
+                onClick={() => setActiveTab("estimulacion")}
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === "estimulacion" ? "bg-white dark:bg-[#383147] text-fuchsia-600 dark:text-fuchsia-400 shadow-sm" : "text-stone-500 dark:text-[#a6a1b2] hover:text-stone-700 dark:hover:text-stone-300"}`}
+              >
+                🎵 Estimulación
+              </button>
+              <button 
+                onClick={() => setActiveTab("latidos")}
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === "latidos" ? "bg-white dark:bg-[#383147] text-rose-600 dark:text-rose-400 shadow-sm" : "text-stone-500 dark:text-[#a6a1b2] hover:text-stone-700 dark:hover:text-stone-300"}`}
+              >
+                ❤️ Latidos
+              </button>
+            </div>
+          </div>
+
+          <div className="p-4 flex-1 flex flex-col animate-in fade-in slide-in-from-right-4 duration-300 key={activeTab}">
+            <div className="mb-4 px-2">
+              <h3 className="text-lg font-black text-stone-800 dark:text-stone-200">
+                {activeTab === "dormir" && "Ruido Blanco y Cunas"}
+                {activeTab === "estimulacion" && "Mozart & Desarrollo"}
+                {activeTab === "latidos" && "Latidos y Útero"}
+              </h3>
+              <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
+                {activeTab === "dormir" && "Sonidos envolventes para calmar la ansiedad de los papás y arrullar al bebé."}
+                {activeTab === "estimulacion" && "Música clásica seleccionada para el desarrollo neurológico fetal."}
+                {activeTab === "latidos" && "El sonido que el bebé escucha dentro del vientre. Perfecto para recién nacidos."}
+              </p>
+            </div>
+            
+            <div className="flex-1 rounded-3xl overflow-hidden shadow-lg border border-stone-200 dark:border-white/10 bg-black">
+              <iframe 
+                src={playlists[activeTab]} 
+                width="100%" 
+                height="100%" 
+                frameBorder="0" 
+                allowFullScreen={false} 
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                loading="lazy"
+                className="w-full h-full min-h-[380px]"
+              ></iframe>
+            </div>
           </div>
 
         </div>
