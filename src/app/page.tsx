@@ -736,7 +736,7 @@ function AppointmentPrepModal({
 }
 
 
-function OnboardingModal({ onComplete, onSkip }: { onComplete: (profile: UserProfile) => void }) {
+function OnboardingModal({ onComplete, onSkip }: { onComplete: (profile: UserProfile) => void; onSkip?: () => void; }) {
   const [step, setStep] = useState(1);
   const [role, setRole] = useState<"mama" | "papa" | null>(null);
   const [name, setName] = useState("");
