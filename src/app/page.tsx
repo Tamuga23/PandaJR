@@ -1523,11 +1523,13 @@ function GuiaPapaView({ showToast, profile, updateProfile, remoteMomStatus }: { 
   const [newTaskText, setNewTaskText] = React.useState("");
 
   useEffect(() => {
+    let unsub: (() => void) | null = null;
     if (profile.pregnancyId) {
       import('@/lib/firebase/pairing').then(({ listenToCustomTasks }) => {
-        return listenToCustomTasks(profile.pregnancyId!, (tasks) => setCustomTasks(tasks));
+        unsub = listenToCustomTasks(profile.pregnancyId!, (tasks) => setCustomTasks(tasks));
       });
     }
+    return () => { if (unsub) unsub(); };
   }, [profile.pregnancyId]);
 
   const handleAddCustomTask = async () => {
@@ -2939,12 +2941,7 @@ function SOSSintomas() {
 
   return (
     <div className="flex flex-col py-2 animate-in fade-in duration-300 h-full w-full">
-      <div className="text-center mb-6">
-        <h3 className="text-xl font-bold text-stone-800 dark:text-[#eae6e1] flex justify-center items-center gap-2">
-          <HeartPulse className="text-terracotta/100" /> SOS Mamá
-        </h3>
-        <p className="text-sm text-stone-500 dark:text-[#a6a1b2]">Guía rápida de alivio de síntomas</p>
-      </div>
+      
 
       {/* Banner de Emergencia Rápida */}
       <div className="bg-gradient-to-r from-terracotta/10 to-red-50 dark:from-[#251518] dark:to-[#201316] border border-rose-200 dark:border-terracotta/100/25 rounded-2xl p-4 mb-4 flex items-center justify-between gap-3 shadow-xs">
@@ -3024,11 +3021,13 @@ function DiarioView({ profile, onClose }: { profile: UserProfile, onClose: () =>
   const [newEntry, setNewEntry] = React.useState("");
 
   useEffect(() => {
+    let unsub: (() => void) | null = null;
     if (profile.pregnancyId) {
       import('@/lib/firebase/pairing').then(({ listenToJournal }) => {
-        return listenToJournal(profile.pregnancyId!, (data) => setEntries(data));
+        unsub = listenToJournal(profile.pregnancyId!, (data) => setEntries(data));
       });
     }
+    return () => { if (unsub) unsub(); };
   }, [profile.pregnancyId]);
 
   const handlePost = async () => {
@@ -3097,11 +3096,13 @@ function MaletaView({ profile, onClose }: { profile: UserProfile, onClose: () =>
   const [bag, setBag] = React.useState<Record<string, boolean>>({});
 
   useEffect(() => {
+    let unsub: (() => void) | null = null;
     if (profile.pregnancyId) {
       import('@/lib/firebase/pairing').then(({ listenToGoBag }) => {
-        return listenToGoBag(profile.pregnancyId!, (data) => setBag(data));
+        unsub = listenToGoBag(profile.pregnancyId!, (data) => setBag(data));
       });
     }
+    return () => { if (unsub) unsub(); };
   }, [profile.pregnancyId]);
 
   const toggleItem = async (id: string, checked: boolean) => {
@@ -3175,7 +3176,7 @@ function HerramientasView({ showToast, profile }: { showToast: any, profile?: Us
   const [activeTool, setActiveTool] = useState<any>(null);
 
   const tools = [
-    { id: "sos", label: "SOS Mamá", icon: <HeartPulse size={24} />, desc: "Síntomas de alarma", color: "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400", border: "border-rose-100 dark:border-rose-500/20" },
+    { id: "sos", label: "SOS Síntomas", icon: <HeartPulse size={24} />, desc: "Síntomas de alarma", color: "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400", border: "border-rose-100 dark:border-rose-500/20" },
     { id: "contracciones", label: "Contracciones", icon: <Activity size={24} />, desc: "Contador 5-1-1", color: "bg-terracotta/10 text-terracotta", border: "border-terracotta/20" },
     { id: "patadas", label: "Patadas", icon: <Baby size={24} />, desc: "Monitor Cardiff", color: "bg-sage/10 text-sage", border: "border-sage/20" },
     { id: "diario", label: "Diario", icon: <FileText size={24} />, desc: "Memorias del bebé", color: "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400", border: "border-indigo-100 dark:border-indigo-500/20" },
@@ -3197,7 +3198,7 @@ function HerramientasView({ showToast, profile }: { showToast: any, profile?: Us
             <p className="text-[10px] uppercase tracking-wider text-stone-500 dark:text-[#a6a1b2] font-bold">{tool?.desc}</p>
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto p-4">
           {activeTool === 'diario' && profile && <DiarioView profile={profile} onClose={() => setActiveTool(null)} />}
           {activeTool === 'maleta' && profile && <MaletaView profile={profile} onClose={() => setActiveTool(null)} />}
           {activeTool === 'sos' && <SOSSintomas />}
