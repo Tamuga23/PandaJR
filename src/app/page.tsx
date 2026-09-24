@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, AlertCircle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2, Bell, RotateCcw, Trash2, PhoneCall, Check, Undo2, Printer, Copy, Edit3 } from "lucide-react";
+import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, AlertCircle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2, Bell, RotateCcw, Trash2, PhoneCall, Check, Undo2, Printer, Copy, Edit3, Sun, Moon } from "lucide-react";
 
 type Tab = "planificacion" | "agenda" | "herramientas" | "pandaia";
 
@@ -40,8 +40,8 @@ function ProfileModal({
       aria-labelledby="profile-modal-title"
       className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in"
     >
-      <div className="bg-white rounded-3xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="bg-teal-600 p-4 flex justify-between items-center text-white">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-100 dark:border-slate-800">
+        <div className="bg-teal-600 dark:bg-teal-700 p-4 flex justify-between items-center text-white">
           <h3 id="profile-modal-title" className="font-bold flex items-center gap-2">
             <Settings size={18} /> Configurar Perfil
           </h3>
@@ -51,21 +51,21 @@ function ProfileModal({
         </div>
         
         <div className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 dark:text-slate-400">
             Define quién está usando la app en este dispositivo. Esto adapta la Guía, la Agenda y PandaIA:
           </p>
 
           {/* Selector de Rol */}
           <div>
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
+            <label className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider block mb-1">
               Rol en este dispositivo
             </label>
-            <div className="grid grid-cols-2 gap-2 bg-gray-100 p-1 rounded-xl">
+            <div className="grid grid-cols-2 gap-2 bg-gray-100 dark:bg-slate-800 p-1 rounded-xl">
               <button
                 type="button"
                 onClick={() => setForm(p => ({ ...p, role: "papa" }))}
                 className={`py-2 text-xs font-bold rounded-lg transition-all ${
-                  form.role === "papa" ? "bg-white text-teal-700 shadow-sm" : "text-gray-500"
+                  form.role === "papa" ? "bg-white dark:bg-slate-700 text-teal-700 dark:text-teal-300 shadow-sm" : "text-gray-500 dark:text-slate-400"
                 }`}
               >
                 🧔 Soy el Papá
@@ -74,7 +74,7 @@ function ProfileModal({
                 type="button"
                 onClick={() => setForm(p => ({ ...p, role: "mama" }))}
                 className={`py-2 text-xs font-bold rounded-lg transition-all ${
-                  form.role === "mama" ? "bg-white text-teal-700 shadow-sm" : "text-gray-500"
+                  form.role === "mama" ? "bg-white dark:bg-slate-700 text-teal-700 dark:text-teal-300 shadow-sm" : "text-gray-500 dark:text-slate-400"
                 }`}
               >
                 👩 Soy la Mamá
@@ -84,7 +84,7 @@ function ProfileModal({
 
           {/* Nombre / Apodo */}
           <div>
-            <label htmlFor="profile-name" className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
+            <label htmlFor="profile-name" className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider block mb-1">
               Nombre o Apodo (Opcional)
             </label>
             <input
@@ -93,13 +93,13 @@ function ProfileModal({
               value={form.name}
               onChange={(e) => setForm(p => ({ ...p, name: e.target.value }))}
               placeholder="Ej. Carlos o Sofía"
-              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+              className="w-full text-sm bg-white dark:bg-slate-800 text-gray-800 dark:text-slate-100 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none placeholder-gray-400 dark:placeholder-slate-500"
             />
           </div>
 
           {/* Semana de Gestación */}
           <div>
-            <label htmlFor="profile-week" className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
+            <label htmlFor="profile-week" className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider block mb-1">
               Semana de Gestación Actual
             </label>
             <input
@@ -109,13 +109,13 @@ function ProfileModal({
               max={42}
               value={form.week}
               onChange={(e) => setForm(p => ({ ...p, week: parseInt(e.target.value, 10) || 1 }))}
-              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+              className="w-full text-sm bg-white dark:bg-slate-800 text-gray-800 dark:text-slate-100 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none"
             />
           </div>
 
           {/* Ubicación / Ciudad (Opcional) */}
           <div>
-            <label htmlFor="profile-location" className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
+            <label htmlFor="profile-location" className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider block mb-1">
               Ciudad o País (Opcional)
             </label>
             <input
@@ -124,13 +124,13 @@ function ProfileModal({
               value={form.location}
               onChange={(e) => setForm(p => ({ ...p, location: e.target.value }))}
               placeholder="Para recomendaciones locales"
-              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+              className="w-full text-sm bg-white dark:bg-slate-800 text-gray-800 dark:text-slate-100 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none placeholder-gray-400 dark:placeholder-slate-500"
             />
           </div>
 
           {/* Notas personales o médicas */}
           <div>
-            <label htmlFor="profile-notes" className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
+            <label htmlFor="profile-notes" className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider block mb-1">
               Notas de rutina o preferencias
             </label>
             <textarea
@@ -139,16 +139,16 @@ function ProfileModal({
               value={form.notes}
               onChange={(e) => setForm(p => ({ ...p, notes: e.target.value }))}
               placeholder="Ej. Trabajo en turnos, cesárea programada, etc."
-              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none resize-none"
+              className="w-full text-sm bg-white dark:bg-slate-800 text-gray-800 dark:text-slate-100 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none resize-none placeholder-gray-400 dark:placeholder-slate-500"
             />
           </div>
         </div>
 
-        <div className="p-4 border-t border-gray-100 bg-gray-50 flex gap-2">
+        <div className="p-4 border-t border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-900 flex gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-2.5 text-sm font-semibold text-gray-500 hover:bg-gray-100 rounded-xl transition-colors"
+            className="flex-1 py-2.5 text-sm font-semibold text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
           >
             Cancelar
           </button>
@@ -555,7 +555,7 @@ function AppointmentPrepModal({
       aria-labelledby="prep-modal-title"
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in"
     >
-      <div className="bg-white w-full max-h-[92vh] sm:max-w-md sm:rounded-3xl rounded-t-3xl overflow-hidden shadow-2xl flex flex-col animate-in slide-in-from-bottom-6">
+      <div className="bg-white dark:bg-slate-900 w-full max-h-[92vh] sm:max-w-md sm:rounded-3xl rounded-t-3xl overflow-hidden shadow-2xl flex flex-col animate-in slide-in-from-bottom-6 border border-gray-100 dark:border-slate-800">
         {/* Header con gradiente */}
         <div className="bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-600 p-5 text-white shrink-0 relative">
           <button 
@@ -587,12 +587,12 @@ function AppointmentPrepModal({
         </div>
 
         {/* Scrollable Content */}
-        <div className="p-5 space-y-6 overflow-y-auto flex-1 text-gray-800">
+        <div className="p-5 space-y-6 overflow-y-auto flex-1 text-gray-800 dark:text-slate-100">
           
           {/* Tip destacado */}
-          <div className="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-3.5 flex gap-3 items-start shadow-xs">
+          <div className="bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200/90 dark:border-amber-800/60 rounded-2xl p-3.5 flex gap-3 items-start shadow-xs">
             <Sparkles className="text-amber-500 shrink-0 mt-0.5" size={18} />
-            <p className="text-xs text-amber-900 leading-relaxed font-medium">
+            <p className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed font-medium">
               <strong className="font-bold">Consejo de preparación:</strong> {prep.tip}
             </p>
           </div>
@@ -600,10 +600,10 @@ function AppointmentPrepModal({
           {/* Sección 1: Qué llevar */}
           <div>
             <div className="flex items-center justify-between mb-2.5">
-              <h4 className="font-bold text-gray-800 text-sm flex items-center gap-2">
-                <ShoppingBag size={17} className="text-teal-600" /> ¿Qué debes llevar?
+              <h4 className="font-bold text-gray-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                <ShoppingBag size={17} className="text-teal-600 dark:text-teal-400" /> ¿Qué debes llevar?
               </h4>
-              <span className="text-[11px] font-semibold text-gray-500">
+              <span className="text-[11px] font-semibold text-gray-500 dark:text-slate-400">
                 {Object.values(checkedItems).filter(Boolean).length} de {prep.whatToBring.length} listos
               </span>
             </div>
@@ -617,11 +617,11 @@ function AppointmentPrepModal({
                     onClick={() => toggleItem(item)}
                     className={`w-full text-left p-3 rounded-xl border text-xs leading-relaxed transition-all flex items-start gap-2.5 ${
                       isChecked 
-                        ? "bg-teal-50/70 border-teal-200 text-teal-900 line-through opacity-80" 
-                        : "bg-white border-gray-100 hover:border-teal-200 text-gray-700 shadow-xs"
+                        ? "bg-teal-50/70 dark:bg-teal-950/40 border-teal-200 dark:border-teal-800/60 text-teal-900 dark:text-teal-300 line-through opacity-80" 
+                        : "bg-white dark:bg-slate-800 border-gray-100 dark:border-slate-700 hover:border-teal-200 dark:hover:border-teal-600 text-gray-700 dark:text-slate-200 shadow-xs"
                     }`}
                   >
-                    <div className={`mt-0.5 shrink-0 transition-colors ${isChecked ? "text-teal-600" : "text-gray-300"}`}>
+                    <div className={`mt-0.5 shrink-0 transition-colors ${isChecked ? "text-teal-600 dark:text-teal-400" : "text-gray-300 dark:text-slate-600"}`}>
                       {isChecked ? <CheckCircle2 size={16} /> : <Circle size={16} />}
                     </div>
                     <span className="flex-1">{item}</span>
@@ -634,10 +634,10 @@ function AppointmentPrepModal({
           {/* Sección 2: Qué preguntar al médico */}
           <div>
             <div className="flex items-center justify-between mb-2.5">
-              <h4 className="font-bold text-gray-800 text-sm flex items-center gap-2">
-                <ClipboardList size={17} className="text-teal-600" /> Preguntas clave para el doctor
+              <h4 className="font-bold text-gray-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                <ClipboardList size={17} className="text-teal-600 dark:text-teal-400" /> Preguntas clave para el doctor
               </h4>
-              <span className="text-[11px] font-semibold text-gray-500">
+              <span className="text-[11px] font-semibold text-gray-500 dark:text-slate-400">
                 {Object.values(checkedQuestions).filter(Boolean).length} de {prep.whatToAsk.length} hechas
               </span>
             </div>
@@ -651,11 +651,11 @@ function AppointmentPrepModal({
                     onClick={() => toggleQuestion(q)}
                     className={`w-full text-left p-3 rounded-xl border text-xs leading-relaxed transition-all flex items-start gap-2.5 ${
                       isChecked 
-                        ? "bg-emerald-50/70 border-emerald-200 text-emerald-900 line-through opacity-80" 
-                        : "bg-white border-gray-100 hover:border-teal-200 text-gray-700 shadow-xs"
+                        ? "bg-emerald-50/70 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/60 text-emerald-900 dark:text-emerald-300 line-through opacity-80" 
+                        : "bg-white dark:bg-slate-800 border-gray-100 dark:border-slate-700 hover:border-teal-200 dark:hover:border-teal-600 text-gray-700 dark:text-slate-200 shadow-xs"
                     }`}
                   >
-                    <div className={`mt-0.5 shrink-0 transition-colors ${isChecked ? "text-emerald-600" : "text-gray-300"}`}>
+                    <div className={`mt-0.5 shrink-0 transition-colors ${isChecked ? "text-emerald-600 dark:text-emerald-400" : "text-gray-300 dark:text-slate-600"}`}>
                       {isChecked ? <CheckCircle2 size={16} /> : <Circle size={16} />}
                     </div>
                     <span className="flex-1 font-medium">{q}</span>
@@ -666,25 +666,25 @@ function AppointmentPrepModal({
           </div>
 
           {/* Opciones de Recordatorio y Calendario */}
-          <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-3">
-            <p className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
-              <Bell size={15} className="text-teal-600" /> Sincronizar Alarmas de Recordatorio
+          <div className="bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 rounded-2xl p-4 space-y-3">
+            <p className="text-xs font-bold text-gray-700 dark:text-slate-200 flex items-center gap-1.5">
+              <Bell size={15} className="text-teal-600 dark:text-teal-400" /> Sincronizar Alarmas de Recordatorio
             </p>
-            <p className="text-[11px] text-gray-500 leading-snug">
+            <p className="text-[11px] text-gray-500 dark:text-slate-400 leading-snug">
               Añade esta cita a tu calendario del teléfono con 2 alarmas automáticas (24h y 2h antes) y todas estas preguntas guardadas en las notas.
             </p>
             <div className="grid grid-cols-2 gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => downloadIcsCalendar(event, prep)}
-                className="py-2.5 px-3 bg-white hover:bg-gray-100 text-gray-800 font-bold text-xs rounded-xl border border-gray-200 shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all text-center"
+                className="py-2.5 px-3 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-800 dark:text-slate-200 font-bold text-xs rounded-xl border border-gray-200 dark:border-slate-700 shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all text-center"
               >
                 <span>📅 Apple / iCal (.ics)</span>
               </button>
               <button
                 type="button"
                 onClick={() => openGoogleCalendar(event, prep)}
-                className="py-2.5 px-3 bg-white hover:bg-gray-100 text-teal-700 font-bold text-xs rounded-xl border border-teal-200 shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all text-center"
+                className="py-2.5 px-3 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 text-teal-700 dark:text-teal-300 font-bold text-xs rounded-xl border border-teal-200 dark:border-slate-700 shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all text-center"
               >
                 <span>🗓️ Google Calendar</span>
               </button>
@@ -693,7 +693,7 @@ function AppointmentPrepModal({
         </div>
 
         {/* Footer con botón de consulta a PandaIA */}
-        <div className="p-4 border-t border-gray-100 bg-gray-50 flex gap-2">
+        <div className="p-4 border-t border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-900 flex gap-2">
           {onAskPandaIA && (
             <button
               type="button"
@@ -730,6 +730,31 @@ export default function PandaJRApp() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [selectedPrepEvent, setSelectedPrepEvent] = useState<any | null>(null);
   const [aiInitialQuery, setAiInitialQuery] = useState<string>("");
+
+  // Control de Tema: Modo Oscuro / Claro con persistencia y háptica
+  const [isDark, setIsDark] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isDarkMode = document.documentElement.classList.contains("dark");
+      setIsDark(isDarkMode);
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const nextDark = !isDark;
+    setIsDark(nextDark);
+    if (nextDark) {
+      document.documentElement.classList.add("dark");
+      try { localStorage.setItem("pandajr_theme", "dark"); } catch(e) {}
+    } else {
+      document.documentElement.classList.remove("dark");
+      try { localStorage.setItem("pandajr_theme", "light"); } catch(e) {}
+    }
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      try { navigator.vibrate(25); } catch(e) {}
+    }
+  };
 
   // Cargar perfil global de localStorage
   useEffect(() => {
@@ -842,9 +867,9 @@ export default function PandaJRApp() {
   }, [isProfileModalOpen, selectedPrepEvent]);
 
   return (
-    <div className={`flex flex-col ${activeTab === "pandaia" ? "h-screen overflow-hidden" : "min-h-screen pb-16"} w-full max-w-md mx-auto bg-gray-50 text-gray-900 font-sans relative shadow-2xl overflow-x-hidden`}>
-      {/* Header con Logo, Alerta de Cita y Selector Global de Perfil */}
-      <header className="bg-white px-4 sm:px-5 py-2.5 shadow-sm sticky top-0 z-40 w-full flex items-center justify-between shrink-0">
+    <div className={`flex flex-col ${activeTab === "pandaia" ? "h-screen overflow-hidden" : "min-h-screen pb-16"} w-full max-w-md mx-auto bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 font-sans relative shadow-2xl overflow-x-hidden transition-colors duration-200 border-x border-gray-100 dark:border-slate-800`}>
+      {/* Header con Logo, Switch Modo Oscuro, Alerta de Cita y Selector Global de Perfil */}
+      <header className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-3 sm:px-4 py-2.5 shadow-xs border-b border-gray-100 dark:border-slate-800 sticky top-0 z-40 w-full flex items-center justify-between shrink-0 transition-colors">
         <div className="flex items-center">
           <h1 className="sr-only">PandaJR</h1>
           <Image 
@@ -853,11 +878,36 @@ export default function PandaJRApp() {
             width={136} 
             height={36} 
             priority 
-            className="h-8 sm:h-9 w-auto object-contain"
+            className="h-8 sm:h-9 w-auto object-contain dark:brightness-110"
           />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Switch Ergonómico de Modo Oscuro / Claro */}
+          <button
+            type="button"
+            role="switch"
+            aria-checked={isDark}
+            onClick={toggleTheme}
+            aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+            title={isDark ? "Modo oscuro activo (Toca para modo claro)" : "Modo claro activo (Toca para modo oscuro)"}
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors active:scale-95 cursor-pointer touch-manipulation select-none"
+          >
+            <div className={`relative w-12 h-6 rounded-full transition-colors duration-300 p-0.5 border ${
+              isDark ? "bg-slate-800 border-slate-700" : "bg-gray-200 border-gray-300"
+            }`}>
+              <div
+                className={`w-5 h-5 rounded-full shadow-xs transform transition-transform duration-300 flex items-center justify-center ${
+                  isDark 
+                    ? "translate-x-6 bg-slate-900 text-teal-300 border border-slate-700" 
+                    : "translate-x-0 bg-white text-amber-500 border border-amber-100"
+                }`}
+              >
+                {isDark ? <Moon size={11} /> : <Sun size={11} />}
+              </div>
+            </div>
+          </button>
+
           {/* Botón Campana de Recordatorio de Cita */}
           {events.length > 0 && (
             <button
@@ -869,7 +919,9 @@ export default function PandaJRApp() {
                 }
               }}
               className={`min-w-[44px] min-h-[44px] p-2.5 rounded-full border transition-all active:scale-95 relative flex items-center justify-center ${
-                nextUpcomingEvent ? "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100" : "bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100"
+                nextUpcomingEvent 
+                  ? "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/60 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50" 
+                  : "bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-400 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700"
               }`}
               title={nextUpcomingEvent ? `Recordatorio de cita: ${nextUpcomingEvent.title}` : "Citas médicas"}
               aria-label="Recordatorio de citas médicas"
@@ -879,7 +931,7 @@ export default function PandaJRApp() {
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-500 rounded-full animate-ping"></span>
               )}
               {nextUpcomingEvent && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-500 rounded-full border-2 border-white"></span>
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-500 rounded-full border-2 border-white dark:border-slate-900"></span>
               )}
             </button>
           )}
@@ -887,7 +939,7 @@ export default function PandaJRApp() {
           {/* Botón Global de Perfil / Switcher */}
           <button
             onClick={() => setIsProfileModalOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-full bg-teal-50 border border-teal-200/70 hover:bg-teal-100 transition-all text-xs font-bold text-teal-700 active:scale-95 shadow-xs"
+            className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-full bg-teal-50 dark:bg-teal-950/40 border border-teal-200/70 dark:border-teal-800/60 hover:bg-teal-100 dark:hover:bg-teal-900/50 transition-all text-xs font-bold text-teal-700 dark:text-teal-300 active:scale-95 shadow-xs"
             title="Configurar tu rol y perfil en este dispositivo"
           >
             <span className="text-base">{profile.role === "papa" ? "🧔" : "👩"}</span>
@@ -967,7 +1019,7 @@ export default function PandaJRApp() {
       )}
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-100 flex justify-around items-center px-2 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] z-50">
+      <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-gray-100 dark:border-slate-800 flex justify-around items-center px-2 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] z-50 transition-colors">
         <NavItem
           icon={<Compass size={24} />}
           label="Guía"
@@ -1002,7 +1054,7 @@ function NavItem({ icon, label, isActive, onClick }: { icon: React.ReactNode, la
     <button
       onClick={onClick}
       className={`flex flex-col items-center gap-1 w-full p-2 transition-colors duration-200 ${
-        isActive ? "text-teal-600 font-semibold" : "text-gray-500 hover:text-gray-700"
+        isActive ? "text-teal-600 dark:text-teal-400 font-semibold" : "text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
       }`}
     >
       {icon}
@@ -1208,7 +1260,7 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
     <div className="p-5 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
       
       {/* 1. Week Selector & Info */}
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800 overflow-hidden transition-colors">
         {/* Selector */}
         <div className="bg-gradient-to-r from-teal-600 to-teal-500 p-4 text-white flex items-center justify-between">
           <button aria-label="Semana anterior"
@@ -1233,43 +1285,43 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
         <div className="p-5">
           <div className="flex justify-between items-center mb-4">
             <div>
-              <p className="text-gray-500 text-xs uppercase font-bold mb-1">Tamaño comparativo</p>
-              <p className="text-xl font-bold text-gray-800">{weekData.size}</p>
+              <p className="text-gray-500 dark:text-slate-400 text-xs uppercase font-bold mb-1">Tamaño comparativo</p>
+              <p className="text-xl font-bold text-gray-800 dark:text-slate-100">{weekData.size}</p>
             </div>
-            <div className="bg-teal-50 p-3 rounded-2xl">
-              <Baby size={32} className="text-teal-600" />
+            <div className="bg-teal-50 dark:bg-teal-950/50 p-3 rounded-2xl">
+              <Baby size={32} className="text-teal-600 dark:text-teal-400" />
             </div>
           </div>
           
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="bg-gray-50 rounded-2xl p-3 border border-gray-100">
-              <p className="text-gray-500 text-xs font-bold mb-1">Longitud</p>
-              <p className="font-bold text-gray-800">{weekData.length}</p>
+            <div className="bg-gray-50 dark:bg-slate-800/60 rounded-2xl p-3 border border-gray-100 dark:border-slate-800">
+              <p className="text-gray-500 dark:text-slate-400 text-xs font-bold mb-1">Longitud</p>
+              <p className="font-bold text-gray-800 dark:text-slate-100">{weekData.length}</p>
             </div>
-            <div className="bg-gray-50 rounded-2xl p-3 border border-gray-100">
-              <p className="text-gray-500 text-xs font-bold mb-1">Peso est.</p>
-              <p className="font-bold text-gray-800">{weekData.weight}</p>
+            <div className="bg-gray-50 dark:bg-slate-800/60 rounded-2xl p-3 border border-gray-100 dark:border-slate-800">
+              <p className="text-gray-500 dark:text-slate-400 text-xs font-bold mb-1">Peso est.</p>
+              <p className="font-bold text-gray-800 dark:text-slate-100">{weekData.weight}</p>
             </div>
           </div>
 
-          <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 flex gap-3">
+          <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-800/60 rounded-2xl p-4 flex gap-3">
             <Sparkles size={24} className="text-amber-500 shrink-0" />
             <div>
-              <p className="text-amber-800 text-xs font-bold uppercase mb-1">Hito de la semana</p>
-              <p className="text-amber-900 text-sm font-medium">{weekData.milestone}</p>
+              <p className="text-amber-800 dark:text-amber-300 text-xs font-bold uppercase mb-1">Hito de la semana</p>
+              <p className="text-amber-900 dark:text-amber-200 text-sm font-medium">{weekData.milestone}</p>
             </div>
           </div>
         </div>
 
         {/* Misión */}
-        <div className="bg-teal-50 border-t border-teal-100 p-5">
+        <div className="bg-teal-50 dark:bg-teal-950/40 border-t border-teal-100 dark:border-teal-800/60 p-5">
           <div className="flex items-center gap-2 mb-2">
-            <Trophy size={18} className="text-teal-600" />
-            <h3 className="font-bold text-teal-800 text-sm">
+            <Trophy size={18} className="text-teal-600 dark:text-teal-400" />
+            <h3 className="font-bold text-teal-800 dark:text-teal-300 text-sm">
               {profile.role === "papa" ? "Misión del Papá" : "Misión de la Mamá"}
             </h3>
           </div>
-          <p className="text-teal-900 text-sm leading-relaxed">
+          <p className="text-teal-900 dark:text-teal-200 text-sm leading-relaxed">
             {weekData.dadMission}
           </p>
         </div>
@@ -1278,40 +1330,40 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
       {/* 2. Checklist Module */}
       <div>
         <div className="flex justify-between items-end mb-3">
-          <h2 className="text-xl font-bold text-gray-800">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-slate-100">
             {profile.role === "papa" ? "Checklists del Papá" : "Checklists de la Mamá"}
           </h2>
-          <span className="text-teal-600 font-bold text-sm">{progressPercent}% completado</span>
+          <span className="text-teal-600 dark:text-teal-400 font-bold text-sm">{progressPercent}% completado</span>
         </div>
         
         {/* Progress bar */}
-        <div className="w-full bg-gray-200 rounded-full h-2.5 mb-5 overflow-hidden">
+        <div className="w-full bg-gray-200 dark:bg-slate-800 rounded-full h-2.5 mb-5 overflow-hidden">
           <div className="bg-teal-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
         </div>
 
         <div className="space-y-4">
           {categories.map((cat) => (
-            <div key={cat.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div key={cat.id} className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 overflow-hidden transition-colors">
               <button 
                 onClick={() => toggleExpand(cat.id)}
-                className="w-full p-4 flex items-center justify-between bg-white hover:bg-gray-50 transition-colors"
+                className="w-full p-4 flex items-center justify-between bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800/60 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className={`${cat.color} p-2 rounded-xl`}>
+                  <div className={`${cat.color} dark:bg-opacity-20 p-2 rounded-xl`}>
                     {cat.icon}
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-800 text-left">{cat.title}</h3>
-                    <p className="text-xs text-gray-500 text-left">
+                    <h3 className="font-bold text-gray-800 dark:text-slate-100 text-left">{cat.title}</h3>
+                    <p className="text-xs text-gray-500 dark:text-slate-400 text-left">
                       {cat.tasks.filter(t => t.completed).length} de {cat.tasks.length} completadas
                     </p>
                   </div>
                 </div>
-                {cat.expanded ? <ChevronUp size={20} className="text-gray-500" /> : <ChevronDown size={20} className="text-gray-500" />}
+                {cat.expanded ? <ChevronUp size={20} className="text-gray-500 dark:text-slate-400" /> : <ChevronDown size={20} className="text-gray-500 dark:text-slate-400" />}
               </button>
               
               {cat.expanded && (
-                <div className="p-4 pt-0 border-t border-gray-50 bg-gray-50/50">
+                <div className="p-4 pt-0 border-t border-gray-50 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/60">
                   <div className="space-y-2 mt-3">
                     {cat.tasks.map(task => (
                       <button 
@@ -1319,12 +1371,12 @@ function GuiaPapaView({ showToast, profile, updateProfile }: { showToast: any, p
                         onClick={() => toggleTask(cat.id, task.id)}
                         aria-checked={task.completed}
                         role="switch"
-                        className="w-full text-left flex items-start gap-3 p-3 bg-white rounded-xl border border-gray-100 cursor-pointer hover:border-teal-200 transition-colors group focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        className="w-full text-left flex items-start gap-3 p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-gray-100 dark:border-slate-700/80 cursor-pointer hover:border-teal-200 dark:hover:border-teal-600 transition-colors group focus:outline-none focus:ring-2 focus:ring-teal-500"
                       >
-                        <div className={`mt-0.5 shrink-0 transition-colors ${task.completed ? "text-teal-500" : "text-gray-300 group-hover:text-teal-400"}`}>
+                        <div className={`mt-0.5 shrink-0 transition-colors ${task.completed ? "text-teal-500" : "text-gray-300 dark:text-slate-600 group-hover:text-teal-400"}`}>
                           {task.completed ? <CheckCircle2 size={18} /> : <Circle size={18} />}
                         </div>
-                        <span className={`text-sm leading-snug ${task.completed ? "text-gray-400 line-through" : "text-gray-700"}`}>
+                        <span className={`text-sm leading-snug ${task.completed ? "text-gray-400 dark:text-slate-500 line-through" : "text-gray-700 dark:text-slate-200"}`}>
                           {task.text}
                         </span>
                       </button>
@@ -1616,25 +1668,25 @@ function AgendaView({
             </button>
 
             {isSuggestionsOpen && (
-              <div className="p-4 pt-1 space-y-2 border-t border-teal-50/80 animate-in fade-in">
+              <div className="p-4 pt-1 space-y-2 border-t border-teal-50/80 dark:border-slate-800 animate-in fade-in">
                 {(profile.role === "mama" ? suggestions.mama : suggestions.papa).map((s) => (
-                  <div key={s.id} className="flex gap-2.5 items-start p-2.5 rounded-xl bg-gray-50 border border-gray-100">
-                    <div className="mt-0.5 flex-shrink-0 w-4 h-4 bg-teal-100 rounded-full flex items-center justify-center">
-                      <CheckCircle2 size={11} className="text-teal-700" />
+                  <div key={s.id} className="flex gap-2.5 items-start p-2.5 rounded-xl bg-gray-50 dark:bg-slate-800/70 border border-gray-100 dark:border-slate-700">
+                    <div className="mt-0.5 flex-shrink-0 w-4 h-4 bg-teal-100 dark:bg-teal-950/60 rounded-full flex items-center justify-center">
+                      <CheckCircle2 size={11} className="text-teal-700 dark:text-teal-300" />
                     </div>
-                    <p className="text-xs text-gray-700 leading-snug flex-1 font-medium">{s.text}</p>
+                    <p className="text-xs text-gray-700 dark:text-slate-200 leading-snug flex-1 font-medium">{s.text}</p>
                     <button 
                       type="button"
                       onClick={() => dismissSuggestion(s.id)} 
                       aria-label="Descartar sugerencia" 
-                      className="text-gray-400 hover:text-gray-700 p-1 rounded-lg hover:bg-gray-200/60 transition-colors flex items-center justify-center"
+                      className="text-gray-400 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300 p-1 rounded-lg hover:bg-gray-200/60 dark:hover:bg-slate-700 transition-colors flex items-center justify-center"
                     >
                       <X size={15} />
                     </button>
                   </div>
                 ))}
                 {(profile.role === "mama" ? suggestions.mama : suggestions.papa).length === 0 && (
-                  <p className="text-xs text-gray-400 italic text-center py-2">No hay más sugerencias por ahora.</p>
+                  <p className="text-xs text-gray-400 dark:text-slate-500 italic text-center py-2">No hay más sugerencias por ahora.</p>
                 )}
               </div>
             )}
@@ -1644,8 +1696,8 @@ function AgendaView({
         {/* Citas */}
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-              <Calendar className="text-teal-500" size={20}/> Agenda Médica
+            <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100 flex items-center gap-2">
+              <Calendar className="text-teal-500 dark:text-teal-400" size={20}/> Agenda Médica
             </h3>
             <div className="flex items-center gap-1.5">
               <button
@@ -1654,7 +1706,7 @@ function AgendaView({
                   if (ok) showToast("Recordatorios de citas activados en este teléfono 🔔", () => {});
                   else showToast("Permiso de notificaciones del navegador no concedido", () => {});
                 }}
-                className="text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 px-2.5 py-1.5 rounded-xl border border-teal-200/60 flex items-center gap-1 transition-colors shadow-xs active:scale-95"
+                className="text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/40 hover:bg-teal-100 dark:hover:bg-teal-900/50 px-2.5 py-1.5 rounded-xl border border-teal-200/60 dark:border-teal-800/60 flex items-center gap-1 transition-colors shadow-xs active:scale-95"
                 title="Activar alertas en el teléfono"
               >
                 <Bell size={13} /> Alertas
@@ -1662,7 +1714,7 @@ function AgendaView({
               {events.length > 0 && (
                 <button
                   onClick={shareWithPartner}
-                  className="text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 px-2.5 py-1.5 rounded-xl border border-teal-200/60 flex items-center gap-1 transition-colors shadow-xs active:scale-95"
+                  className="text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/40 hover:bg-teal-100 dark:hover:bg-teal-900/50 px-2.5 py-1.5 rounded-xl border border-teal-200/60 dark:border-teal-800/60 flex items-center gap-1 transition-colors shadow-xs active:scale-95"
                   title="Compartir citas con tu pareja para sincronizarlas"
                 >
                   <Share2 size={13} /> Sincronizar
@@ -1673,18 +1725,18 @@ function AgendaView({
           
           <div className="space-y-3">
             {events.length === 0 && (
-              <div className="bg-gray-50 rounded-2xl p-6 text-center border border-dashed border-gray-200">
-                <Calendar className="mx-auto text-gray-300 mb-2" size={32} />
-                <p className="text-gray-500 text-sm font-medium">No hay citas agendadas</p>
+              <div className="bg-gray-50 dark:bg-slate-900/50 rounded-2xl p-6 text-center border border-dashed border-gray-200 dark:border-slate-800">
+                <Calendar className="mx-auto text-gray-300 dark:text-slate-600 mb-2" size={32} />
+                <p className="text-gray-500 dark:text-slate-400 text-sm font-medium">No hay citas agendadas</p>
               </div>
             )}
             {events.map(event => (
-              <div key={event.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-start gap-4 relative group">
+              <div key={event.id} className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-slate-800 flex items-start gap-4 relative group transition-colors">
                 <div className="flex-1 flex items-start gap-4">
                   <button 
                     type="button"
                     onClick={() => openEdit(event)}
-                    className="bg-teal-50 text-teal-700 rounded-xl w-14 h-14 flex flex-col justify-center items-center shrink-0 mt-0.5 hover:bg-teal-100 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors"
+                    className="bg-teal-50 dark:bg-teal-950/50 text-teal-700 dark:text-teal-300 rounded-xl w-14 h-14 flex flex-col justify-center items-center shrink-0 mt-0.5 hover:bg-teal-100 dark:hover:bg-teal-900/50 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors"
                     aria-label={`Ver o editar cita del ${event.date}`}
                   >
                     <span className="text-xs font-bold uppercase">{event.date.split(" ")[1]}</span>
@@ -1697,11 +1749,11 @@ function AgendaView({
                       className="text-left group/title focus:outline-none focus:ring-2 focus:ring-teal-500 rounded block w-full"
                       aria-label={`Editar cita: ${event.title}, el ${event.date}`}
                     >
-                      <h4 className="font-bold text-gray-800 text-base leading-snug group-hover/title:text-teal-700 transition-colors">{event.title}</h4>
-                      <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
+                      <h4 className="font-bold text-gray-800 dark:text-slate-100 text-base leading-snug group-hover/title:text-teal-700 dark:group-hover/title:text-teal-300 transition-colors">{event.title}</h4>
+                      <div className="flex items-center gap-3 mt-1 text-sm text-gray-500 dark:text-slate-400">
                         <span className="flex items-center gap-1"><Clock size={14} /> {event.time}</span>
                       </div>
-                      {event.doctor && <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{event.doctor}</p>}
+                      {event.doctor && <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 line-clamp-1">{event.doctor}</p>}
                     </button>
                     
                     {/* Botón de Preparación Rápida */}
@@ -1709,22 +1761,22 @@ function AgendaView({
                       <button 
                         type="button"
                         onClick={() => onOpenPrep(event)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-bold border border-teal-200/70 shadow-xs active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/40 hover:bg-teal-100 dark:hover:bg-teal-900/50 text-teal-800 dark:text-teal-300 text-xs font-bold border border-teal-200/70 dark:border-teal-800/60 shadow-xs active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-teal-500"
                       >
-                        <ClipboardList size={13} className="text-teal-600" />
+                        <ClipboardList size={13} className="text-teal-600 dark:text-teal-400" />
                         <span>¿Qué llevar y preguntar?</span>
                       </button>
                     </div>
                   </div>
                 </div>
-                <button onClick={() => deleteEvent(event.id)} aria-label={`Eliminar cita: ${event.title}`} className="text-gray-300 hover:text-rose-500 transition-colors p-2 z-10 rounded-lg">
+                <button onClick={() => deleteEvent(event.id)} aria-label={`Eliminar cita: ${event.title}`} className="text-gray-300 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-400 transition-colors p-2 z-10 rounded-lg">
                   <X size={18}/>
                 </button>
               </div>
             ))}
           </div>
           
-          <button onClick={openNew} className="w-full mt-4 py-3 rounded-xl border-2 border-dashed border-teal-200 text-teal-600 font-bold flex items-center justify-center gap-2 hover:bg-teal-50 transition-colors">
+          <button onClick={openNew} className="w-full mt-4 py-3 rounded-xl border-2 border-dashed border-teal-200 dark:border-teal-800/60 text-teal-600 dark:text-teal-400 font-bold flex items-center justify-center gap-2 hover:bg-teal-50 dark:hover:bg-teal-950/30 transition-colors">
             <Plus size={18} /> Nueva Cita Médica
           </button>
         </div>
@@ -1737,14 +1789,14 @@ function AgendaView({
           aria-modal="true"
           aria-labelledby="agenda-modal-title"
           onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
-          className="absolute inset-0 bg-gray-900/40 z-50 flex items-end sm:items-center justify-center animate-in fade-in duration-200"
+          className="absolute inset-0 bg-gray-900/40 dark:bg-black/60 z-50 flex items-end sm:items-center justify-center animate-in fade-in duration-200"
         >
-          <div className="bg-white w-full max-h-[90%] overflow-y-auto sm:w-[90%] sm:rounded-3xl rounded-t-3xl p-6 pb-12 animate-in slide-in-from-bottom-8">
+          <div className="bg-white dark:bg-slate-900 w-full max-h-[90%] overflow-y-auto sm:w-[90%] sm:rounded-3xl rounded-t-3xl p-6 pb-12 animate-in slide-in-from-bottom-8 border border-gray-100 dark:border-slate-800">
             <div className="flex justify-between items-center mb-6">
-              <h3 id="agenda-modal-title" className="text-xl font-bold text-gray-800">{editingEvent ? "Editar Cita" : "Nueva Cita Médica"}</h3>
+              <h3 id="agenda-modal-title" className="text-xl font-bold text-gray-800 dark:text-slate-100">{editingEvent ? "Editar Cita" : "Nueva Cita Médica"}</h3>
               <button 
                 onClick={closeModal} 
-                className="bg-gray-100 p-2 rounded-full text-gray-500 hover:bg-gray-200 transition-colors"
+                className="bg-gray-100 dark:bg-slate-800 p-2 rounded-full text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
                 aria-label="Cerrar modal de cita"
               >
                 <X size={20} />
@@ -1753,7 +1805,7 @@ function AgendaView({
             
             <div className="space-y-4">
               <div>
-                <label htmlFor="event-title" className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex items-center justify-between">
+                <label htmlFor="event-title" className="text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-1 flex items-center justify-between">
                   <span>Título / Motivo <span className="text-rose-500">*</span></span>
                   {touched.title && errors.title && (
                     <span className="text-rose-500 text-[11px] font-medium lowercase tracking-normal flex items-center gap-1 animate-in fade-in" role="alert">
@@ -1779,10 +1831,10 @@ function AgendaView({
                     }
                   }}
                   aria-invalid={touched.title && !!errors.title}
-                  className={`w-full bg-gray-50 border rounded-xl px-4 py-3 text-gray-800 transition-colors focus:outline-none focus:ring-2 ${
+                  className={`w-full bg-gray-50 dark:bg-slate-800 border rounded-xl px-4 py-3 text-gray-800 dark:text-slate-100 transition-colors focus:outline-none focus:ring-2 placeholder-gray-400 dark:placeholder-slate-500 ${
                     touched.title && errors.title
-                      ? "border-rose-400 bg-rose-50/20 focus:ring-rose-400"
-                      : "border-gray-200 focus:ring-teal-500"
+                      ? "border-rose-400 bg-rose-50/20 dark:bg-rose-950/20 focus:ring-rose-400"
+                      : "border-gray-200 dark:border-slate-700 focus:ring-teal-500"
                   }`}
                   placeholder="Ej. Ecografía Morfológica o Control Prenatal" 
                 />
@@ -1790,7 +1842,7 @@ function AgendaView({
               
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <label htmlFor="event-date" className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex items-center justify-between">
+                  <label htmlFor="event-date" className="text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-1 flex items-center justify-between">
                     <span>Fecha <span className="text-rose-500">*</span></span>
                     {touched.date && errors.date && (
                       <span className="text-rose-500 text-[11px] font-medium lowercase tracking-normal flex items-center gap-1 animate-in fade-in" role="alert">
@@ -1816,33 +1868,33 @@ function AgendaView({
                       }
                     }}
                     aria-invalid={touched.date && !!errors.date}
-                    className={`w-full bg-gray-50 border rounded-xl px-4 py-3 text-gray-800 transition-colors focus:outline-none focus:ring-2 ${
+                    className={`w-full bg-gray-50 dark:bg-slate-800 border rounded-xl px-4 py-3 text-gray-800 dark:text-slate-100 transition-colors focus:outline-none focus:ring-2 ${
                       touched.date && errors.date
-                        ? "border-rose-400 bg-rose-50/20 focus:ring-rose-400"
-                        : "border-gray-200 focus:ring-teal-500"
+                        ? "border-rose-400 bg-rose-50/20 dark:bg-rose-950/20 focus:ring-rose-400"
+                        : "border-gray-200 dark:border-slate-700 focus:ring-teal-500"
                     }`} 
                   />
                 </div>
                 <div className="flex-1">
-                  <label htmlFor="event-time" className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 block">Hora</label>
+                  <label htmlFor="event-time" className="text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-1 block">Hora</label>
                   <input 
                     id="event-time"
                     type="time" 
                     value={newEvent.time} 
                     onChange={e => setNewEvent({...newEvent, time: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500" 
+                    className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-gray-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500" 
                   />
                 </div>
               </div>
               
               <div>
-                <label htmlFor="event-doctor" className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 block">Doctor o Clínica</label>
+                <label htmlFor="event-doctor" className="text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-1 block">Doctor o Clínica</label>
                 <input 
                   id="event-doctor"
                   type="text" 
                   value={newEvent.doctor} 
                   onChange={e => setNewEvent({...newEvent, doctor: e.target.value})}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-gray-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder-gray-400 dark:placeholder-slate-500"
                   placeholder="Dra. Ramírez / Hospital Los Olivos" 
                 />
               </div>
@@ -2150,7 +2202,7 @@ function PandaIAView({
       if (isHeader) {
         const headerText = trimmed.replace(/^#{2,3}\s+/, "");
         return (
-          <h4 key={idx} className="font-bold text-teal-950 text-sm mt-3 mb-1.5 flex items-center gap-1.5">
+          <h4 key={idx} className="font-bold text-teal-950 dark:text-teal-300 text-sm mt-3 mb-1.5 flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-teal-600 inline-block"></span>
             <span>{headerText}</span>
           </h4>
@@ -2165,9 +2217,9 @@ function PandaIAView({
         const parts = itemContent.split(/(\*\*.*?\*\*)/g);
         return (
           <div key={idx} className="flex items-start gap-2 my-1 pl-1">
-            <span className="text-[11px] font-bold text-teal-800 bg-teal-100/90 px-1.5 py-0.5 rounded-md shrink-0 mt-0.5">{num}</span>
-            <span className="flex-1 leading-relaxed text-gray-700">
-              {parts.map((p, pIdx) => p.startsWith("**") && p.endsWith("**") ? <strong key={pIdx} className="font-bold text-gray-900">{p.slice(2, -2)}</strong> : p)}
+            <span className="text-[11px] font-bold text-teal-800 dark:text-teal-200 bg-teal-100/90 dark:bg-teal-900/60 px-1.5 py-0.5 rounded-md shrink-0 mt-0.5">{num}</span>
+            <span className="flex-1 leading-relaxed text-gray-700 dark:text-slate-300">
+              {parts.map((p, pIdx) => p.startsWith("**") && p.endsWith("**") ? <strong key={pIdx} className="font-bold text-gray-900 dark:text-white">{p.slice(2, -2)}</strong> : p)}
             </span>
           </div>
         );
@@ -2179,7 +2231,7 @@ function PandaIAView({
       const parts = cleanLine.split(/(\*\*.*?\*\*)/g);
       const content = parts.map((part, pIdx) => {
         if (part.startsWith("**") && part.endsWith("**")) {
-          return <strong key={pIdx} className="font-bold text-gray-900">{part.slice(2, -2)}</strong>;
+          return <strong key={pIdx} className="font-bold text-gray-900 dark:text-white">{part.slice(2, -2)}</strong>;
         }
         return part;
       });
@@ -2187,8 +2239,8 @@ function PandaIAView({
       if (isBullet) {
         return (
           <div key={idx} className="flex items-start gap-2 my-1 pl-1">
-            <span className="text-teal-600 font-bold shrink-0 mt-0.5">•</span>
-            <span className="flex-1 leading-relaxed text-gray-700">{content}</span>
+            <span className="text-teal-600 dark:text-teal-400 font-bold shrink-0 mt-0.5">•</span>
+            <span className="flex-1 leading-relaxed text-gray-700 dark:text-slate-300">{content}</span>
           </div>
         );
       }
@@ -2206,23 +2258,23 @@ function PandaIAView({
   };
 
   return (
-    <div className="flex flex-col flex-1 h-full w-full animate-in fade-in duration-300 bg-slate-50 relative overflow-hidden">
+    <div className="flex flex-col flex-1 h-full w-full animate-in fade-in duration-300 bg-slate-50 dark:bg-slate-950 relative overflow-hidden">
       
       {/* HEADER CON ESTADO Y ACCIONES */}
-      <div className="px-4 py-2.5 border-b border-gray-200/80 bg-white/95 backdrop-blur-sm shadow-xs flex items-center justify-between z-10 shrink-0">
+      <div className="px-4 py-2.5 border-b border-gray-200/80 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm shadow-xs flex items-center justify-between z-10 shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="bg-teal-100 text-teal-700 p-2 rounded-2xl relative shadow-xs">
+          <div className="bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 p-2 rounded-2xl relative shadow-xs">
             <Bot size={20} />
-            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full animate-pulse"></span>
+            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full animate-pulse"></span>
           </div>
           <div>
-            <h2 className="font-bold text-gray-900 leading-tight flex items-center gap-1.5 text-sm">
+            <h2 className="font-bold text-gray-900 dark:text-slate-100 leading-tight flex items-center gap-1.5 text-sm">
               <span>PandaIA</span>
-              <span className="text-[10px] font-bold text-teal-800 bg-teal-50 border border-teal-200/80 px-2 py-0.5 rounded-full uppercase tracking-wider">
+              <span className="text-[10px] font-bold text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/50 border border-teal-200/80 dark:border-teal-800/60 px-2 py-0.5 rounded-full uppercase tracking-wider">
                 Copiloto
               </span>
             </h2>
-            <p className="text-xs font-semibold text-teal-700 flex items-center gap-1.5">
+            <p className="text-xs font-semibold text-teal-700 dark:text-teal-400 flex items-center gap-1.5">
               <span>{profile.role === "papa" ? "🧔 Modo Papá" : "👩 Modo Mamá"}{profile.name ? ` (${profile.name})` : ""}</span>
               <span>· Sem {profile.week}</span>
             </p>
@@ -2233,7 +2285,7 @@ function PandaIAView({
           <button 
             type="button"
             onClick={clearChat}
-            className="p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-all active:scale-95"
+            className="p-2 text-gray-500 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition-all active:scale-95"
             title="Reiniciar conversación con la semana actual"
             aria-label="Reiniciar conversación"
           >
@@ -2252,7 +2304,7 @@ function PandaIAView({
             }`}
           >
             {msg.sender === 'ai' && (
-              <div className="bg-teal-100 text-teal-800 p-1.5 rounded-xl shrink-0 mb-1 shadow-xs">
+              <div className="bg-teal-100 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 p-1.5 rounded-xl shrink-0 mb-1 shadow-xs">
                 <Bot size={16} />
               </div>
             )}
@@ -2261,23 +2313,23 @@ function PandaIAView({
               <div className={`p-4 rounded-3xl shadow-xs text-sm relative group ${
                 msg.sender === 'user' 
                   ? 'bg-teal-600 text-white rounded-br-none' 
-                  : 'bg-white border border-gray-100 text-gray-800 rounded-bl-none shadow-sm'
+                  : 'bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 text-gray-800 dark:text-slate-100 rounded-bl-none shadow-sm'
               }`}>
                 {msg.sender === 'ai' ? renderFormattedMessage(msg.text) : <p className="leading-relaxed">{msg.text}</p>}
 
                 {/* Botón de Copiar para Mensajes del Asistente */}
                 {msg.sender === 'ai' && (
-                  <div className="pt-2 mt-2 border-t border-gray-100 flex justify-end">
+                  <div className="pt-2 mt-2 border-t border-gray-100 dark:border-slate-800 flex justify-end">
                     <button
                       type="button"
                       onClick={() => copyMessage(msg.id, msg.text)}
-                      className="text-[11px] font-bold text-gray-400 hover:text-teal-700 flex items-center gap-1 transition-colors p-1"
+                      className="text-[11px] font-bold text-gray-400 dark:text-slate-500 hover:text-teal-700 dark:hover:text-teal-400 flex items-center gap-1 transition-colors p-1"
                       title="Copiar respuesta"
                     >
                       {copiedId === msg.id ? (
                         <>
-                          <Check size={12} className="text-teal-600" />
-                          <span className="text-teal-700">Copiado</span>
+                          <Check size={12} className="text-teal-600 dark:text-teal-400" />
+                          <span className="text-teal-700 dark:text-teal-400">Copiado</span>
                         </>
                       ) : (
                         <>
@@ -2292,18 +2344,18 @@ function PandaIAView({
               
               {/* Tarjeta de Acción / Cita Agendada */}
               {msg.card && (
-                <div className="bg-gradient-to-br from-teal-50 via-emerald-50/40 to-white border border-teal-200 shadow-sm rounded-2xl p-4 w-full max-w-sm animate-in zoom-in-95 duration-200">
+                <div className="bg-gradient-to-br from-teal-50 via-emerald-50/40 to-white dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 border border-teal-200 dark:border-teal-800/60 shadow-sm rounded-2xl p-4 w-full max-w-sm animate-in zoom-in-95 duration-200">
                   <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-1.5 text-teal-900 font-bold text-xs uppercase tracking-wider">
-                      <BriefcaseMedical size={15} className="text-teal-700" />
+                    <div className="flex items-center gap-1.5 text-teal-900 dark:text-teal-300 font-bold text-xs uppercase tracking-wider">
+                      <BriefcaseMedical size={15} className="text-teal-700 dark:text-teal-400" />
                       <span>Cita Médica Agendada</span>
                     </div>
-                    <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100/90 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full">
                       En Agenda
                     </span>
                   </div>
-                  <h5 className="font-bold text-gray-900 text-sm">{msg.card.title}</h5>
-                  <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                  <h5 className="font-bold text-gray-900 dark:text-slate-100 text-sm">{msg.card.title}</h5>
+                  <p className="text-xs text-gray-600 dark:text-slate-300 mt-1 leading-relaxed">
                     {msg.card.desc}
                   </p>
                   
@@ -2325,16 +2377,16 @@ function PandaIAView({
 
         {isTyping && (
           <div className="flex items-end gap-2 max-w-[85%] animate-in fade-in duration-150">
-            <div className="bg-teal-100 text-teal-800 p-1.5 rounded-xl shrink-0 mb-1 shadow-xs">
+            <div className="bg-teal-100 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 p-1.5 rounded-xl shrink-0 mb-1 shadow-xs">
               <Bot size={16} />
             </div>
-            <div className="bg-white px-4 py-3 rounded-2xl rounded-bl-none shadow-xs border border-gray-100 flex gap-2 items-center">
+            <div className="bg-white dark:bg-slate-900 px-4 py-3 rounded-2xl rounded-bl-none shadow-xs border border-gray-100 dark:border-slate-800 flex gap-2 items-center">
               <div className="flex gap-1 items-center">
                 <div className="w-2 h-2 bg-teal-600 rounded-full animate-pulse"></div>
                 <div className="w-2 h-2 bg-teal-600 rounded-full animate-pulse" style={{ animationDelay: "0.15s" }}></div>
                 <div className="w-2 h-2 bg-teal-600 rounded-full animate-pulse" style={{ animationDelay: "0.3s" }}></div>
               </div>
-              <span className="text-xs text-gray-400 font-medium">PandaIA está respondiendo...</span>
+              <span className="text-xs text-gray-400 dark:text-slate-400 font-medium">PandaIA está respondiendo...</span>
             </div>
           </div>
         )}
@@ -2343,15 +2395,15 @@ function PandaIAView({
       </div>
 
       {/* INPUT AREA CON SMART CHIPS CONTEXTUALES */}
-      <div className="bg-white border-t border-gray-200 shrink-0">
+      <div className="bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 shrink-0">
         {/* Smart Chips Dinámicos por Trimestre */}
-        <div className="flex overflow-x-auto gap-2 p-2.5 no-scrollbar border-b border-gray-100">
+        <div className="flex overflow-x-auto gap-2 p-2.5 no-scrollbar border-b border-gray-100 dark:border-slate-800">
           {smartChips.map((chip, idx) => (
             <button 
               key={idx}
               type="button"
               onClick={() => handleSend(chip)}
-              className="whitespace-nowrap bg-teal-50/80 border border-teal-200/70 text-teal-800 text-xs font-semibold px-3.5 py-1.5 rounded-full hover:bg-teal-100 active:scale-95 transition-all shadow-2xs"
+              className="whitespace-nowrap bg-teal-50/80 dark:bg-slate-800 border border-teal-200/70 dark:border-slate-700 text-teal-800 dark:text-teal-300 text-xs font-semibold px-3.5 py-1.5 rounded-full hover:bg-teal-100 dark:hover:bg-slate-700 active:scale-95 transition-all shadow-2xs"
             >
               {chip}
             </button>
@@ -2360,12 +2412,12 @@ function PandaIAView({
 
         {/* Text Input Ergonómico */}
         <div className="p-2.5">
-          <div className="flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-teal-500 focus-within:border-transparent transition-all shadow-xs">
+          <div className="flex items-end gap-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-teal-500 focus-within:border-transparent transition-all shadow-xs">
             <button 
               type="button"
               aria-label="Cargar consulta sobre ecografías"
               onClick={() => setIsUltrasoundModalOpen(true)}
-              className="p-2 text-gray-400 hover:text-teal-700 transition-colors shrink-0 rounded-xl hover:bg-white"
+              className="p-2 text-gray-400 dark:text-slate-400 hover:text-teal-700 dark:hover:text-teal-400 transition-colors shrink-0 rounded-xl hover:bg-white dark:hover:bg-slate-700"
               title="Preguntas frecuentes sobre ecografías"
             >
               <Paperclip size={18} />
@@ -2383,7 +2435,7 @@ function PandaIAView({
                 }
               }}
               placeholder="Pregúntale a PandaIA sobre síntomas, nutrición o citas..." 
-              className="flex-1 bg-transparent border-none focus:outline-none text-base sm:text-sm py-2 resize-none max-h-32 min-h-[40px] text-gray-800 placeholder-gray-400"
+              className="flex-1 bg-transparent border-none focus:outline-none text-base sm:text-sm py-2 resize-none max-h-32 min-h-[40px] text-gray-800 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500"
             />
             <button 
               type="button"
@@ -2393,7 +2445,7 @@ function PandaIAView({
               className={`p-2.5 rounded-xl transition-all shrink-0 active:scale-90 ${
                 inputText.trim() && !isTyping 
                   ? "bg-teal-600 text-white hover:bg-teal-700 shadow-xs" 
-                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-gray-200 dark:bg-slate-700 text-gray-400 dark:text-slate-500 cursor-not-allowed"
               }`}
             >
               <Send size={16} />
@@ -2409,9 +2461,9 @@ function PandaIAView({
           aria-modal="true"
           aria-labelledby="ultrasound-modal-title"
           onClick={(e) => { if (e.target === e.currentTarget) setIsUltrasoundModalOpen(false); }}
-          className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150"
         >
-          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in slide-in-from-bottom-4 duration-200 border border-gray-100">
+          <div className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in slide-in-from-bottom-4 duration-200 border border-gray-100 dark:border-slate-800">
             <div className="bg-gradient-to-r from-teal-600 to-teal-700 p-4 flex justify-between items-center text-white">
               <div className="flex items-center gap-2">
                 <div className="bg-white/10 p-2 rounded-xl">
@@ -2437,7 +2489,7 @@ function PandaIAView({
             </div>
 
             <div className="p-4 space-y-2 max-h-[70vh] overflow-y-auto">
-              <p className="text-xs text-gray-500 mb-3">
+              <p className="text-xs text-gray-500 dark:text-slate-400 mb-3">
                 Selecciona una consulta frecuente para que PandaIA te explique los valores clínicos con calma:
               </p>
 
@@ -2446,27 +2498,27 @@ function PandaIAView({
                   key={idx}
                   type="button"
                   onClick={() => handleUltrasoundSelect(item.prompt)}
-                  className="w-full text-left p-3.5 rounded-2xl border border-gray-100 bg-gray-50/70 hover:bg-teal-50/60 hover:border-teal-200 transition-all flex items-start justify-between gap-3 group active:scale-[0.99]"
+                  className="w-full text-left p-3.5 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50/70 dark:bg-slate-800/50 hover:bg-teal-50/60 dark:hover:bg-slate-800 hover:border-teal-200 dark:hover:border-teal-700 transition-all flex items-start justify-between gap-3 group active:scale-[0.99]"
                 >
                   <div className="flex-1">
-                    <p className="text-xs font-bold text-gray-900 group-hover:text-teal-900 flex items-center gap-1.5">
+                    <p className="text-xs font-bold text-gray-900 dark:text-slate-100 group-hover:text-teal-900 dark:group-hover:text-teal-300 flex items-center gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0"></span>
                       <span>{item.title}</span>
                     </p>
-                    <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">
+                    <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5 leading-snug">
                       {item.desc}
                     </p>
                   </div>
-                  <ChevronRight size={16} className="text-gray-400 group-hover:text-teal-600 shrink-0 mt-1" />
+                  <ChevronRight size={16} className="text-gray-400 dark:text-slate-500 group-hover:text-teal-600 dark:group-hover:text-teal-400 shrink-0 mt-1" />
                 </button>
               ))}
             </div>
 
-            <div className="p-3 bg-gray-50 border-t border-gray-100 flex justify-end">
+            <div className="p-3 bg-gray-50 dark:bg-slate-900/90 border-t border-gray-100 dark:border-slate-800 flex justify-end">
               <button
                 type="button"
                 onClick={() => setIsUltrasoundModalOpen(false)}
-                className="px-4 py-2 text-xs font-semibold text-gray-600 hover:text-gray-800 transition-colors"
+                className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200 transition-colors"
               >
                 Cancelar
               </button>
@@ -2488,9 +2540,9 @@ function SOSSintomas() {
       id: "mareos",
       title: "Náuseas y Mareos",
       icon: <Utensils className="text-amber-500" size={20} />,
-      color: "bg-amber-50",
+      color: "bg-amber-50 dark:bg-amber-950/40",
       content: (
-        <ul className="text-sm text-gray-600 space-y-2 mt-2 list-disc pl-5">
+        <ul className="text-sm text-gray-600 dark:text-slate-300 space-y-2 mt-2 list-disc pl-5">
           <li><strong>Estómago con colchón:</strong> Coman galletas saladas o tostadas antes de levantarse de la cama.</li>
           <li><strong>Hidratación táctica:</strong> Beber agua muy fría en pequeños tragos. Rodajas de limón o jengibre fresco son magia pura.</li>
           <li><strong>Vitamina B6:</strong> Consulten con su médico materno-fetal si pueden recetar un suplemento de B6.</li>
@@ -2502,9 +2554,9 @@ function SOSSintomas() {
       id: "acidez",
       title: "Acidez y Reflujo",
       icon: <Heart className="text-rose-500" size={20} />,
-      color: "bg-rose-50",
+      color: "bg-rose-50 dark:bg-rose-950/40",
       content: (
-        <ul className="text-sm text-gray-600 space-y-2 mt-2 list-disc pl-5">
+        <ul className="text-sm text-gray-600 dark:text-slate-300 space-y-2 mt-2 list-disc pl-5">
           <li><strong>Poco pero seguido:</strong> 5 o 6 comidas pequeñas al día en lugar de 3 grandes para no sobrecargar el esfínter.</li>
           <li><strong>Física básica:</strong> Esperar al menos 2 horas después de cenar para ir a la cama (gravedad a su favor).</li>
           <li><strong>Evitar disparadores:</strong> Cítricos, tomate, chocolate, y comidas muy grasas o picantes.</li>
@@ -2516,9 +2568,9 @@ function SOSSintomas() {
       id: "ciatica",
       title: "Dolor de Espalda (Ciática)",
       icon: <Activity className="text-blue-500" size={20} />,
-      color: "bg-blue-50",
+      color: "bg-blue-50 dark:bg-blue-950/40",
       content: (
-        <ul className="text-sm text-gray-600 space-y-2 mt-2 list-disc pl-5">
+        <ul className="text-sm text-gray-600 dark:text-slate-300 space-y-2 mt-2 list-disc pl-5">
           <li><strong>Compresas tibias:</strong> Aplicar calor en la espalda baja por 15-20 minutos (tú puedes encargarte de prepararlas).</li>
           <li><strong>Postura al dormir:</strong> Siempre del lado izquierdo, con la almohada de embarazo entre las rodillas.</li>
           <li><strong>Estiramientos suaves:</strong> Ayúdala con ejercicios de yoga prenatal (postura del gato-vaca) para aliviar la presión del útero.</li>
@@ -2529,9 +2581,9 @@ function SOSSintomas() {
       id: "alarma",
       title: "🚨 Señales de Alarma Médica",
       icon: <AlertTriangle className="text-red-500" size={20} />,
-      color: "bg-red-50",
+      color: "bg-red-50 dark:bg-red-950/40",
       content: (
-        <ul className="text-sm text-red-700 font-medium space-y-2 mt-2 list-disc pl-5">
+        <ul className="text-sm text-red-700 dark:text-red-300 font-medium space-y-2 mt-2 list-disc pl-5">
           <li><strong>Sangrado vaginal</strong> (cualquier cantidad, contactar al médico).</li>
           <li><strong>Dolor abdominal intenso</strong> o cólicos persistentes que no ceden al descansar.</li>
           <li><strong>Dolor de cabeza severo</strong> o visión borrosa (riesgo de preeclampsia).</li>
@@ -2545,19 +2597,19 @@ function SOSSintomas() {
   return (
     <div className="flex flex-col py-2 animate-in fade-in duration-300 h-full w-full">
       <div className="text-center mb-6">
-        <h3 className="text-xl font-bold text-gray-800 flex justify-center items-center gap-2">
+        <h3 className="text-xl font-bold text-gray-800 dark:text-slate-100 flex justify-center items-center gap-2">
           <HeartPulse className="text-rose-500" /> SOS Mamá
         </h3>
-        <p className="text-sm text-gray-500">Guía rápida de alivio de síntomas</p>
+        <p className="text-sm text-gray-500 dark:text-slate-400">Guía rápida de alivio de síntomas</p>
       </div>
 
       {/* Banner de Emergencia Rápida */}
-      <div className="bg-gradient-to-r from-rose-50 to-red-50 border border-rose-200 rounded-2xl p-4 mb-4 flex items-center justify-between gap-3 shadow-sm">
+      <div className="bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-950/40 dark:to-red-950/40 border border-rose-200 dark:border-rose-900/60 rounded-2xl p-4 mb-4 flex items-center justify-between gap-3 shadow-sm">
         <div>
-          <h4 className="font-bold text-rose-800 text-sm flex items-center gap-1.5">
+          <h4 className="font-bold text-rose-800 dark:text-rose-300 text-sm flex items-center gap-1.5">
             <AlertTriangle size={16} className="text-rose-600 shrink-0" /> ¿Emergencia o Alarma?
           </h4>
-          <p className="text-xs text-rose-600 mt-0.5">Acceso rápido ante signos de alerta</p>
+          <p className="text-xs text-rose-600 dark:text-rose-400 mt-0.5">Acceso rápido ante signos de alerta</p>
         </div>
         <div className="flex gap-2 shrink-0">
           <a
@@ -2571,7 +2623,7 @@ function SOSSintomas() {
             href="https://maps.google.com/?q=hospital+maternidad"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-white hover:bg-rose-100/50 active:scale-95 border border-rose-200 text-rose-700 font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition-all"
+            className="bg-white dark:bg-slate-900 hover:bg-rose-100/50 dark:hover:bg-slate-800 active:scale-95 border border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-300 font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition-all"
             aria-label="Ver ruta al hospital más cercano"
           >
             📍 Hospital
@@ -2581,22 +2633,22 @@ function SOSSintomas() {
 
       <div className="space-y-3 overflow-y-auto pb-8">
         {symptoms.map(sym => (
-          <div key={sym.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div key={sym.id} className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 overflow-hidden">
             <button 
               onClick={() => setExpanded(expanded === sym.id ? null : sym.id)}
-              className="w-full p-4 flex items-center justify-between text-left transition-colors hover:bg-gray-50"
+              className="w-full p-4 flex items-center justify-between text-left transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/60"
             >
               <div className="flex items-center gap-3">
                 <div className={`${sym.color} p-2 rounded-full`}>{sym.icon}</div>
-                <span className="font-bold text-gray-800">{sym.title}</span>
+                <span className="font-bold text-gray-800 dark:text-slate-100">{sym.title}</span>
               </div>
-              {expanded === sym.id ? <ChevronUp size={20} className="text-gray-400" /> : <ChevronDown size={20} className="text-gray-400" />}
+              {expanded === sym.id ? <ChevronUp size={20} className="text-gray-400 dark:text-slate-500" /> : <ChevronDown size={20} className="text-gray-400 dark:text-slate-500" />}
             </button>
             {expanded === sym.id && (
-              <div className="p-4 pt-0 bg-gray-50 border-t border-gray-100 animate-in slide-in-from-top-2">
+              <div className="p-4 pt-0 bg-gray-50 dark:bg-slate-800/40 border-t border-gray-100 dark:border-slate-800 animate-in slide-in-from-top-2">
                 {sym.content}
                 {sym.id === "alarma" && (
-                  <div className="mt-4 pt-3 border-t border-red-200 flex gap-2">
+                  <div className="mt-4 pt-3 border-t border-red-200 dark:border-red-900/50 flex gap-2">
                     <a
                       href="tel:911"
                       className="flex-1 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all text-center"
@@ -2607,7 +2659,7 @@ function SOSSintomas() {
                       href="https://maps.google.com/?q=hospital+maternidad"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 bg-white hover:bg-red-50 active:scale-95 border border-red-300 text-red-800 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all text-center"
+                      className="flex-1 bg-white dark:bg-slate-900 hover:bg-red-50 dark:hover:bg-slate-800 active:scale-95 border border-red-300 dark:border-red-800 text-red-800 dark:text-red-300 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all text-center"
                     >
                       📍 Ruta al Hospital
                     </a>
@@ -2637,8 +2689,8 @@ function HerramientasView({ showToast, profile }: { showToast: any, profile?: Us
   return (
     <div className="flex flex-col h-full w-full animate-in fade-in slide-in-from-bottom-4 duration-300">
       {/* Sub-navigation sin desplazamiento (100% visible) */}
-      <div className="bg-white px-3 py-2.5 shadow-sm border-b border-gray-100 sticky top-0 z-10 w-full">
-        <div className="grid grid-cols-5 gap-1 bg-gray-100/90 p-1 rounded-2xl w-full">
+      <div className="bg-white dark:bg-slate-900 px-3 py-2.5 shadow-sm border-b border-gray-100 dark:border-slate-800 sticky top-0 z-10 w-full">
+        <div className="grid grid-cols-5 gap-1 bg-gray-100/90 dark:bg-slate-800/90 p-1 rounded-2xl w-full">
           {tools.map((tool) => {
             const isActive = activeTool === tool.id;
             return (
@@ -2647,11 +2699,11 @@ function HerramientasView({ showToast, profile }: { showToast: any, profile?: Us
                 onClick={() => setActiveTool(tool.id as any)}
                 className={`flex flex-col items-center justify-center py-2 px-0.5 rounded-xl transition-all ${
                   isActive 
-                    ? "bg-white text-teal-700 shadow-sm font-bold scale-[1.02]" 
-                    : "text-gray-500 hover:text-gray-800 font-medium"
+                    ? "bg-white dark:bg-slate-900 text-teal-700 dark:text-teal-300 shadow-sm font-bold scale-[1.02]" 
+                    : "text-gray-500 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200 font-medium"
                 }`}
               >
-                <div className={`p-1 rounded-lg ${isActive ? "text-teal-600" : "text-gray-400"}`}>
+                <div className={`p-1 rounded-lg ${isActive ? "text-teal-600 dark:text-teal-400" : "text-gray-400 dark:text-slate-500"}`}>
                   {tool.icon}
                 </div>
                 <span className="text-[10px] leading-tight text-center tracking-tight truncate w-full">
@@ -2890,11 +2942,11 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
       
       {/* HEADER CON PROTOCOLO CARDIFF Y GUÍA */}
       <div className="text-center">
-        <div className="inline-flex items-center gap-1.5 bg-teal-50 border border-teal-200/80 px-3 py-1 rounded-full text-xs font-bold text-teal-800 mb-2 shadow-xs">
-          <Baby size={14} className="text-teal-600" /> Protocolo Cardiff (Contar hasta 10)
+        <div className="inline-flex items-center gap-1.5 bg-teal-50 dark:bg-teal-950/60 border border-teal-200/80 dark:border-teal-800/60 px-3 py-1 rounded-full text-xs font-bold text-teal-800 dark:text-teal-300 mb-2 shadow-xs">
+          <Baby size={14} className="text-teal-600 dark:text-teal-400" /> Protocolo Cardiff (Contar hasta 10)
         </div>
-        <h3 className="text-2xl font-black text-gray-800">Monitor Fetal Inteligente</h3>
-        <p className="text-xs text-gray-500 max-w-xs mx-auto mt-1 leading-relaxed">
+        <h3 className="text-2xl font-black text-gray-800 dark:text-slate-100">Monitor Fetal Inteligente</h3>
+        <p className="text-xs text-gray-500 dark:text-slate-400 max-w-xs mx-auto mt-1 leading-relaxed">
           Monitorea el bienestar del bebé registrando 10 movimientos activos en menos de 2 horas.
         </p>
 
@@ -2902,9 +2954,9 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
         <button
           type="button"
           onClick={() => setShowGuide(!showGuide)}
-          className="mt-3 text-xs font-bold text-teal-700 hover:text-teal-900 inline-flex items-center gap-1 bg-teal-50/60 hover:bg-teal-100/70 px-3 py-1.5 rounded-xl border border-teal-200/60 transition-colors"
+          className="mt-3 text-xs font-bold text-teal-700 dark:text-teal-400 hover:text-teal-900 dark:hover:text-teal-200 inline-flex items-center gap-1 bg-teal-50/60 dark:bg-teal-950/40 hover:bg-teal-100/70 dark:hover:bg-teal-900/60 px-3 py-1.5 rounded-xl border border-teal-200/60 dark:border-teal-800/60 transition-colors"
         >
-          <Info size={14} className="text-teal-600" />
+          <Info size={14} className="text-teal-600 dark:text-teal-400" />
           <span>{showGuide ? "Ocultar guía clínica" : "¿Cómo y cuándo contar patadas?"}</span>
           {showGuide ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </button>
@@ -2912,29 +2964,29 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
 
       {/* GUÍA MÉDICA DESPLEGABLE */}
       {showGuide && (
-        <div className="bg-gradient-to-br from-teal-50/90 to-emerald-50/70 border border-teal-200 rounded-3xl p-5 text-left text-xs text-gray-700 space-y-3 shadow-sm animate-in fade-in slide-in-from-top-2">
-          <h4 className="font-bold text-teal-900 text-sm flex items-center gap-2">
-            <ClipboardList size={16} className="text-teal-700" /> Guía Obstétrica: Protocolo Cardiff
+        <div className="bg-gradient-to-br from-teal-50/90 to-emerald-50/70 dark:from-slate-900 dark:to-slate-850 border border-teal-200 dark:border-teal-800/60 rounded-3xl p-5 text-left text-xs text-gray-700 dark:text-slate-300 space-y-3 shadow-sm animate-in fade-in slide-in-from-top-2">
+          <h4 className="font-bold text-teal-900 dark:text-teal-300 text-sm flex items-center gap-2">
+            <ClipboardList size={16} className="text-teal-700 dark:text-teal-400" /> Guía Obstétrica: Protocolo Cardiff
           </h4>
-          <ul className="space-y-2 leading-relaxed text-gray-600">
+          <ul className="space-y-2 leading-relaxed text-gray-600 dark:text-slate-300">
             <li className="flex items-start gap-2">
-              <span className="text-teal-600 font-bold">1.</span>
+              <span className="text-teal-600 dark:text-teal-400 font-bold">1.</span>
               <span><strong>¿Cuándo iniciar?</strong> Recomendado a partir de la semana 28 (o semana 24 si tu médico lo indicó).</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-teal-600 font-bold">2.</span>
+              <span className="text-teal-600 dark:text-teal-400 font-bold">2.</span>
               <span><strong>Mejor momento:</strong> 30 a 60 minutos después de comer o por la noche, cuando el feto recibe más glucosa y la madre está en reposo.</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-teal-600 font-bold">3.</span>
+              <span className="text-teal-600 dark:text-teal-400 font-bold">3.</span>
               <span><strong>Postura recomendada:</strong> Recuéstate sobre tu costado izquierdo para maximizar la oxigenación placentaria.</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-teal-600 font-bold">4.</span>
+              <span className="text-teal-600 dark:text-teal-400 font-bold">4.</span>
               <span><strong>¿Qué cuenta como movimiento?</strong> Patadas, aleteos, giros o presiones claras. El hipo rítmico no se cuenta como patada voluntaria.</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-teal-600 font-bold">5.</span>
+              <span className="text-teal-600 dark:text-teal-400 font-bold">5.</span>
               <span><strong>Meta normal:</strong> Sentir 10 movimientos. La gran mayoría de bebés lo logra en menos de 30 a 45 minutos.</span>
             </li>
           </ul>
@@ -2943,23 +2995,23 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
 
       {/* ALERTA CLÍNICA CARDIFF (>90 MIN) */}
       {isOvertime && (
-        <div className="bg-amber-50 border-2 border-amber-300 rounded-3xl p-4 text-left shadow-md animate-in fade-in" role="alert">
+        <div className="bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-700 rounded-3xl p-4 text-left shadow-md animate-in fade-in" role="alert">
           <div className="flex gap-3 items-start">
             <AlertTriangle className="text-amber-600 shrink-0 mt-0.5" size={22} />
             <div>
-              <h4 className="font-bold text-amber-950 text-sm">Sesión Prolongada (+90 min sin 10 patadas)</h4>
-              <p className="text-xs text-amber-900 mt-1 leading-relaxed">
+              <h4 className="font-bold text-amber-950 dark:text-amber-200 text-sm">Sesión Prolongada (+90 min sin 10 patadas)</h4>
+              <p className="text-xs text-amber-900 dark:text-amber-300 mt-1 leading-relaxed">
                 Si el bebé está inactivo, prueba estos pasos clínicos de estimulación:
               </p>
-              <ul className="text-xs text-amber-900/90 list-disc list-inside mt-1.5 space-y-0.5">
+              <ul className="text-xs text-amber-900/90 dark:text-amber-300/90 list-disc list-inside mt-1.5 space-y-0.5">
                 <li>Bebe un vaso de agua muy fría o jugo de frutas natural.</li>
                 <li>Recuéstate 20 minutos sobre tu costado izquierdo en completo silencio.</li>
                 <li>Toca suavemente tu abdomen o pon música suave.</li>
               </ul>
-              <p className="text-[11px] font-semibold text-rose-800 mt-2">
+              <p className="text-[11px] font-semibold text-rose-800 dark:text-rose-300 mt-2">
                 Si tras 2 horas completas el bebé no alcanza 10 movimientos o notas una reducción drástica, contacta a tu equipo médico de inmediato.
               </p>
-              <div className="mt-3 pt-2.5 border-t border-amber-200 flex gap-2">
+              <div className="mt-3 pt-2.5 border-t border-amber-200 dark:border-amber-800 flex gap-2">
                 <a
                   href="tel:911"
                   className="inline-flex items-center gap-1.5 bg-rose-600 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-xs hover:bg-rose-700 active:scale-95 transition-all"
@@ -2973,10 +3025,10 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
       )}
 
       {/* TRACKER VISUAL DE 10 PASOS */}
-      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 space-y-3">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 shadow-sm border border-gray-100 dark:border-slate-800 space-y-3">
         <div className="flex items-center justify-between text-xs font-bold">
-          <span className="text-gray-700">Progreso de la Sesión</span>
-          <span className="text-teal-700">{count} de 10 patadas</span>
+          <span className="text-gray-700 dark:text-slate-300">Progreso de la Sesión</span>
+          <span className="text-teal-700 dark:text-teal-400">{count} de 10 patadas</span>
         </div>
 
         {/* 10 Pills Indicadoras */}
@@ -2991,8 +3043,8 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
                   isDone
                     ? "bg-teal-600 text-white shadow-xs scale-100"
                     : isCurrent
-                    ? "bg-amber-100 text-amber-800 border-2 border-amber-400 animate-pulse scale-105"
-                    : "bg-gray-100 text-gray-400"
+                    ? "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-2 border-amber-400 animate-pulse scale-105"
+                    : "bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-slate-500"
                 }`}
               >
                 {isDone ? <Check size={14} /> : idx + 1}
@@ -3002,7 +3054,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
         </div>
 
         {/* Barra de progreso suave */}
-        <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+        <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
           <div
             className="bg-gradient-to-r from-teal-500 to-emerald-500 h-full transition-all duration-300 rounded-full"
             style={{ width: `${Math.min(100, (count / 10) * 100)}%` }}
@@ -3017,12 +3069,12 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
           onClick={handleKick}
           disabled={count >= 10}
           aria-label={count >= 10 ? "Meta de 10 patadas completada" : "Registrar movimiento o patada del bebé"}
-          className={`relative z-10 w-60 h-60 rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-200 transform active:scale-95 select-none focus:outline-none focus:ring-4 focus:ring-teal-300 ${
+          className={`relative z-10 w-60 h-60 rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-200 transform active:scale-95 select-none focus:outline-none focus:ring-4 focus:ring-teal-300 dark:focus:ring-teal-600 ${
             count >= 10 
-              ? "bg-gradient-to-br from-emerald-500 to-teal-600 text-white border-4 border-white cursor-default" 
+              ? "bg-gradient-to-br from-emerald-500 to-teal-600 text-white border-4 border-white dark:border-slate-800 cursor-default" 
               : count === 0
-              ? "bg-gradient-to-br from-teal-500 to-teal-700 text-white border-4 border-white hover:shadow-teal-200/80 hover:scale-[1.02]"
-              : "bg-gradient-to-br from-teal-500 via-teal-600 to-emerald-600 text-white border-4 border-white hover:scale-[1.02]"
+              ? "bg-gradient-to-br from-teal-500 to-teal-700 text-white border-4 border-white dark:border-slate-800 hover:shadow-teal-200/80 hover:scale-[1.02]"
+              : "bg-gradient-to-br from-teal-500 via-teal-600 to-emerald-600 text-white border-4 border-white dark:border-slate-800 hover:scale-[1.02]"
           }`}
         >
           {count < 10 ? (
@@ -3049,7 +3101,7 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
           <button
             type="button"
             onClick={handleUndo}
-            className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-gray-900 bg-white border border-gray-200 hover:bg-gray-50 px-3.5 py-1.5 rounded-full shadow-xs active:scale-95 transition-all"
+            className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 px-3.5 py-1.5 rounded-full shadow-xs active:scale-95 transition-all"
             aria-label="Deshacer último movimiento registrado"
           >
             <Undo2 size={13} /> Deshacer última patada (-1)
@@ -3058,8 +3110,8 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
 
         {/* Atajo de teclado accesible */}
         {count < 10 && (
-          <div className="mt-3 text-[11px] text-gray-500 font-medium flex items-center gap-1.5 select-none">
-            <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-gray-100 border border-gray-300 rounded text-gray-700 shadow-2xs">
+          <div className="mt-3 text-[11px] text-gray-500 dark:text-slate-400 font-medium flex items-center gap-1.5 select-none">
+            <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded text-gray-700 dark:text-slate-300 shadow-2xs">
               Espacio
             </kbd>
             <span>en teclado para registrar movimiento</span>
@@ -3068,22 +3120,22 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
       </div>
 
       {/* TARJETA DE CRONÓMETRO Y ACCIONES DE SESIÓN */}
-      <div className="bg-white w-full rounded-3xl shadow-sm border border-gray-100 p-4 flex flex-col gap-3">
+      <div className="bg-white dark:bg-slate-900 w-full rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800 p-4 flex flex-col gap-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="bg-teal-50 text-teal-700 p-2.5 rounded-2xl">
-              <Clock size={22} className={startTime ? "animate-pulse text-teal-600" : ""} />
+            <div className="bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-400 p-2.5 rounded-2xl">
+              <Clock size={22} className={startTime ? "animate-pulse text-teal-600 dark:text-teal-400" : ""} />
             </div>
             <div>
-              <p className="text-[11px] text-teal-700 font-bold uppercase tracking-wider">Tiempo de Sesión</p>
-              <p className="text-2xl font-black text-gray-800 tracking-tight font-mono tabular-nums">{formatTimer(elapsedSeconds)}</p>
+              <p className="text-[11px] text-teal-700 dark:text-teal-400 font-bold uppercase tracking-wider">Tiempo de Sesión</p>
+              <p className="text-2xl font-black text-gray-800 dark:text-slate-100 tracking-tight font-mono tabular-nums">{formatTimer(elapsedSeconds)}</p>
             </div>
           </div>
           
           <button 
             type="button"
             onClick={reset} 
-            className="text-rose-700 hover:text-rose-800 font-bold text-xs bg-rose-50/70 hover:bg-rose-100/80 px-3.5 py-2 rounded-xl transition-colors uppercase tracking-wider flex items-center gap-1.5 active:scale-95 border border-rose-200/60"
+            className="text-rose-700 dark:text-rose-300 hover:text-rose-800 dark:hover:text-rose-200 font-bold text-xs bg-rose-50/70 dark:bg-rose-950/40 hover:bg-rose-100/80 dark:hover:bg-rose-900/60 px-3.5 py-2 rounded-xl transition-colors uppercase tracking-wider flex items-center gap-1.5 active:scale-95 border border-rose-200/60 dark:border-rose-800/60"
             title="Reiniciar conteo y cronómetro"
           >
             <RotateCcw size={13} /> Reiniciar
@@ -3092,14 +3144,14 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
 
         {/* Desplegable de Ritmo/Timeline de Patadas Registradas */}
         {kicks.length > 0 && (
-          <div className="pt-2 border-t border-gray-100">
+          <div className="pt-2 border-t border-gray-100 dark:border-slate-800">
             <button
               type="button"
               onClick={() => setShowTimeline(!showTimeline)}
-              className="w-full flex items-center justify-between text-xs font-bold text-gray-600 hover:text-teal-700 py-1 transition-colors"
+              className="w-full flex items-center justify-between text-xs font-bold text-gray-600 dark:text-slate-400 hover:text-teal-700 dark:hover:text-teal-400 py-1 transition-colors"
             >
               <span className="flex items-center gap-1.5">
-                <Activity size={14} className="text-teal-600" />
+                <Activity size={14} className="text-teal-600 dark:text-teal-400" />
                 <span>Ver ritmo de movimientos ({kicks.length} registrados)</span>
               </span>
               {showTimeline ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -3108,10 +3160,10 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
             {showTimeline && (
               <div className="mt-2.5 space-y-1.5 max-h-48 overflow-y-auto no-scrollbar pt-1">
                 {kicks.map((k, idx) => (
-                  <div key={k.id} className="flex justify-between items-center text-xs bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
-                    <span className="font-bold text-gray-700">Patada #{idx + 1}</span>
-                    <span className="text-gray-500 font-mono">{k.timeStr}</span>
-                    <span className="text-teal-700 font-semibold text-[11px]">
+                  <div key={k.id} className="flex justify-between items-center text-xs bg-slate-50 dark:bg-slate-800/60 px-3 py-1.5 rounded-xl border border-slate-100 dark:border-slate-700/60">
+                    <span className="font-bold text-gray-700 dark:text-slate-300">Patada #{idx + 1}</span>
+                    <span className="text-gray-500 dark:text-slate-400 font-mono">{k.timeStr}</span>
+                    <span className="text-teal-700 dark:text-teal-400 font-semibold text-[11px]">
                       {k.intervalSecs !== null ? `+${formatDurationText(k.intervalSecs)}` : "Inicio"}
                     </span>
                   </div>
@@ -3188,17 +3240,17 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
 
       {/* ESTADÍSTICAS INTELIGENTES Y PROMEDIO */}
       {avgDurationMinutes !== null && (
-        <div className="bg-gradient-to-br from-teal-50/70 to-emerald-50/60 rounded-3xl p-4 border border-teal-100 flex items-center justify-between shadow-xs">
+        <div className="bg-gradient-to-br from-teal-50/70 to-emerald-50/60 dark:from-slate-900 dark:to-slate-850 rounded-3xl p-4 border border-teal-100 dark:border-slate-800 flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="bg-teal-100 text-teal-700 p-2.5 rounded-2xl">
-              <Trophy size={20} className="text-teal-700" />
+            <div className="bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-400 p-2.5 rounded-2xl">
+              <Trophy size={20} className="text-teal-700 dark:text-teal-400" />
             </div>
             <div>
-              <p className="text-xs font-bold text-gray-800">Promedio Personal (10 Patadas)</p>
-              <p className="text-lg font-black text-teal-700 font-mono">~{avgDurationMinutes} minutos</p>
+              <p className="text-xs font-bold text-gray-800 dark:text-slate-200">Promedio Personal (10 Patadas)</p>
+              <p className="text-lg font-black text-teal-700 dark:text-teal-400 font-mono">~{avgDurationMinutes} minutos</p>
             </div>
           </div>
-          <span className="text-[10px] font-bold text-teal-800 bg-teal-100/80 px-2.5 py-1 rounded-full uppercase tracking-wider">
+          <span className="text-[10px] font-bold text-teal-800 dark:text-teal-300 bg-teal-100/80 dark:bg-teal-900/60 px-2.5 py-1 rounded-full uppercase tracking-wider">
             Ritmo Normal
           </span>
         </div>
@@ -3207,29 +3259,29 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
       {/* HISTORIAL CLÍNICO DE SESIONES CON PERSISTENCIA */}
       <div>
         <div className="flex justify-between items-center mb-3">
-          <h4 className="font-bold text-gray-800 flex items-center gap-2 text-sm">
-            <History size={18} className="text-teal-600"/> Historial Clínico ({sessions.length})
+          <h4 className="font-bold text-gray-800 dark:text-slate-100 flex items-center gap-2 text-sm">
+            <History size={18} className="text-teal-600 dark:text-teal-400"/> Historial Clínico ({sessions.length})
           </h4>
-          <span className="text-[11px] font-semibold text-gray-500">Guardado automático</span>
+          <span className="text-[11px] font-semibold text-gray-500 dark:text-slate-400">Guardado automático</span>
         </div>
 
         {sessions.length === 0 ? (
-          <div className="bg-gray-50 rounded-2xl p-6 text-center border border-dashed border-gray-200">
-            <Baby className="mx-auto text-gray-300 mb-2" size={32} />
-            <p className="text-gray-500 text-xs font-medium">Aún no hay sesiones guardadas. Completa 10 patadas para archivar tu primer registro.</p>
+          <div className="bg-gray-50 dark:bg-slate-800/50 rounded-2xl p-6 text-center border border-dashed border-gray-200 dark:border-slate-700">
+            <Baby className="mx-auto text-gray-300 dark:text-slate-600 mb-2" size={32} />
+            <p className="text-gray-500 dark:text-slate-400 text-xs font-medium">Aún no hay sesiones guardadas. Completa 10 patadas para archivar tu primer registro.</p>
           </div>
         ) : (
           <div className="space-y-2.5">
             {sessions.map(s => (
-              <div key={s.id} className="bg-white p-3.5 rounded-2xl border border-gray-100 shadow-xs flex justify-between items-center group hover:border-teal-200 transition-all">
+              <div key={s.id} className="bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-xs flex justify-between items-center group hover:border-teal-200 dark:hover:border-teal-700 transition-all">
                 <div className="flex items-center gap-3">
-                  <div className="bg-emerald-50 text-emerald-600 p-2 rounded-xl shrink-0">
+                  <div className="bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 p-2 rounded-xl shrink-0">
                     <CheckCircle size={18}/>
                   </div>
                   <div>
-                    <span className="font-bold text-gray-800 text-xs leading-tight block">{s.dateFormatted}</span>
+                    <span className="font-bold text-gray-800 dark:text-slate-100 text-xs leading-tight block">{s.dateFormatted}</span>
                     {s.note && (
-                      <span className="text-[10px] font-medium text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md inline-block mt-0.5">
+                      <span className="text-[10px] font-medium text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 rounded-md inline-block mt-0.5">
                         {s.note}
                       </span>
                     )}
@@ -3238,14 +3290,14 @@ function ContadorPatadas({ showToast }: { showToast: any }) {
 
                 <div className="flex items-center gap-3">
                   <div className="text-right">
-                    <p className="text-xs font-black text-gray-800">{s.count} patadas</p>
-                    <p className="text-[11px] font-semibold text-gray-500 font-mono">en {s.durationFormatted}</p>
+                    <p className="text-xs font-black text-gray-800 dark:text-slate-100">{s.count} patadas</p>
+                    <p className="text-[11px] font-semibold text-gray-500 dark:text-slate-400 font-mono">en {s.durationFormatted}</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => deleteSession(s.id)}
                     aria-label={`Eliminar sesión de ${s.dateFormatted}`}
-                    className="text-gray-300 hover:text-rose-500 p-1.5 rounded-lg transition-colors"
+                    className="text-gray-300 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-400 p-1.5 rounded-lg transition-colors"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -3384,19 +3436,19 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
       
       {/* Alerta de Parto Activo (Regla 5-1-1) */}
       {is511 && (
-        <div className="bg-rose-50 border border-rose-200 p-4 rounded-3xl shadow-md animate-in slide-in-from-top-3" role="alert" aria-live="assertive">
+        <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 p-4 rounded-3xl shadow-md animate-in slide-in-from-top-3" role="alert" aria-live="assertive">
           <div className="flex gap-3">
-            <div className="bg-rose-100 text-rose-600 p-2.5 rounded-2xl shrink-0">
+            <div className="bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-300 p-2.5 rounded-2xl shrink-0">
               <AlertTriangle size={24} />
             </div>
             <div>
-              <h4 className="font-bold text-rose-950 text-sm">¡Regla 5-1-1 Detectada! (Parto Activo)</h4>
-              <p className="text-rose-800 text-xs mt-1 leading-snug">
+              <h4 className="font-bold text-rose-950 dark:text-rose-200 text-sm">¡Regla 5-1-1 Detectada! (Parto Activo)</h4>
+              <p className="text-rose-800 dark:text-rose-300 text-xs mt-1 leading-snug">
                 Tus contracciones vienen cada ~{Math.round(avgInterval / 60)} min y duran ~{avgDuration}s. Es momento de acudir al hospital o contactar a tu obstetra o matrona.
               </p>
             </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-rose-200/80 flex gap-2">
+          <div className="mt-3 pt-3 border-t border-rose-200/80 dark:border-rose-900/60 flex gap-2">
             <a
               href="tel:911"
               className="flex-1 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all text-center"
@@ -3407,7 +3459,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
               href="https://maps.google.com/?q=hospital+maternidad"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 bg-white hover:bg-rose-100/50 active:scale-95 border border-rose-300 text-rose-900 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all text-center"
+              className="flex-1 bg-white dark:bg-slate-900 hover:bg-rose-100/50 dark:hover:bg-slate-800 active:scale-95 border border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-300 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all text-center"
             >
               📍 Ruta al Hospital
             </a>
@@ -3417,13 +3469,13 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
 
       {/* Tarjetas de Promedios */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
-          <p className="text-xs text-teal-800 font-bold uppercase tracking-wider mb-1">Duración Promedio</p>
-          <p className="text-xl font-black text-teal-700 tabular-nums">{history.length > 0 ? formatTime(avgDuration) : "—"}</p>
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 shadow-sm border border-gray-100 dark:border-slate-800 flex flex-col items-center justify-center text-center">
+          <p className="text-xs text-teal-800 dark:text-teal-300 font-bold uppercase tracking-wider mb-1">Duración Promedio</p>
+          <p className="text-xl font-black text-teal-700 dark:text-teal-400 tabular-nums">{history.length > 0 ? formatTime(avgDuration) : "—"}</p>
         </div>
-        <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
-          <p className="text-xs text-rose-800 font-bold uppercase tracking-wider mb-1">Frecuencia Promedio</p>
-          <p className="text-xl font-black text-rose-600 tabular-nums">{avgInterval ? formatTime(avgInterval) : "—"}</p>
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 shadow-sm border border-gray-100 dark:border-slate-800 flex flex-col items-center justify-center text-center">
+          <p className="text-xs text-rose-800 dark:text-rose-300 font-bold uppercase tracking-wider mb-1">Frecuencia Promedio</p>
+          <p className="text-xl font-black text-rose-600 dark:text-rose-400 tabular-nums">{avgInterval ? formatTime(avgInterval) : "—"}</p>
         </div>
       </div>
       
@@ -3433,7 +3485,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
         onClick={toggleRecording}
         className={`w-full py-7 rounded-3xl shadow-xl text-white font-bold text-xl flex flex-col items-center justify-center gap-2 transition-all duration-300 transform active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-teal-400 ${
           isRecording 
-            ? "bg-rose-500 hover:bg-rose-600 ring-4 ring-rose-200" 
+            ? "bg-rose-500 hover:bg-rose-600 ring-4 ring-rose-200 dark:ring-rose-900/50" 
             : "bg-teal-600 hover:bg-teal-700"
         }`}
         aria-label={isRecording ? "Detener registro de contracción" : "Iniciar registro de contracción"}
@@ -3451,13 +3503,13 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
 
       {/* MODO RECUPERACIÓN Y RESPIRACIÓN GUIADA ENTRE CONTRACCIONES */}
       {!isRecording && history.length > 0 && (
-        <div className="bg-gradient-to-br from-teal-50/80 via-emerald-50/50 to-white rounded-3xl p-5 border border-teal-200/80 shadow-xs space-y-4 animate-in fade-in">
-          <div className="flex items-center justify-between border-b border-teal-100 pb-2.5">
+        <div className="bg-gradient-to-br from-teal-50/80 via-emerald-50/50 to-white dark:from-slate-900 dark:via-slate-900 dark:to-slate-850 rounded-3xl p-5 border border-teal-200/80 dark:border-teal-800/60 shadow-xs space-y-4 animate-in fade-in">
+          <div className="flex items-center justify-between border-b border-teal-100 dark:border-slate-800 pb-2.5">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-              <h4 className="text-xs font-bold text-teal-950 uppercase tracking-wider">Intervalo de Descanso Activo</h4>
+              <h4 className="text-xs font-bold text-teal-950 dark:text-teal-300 uppercase tracking-wider">Intervalo de Descanso Activo</h4>
             </div>
-            <span className="text-xs font-bold text-teal-800 font-mono tabular-nums">
+            <span className="text-xs font-bold text-teal-800 dark:text-teal-400 font-mono tabular-nums">
               Descanso: {formatTime(restSeconds)}
             </span>
           </div>
@@ -3465,71 +3517,71 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
           {/* Pacer Visual de Respiración */}
           <div className="flex flex-col items-center justify-center py-2 text-center">
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-teal-400/20 to-emerald-400/30 border-2 border-teal-500 flex items-center justify-center animate-pulse motion-reduce:animate-none">
-              <HeartPulse size={32} className="text-teal-600" />
+              <HeartPulse size={32} className="text-teal-600 dark:text-teal-400" />
             </div>
-            <p className="font-bold text-gray-800 text-sm mt-3">Inhala lento en 4s ... Exhala suave en 6s</p>
-            <p className="text-xs text-gray-500 max-w-xs mt-0.5">
+            <p className="font-bold text-gray-800 dark:text-slate-100 text-sm mt-3">Inhala lento en 4s ... Exhala suave en 6s</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 max-w-xs mt-0.5">
               Suelta mandíbula y hombros para relajar la musculatura del suelo pélvico.
             </p>
           </div>
 
           {/* Guía Rápida para el Acompañante */}
-          <div className="bg-white/90 rounded-2xl p-3 border border-teal-100/90 text-xs space-y-1">
-            <p className="font-bold text-teal-900 flex items-center gap-1">
+          <div className="bg-white/90 dark:bg-slate-800/80 rounded-2xl p-3 border border-teal-100/90 dark:border-slate-700 text-xs space-y-1">
+            <p className="font-bold text-teal-900 dark:text-teal-300 flex items-center gap-1">
               <span>🤝 Acompañamiento del Papá / Pareja:</span>
             </p>
-            <p className="text-gray-600 leading-relaxed">• Ofrece un sorbo pequeño de agua fresca o bálsamo labial.</p>
-            <p className="text-gray-600 leading-relaxed">• Aplica contrapresión firme con el talón de la mano en el sacro (espalda baja).</p>
-            <p className="text-gray-600 leading-relaxed">• Recuérdale con voz serena: <em>"Respira profundo, lo estás haciendo genial."</em></p>
+            <p className="text-gray-600 dark:text-slate-300 leading-relaxed">• Ofrece un sorbo pequeño de agua fresca o bálsamo labial.</p>
+            <p className="text-gray-600 dark:text-slate-300 leading-relaxed">• Aplica contrapresión firme con el talón de la mano en el sacro (espalda baja).</p>
+            <p className="text-gray-600 dark:text-slate-300 leading-relaxed">• Recuérdale con voz serena: <em>"Respira profundo, lo estás haciendo genial."</em></p>
           </div>
         </div>
       )}
 
       {/* Historial o Estado Inicial */}
       {history.length === 0 ? (
-        <div className="bg-white rounded-3xl p-6 border border-dashed border-gray-200 text-center shadow-xs">
-          <div className="bg-teal-50 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 text-teal-600">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-dashed border-gray-200 dark:border-slate-800 text-center shadow-xs">
+          <div className="bg-teal-50 dark:bg-teal-950/60 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 text-teal-600 dark:text-teal-400">
             <HeartPulse size={24} />
           </div>
-          <h4 className="font-bold text-gray-800 text-sm mb-1">Sin contracciones registradas</h4>
-          <p className="text-xs text-gray-500 max-w-xs mx-auto leading-relaxed">
+          <h4 className="font-bold text-gray-800 dark:text-slate-100 text-sm mb-1">Sin contracciones registradas</h4>
+          <p className="text-xs text-gray-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
             Cuando sientas que tu abdomen se tensa o empiece una contracción, toca el botón grande. El sistema calculará la duración, el intervalo y te avisará si cumples la regla 5-1-1 para acudir al hospital.
           </p>
         </div>
       ) : (
         <div className="space-y-3">
           <div className="flex justify-between items-center">
-            <h4 className="font-bold text-gray-800 text-sm flex items-center gap-2">
-              <Activity size={18} className="text-teal-600"/> Historial ({history.length})
+            <h4 className="font-bold text-gray-800 dark:text-slate-100 text-sm flex items-center gap-2">
+              <Activity size={18} className="text-teal-600 dark:text-teal-400"/> Historial ({history.length})
             </h4>
             <button
               type="button"
               onClick={clearHistory}
-              className="text-[11px] font-bold text-gray-400 hover:text-rose-600 transition-colors"
+              className="text-[11px] font-bold text-gray-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
             >
               Reiniciar historial
             </button>
           </div>
 
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="grid grid-cols-4 bg-gray-50 p-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800 overflow-hidden">
+            <div className="grid grid-cols-4 bg-gray-50 dark:bg-slate-800/50 p-3 text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider text-center">
               <div>Hora</div>
               <div>Duración</div>
               <div>Frecuencia</div>
               <div>Quitar</div>
             </div>
-            <div className="divide-y divide-gray-50 text-xs text-center">
+            <div className="divide-y divide-gray-50 dark:divide-slate-800 text-xs text-center">
               {history.map((item) => (
-                <div key={item.id} className="grid grid-cols-4 p-3.5 items-center hover:bg-gray-50/70 transition-colors">
-                  <div className="text-gray-600 font-medium">
+                <div key={item.id} className="grid grid-cols-4 p-3.5 items-center hover:bg-gray-50/70 dark:hover:bg-slate-800/50 transition-colors">
+                  <div className="text-gray-600 dark:text-slate-300 font-medium">
                     {new Date(item.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
                   <div>
-                    <span className="font-bold text-teal-700 bg-teal-50 py-1 px-2 rounded-lg inline-block tabular-nums">
+                    <span className="font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 py-1 px-2 rounded-lg inline-block tabular-nums">
                       {formatTime(item.duration)}
                     </span>
                   </div>
-                  <div className="font-bold text-rose-600 tabular-nums">
+                  <div className="font-bold text-rose-600 dark:text-rose-400 tabular-nums">
                     {item.interval ? formatTime(item.interval) : "—"}
                   </div>
                   <div>
@@ -3537,7 +3589,7 @@ function ContadorContracciones({ showToast }: { showToast: any }) {
                       type="button"
                       onClick={() => deleteItem(item.id)}
                       aria-label="Eliminar contracción"
-                      className="text-gray-300 hover:text-rose-500 p-1.5 rounded-lg transition-colors"
+                      className="text-gray-300 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-400 p-1.5 rounded-lg transition-colors"
                     >
                       <Trash2 size={15} />
                     </button>
@@ -3674,12 +3726,12 @@ function VotadorNombres({ showToast }: { showToast: any }) {
     <div className="flex flex-col py-2 animate-in fade-in duration-300 w-full">
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h3 className="text-xl font-bold text-gray-800">Nombres del Bebé</h3>
-          <p className="text-xs text-gray-500">¿Hará match con tu pareja?</p>
+          <h3 className="text-xl font-bold text-gray-800 dark:text-slate-100">Nombres del Bebé</h3>
+          <p className="text-xs text-gray-500 dark:text-slate-400">¿Hará match con tu pareja?</p>
         </div>
         <div className="flex items-center gap-2">
           {matches.length > 0 && (
-            <div className="bg-rose-100 text-rose-600 font-bold px-3 py-1 rounded-full text-xs flex items-center gap-1 animate-pulse">
+            <div className="bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 font-bold px-3 py-1 rounded-full text-xs flex items-center gap-1 animate-pulse">
               <Heart size={12} fill="currentColor"/> {matches.length} Matches
             </div>
           )}
@@ -3687,11 +3739,11 @@ function VotadorNombres({ showToast }: { showToast: any }) {
             type="button"
             onClick={handleRequestMoreNames}
             disabled={isLoadingMore}
-            className="text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 min-h-[38px] rounded-full border border-teal-200/70 flex items-center gap-1.5 transition-colors disabled:opacity-60 shadow-xs active:scale-95"
+            className="text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 hover:bg-teal-100 dark:hover:bg-teal-900/60 px-3 py-1.5 min-h-[38px] rounded-full border border-teal-200/70 dark:border-teal-800/60 flex items-center gap-1.5 transition-colors disabled:opacity-60 shadow-xs active:scale-95"
             title="Pedir más nombres a PandaIA"
           >
             {isLoadingMore ? (
-              <div className="w-3 h-3 border-2 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-3 h-3 border-2 border-teal-600 dark:border-teal-400 border-t-transparent rounded-full animate-spin"></div>
             ) : (
               <Sparkles size={12} className="text-amber-500" />
             )}
@@ -3706,7 +3758,11 @@ function VotadorNombres({ showToast }: { showToast: any }) {
             <button 
               key={f}
               onClick={() => setGenderFilter(f as any)}
-              className={`px-3.5 py-2 min-h-[40px] rounded-full text-xs font-bold uppercase transition-colors whitespace-nowrap active:scale-95 ${genderFilter === f ? "bg-teal-600 text-white shadow-xs" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+              className={`px-3.5 py-2 min-h-[40px] rounded-full text-xs font-bold uppercase transition-colors whitespace-nowrap active:scale-95 ${
+                genderFilter === f 
+                  ? "bg-teal-600 text-white shadow-xs" 
+                  : "bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700"
+              }`}
             >
               {f}
             </button>
@@ -3717,7 +3773,7 @@ function VotadorNombres({ showToast }: { showToast: any }) {
           <button
             type="button"
             onClick={undoLastVote}
-            className="text-xs font-bold text-gray-600 hover:text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 px-3 py-2 min-h-[40px] rounded-full shadow-xs active:scale-95 transition-all flex items-center gap-1 shrink-0 ml-2"
+            className="text-xs font-bold text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 px-3 py-2 min-h-[40px] rounded-full shadow-xs active:scale-95 transition-all flex items-center gap-1 shrink-0 ml-2"
             title="Deshacer el último voto de nombre"
           >
             <Undo2 size={13} /> Deshacer
@@ -3731,21 +3787,21 @@ function VotadorNombres({ showToast }: { showToast: any }) {
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
           style={{ transform: touchStart !== null ? `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.05}deg)` : "translateX(0) rotate(0)", transition: touchStart !== null ? "none" : "transform 0.3s ease-out" }}
-          className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 flex flex-col items-center text-center relative overflow-hidden mb-6 select-none touch-pan-y w-full"
+          className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-gray-100 dark:border-slate-800 p-8 flex flex-col items-center text-center relative overflow-hidden mb-6 select-none touch-pan-y w-full"
         >
           <div className="absolute top-0 w-full h-2 bg-gradient-to-r from-teal-400 to-amber-400"></div>
-          <h2 className="text-4xl font-black text-gray-800 mb-2 mt-4">{current.text}</h2>
-          <span className="text-xs font-bold uppercase tracking-widest text-teal-600 bg-teal-50 px-3 py-1 rounded-full mb-4">
+          <h2 className="text-4xl font-black text-gray-800 dark:text-slate-100 mb-2 mt-4">{current.text}</h2>
+          <span className="text-xs font-bold uppercase tracking-widest text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 px-3 py-1 rounded-full mb-4">
             Origen: {current.origin} • {current.gender}
           </span>
-          <p className="text-sm text-gray-500 italic mb-8 max-w-[200px]">"{current.meaning}"</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400 italic mb-8 max-w-[200px]">"{current.meaning}"</p>
           
           <div className="flex gap-6 w-full justify-center">
             <button 
               type="button"
               onClick={() => vote(current.id, "disliked")} 
               aria-label={`Descartar el nombre ${current.text}`}
-              className="bg-white border-2 border-gray-100 p-5 rounded-full shadow-sm hover:bg-gray-50 text-gray-400 hover:text-gray-600 transition-transform active:scale-90 focus:outline-none focus:ring-2 focus:ring-rose-300"
+              className="bg-white dark:bg-slate-800 border-2 border-gray-100 dark:border-slate-700 p-5 rounded-full shadow-sm hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-slate-200 transition-transform active:scale-90 focus:outline-none focus:ring-2 focus:ring-rose-300"
             >
               <X size={32} />
             </button>
@@ -3760,14 +3816,14 @@ function VotadorNombres({ showToast }: { showToast: any }) {
           </div>
         </div>
       ) : (
-        <div className="bg-gradient-to-br from-teal-50 to-amber-50 rounded-3xl border border-teal-100 p-8 text-center mb-6 shadow-sm flex flex-col items-center w-full">
-            <div className="bg-white p-4 rounded-full mb-4 shadow-sm">
+        <div className="bg-gradient-to-br from-teal-50 to-amber-50 dark:from-slate-900 dark:to-slate-850 rounded-3xl border border-teal-100 dark:border-slate-800 p-8 text-center mb-6 shadow-sm flex flex-col items-center w-full">
+            <div className="bg-white dark:bg-slate-800 p-4 rounded-full mb-4 shadow-sm">
               <Sparkles className="text-amber-500" size={32} />
             </div>
-            <h4 className="text-xl font-bold text-gray-800 mb-2">
+            <h4 className="text-xl font-bold text-gray-800 dark:text-slate-100 mb-2">
               {matches.length > 0 ? "¡Excelente trabajo en equipo!" : "¡Sigue buscando!"}
             </h4>
-            <p className="text-gray-600 text-sm mb-6 leading-relaxed">
+            <p className="text-gray-600 dark:text-slate-300 text-sm mb-6 leading-relaxed">
               {matches.length > 0 
                 ? `Han coincidido en ${matches.length} nombre${matches.length > 1 ? "s" : ""}. Este bebé ya tiene opciones increíbles.` 
                 : "Has revisado esta lista, pero aún no hay coincidencias. ¡No te rindas, el nombre perfecto está ahí afuera!"}
@@ -3795,7 +3851,7 @@ function VotadorNombres({ showToast }: { showToast: any }) {
                  setNames(prev => prev.map(n => ({...n, status: "pending"})));
                  showToast("Nombres restablecidos a pendientes para volver a votar", () => {});
               }}
-              className="mt-4 text-xs font-bold text-gray-500 hover:text-gray-700 uppercase tracking-wider transition-colors focus:outline-none"
+              className="mt-4 text-xs font-bold text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 uppercase tracking-wider transition-colors focus:outline-none"
             >
               Volver a votar los anteriores
             </button>
@@ -3804,12 +3860,12 @@ function VotadorNombres({ showToast }: { showToast: any }) {
 
       {matches.length > 0 && (
         <div className="mt-4">
-          <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2"><Sparkles size={18} className="text-amber-500"/> ¡It's a Match!</h4>
+          <h4 className="font-bold text-gray-800 dark:text-slate-100 mb-3 flex items-center gap-2"><Sparkles size={18} className="text-amber-500"/> ¡It's a Match!</h4>
           <div className="grid grid-cols-2 gap-3">
             {matches.map(n => (
-              <div key={n.id} className="bg-gradient-to-br from-teal-50 to-white border border-teal-100 p-4 rounded-2xl flex flex-col items-center justify-center shadow-sm">
+              <div key={n.id} className="bg-gradient-to-br from-teal-50 to-white dark:from-slate-900 dark:to-slate-800 border border-teal-100 dark:border-slate-700 p-4 rounded-2xl flex flex-col items-center justify-center shadow-sm">
                 <Heart size={20} className="text-rose-400 mb-1" fill="currentColor"/>
-                <span className="font-bold text-gray-800">{n.text}</span>
+                <span className="font-bold text-gray-800 dark:text-slate-100">{n.text}</span>
               </div>
             ))}
           </div>
@@ -4089,11 +4145,11 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
       <div className="no-print space-y-4">
         <div className="flex justify-between items-start gap-3">
           <div>
-            <div className="inline-flex items-center gap-1.5 bg-teal-50 border border-teal-200/80 px-2.5 py-0.5 rounded-full text-xs font-bold text-teal-800 mb-1">
-              <ClipboardList size={13} className="text-teal-600" /> Plan de Parto Respetado
+            <div className="inline-flex items-center gap-1.5 bg-teal-50 dark:bg-teal-950/60 border border-teal-200/80 dark:border-teal-800/60 px-2.5 py-0.5 rounded-full text-xs font-bold text-teal-800 dark:text-teal-300 mb-1">
+              <ClipboardList size={13} className="text-teal-600 dark:text-teal-400" /> Plan de Parto Respetado
             </div>
-            <h3 className="text-2xl font-black text-gray-800">Tu Plan de Parto</h3>
-            <p className="text-xs text-gray-500">
+            <h3 className="text-2xl font-black text-gray-800 dark:text-slate-100">Tu Plan de Parto</h3>
+            <p className="text-xs text-gray-500 dark:text-slate-400">
               Personaliza tus preferencias para el hospital y expórtalas en un PDF oficial.
             </p>
           </div>
@@ -4102,7 +4158,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
             <button
               type="button"
               onClick={handlePrint}
-              className="p-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl shadow-xs transition-all flex items-center gap-1.5 text-xs font-bold active:scale-95"
+              className="p-2.5 bg-gray-900 dark:bg-slate-800 hover:bg-gray-800 dark:hover:bg-slate-700 text-white rounded-xl shadow-xs transition-all flex items-center gap-1.5 text-xs font-bold active:scale-95"
               title="Guardar o imprimir en PDF"
             >
               <Printer size={16} />
@@ -4120,12 +4176,14 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
         </div>
 
         {/* SELECTOR DE VISTA: WIZARD VS DOCUMENTO OFICIAL */}
-        <div className="flex bg-gray-100 p-1 rounded-2xl">
+        <div className="flex bg-gray-100 dark:bg-slate-800 p-1 rounded-2xl">
           <button
             type="button"
             onClick={() => setViewMode("wizard")}
             className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
-              viewMode === "wizard" ? "bg-white text-teal-800 shadow-sm" : "text-gray-500 hover:text-gray-800"
+              viewMode === "wizard" 
+                ? "bg-white dark:bg-slate-900 text-teal-800 dark:text-teal-300 shadow-sm" 
+                : "text-gray-500 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200"
             }`}
           >
             <Edit3 size={14} /> Asistente Paso a Paso ({step}/5)
@@ -4134,7 +4192,9 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
             type="button"
             onClick={() => setViewMode("document")}
             className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
-              viewMode === "document" ? "bg-white text-teal-800 shadow-sm" : "text-gray-500 hover:text-gray-800"
+              viewMode === "document" 
+                ? "bg-white dark:bg-slate-900 text-teal-800 dark:text-teal-300 shadow-sm" 
+                : "text-gray-500 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200"
             }`}
           >
             <FileText size={14} /> Vista Previa Documento ({totalCheckedCount} seleccionadas)
@@ -4159,7 +4219,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                   className="flex-1 py-2 min-h-[40px] flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded-full"
                 >
                   <div className={`h-2 w-full rounded-full transition-all duration-300 ${
-                    isPast ? "bg-teal-600" : isCurrent ? "bg-teal-500 ring-2 ring-teal-200" : "bg-gray-200"
+                    isPast ? "bg-teal-600" : isCurrent ? "bg-teal-500 ring-2 ring-teal-200 dark:ring-teal-700" : "bg-gray-200 dark:bg-slate-700"
                   }`} />
                 </button>
               );
@@ -4168,13 +4228,13 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
 
           {/* Current Section Card */}
           {currentSection && (
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 space-y-4 animate-in fade-in">
-              <div className="border-b border-gray-100 pb-3">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800 p-5 space-y-4 animate-in fade-in">
+              <div className="border-b border-gray-100 dark:border-slate-800 pb-3">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 px-2.5 py-0.5 rounded-full">
                   Paso {step} de 5 · {currentSection.category}
                 </span>
-                <h4 className="text-lg font-black text-gray-800 mt-1 leading-tight">{currentSection.title}</h4>
-                <p className="text-xs text-gray-500 mt-0.5">{currentSection.subtitle}</p>
+                <h4 className="text-lg font-black text-gray-800 dark:text-slate-100 mt-1 leading-tight">{currentSection.title}</h4>
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{currentSection.subtitle}</p>
               </div>
 
               {/* Opciones Interactivas con Switches */}
@@ -4184,8 +4244,8 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                     key={opt.id}
                     className={`flex items-start gap-3 p-3.5 rounded-2xl border transition-all cursor-pointer select-none ${
                       opt.checked
-                        ? "bg-teal-50/60 border-teal-200 shadow-xs"
-                        : "bg-white border-gray-100 hover:border-gray-200 opacity-70"
+                        ? "bg-teal-50/60 dark:bg-slate-800/80 border-teal-200 dark:border-teal-700/60 shadow-xs"
+                        : "bg-white dark:bg-slate-900 border-gray-100 dark:border-slate-800 hover:border-gray-200 dark:hover:border-slate-700 opacity-70"
                     }`}
                   >
                     <input
@@ -4195,10 +4255,10 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                       className="mt-1 w-4 h-4 text-teal-600 rounded border-gray-300 focus:ring-teal-500"
                     />
                     <div className="flex-1">
-                      <span className={`text-xs font-bold block leading-snug ${opt.checked ? "text-teal-950" : "text-gray-700"}`}>
+                      <span className={`text-xs font-bold block leading-snug ${opt.checked ? "text-teal-950 dark:text-teal-300" : "text-gray-700 dark:text-slate-300"}`}>
                         {opt.label}
                       </span>
-                      <span className="text-[11px] text-gray-500 block mt-0.5 leading-relaxed">
+                      <span className="text-[11px] text-gray-500 dark:text-slate-400 block mt-0.5 leading-relaxed">
                         {opt.desc}
                       </span>
                     </div>
@@ -4215,7 +4275,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
                 type="button"
                 onClick={() => setStep(s => Math.max(1, s - 1))}
                 aria-label="Paso anterior"
-                className="py-3 px-4 bg-gray-100 text-gray-700 rounded-2xl hover:bg-gray-200 transition-colors font-bold text-xs flex items-center gap-1 active:scale-95"
+                className="py-3 px-4 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 rounded-2xl hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors font-bold text-xs flex items-center gap-1 active:scale-95"
               >
                 <ArrowLeft size={16} /> Anterior
               </button>
@@ -4233,7 +4293,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
               <button
                 type="button"
                 onClick={() => setViewMode("document")}
-                className="flex-1 py-3 px-5 bg-gray-900 hover:bg-gray-800 text-white rounded-2xl font-bold text-xs flex justify-center items-center gap-2 transition-all shadow-md active:scale-95"
+                className="flex-1 py-3 px-5 bg-gray-900 dark:bg-slate-800 hover:bg-gray-800 dark:hover:bg-slate-700 text-white rounded-2xl font-bold text-xs flex justify-center items-center gap-2 transition-all shadow-md active:scale-95"
               >
                 <FileText size={16} /> Ver Documento Final
               </button>
@@ -4246,84 +4306,84 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
       {viewMode === "document" && (
         <div className="no-print mt-4 space-y-5 animate-in fade-in">
           {/* Card de Datos del Paciente / Hospital */}
-          <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 space-y-3">
-            <div className="flex justify-between items-center border-b border-gray-100 pb-2">
-              <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
-                <Settings size={14} className="text-teal-600" /> Datos de la Ficha Médica
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-slate-800 space-y-3">
+            <div className="flex justify-between items-center border-b border-gray-100 dark:border-slate-800 pb-2">
+              <h4 className="text-xs font-bold text-gray-800 dark:text-slate-100 uppercase tracking-wider flex items-center gap-1.5">
+                <Settings size={14} className="text-teal-600 dark:text-teal-400" /> Datos de la Ficha Médica
               </h4>
-              <span className="text-[10px] text-gray-500">Se imprimirán en el encabezado</span>
+              <span className="text-[10px] text-gray-500 dark:text-slate-400">Se imprimirán en el encabezado</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
-                <label htmlFor="plan-mother-name" className="font-semibold text-gray-600 block mb-1">Nombre de la Madre:</label>
+                <label htmlFor="plan-mother-name" className="font-semibold text-gray-600 dark:text-slate-300 block mb-1">Nombre de la Madre:</label>
                 <input
                   id="plan-mother-name"
                   type="text"
                   value={patientData.motherName}
                   onChange={e => setPatientData({ ...patientData, motherName: e.target.value })}
                   placeholder="Ej. Sofía Martínez"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2 text-gray-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
 
               <div>
-                <label htmlFor="plan-partner-name" className="font-semibold text-gray-600 block mb-1">Acompañante / Pareja:</label>
+                <label htmlFor="plan-partner-name" className="font-semibold text-gray-600 dark:text-slate-300 block mb-1">Acompañante / Pareja:</label>
                 <input
                   id="plan-partner-name"
                   type="text"
                   value={patientData.partnerName}
                   onChange={e => setPatientData({ ...patientData, partnerName: e.target.value })}
                   placeholder="Ej. Carlos Pérez"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2 text-gray-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
 
               <div>
-                <label htmlFor="plan-hospital" className="font-semibold text-gray-600 block mb-1">Hospital / Clínica:</label>
+                <label htmlFor="plan-hospital" className="font-semibold text-gray-600 dark:text-slate-300 block mb-1">Hospital / Clínica:</label>
                 <input
                   id="plan-hospital"
                   type="text"
                   value={patientData.hospital}
                   onChange={e => setPatientData({ ...patientData, hospital: e.target.value })}
                   placeholder="Ej. Hospital Materno Infantil"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2 text-gray-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
 
               <div>
-                <label htmlFor="plan-doctor" className="font-semibold text-gray-600 block mb-1">Obstetra / Matrona:</label>
+                <label htmlFor="plan-doctor" className="font-semibold text-gray-600 dark:text-slate-300 block mb-1">Obstetra / Matrona:</label>
                 <input
                   id="plan-doctor"
                   type="text"
                   value={patientData.doctor}
                   onChange={e => setPatientData({ ...patientData, doctor: e.target.value })}
                   placeholder="Ej. Dra. Gómez / Matrona de turno"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2 text-gray-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="plan-notes" className="font-semibold text-gray-600 block mb-1 text-xs">Observaciones Especiales o Alergias:</label>
+              <label htmlFor="plan-notes" className="font-semibold text-gray-600 dark:text-slate-300 block mb-1 text-xs">Observaciones Especiales o Alergias:</label>
               <textarea
                 id="plan-notes"
                 rows={2}
                 value={patientData.notes}
                 onChange={e => setPatientData({ ...patientData, notes: e.target.value })}
                 placeholder="Ej. Alergia a la penicilina, deseo donar sangre de cordón, etc."
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
+                className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-gray-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
               />
             </div>
           </div>
 
           {/* Resumen Estructurado del Documento */}
-          <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 space-y-4">
-            <div className="flex justify-between items-center border-b border-gray-100 pb-2">
-              <h4 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-                <FileText size={16} className="text-teal-600" /> Vista Previa del Documento
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-slate-800 space-y-4">
+            <div className="flex justify-between items-center border-b border-gray-100 dark:border-slate-800 pb-2">
+              <h4 className="text-sm font-bold text-gray-800 dark:text-slate-100 flex items-center gap-2">
+                <FileText size={16} className="text-teal-600 dark:text-teal-400" /> Vista Previa del Documento
               </h4>
-              <span className="text-xs font-bold text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full">
+              <span className="text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 px-2.5 py-0.5 rounded-full">
                 {totalCheckedCount} deseos activos
               </span>
             </div>
@@ -4332,18 +4392,18 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
               {sections.map(sec => {
                 const active = sec.options.filter(o => o.checked);
                 return (
-                  <div key={sec.id} className="bg-slate-50/70 p-3.5 rounded-2xl border border-slate-100 space-y-2">
-                    <h5 className="font-bold text-gray-900 text-xs flex justify-between items-center">
+                  <div key={sec.id} className="bg-slate-50/70 dark:bg-slate-800/50 p-3.5 rounded-2xl border border-slate-100 dark:border-slate-700/60 space-y-2">
+                    <h5 className="font-bold text-gray-900 dark:text-slate-100 text-xs flex justify-between items-center">
                       <span>{sec.title}</span>
-                      <span className="text-gray-500 font-normal">{active.length} de {sec.options.length}</span>
+                      <span className="text-gray-500 dark:text-slate-400 font-normal">{active.length} de {sec.options.length}</span>
                     </h5>
                     {active.length === 0 ? (
-                      <p className="text-gray-400 italic text-[11px]">Sin preferencias seleccionadas en este apartado.</p>
+                      <p className="text-gray-400 dark:text-slate-500 italic text-[11px]">Sin preferencias seleccionadas en este apartado.</p>
                     ) : (
                       <ul className="space-y-1.5">
                         {active.map(opt => (
-                          <li key={opt.id} className="flex items-start gap-2 text-gray-700">
-                            <CheckCircle2 size={14} className="text-teal-600 shrink-0 mt-0.5" />
+                          <li key={opt.id} className="flex items-start gap-2 text-gray-700 dark:text-slate-300">
+                            <CheckCircle2 size={14} className="text-teal-600 dark:text-teal-400 shrink-0 mt-0.5" />
                             <span><strong>{opt.label}:</strong> {opt.desc}</span>
                           </li>
                         ))}
@@ -4356,7 +4416,7 @@ function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: a
           </div>
 
           {/* Barra de Acciones de Exportación */}
-          <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-teal-900 text-white p-5 rounded-3xl shadow-lg space-y-3">
+          <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-teal-900 dark:from-slate-900 dark:via-slate-850 dark:to-teal-950 border border-transparent dark:border-slate-800 text-white p-5 rounded-3xl shadow-lg space-y-3">
             <div className="flex items-center gap-3">
               <div className="bg-white/10 p-2.5 rounded-2xl">
                 <Printer size={22} className="text-teal-300" />
