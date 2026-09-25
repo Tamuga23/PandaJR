@@ -98,14 +98,21 @@ export function listenToMomStatus(pregnancyId: string, callback: (status: any) =
 }
 
 // --- JOURNAL (Diario de a Dos) ---
-export async function addJournalEntry(pregnancyId: string, authorRole: string, authorName: string, text: string) {
+export async function addJournalEntry(pregnancyId: string, authorRole: string, authorName: string, text: string, tag?: string, mood?: string) {
   const ref = doc(collection(db, "pregnancies", pregnancyId, "journal"));
   await setDoc(ref, {
     authorRole,
     authorName,
     text,
+    tag: tag || null,
+    mood: mood || null,
     createdAt: serverTimestamp()
   });
+}
+
+export async function deleteJournalEntry(pregnancyId: string, entryId: string) {
+  const ref = doc(db, "pregnancies", pregnancyId, "journal", entryId);
+  await deleteDoc(ref);
 }
 
 export function listenToJournal(pregnancyId: string, callback: (entries: any[]) => void) {

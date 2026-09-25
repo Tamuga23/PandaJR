@@ -165,6 +165,12 @@ export function SOSSintomas() {
 export function DiarioView({ profile, onClose }: { profile: UserProfile, onClose: () => void }) {
   const [entries, setEntries] = React.useState<any[]>([]);
   const [newEntry, setNewEntry] = React.useState("");
+  const [selectedTag, setSelectedTag] = React.useState<string | null>(null);
+  const [selectedMood, setSelectedMood] = React.useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const tags = ["Mensaje al bebé", "Hito médico", "Antojo", "Pensamiento", "Recuerdo"];
+  const moods = ["🥰", "😊", "😭", "😴", "🤢", "🤔"];
 
   useEffect(() => {
     let unsub: (() => void) | null = null;
@@ -178,64 +184,150 @@ export function DiarioView({ profile, onClose }: { profile: UserProfile, onClose
 
   const handlePost = async () => {
     if (newEntry.trim() && profile.pregnancyId) {
-      const { addJournalEntry } = await import('@/lib/firebase/pairing');
-      await addJournalEntry(profile.pregnancyId, profile.role, profile.name, newEntry.trim());
-      setNewEntry("");
+      setIsSubmitting(true);
+      try {
+        const { addJournalEntry } = await import('@/lib/firebase/pairing');
+        await addJournalEntry(profile.pregnancyId, profile.role, profile.name, newEntry.trim(), selectedTag || undefined, selectedMood || undefined);
+        setNewEntry("");
+        setSelectedTag(null);
+        setSelectedMood(null);
+      } catch(e) {
+        console.error(e);
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+  };
+
+  const handleDelete = async (entryId: string) => {
+    if (profile.pregnancyId && confirm("¿Eliminar esta memoria?")) {
+      const { deleteJournalEntry } = await import('@/lib/firebase/pairing');
+      await deleteJournalEntry(profile.pregnancyId, entryId);
     }
   };
 
   return (
-    <div className="w-full">
-      <div className="p-4 max-w-lg mx-auto">
-        <div className="bg-white dark:bg-[#181a20] rounded-2xl p-4 shadow-sm border border-stone-200 dark:border-white/[0.05] mb-6">
+    <div className="w-full flex flex-col pb-20 animate-in fade-in duration-300">
+      <div className="bg-gradient-to-br from-terracotta/10 to-sage/10 dark:from-[#2a222f] dark:to-[#1a1724] p-5 shrink-0 border-b border-terracotta/20 dark:border-white/5 relative overflow-hidden">
+        <BookOpen size={48} className="absolute -bottom-4 -right-4 text-terracotta/10 dark:text-terracotta/5 -rotate-12" />
+        <h2 className="text-xl font-black text-stone-800 dark:text-[#eae6e1] relative z-10">Diario del Bebé</h2>
+        <p className="text-sm text-stone-600 dark:text-[#a6a1b2] relative z-10">Recuerdos compartidos de este viaje.</p>
+      </div>
+
+      <div className="p-4 max-w-lg mx-auto w-full flex-1 flex flex-col gap-6 relative">
+        {/* Editor de nueva entrada */}
+        <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-4 shadow-sm border border-stone-200 dark:border-white/[0.08] relative z-20 animate-in slide-in-from-top-4">
           <textarea 
             value={newEntry}
             onChange={e => setNewEntry(e.target.value)}
-            placeholder="Escribe un recuerdo, un pensamiento o un mensaje para el bebé..."
-            className="w-full bg-transparent resize-none h-24 text-stone-800 dark:text-white placeholder:text-stone-400 dark:placeholder:text-stone-600 focus:outline-none"
+            placeholder="Escribe un recuerdo, hito o mensaje para el bebé..."
+            className="w-full bg-stone-50 dark:bg-[#181520] rounded-2xl p-3 resize-none h-24 text-sm text-stone-800 dark:text-white placeholder:text-stone-400 dark:placeholder:text-stone-600 focus:outline-none focus:ring-2 focus:ring-terracotta/30 transition-all border border-transparent dark:border-white/5"
           />
-          <div className="flex justify-between items-center mt-2 border-t border-stone-100 dark:border-white/5 pt-3">
-            <span className="text-xs font-bold text-stone-400 dark:text-stone-500">Publicando como {profile.name}</span>
+          
+          <div className="mt-3 flex flex-wrap gap-2">
+            {tags.map(tag => (
+              <button 
+                key={tag}
+                onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
+                className={`px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all ${tag === selectedTag ? 'bg-sage text-white border-sage' : 'bg-stone-50 dark:bg-[#181520] text-stone-500 dark:text-stone-400 border-stone-200 dark:border-white/5 hover:border-sage/50'}`}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex justify-between items-end mt-4 pt-3 border-t border-stone-100 dark:border-white/5">
+            <div className="flex gap-1 bg-stone-50 dark:bg-[#181520] p-1 rounded-full border border-stone-100 dark:border-white/5">
+              {moods.map(mood => (
+                <button 
+                  key={mood}
+                  onClick={() => setSelectedMood(mood === selectedMood ? null : mood)}
+                  className={`w-7 h-7 rounded-full text-sm flex items-center justify-center transition-transform ${mood === selectedMood ? 'bg-terracotta/20 scale-110' : 'opacity-60 hover:opacity-100 hover:bg-stone-200 dark:hover:bg-white/10'}`}
+                >
+                  {mood}
+                </button>
+              ))}
+            </div>
             <button 
               onClick={handlePost}
-              disabled={!newEntry.trim()}
-              className="bg-terracotta text-white px-5 py-2 rounded-xl text-sm font-bold disabled:opacity-50 transition-all flex items-center gap-2"
+              disabled={!newEntry.trim() || isSubmitting}
+              className="bg-terracotta text-white px-5 py-2.5 rounded-xl text-sm font-bold disabled:opacity-50 transition-all flex items-center gap-2 hover:bg-terracotta-hover active:scale-95"
             >
-              <Send size={16} /> Guardar
+              {isSubmitting ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              ) : (
+                <><Send size={16} /> Guardar</>
+              )}
             </button>
           </div>
         </div>
 
-        <div className="flex flex-col gap-5">
-          {entries.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-sage/20 rounded-full flex items-center justify-center mx-auto mb-4 text-sage">
-                <FileText size={24} />
+        {/* Timeline */}
+        <div className="relative pl-4 mt-2">
+          {entries.length > 0 && (
+            <div className="absolute left-[23px] top-4 bottom-0 w-px bg-stone-200 dark:bg-white/10 z-0"></div>
+          )}
+          
+          <div className="flex flex-col gap-6 relative z-10">
+            {entries.length === 0 ? (
+              <div className="text-center py-12 animate-in zoom-in-95">
+                <div className="w-16 h-16 bg-sage/20 rounded-full flex items-center justify-center mx-auto mb-4 text-sage border-4 border-white dark:border-[#181520]">
+                  <FileText size={24} />
+                </div>
+                <h3 className="font-bold text-stone-800 dark:text-[#eae6e1] mb-1">El diario está vacío</h3>
+                <p className="text-sm text-stone-500 dark:text-[#a6a1b2]">El primer recuerdo de este viaje empieza aquí.</p>
               </div>
-              <h3 className="font-bold text-stone-800 dark:text-white mb-1">El diario está vacío</h3>
-              <p className="text-sm text-stone-500 dark:text-stone-400">Escribe el primer recuerdo de este hermoso viaje.</p>
-            </div>
-          ) : (
-            entries.map(entry => (
-              <div key={entry.id} className="bg-white dark:bg-[#181a20] rounded-2xl p-4 shadow-sm border border-stone-100 dark:border-white/[0.05]">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${entry.authorRole === 'mama' ? 'bg-terracotta/20 text-terracotta' : 'bg-sage/20 text-sage'}`}>
-                    {entry.authorName.charAt(0)}
+            ) : (
+              entries.map((entry, idx) => (
+                <div key={entry.id} className="flex gap-4 animate-in slide-in-from-bottom-4 fade-in" style={{ animationDelay: `${Math.min(idx * 100, 500)}ms` }}>
+                  {/* Avatar Timeline Node */}
+                  <div className="relative mt-1 shrink-0">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-black border-4 border-[#faf9f5] dark:border-[#181520] shadow-sm z-10 relative ${entry.authorRole === 'mama' ? 'bg-terracotta/20 text-terracotta' : 'bg-sage/20 text-sage'}`}>
+                      {entry.authorName.charAt(0)}
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-stone-800 dark:text-white">{entry.authorName}</p>
-                    <p className="text-[10px] text-stone-400 dark:text-stone-500">{entry.createdAt?.toDate ? entry.createdAt.toDate().toLocaleString() : 'Justo ahora'}</p>
+                  
+                  {/* Entry Card */}
+                  <div className="bg-white dark:bg-[#221d2d] rounded-3xl rounded-tl-sm p-4 shadow-sm border border-stone-200/60 dark:border-white/[0.08] flex-1 group">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-bold text-stone-800 dark:text-[#eae6e1]">{entry.authorName}</p>
+                          {entry.mood && <span className="text-sm">{entry.mood}</span>}
+                        </div>
+                        <p className="text-[10px] font-medium text-stone-400 dark:text-stone-500 uppercase tracking-wider">
+                          {entry.createdAt?.toDate ? entry.createdAt.toDate().toLocaleString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Guardando...'}
+                        </p>
+                      </div>
+                      
+                      {entry.authorName === profile.name && (
+                        <button 
+                          onClick={() => handleDelete(entry.id)} 
+                          className="w-6 h-6 rounded-full flex items-center justify-center text-stone-300 hover:bg-rose-50 hover:text-rose-500 transition-colors"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      )}
+                    </div>
+                    
+                    {entry.tag && (
+                      <span className="inline-block px-2 py-0.5 bg-stone-100 dark:bg-[#181520] text-stone-500 dark:text-[#a6a1b2] rounded-md text-[10px] font-bold mb-2">
+                        {entry.tag}
+                      </span>
+                    )}
+                    
+                    <p className="text-stone-700 dark:text-[#eae6e1]/90 text-sm whitespace-pre-wrap leading-relaxed">{entry.text}</p>
                   </div>
                 </div>
-                <p className="text-stone-600 dark:text-stone-300 text-sm whitespace-pre-wrap">{entry.text}</p>
-              </div>
-            ))
-          )}
+              ))
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
 
 
 export function MaletaView({ profile, onClose }: { profile: UserProfile, onClose: () => void }) {
