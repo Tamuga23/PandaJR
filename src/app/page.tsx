@@ -1007,30 +1007,41 @@ const masterCategories = [
 ];
 
 function getWeekData(week: number, theme: "frutas"|"geek" = "frutas") {
-  const data = [
-      { week: 4, size: { frutas: "Semilla de amapola 🌑", geek: "Dado D20 en miniatura 🎲" }, len: "0.1 cm", weight: "1 g" },
-      { week: 8, size: { frutas: "Frambuesa 🍓", geek: "Ficha de LEGO de 1x1 🧱" }, len: "1.6 cm", weight: "1 g" },
-      { week: 12, size: { frutas: "Ciruela 🍑", geek: "Dado D6 estándar 🎲" }, len: "5.4 cm", weight: "14 g" },
-      { week: 14, size: { frutas: "Limón 🍋", geek: "Goma de borrar ✏️" }, len: "8.7 cm", weight: "43 g" },
-      { week: 16, size: { frutas: "Aguacate 🥑", geek: "Mouse de computadora 🖱️" }, len: "11.6 cm", weight: "100 g" },
-      { week: 20, size: { frutas: "Plátano 🍌", geek: "Control de Nintendo Switch (Joy-Con) 🎮" }, len: "25.6 cm", weight: "300 g" },
-      { week: 24, size: { frutas: "Mazorca de maíz 🌽", geek: "Sable de luz (mango) 🔦" }, len: "30.0 cm", weight: "600 g" },
-      { week: 27, size: { frutas: "Vegetal nutritivo 🥦", geek: "iPad Mini 📱" }, len: "33.8 cm", weight: "2922 g" },
-      { week: 30, size: { frutas: "Repollo 🥬", geek: "Casco de realidad virtual 🥽" }, len: "39.9 cm", weight: "1319 g" },
-      { week: 34, size: { frutas: "Melón cantalupo 🍈", geek: "Consola Steam Deck 🕹️" }, len: "45.0 cm", weight: "2146 g" },
-      { week: 40, size: { frutas: "Sandía pequeña 🍉", geek: "PlayStation 5 (en proporción) 🎮" }, len: "51.2 cm", weight: "3462 g" },
-    ];
-  let closest = data[0];
-  for (let d of data) {
-    if (d.week <= week) closest = d;
+  const weeklyDetails = [
+    { w: 1, s: { f: "Preparación", g: "Loading..." }, l: "0 cm", wg: "0 g", m: "Preparación del cuerpo", dm: "Planifica una dieta sana y comiencen a tomar vitaminas prenatales.", mm: "Tu cuerpo se prepara para la ovulación. Es un buen momento para iniciar el ácido fólico." },
+    { w: 2, s: { f: "Óvulo liberado", g: "Start!" }, l: "0 cm", wg: "0 g", m: "Semana de ovulación", dm: "Días clave. Mantén un ambiente relajado y romántico.", mm: "El cuerpo libera el óvulo. Relájate y mantén un estilo de vida saludable." },
+    { w: 3, s: { f: "Semilla de vainilla", g: "Píxel" }, l: "0.01 cm", wg: "0 g", m: "Fecundación", dm: "Apoya a tu pareja; es un proceso invisible pero biológicamente intenso.", mm: "El óvulo fecundado viaja al útero. Puedes sentir leves calambres." },
+    { w: 4, s: { f: "Semilla de amapola", g: "Dado D20 miniatura" }, l: "0.1 cm", wg: "1 g", m: "Implantación en el útero", dm: "Eviten el alcohol y el tabaco en casa. Cocina rico y sano.", mm: "El embrión se implanta. Inicia la formación del tubo neural." },
+    { w: 5, s: { f: "Grano de pimienta", g: "Tecla de teclado" }, l: "0.3 cm", wg: "1 g", m: "El corazón empieza a latir", dm: "Es normal que sienta mucho cansancio. Ofrécete a hacer las tareas pesadas.", mm: "Tu volumen de sangre aumenta. Descansa siempre que lo necesites." },
+    { w: 6, s: { f: "Semilla de granada", g: "Microchip" }, l: "0.6 cm", wg: "1 g", m: "Formación de rostro y extremidades", dm: "Las náuseas pueden aparecer. Ten galletas saladas junto a la cama.", mm: "Las hormonas suben. Come pequeñas porciones y mantente hidratada." },
+    { w: 7, s: { f: "Arándano", g: "Dado D6 estándar" }, l: "1.0 cm", wg: "1 g", m: "Desarrollo del cerebro a gran velocidad", dm: "El cerebro fetal genera 100 neuronas por minuto. Prepara cenas ricas en DHA (salmón).", mm: "Sentirás más ganas de ir al baño. No reduzcas tu consumo de agua." },
+    { w: 8, s: { f: "Frambuesa", g: "Ficha de LEGO de 1x1" }, l: "1.6 cm", wg: "1 g", m: "Se forman los deditos", dm: "Acompáñala a la primera ecografía si es posible. ¡Escucharán el corazón!", mm: "El cordón umbilical ya funciona por completo." },
+    { w: 9, s: { f: "Cereza", g: "Moneda de arcade" }, l: "2.3 cm", wg: "2 g", m: "Desarrollo de articulaciones", dm: "La sensibilidad a los olores es alta. Evita perfumes fuertes o cocinar cosas intensas.", mm: "Los pechos pueden sentirse muy sensibles; usa un sostén cómodo." },
+    { w: 10, s: { f: "Fresa", g: "Tamagotchi" }, l: "3.1 cm", wg: "4 g", m: "Fin de la organogénesis crítica", dm: "Los órganos vitales ya están formados. Celebra este primer gran hito con ella.", mm: "¡Termina el periodo embrionario! El riesgo de malformaciones baja drásticamente." },
+    { w: 12, s: { f: "Ciruela", g: "Mouse de computadora pequeño" }, l: "5.4 cm", wg: "14 g", m: "Reflejos incipientes", dm: "Fin del primer trimestre. Es un gran momento para planear dar la noticia.", mm: "Las náuseas suelen empezar a ceder. Tu útero crece por encima de la pelvis." },
+    { w: 14, s: { f: "Limón", g: "Goma de borrar" }, l: "8.7 cm", wg: "43 g", m: "Comienza el segundo trimestre", dm: "Su energía regresará. Planeen alguna salida especial o una 'babymoon'.", mm: "Empieza la etapa más cómoda. ¡Disfruta el retorno de tu energía!" },
+    { w: 16, s: { f: "Aguacate", g: "Control de Switch (Joy-Con)" }, l: "11.6 cm", wg: "100 g", m: "Glándula tiroides funcional", dm: "El bebé ya escucha. Empieza a hablarle a la barriga o léele cuentos.", mm: "Puedes empezar a sentir un 'aleteo'. Es el bebé moviéndose." },
+    { w: 20, s: { f: "Plátano", g: "Nintendo Game Boy" }, l: "25.6 cm", wg: "300 g", m: "Ecografía morfológica", dm: "Cita médica crucial. Se revisa toda la anatomía del bebé.", mm: "La barriga ya es evidente. Duerme de lado (preferiblemente izquierdo)." },
+    { w: 24, s: { f: "Mazorca de maíz", g: "Sable de luz (mango)" }, l: "30.0 cm", wg: "600 g", m: "Viabilidad fetal", dm: "El bebé ya podría sobrevivir fuera del útero. Hora de armar el presupuesto.", mm: "Prueba de glucosa a la vista. Mantén una dieta equilibrada." },
+    { w: 27, s: { f: "Coliflor", g: "iPad Mini" }, l: "36.6 cm", wg: "875 g", m: "Abre los ojos", dm: "Tercer trimestre a la vuelta. Empiecen a cotizar sillas para el auto.", mm: "Puedes sentir hipo fetal (pequeños saltitos rítmicos)." },
+    { w: 30, s: { f: "Repollo", g: "Casco de realidad virtual" }, l: "39.9 cm", wg: "1319 g", m: "Desarrollo de corteza cerebral", dm: "Ensambla la cuna. Deja la logística lista en casa.", mm: "El cansancio vuelve. Descansa con las piernas en alto para evitar hinchazón." },
+    { w: 34, s: { f: "Melón cantalupo", g: "Consola Steam Deck" }, l: "45.0 cm", wg: "2146 g", m: "Maduración pulmonar", dm: "Revisen la ruta al hospital. Prepara tu maleta también.", mm: "El espacio es reducido, las patadas pueden sentirse más como estiramientos." },
+    { w: 38, s: { f: "Calabaza", g: "Consola Retro grande" }, l: "49.8 cm", wg: "3083 g", m: "Embarazo a término", dm: "Ten el tanque del auto lleno y el teléfono cargado siempre.", mm: "Atenta a las contracciones regulares. Descansa todo lo que puedas." },
+    { w: 40, s: { f: "Sandía pequeña", g: "PlayStation 5" }, l: "51.2 cm", wg: "3462 g", m: "¡Llegada inminente!", dm: "El gran día. Mantén la calma, respira y sé su pilar de apoyo.", mm: "Confía en tu cuerpo, está diseñado para esto. ¡Ya casi conoces a tu bebé!" },
+  ];
+
+  let closest = weeklyDetails[0];
+  for (let d of weeklyDetails) {
+    if (d.w <= week) closest = d;
   }
+  
   return {
-    size: closest.size[theme] || closest.size.frutas,
-    length: closest.len,
-    weight: closest.weight,
-    milestone: week <= 12 ? "Fin de la organogénesis crítica" : week <= 20 ? "Glándula tiroides funcional" : "Desarrollo de sentidos y corteza cerebral",
-    momMission: week <= 12 ? "Tu cuerpo está formando órganos vitales. Prioriza descanso, ácido fólico y evita cargar peso." : week <= 24 ? "Tu bebé ya escucha tu voz. Mantén una dieta rica en hierro y calcio, y camina 20 min diarios." : "Practica ejercicios de Kegel, usa la almohada de embarazo para dormir y prepara tu plan de parto.",
-    dadMission: week <= 12 ? "El cerebro fetal triplica su sinapsis. Prepara cenas ricas en Colina (huevos) y DHA (salmón)." : "Ten lista la logística de transporte, tanque de gasolina lleno y números de emergencia a mano."
+    size: theme === "geek" ? closest.s.g : closest.s.f,
+    length: closest.l,
+    weight: closest.wg,
+    milestone: closest.m,
+    momMission: closest.mm,
+    dadMission: closest.dm
   };
 }
 
