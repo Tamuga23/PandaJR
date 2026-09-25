@@ -1,144 +1,89 @@
 ---
 name: PandaJR
-description: Herramienta colaborativa para padres primerizos
+description: Copiloto Colaborativo para el Embarazo (Mobile-First PWA)
 colors:
-  primary: "#0d9488"
-  primary-light: "#f0fdfa"
-  secondary: "#f59e0b"
-  secondary-light: "#fffbeb"
-  tertiary: "#f43f5e"
-  tertiary-light: "#fff1f2"
-  neutral-bg: "#f9fafb"
-  neutral-surface: "#ffffff"
-  neutral-text: "#111827"
+  primary: "#c96651" # Terracotta
+  primary-light: "rgba(201, 102, 81, 0.1)"
+  secondary: "#6c9a84" # Sage
+  secondary-light: "rgba(108, 154, 132, 0.1)"
+  background: "#fdfbf7" # Alabaster
+  foreground: "#2d2a26" # Stone 800
+  dark-background: "#181520" # Obsidian / Warm Violet
+  dark-surface: "#221d2d"
 typography:
-  display:
-    fontFamily: "var(--font-geist-sans), system-ui, sans-serif"
-    fontSize: "1.875rem"
-    fontWeight: 900
-  headline:
-    fontFamily: "var(--font-geist-sans), system-ui, sans-serif"
-    fontSize: "1.25rem"
-    fontWeight: 700
-  body:
-    fontFamily: "var(--font-geist-sans), system-ui, sans-serif"
-    fontSize: "1rem"
-    fontWeight: 400
-  label:
-    fontFamily: "var(--font-geist-sans), system-ui, sans-serif"
-    fontSize: "0.75rem"
-    fontWeight: 700
-  caption:
-    fontFamily: "var(--font-geist-sans), system-ui, sans-serif"
-    fontSize: "0.6875rem"
-    fontWeight: 600
-  micro:
-    fontFamily: "var(--font-geist-sans), system-ui, sans-serif"
-    fontSize: "0.625rem"
-    fontWeight: 700
+  fontFamily: "Geist Sans, system-ui, sans-serif"
 rounded:
-  md: "12px"
   lg: "16px"
   xl: "24px"
-spacing:
-  sm: "8px"
-  md: "16px"
-  lg: "24px"
-components:
-  button-primary:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.neutral-surface}"
-    rounded: "{rounded.lg}"
-    padding: "16px"
+  2xl: "32px"
 ---
 
 # Design System: PandaJR
 
 ## Overview
 
-**Creative North Star: "El Copiloto del Papá Primerizo"**
+**Creative North Star: "Warm Botanical Sanctuary" (Santuario Botánico Cálido)**
 
-El diseño de PandaJR es empático, tranquilizador y altamente funcional. Al estar enfocado en padres primerizos que pueden sentirse abrumados o ansiosos, la interfaz prioriza la claridad, los toques lúdicos y la reducción de carga cognitiva. Las esquinas redondeadas extremas (`rounded-3xl`, `rounded-2xl`) y los colores cálidos evitan que la aplicación se sienta como un software médico estéril, acercándola más a un asistente personal amigable.
+El diseño de PandaJR ha evolucionado para alejarse de la estética clínica, estéril o robótica (colores azules/turquesa fríos o fondos terminales). Al estar enfocado en padres primerizos que pueden sentirse abrumados o ansiosos, la interfaz prioriza la calidez humana, la empatía y la reducción de carga cognitiva. Se siente como un nido seguro o un refugio terrenal, tanto en Modo Claro como en Modo Oscuro (que evita el negro absoluto en favor de violetas cálidos profundos).
 
 **Key Characteristics:**
-- Interfaces amigables con bordes muy redondeados.
-- Uso del color para agrupar semánticamente (Teal para progreso/guía, Amber para compras/alertas preventivas, Rose para urgencias/hospital).
-- Interacciones táctiles grandes (Mobile-First).
+- **Santuario Orgánico:** Uso del color para transmitir calidez terrenal y botánica (Terracotta para urgencias/vínculo emocional, Sage para progreso/naturaleza, Stone para fondos neutros).
+- **Formas Suaves:** Esquinas redondeadas extremas (`rounded-3xl`, `rounded-2xl`) para eliminar cualquier sensación de software rígido corporativo.
+- **Interacciones Táctiles:** Componentes de altura generosa (Mobile-First) con botones anchos (`py-3.5`).
+- **Micro-interacciones Fluidas:** Uso exhaustivo de utilidades `animate-in` para transiciones orgánicas (`slide-in-from-bottom`, `zoom-in`, `fade-in`), lo que elimina cortes abruptos y proporciona "respiración" a la UI.
 
-## Colors
+## Color Palette
 
-La paleta es tranquilizadora pero lo suficientemente vibrante para mantener el engagement.
+La paleta es orgánica, terrenal y tranquilizadora, desterrando por completo el aspecto de "aplicación genérica de IA".
 
-### Primary
-- **Teal Reasegurador** (#0d9488): El color base de la aplicación. Se usa para acciones principales, progreso positivo y la barra de navegación activa. Transmite calma y competencia médica.
+### Primary: Terracotta (Arcilla Cálida)
+- **Base (`#c96651` / `text-terracotta`):** Color principal de la aplicación. Utilizado para el vínculo madre/bebé, urgencias (Contador de Contracciones, SOS Síntomas), y acciones primarias.
+- Transmite vitalidad, calidez materna, y sangre/vida sin llegar al alarmismo de un rojo semáforo tradicional.
 
-### Secondary
-- **Ámbar Energético** (#f59e0b): Usado para compras, listas y elementos lúdicos. Aporta calidez y contraste.
+### Secondary: Sage (Salvia Botánica)
+- **Base (`#6c9a84` / `text-sage`):** Color secundario. Usado para progreso continuo, éxito, confirmaciones, y elementos guiados (Checklists, Tareas del papá).
+- Transmite crecimiento orgánico, naturaleza y estabilidad. 
 
-### Tertiary
-- **Rosa Urgencia** (#f43f5e): Usado estrictamente para módulos hospitalarios, alertas de la regla 5-1-1 y la frecuencia de contracciones.
+### Neutral & Backgrounds (Light Mode)
+- **Alabaster (`#fdfbf7`):** Fondo principal. Un blanco cálido y cremoso que reduce la fatiga visual.
+- **Surface (`#ffffff`):** Para tarjetas y contenedores (`bg-white`).
+- **Texto Principal (`#2d2a26`):** Gris piedra profundo (Stone-800) en lugar de negro puro, manteniendo la legibilidad sin alto contraste agresivo.
 
-### Neutral
-- **Gris Nube** (#f9fafb): Fondo principal de la app que permite que las tarjetas blancas destaquen suavemente.
-- **Texto Carbón** (#111827): Texto principal para máxima legibilidad.
-
-### Named Rules
-**The Color-Coding Rule.** El color no es decorativo, es semántico. Todo lo relacionado con el hospital es Rosa, las tareas del hogar/compras son Ámbar, y el flujo general de la guía es Teal. 
+### Neutral & Backgrounds (Dark Mode - "De-AI")
+- **Obsidian / Warm Violet (`#181520`):** Fondo nocturno. Se rehúye del clásico "azul terminal" (Slate-900) para un tono más orgánico, ideal para consultas a las 3 AM en la habitación del bebé.
+- **Surface (`#221d2d`):** Tarjetas en modo oscuro.
+- **Texto Oscuro (`#eae6e1`):** Blanco hueso cálido para contraste sin brillo enceguecedor.
 
 ## Typography
 
-**Display Font:** Geist Sans (`var(--font-geist-sans), system-ui, sans-serif`)
-**Body Font:** Geist Sans (`var(--font-geist-sans), system-ui, sans-serif`)
-**Mono Font:** Geist Mono (`var(--font-geist-mono), monospace`)
+**Familia:** Geist Sans (`var(--font-geist-sans), system-ui, sans-serif`)
 
-**Character:** Humanista, geométrica, cálida y de alta legibilidad editorial. Geist fue desarrollada para pantallas de alta densidad, aportando claridad quirúrgica a los números gestacionales y contadores de contracciones, y dignidad tipográfica a los textos de apoyo.
+Humanista, geométrica, cálida y de alta legibilidad. Geist aporta claridad quirúrgica a los grandes números (temporizadores, semanas) y dignidad editorial a los textos de apoyo.
 
 ### Hierarchy & Scale
-- **Display** (Black/900, 3xl / 1.875rem): Grandes contadores numéricos (semanas, temporizadores, patadas).
-- **Headline** (Bold/700, xl / 1.25rem): Títulos principales de tarjetas y modales.
-- **Subheading** (Bold/700, base/sm): Nombres de citas y secciones de herramientas.
-- **Body** (Regular/400 o Medium/500, base/sm): Descripciones, tareas y explicaciones médicas.
-- **Label** (Bold/700, xs / 0.75rem, uppercase): Subtítulos descriptivos (`tracking-wider`).
-- **Caption** (SemiBold/600, 11px / 0.6875rem): Metadatos secundarios de tiempo y fecha.
-- **Micro** (Bold/700, 10px / 0.625rem): Insignias compactas y chips de navegación.
+- **Display** (`text-3xl`, `text-4xl`, `font-black`, tracking-tight): Grandes contadores numéricos (semanas, patadas).
+- **Headline** (`text-xl`, `font-bold`): Títulos principales de modales y herramientas.
+- **Subheading** (`text-sm`, `font-bold`): Nombres de citas, secciones de herramientas.
+- **Body** (`text-sm`, `text-stone-700`): Descripciones y tareas.
+- **Label / Micro** (`text-xs`, `text-[10px]`, `font-bold`): Insignias compactas, chips, metadatos y menús de navegación inferior.
 
-## Layout
+## Layout & Motion
 
-Layout estrictamente "Mobile-First" constreñido a un ancho máximo (`max-w-md mx-auto`). El ritmo de espaciado es generoso (generalmente `p-5` o `gap-6`) para acomodar toques táctiles con el pulgar.
-
-## Elevation & Depth
-
-La aplicación utiliza un enfoque híbrido: fondos grises claros (`bg-gray-50`) con tarjetas blancas levantadas ligeramente por bordes sutiles y sombras muy tenues.
-
-### Shadow Vocabulary
-- **Card Shadow** (`shadow-sm border border-gray-100`): Levantamiento predeterminado para todas las tarjetas de contenido.
-
-## Shapes
-
-Extremadamente suaves. El radio de borde predeterminado para contenedores principales es de 24px (`rounded-3xl`), y para elementos interactivos internos es de 16px (`rounded-2xl`). Esto elimina cualquier sensación de "software rígido".
-
-## Components
-
-### Buttons
-- **Shape:** Altamente redondeados (16px a 24px).
-- **Primary:** Fondo Teal-600, texto blanco, relleno generoso (`p-4`).
-- **Icon Actions:** Circulares, con fondos muy tenues (ej. `bg-teal-50`) al hacer hover o tap.
-
-### Cards / Containers
-- **Corner Style:** 24px (`rounded-3xl`).
-- **Background:** Blanco puro.
-- **Shadow Strategy:** Sutil (`shadow-sm`).
-- **Border:** `border-gray-100`.
-
-### Bottom Navigation
-- **Style:** Fija en la parte inferior, iconos Lucide con texto muy pequeño (`text-[10px]`). Color Teal-600 para el estado activo, gris para inactivo.
+- **Mobile-First:** Diseño restringido para sentirse como una app nativa PWA. Menú de navegación inferior fijo.
+- **Elevación:** Sombras muy sutiles (`shadow-sm`, `shadow-md`) y bordes suaves (`border-stone-200/80` o `border-white/[0.08]` en dark mode). Nunca se usa `border-slate` agresivo.
+- **Animaciones (Tailwind-animate):** Todo estado de carga o transición de vista usa animaciones orgánicas:
+  - Modales: `animate-in slide-in-from-bottom-8 zoom-in-95`
+  - Paneles/Tarjetas: `animate-in fade-in slide-in-from-bottom-4`
+  - Feedback visual (Pulsaciones, IA pensando): `animate-pulse`, `animate-spin`, `animate-ping` (para botones activos como el inicio del temporizador de contracciones).
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** usar botones masivos para acciones que pueden ocurrir bajo estrés (ej. registrar contracción).
-- **Do** mantener el feedback visual inmediato en cada interacción.
+- **Do** usar botones masivos con iconos grandes para herramientas que ocurren bajo estrés (ej. botón gigante de Contracciones).
+- **Do** mantener el feedback visual inmediato. Si hay una carga de red (Firebase), el botón debe mostrar "Conectando..." y deshabilitarse con un `animate-spin` integrado.
+- **Do** respetar el esquema de color orgánico. Mantén el modo oscuro en los tonos de violeta cálido (`#181520`).
 
 ### Don't:
-- **Don't** usar colores vibrantes sin propósito. Reserva el Rosa para emergencias médicas o el hospital.
-- **Don't** introducir fuentes serif o elementos corporativos; esto es un producto para la familia.
+- **Don't** usar colores vibrantes estilo neón (Cyans, Magentas) o sombras severas.
+- **Don't** usar componentes estáticos que "saltan" a la pantalla sin un `animate-in`.
+- **Don't** crear un "Mar de Tarjetas" con bordes severos repetitivos. Usa fondos sutiles y separadores tenues.
