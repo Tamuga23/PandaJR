@@ -507,53 +507,65 @@ export default function PandaJRApp() {
     setTimeout(() => setToast(null), 5000);
   };
 
-  // Cargar eventos guardados de localStorage y sincronizar si la pareja compartió citas (?sync_events=)
+    // 1. Sincronizar eventos con Firebase o localStorage
   useEffect(() => {
-    try {
-      // 1. Cargar citas locales del teléfono
-      const saved = localStorage.getItem("pandajr_events");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setEvents(parsed);
+    if (profile.pregnancyId) {
+      const unsub = listenToEvents(profile.pregnancyId, (items) => {
+        if (items && items.length > 0) {
+          setEvents(items);
+        } else {
+          setEvents([]);
         }
-      }
-
-      // 2. Revisar si se abrió un enlace de sincronización de la pareja
-      if (typeof window !== "undefined") {
-        const params = new URLSearchParams(window.location.search);
-        const syncData = params.get("sync_events");
-        if (syncData) {
-          try {
-            const decoded = JSON.parse(decodeURIComponent(escape(atob(syncData))));
-            if (Array.isArray(decoded) && decoded.length > 0) {
-              setEvents(decoded);
-              localStorage.setItem("pandajr_events", JSON.stringify(decoded));
-              showToast("¡Agenda sincronizada con tu pareja! 👶", () => {});
-              setActiveTab("agenda");
-              // Limpiar URL sin recargar
-              const cleanUrl = new URL(window.location.href);
-              cleanUrl.searchParams.delete("sync_events");
-              window.history.replaceState({}, "", cleanUrl.pathname);
-            }
-          } catch (err) {
-            console.error("Error al procesar citas compartidas:", err);
+      });
+      return () => unsub();
+    } else {
+      try {
+        const saved = localStorage.getItem("pandajr_events");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setEvents(parsed);
           }
         }
-      }
-    } catch (e) {
-      console.error(e);
+        
+        if (typeof window !== "undefined") {
+          const params = new URLSearchParams(window.location.search);
+          const syncData = params.get("sync_events");
+          if (syncData) {
+            try {
+              const decoded = JSON.parse(decodeURIComponent(escape(atob(syncData))));
+              if (Array.isArray(decoded) && decoded.length > 0) {
+                setEvents(decoded);
+                localStorage.setItem("pandajr_events", JSON.stringify(decoded));
+                showToast("¡Agenda sincronizada con tu pareja! 👶", () => {});
+                setActiveTab("agenda");
+                const cleanUrl = new URL(window.location.href);
+                cleanUrl.searchParams.delete("sync_events");
+                window.history.replaceState({}, "", cleanUrl.pathname);
+              }
+            } catch (err) {
+              console.error(err);
+            }
+          }
+        }
+      } catch (e) {}
     }
-  }, []);
+  }, [profile.pregnancyId]);
 
-  // Guardar en localStorage cuando se agreguen o editen citas
+  // 2. Guardar eventos cuando cambian
+  const eventsStr = JSON.stringify(events);
   useEffect(() => {
-    try {
-      localStorage.setItem("pandajr_events", JSON.stringify(events));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [events]);
+    const timer = setTimeout(() => {
+      try {
+        if (profile.pregnancyId) {
+          saveEvents(profile.pregnancyId, events);
+        } else {
+          localStorage.setItem("pandajr_events", JSON.stringify(events));
+        }
+      } catch (e) {}
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [eventsStr, profile.pregnancyId]);
 
   const handleAIAddEvent = (title: string, date: string, time: string, doctor: string, rawDate?: string) => {
     setEvents(prev => [...prev, { id: Date.now(), date, rawDate: rawDate || "", time, title, doctor }]);
@@ -697,7 +709,8 @@ export default function PandaJRApp() {
       {/* Modal Guía de Preparación y Recordatorio de Cita */}
       {selectedPrepEvent && (
         <AppointmentPrepModal
-          event={selectedPrepEvent}
+            profile={profile}
+            event={selectedPrepEvent}
           onClose={() => setSelectedPrepEvent(null)}
           onAskPandaIA={(question) => {
             setSelectedPrepEvent(null);

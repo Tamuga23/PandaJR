@@ -345,10 +345,12 @@ async function requestBrowserNotification(upcomingEvent?: any): Promise<boolean>
 
 export function AppointmentPrepModal({
   event,
+  profile,
   onClose,
   onAskPandaIA
 }: {
   event: any;
+  profile?: any;
   onClose: () => void;
   onAskPandaIA?: (question: string) => void;
 }) {
@@ -890,15 +892,7 @@ export function AgendaView({
               >
                 <Bell size={13} /> Alertas
               </button>
-              {events.length > 0 && (
-                <button
-                  onClick={shareWithPartner}
-                  className="text-xs font-bold text-sage dark:text-sage/80 bg-sage/10 dark:bg-[#1a1724] hover:bg-sage/20 dark:hover:bg-[#19322c] px-2.5 py-1.5 rounded-xl border border-sage/30/60 dark:border-sage/100/25 flex items-center gap-1 transition-colors shadow-xs active:scale-95"
-                  title="Compartir citas con tu pareja para sincronizarlas"
-                >
-                  <Share2 size={13} /> Sincronizar
-                </button>
-              )}
+              
             </div>
           </div>
           
