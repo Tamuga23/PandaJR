@@ -1,45 +1,57 @@
-# Product: PandaJR
+# PandaJR - Product & Architecture Documentation
 
-<!-- impeccable:product-schema 1 -->
+## 1. Visión General del Producto
+PandaJR es una PWA (Progressive Web App) diseñada como un "Copiloto Prenatal" para padres primerizos. A diferencia de las apps tradicionales enfocadas exclusivamente en la madre, PandaJR integra activamente al padre (o copiloto), asignándole misiones, recordatorios y protocolos de logística para reducir la carga mental de la madre y fomentar una crianza compartida desde la concepción.
 
-## Platform
-Web (Mobile-First PWA)
+## 2. Arquitectura de Sincronización (Firebase Realtime)
 
-## Stack
-Next.js (App Router), React 19, Tailwind CSS v4, Zustand, Firebase (Firestore & Auth Anónimo), Google Gemini AI, Web Audio API, HTML2Canvas.
+Todo el estado crítico de la aplicación vive en Firestore y se sincroniza en tiempo real a través de *Listeners* (`onSnapshot`). La estructura de la base de datos se basa en "Embarazos Compartidos" (`pregnancies/{pregnancyId}`), permitiendo que la mamá y el papá vean la misma información instantáneamente en sus respectivos dispositivos.
 
-## Users
-Padres primerizos que buscan transitar el embarazo juntos, como un equipo ("El Copiloto"). El producto sirve tanto al papá (orientándolo y dándole misiones claras) como a la mamá (proporcionando un espacio seguro, seguimiento médico y vínculo emocional).
+### Prevención de Bucles Infinitos (Sync Loops)
+Al utilizar Zustand para el estado local y Firestore para el estado remoto, se debe seguir este patrón estricto para evitar *infinite render loops*:
+1. **Escucha Autónoma:** Los \`useEffect\` de escucha llaman a \`listenTo...()\` y actualizan el estado local de React sin disparar un guardado.
+2. **Mutación Deliberada:** Cualquier guardado hacia Firebase (`addJournalEntry`, `toggleCustomTask`) se hace a través de manejadores de eventos explícitos (`onClick`, `onBlur`) y **nunca** como un efecto secundario de que cambie el estado escuchado.
+3. **Optimistic UI:** La UI se actualiza inmediatamente para dar feedback al usuario, y la suscripción de Firebase confirma el estado milisegundos después.
 
-## Product Purpose
-Un "Copiloto Prenatal" colaborativo. Reemplaza las libretas físicas, los chats de WhatsApp dispersos y las apps genéricas que solo le hablan a la mamá. Conecta a ambos padres en tiempo real y les ayuda a planificar consultas médicas, armar el presupuesto y prepararse para el parto.
+### Módulos Sincronizados
+- **Diario (Timeline):** \`listenToJournal\` / \`addJournalEntry\` / \`deleteJournalEntry\`
+- **Checklists (Misiones):** \`listenToChecklistProgress\` / \`saveChecklistProgress\`
+- **Citas (Agenda):** \`listenToEvents\` / \`saveEvents\`
+- **Contador de Patadas:** \`listenToKickSessions\` / \`saveKickSessions\`
+- **Contracciones:** \`listenToContractions\` / \`saveContractions\`
+- **Votador de Nombres:** \`listenToBabyNames\` / \`saveBabyNames\`
+- **Presupuesto (Baby Budget):** \`listenToExpenses\` / \`saveExpenses\`
 
-## Core Capabilities (Arquitectura Actual)
+## 3. Protocolos Clínicos y Estándares ACOG
+PandaJR no es solo una app de estilo de vida; está programada con rigor clínico basado en los lineamientos del Colegio Americano de Obstetras y Ginecólogos (ACOG).
 
-El sistema funciona con **Sincronización en Tiempo Real de Firebase**. Al iniciar (Onboarding), la mamá genera un código único que el papá ingresa para vincular ambos dispositivos al mismo `pregnancyId`.
+### 3.1. Precisión Gestacional (Semanas 1-40)
+La base de datos de hitos (\`getWeekData\`) respeta la biología real del desarrollo. Las Semanas 1 y 2 no describen un feto, sino la preparación del cuerpo y la ovulación. Los hitos críticos (organogénesis, maduración pulmonar) aparecen exactamente en la ventana clínica correcta.
 
-### 1. Guía (Planificación Viva)
-- **Seguimiento Semanal:** Comparativa del tamaño del bebé (frutas o temática geek), longitud, peso estimado y el hito de desarrollo de la semana.
-- **Checklists Sincronizadas:** Tareas divididas por trimestre. Cuando uno marca una tarea, el otro lo ve completado al instante gracias a Firebase (`saveChecklistProgress`).
-- **Estado de la Mamá (MomStatusCard):** Tarjeta interactiva donde la mamá puede actualizar su estado de ánimo (texto y emoji) y el copiloto lo ve en tiempo real, permitiéndole saber exactamente cómo se siente antes de llegar a casa.
+### 3.2. Módulo SOS Síntomas (Red Flags)
+Las alertas están categorizadas clínicamente para no causar pánico innecesario, pero son tajantes ante verdaderas emergencias:
+- **Preeclampsia:** Dolor de cabeza severo, moscas volantes, dolor en hipocondrio derecho.
+- **Movimientos Fetales:** Regla estricta de "menos de 10 patadas en 2 horas" a partir de la semana 28.
+- **Hiperémesis Gravídica:** Se instruye sobre deshidratación y cuándo solicitar medicación (Ej: Diclegis / B6).
 
-### 2. Agenda Médica Sincronizada
-- Gestor de citas médicas vinculadas a la semana de gestación. Todas las citas agregadas por uno de los padres se sincronizan al instante en el dispositivo del otro (`listenToEvents` / `saveEvents`).
-- **Guías de Preparación (AppointmentPrepModal):** Cada tipo de cita médica (ej. Ecografía Morfológica) abre un panel con un listado dinámico de qué llevar y qué preguntarle al médico. Los "checks" de estos elementos también se guardan en vivo, por lo que ambos pueden preparar la visita juntos.
-- Notificaciones de navegador nativas disponibles.
+### 3.3. Tareas Clínicas por Trimestre (Checklists)
+Las misiones de los padres no son triviales, están estructuradas médicamente:
+- **T1 (Primer Trimestre):** Ácido Fólico (400 mcg), evitación de listeria/toxoplasmosis (quesos no pasteurizados, cajas de arena).
+- **T2 (Segundo Trimestre):** Test de O'Sullivan (Glucosa), Ecografía Morfológica (Semanas 20-24), Suplementación DHA/Hierro.
+- **T3 (Tercer Trimestre):** Vacuna Tdap (Estrategia Capullo), Cultivo de Estreptococo del Grupo B (SGB), Regla de parto 5-1-1.
 
-### 3. Herramientas Especializadas
-- **PandaStory:** Generador de postales/historias compartibles para WhatsApp/Instagram. Usa `html2canvas` para crear una tarjeta hermosa. Permite subir una foto real de la ecografía o barriga para personalizar el hito.
-- **Reproductor Panda:** Simulador de "Ruido Blanco Materno" generado usando la Web Audio API nativa. Recrea el entorno intrauterino (latidos fetales simulados y ruido marrón continuo) que funciona offline y con la pantalla apagada.
-- **Calculadora de Presupuesto:** Presupuesto de inicio sincronizado con Firebase. Se divide en categorías, permite marcar compras realizadas (`isPurchased`) y calcula automáticamente el progreso y restante financiero en pareja.
-- **Contadores Clínicos:** Monitor de Patadas (método Cardiff), Contador de Contracciones con Regla 5-1-1 y medidor de intensidad SOS.
-- **Votador de Nombres & Plan de Parto:** Herramientas conjuntas para definir el nombre y el plan hospitalario (PDF generado).
+## 4. PandaIA: El Agente Inteligente (Gemini 2.5 Flash)
+PandaIA actúa como un copiloto contextual. Conoce el nombre del usuario, su rol (Mamá/Papá) y la semana exacta de gestación.
 
-### 4. PandaIA (Asistente Contextual)
-- Integrado con Gemini AI.
-- Altamente contextualizado: Al abrir el chat, PandaIA ya sabe en qué semana exacta está el embarazo, el nombre de los padres y su historial local.
-- **Agendamiento Autónomo:** Si el usuario le pide "Agenda mi ecografía morfológica para el 15 de octubre a las 3pm", PandaIA es capaz de interpretar la fecha e insertar automáticamente la cita en el calendario Firebase del usuario.
+### Límites de Seguridad (Safety Boundaries)
+El prompt del sistema (`systemInstruction` en `api/chat/route.ts`) tiene candados (guardrails) de nivel médico:
+1. **Regla Anti-Diagnóstico:** Tiene estrictamente prohibido diagnosticar o recetar. Todo suplemento requiere el sufijo "valídalo con tu obstetra".
+2. **Trigger de Alerta Roja:** Si el usuario menciona sangrado, dolor intenso, fiebre o disminución de movimientos, la IA *abandona su tono conversacional* y emite una instrucción directiva de ir a Urgencias.
+3. **Llamadas a la Acción Integradas:** PandaIA puede agendar eventos directamente en la Agenda local retornando un JSON estructurado junto con su respuesta.
 
-## Brand & Tone Commitments
-- **Tono de Voz:** Empático, seguro, claro y despojado de jerga médica intimidante (aunque clínicamente riguroso). Funciona como un acompañante, no como un médico regañón.
-- **Estética "Warm Botanical Sanctuary":** (Ver `DESIGN.md`). Se eliminaron los estilos de IA genéricos, adoptando colores cálidos (Terracotta, Sage) y modos oscuros profundos y amables para reducir la ansiedad. Animaciones orgánicas presentes en cada interacción (`animate-in`, `slide-in`, `fade-in`).
+## 5. Herramientas Integradas (Tooling)
+- **Contador de Patadas:** Implementa el *Método Cardiff* (Medir el tiempo hasta lograr 10 patadas). Incluye notas contextuales (ej. "Tras comer dulce").
+- **Contador de Contracciones:** Usa la regla 5-1-1. Mide frecuencia y duración. Indica claramente cuándo el falso trabajo de parto (Braxton Hicks) pasa a ser trabajo de parto activo.
+- **Diario (Timeline):** Sistema de registro cronológico con avatares, tags clínicos/emocionales y selector de estados de ánimo (Moods).
+- **Votador de Nombres:** Interfaz colaborativa estilo Tinder. El papá y la mamá votan (❤️ / ❌); si ambos dan like, ocurre un "Match".
+- **Baby Budget:** Hoja de cálculo colaborativa para llevar el progreso financiero de las compras prenatales.

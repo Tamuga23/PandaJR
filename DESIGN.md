@@ -1,89 +1,51 @@
----
-name: PandaJR
-description: Copiloto Colaborativo para el Embarazo (Mobile-First PWA)
-colors:
-  primary: "#c96651" # Terracotta
-  primary-light: "rgba(201, 102, 81, 0.1)"
-  secondary: "#6c9a84" # Sage
-  secondary-light: "rgba(108, 154, 132, 0.1)"
-  background: "#fdfbf7" # Alabaster
-  foreground: "#2d2a26" # Stone 800
-  dark-background: "#181520" # Obsidian / Warm Violet
-  dark-surface: "#221d2d"
-typography:
-  fontFamily: "Geist Sans, system-ui, sans-serif"
-rounded:
-  lg: "16px"
-  xl: "24px"
-  2xl: "32px"
----
+# PandaJR - Design System & UI Documentation
 
-# Design System: PandaJR
+## 1. Dirección de Arte: "Warm Botanical Sanctuary"
+PandaJR rechaza el aspecto genérico de las aplicaciones médicas estándar (azul clínico, gris frío, interfaces estériles) y se aleja por completo de los tropos visuales de la IA (gradientes neón, bordes púrpura, botones brillantes). 
 
-## Overview
+La aplicación está diseñada como un santuario cálido, orgánico y calmante para padres que navegan un momento de alta ansiedad.
 
-**Creative North Star: "Warm Botanical Sanctuary" (Santuario Botánico Cálido)**
+### 1.1. Paleta de Colores (Tailwind v4)
+Los colores se inyectan mediante clases directas de Tailwind o variables CSS mapeadas a utilidades semánticas:
 
-El diseño de PandaJR ha evolucionado para alejarse de la estética clínica, estéril o robótica (colores azules/turquesa fríos o fondos terminales). Al estar enfocado en padres primerizos que pueden sentirse abrumados o ansiosos, la interfaz prioriza la calidez humana, la empatía y la reducción de carga cognitiva. Se siente como un nido seguro o un refugio terrenal, tanto en Modo Claro como en Modo Oscuro (que evita el negro absoluto en favor de violetas cálidos profundos).
+*   **Terracotta (`#d97757`):** Color primario. Usado para acciones principales, botones de guardado, alertas rojas cálidas (SOS), y el estado de la madre. Representa el calor uterino y el amor terrenal.
+*   **Sage (`#8ba888` / `#6b8e67`):** Color secundario. Usado para progreso, misiones completadas, confirmaciones y la conexión con la naturaleza.
+*   **Amber (`#f59e0b` / `amber-500`):** Usado para orientación logística, preparación y advertencias no críticas.
+*   **Alabastro / Light Mode (`#fdfbf7` / `#faf9f5`):** Fondos cálidos que imitan el papel pergamino. Nunca se usa blanco puro brillante (`#ffffff`) para fondos largos, previniendo la fatiga visual.
+*   **Obsidiana / Dark Mode (`#181520` / `#221d2d`):** El Modo Oscuro no es un gris de terminal de código (como `slate-950`). Es un violeta profundo y cálido que envuelve al usuario sin ser agresivo durante la noche (ej. leyendo la app a las 3 AM).
 
-**Key Characteristics:**
-- **Santuario Orgánico:** Uso del color para transmitir calidez terrenal y botánica (Terracotta para urgencias/vínculo emocional, Sage para progreso/naturaleza, Stone para fondos neutros).
-- **Formas Suaves:** Esquinas redondeadas extremas (`rounded-3xl`, `rounded-2xl`) para eliminar cualquier sensación de software rígido corporativo.
-- **Interacciones Táctiles:** Componentes de altura generosa (Mobile-First) con botones anchos (`py-3.5`).
-- **Micro-interacciones Fluidas:** Uso exhaustivo de utilidades `animate-in` para transiciones orgánicas (`slide-in-from-bottom`, `zoom-in`, `fade-in`), lo que elimina cortes abruptos y proporciona "respiración" a la UI.
+### 1.2. Erradicación de Tropos "De-AI"
+Para garantizar un aspecto de diseño "Crafted by Humans", el código fue sometido a una auditoría estricta para eliminar:
+- Card Soup (exceso de tarjetas idénticas con bordes rígidos). Se reemplazaron por jerarquías visuales limpias (fondos mezclados, divisores tenues).
+- Texto robótico en botones (se usan verbos claros: "Guardar", "Votar").
+- Todo rastro de `bg-blue-500`, `text-indigo-600` o degradados de ciberseguridad.
 
-## Color Palette
+## 2. Tipografía y Micro-Interacciones
+El peso tipográfico se usa para guiar el ojo sin abrumar:
+- **Títulos (h1, h2):** `font-black`, sin tracking excesivo.
+- **Micro-Badges:** Etiquetas como "Ecografía Morfológica" usan texto muy pequeño (`text-[10px]`), en mayúsculas (`uppercase`), con espaciado amplio (`tracking-wider`) y fondo translúcido (`bg-terracotta/10`).
+- **Animaciones Globales:** Debido a que Shadcn no soporta animaciones out-of-the-box en Tailwind v4, se inyectaron utilidades nativas (`@utility animate-in`, `slide-in-from-bottom-4`, `zoom-in-95`) en `globals.css`. Todo en PandaJR entra a la vista deslizándose suavemente, imitando aplicaciones nativas fluidas.
 
-La paleta es orgánica, terrenal y tranquilizadora, desterrando por completo el aspecto de "aplicación genérica de IA".
+## 3. Compatibilidad PWA y iOS Safe Area
+PandaJR está diseñada para instalarse como una Progressive Web App (PWA) de pantalla completa.
 
-### Primary: Terracotta (Arcilla Cálida)
-- **Base (`#c96651` / `text-terracotta`):** Color principal de la aplicación. Utilizado para el vínculo madre/bebé, urgencias (Contador de Contracciones, SOS Síntomas), y acciones primarias.
-- Transmite vitalidad, calidez materna, y sangre/vida sin llegar al alarmismo de un rojo semáforo tradicional.
+### 3.1. Dynamic Island y Notches (iOS)
+Para evitar que el Header y el Bottom Navigation colisionen con la Dynamic Island o el indicador de inicio de iPhone, se declararon variables CSS nativas vinculadas a los Safe Areas de WebKit:
+\`\`\`css
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+\`\`\`
+En el layout principal (`page.tsx`), las barras de navegación utilizan `pt-[var(--safe-top)]` y `pb-[var(--safe-bottom)]`. Esto permite que el fondo difuminado (blur) abarque toda la pantalla de cristal, pero los botones interactivos queden en la zona segura.
 
-### Secondary: Sage (Salvia Botánica)
-- **Base (`#6c9a84` / `text-sage`):** Color secundario. Usado para progreso continuo, éxito, confirmaciones, y elementos guiados (Checklists, Tareas del papá).
-- Transmite crecimiento orgánico, naturaleza y estabilidad. 
+### 3.2. Manifest y Theme Color
+El `manifest.json` y el componente `layout.tsx` están emparejados.
+- `theme_color` (Light): `#fdfbf7` (Alabastro)
+- `theme_color` (Dark): `#181520` (Obsidiana Cálida)
+Esto garantiza que la barra de estado superior del teléfono adopte el color exacto del fondo de la aplicación, brindando una experiencia inmersiva y sin bordes feos del navegador.
 
-### Neutral & Backgrounds (Light Mode)
-- **Alabaster (`#fdfbf7`):** Fondo principal. Un blanco cálido y cremoso que reduce la fatiga visual.
-- **Surface (`#ffffff`):** Para tarjetas y contenedores (`bg-white`).
-- **Texto Principal (`#2d2a26`):** Gris piedra profundo (Stone-800) en lugar de negro puro, manteniendo la legibilidad sin alto contraste agresivo.
-
-### Neutral & Backgrounds (Dark Mode - "De-AI")
-- **Obsidian / Warm Violet (`#181520`):** Fondo nocturno. Se rehúye del clásico "azul terminal" (Slate-900) para un tono más orgánico, ideal para consultas a las 3 AM en la habitación del bebé.
-- **Surface (`#221d2d`):** Tarjetas en modo oscuro.
-- **Texto Oscuro (`#eae6e1`):** Blanco hueso cálido para contraste sin brillo enceguecedor.
-
-## Typography
-
-**Familia:** Geist Sans (`var(--font-geist-sans), system-ui, sans-serif`)
-
-Humanista, geométrica, cálida y de alta legibilidad. Geist aporta claridad quirúrgica a los grandes números (temporizadores, semanas) y dignidad editorial a los textos de apoyo.
-
-### Hierarchy & Scale
-- **Display** (`text-3xl`, `text-4xl`, `font-black`, tracking-tight): Grandes contadores numéricos (semanas, patadas).
-- **Headline** (`text-xl`, `font-bold`): Títulos principales de modales y herramientas.
-- **Subheading** (`text-sm`, `font-bold`): Nombres de citas, secciones de herramientas.
-- **Body** (`text-sm`, `text-stone-700`): Descripciones y tareas.
-- **Label / Micro** (`text-xs`, `text-[10px]`, `font-bold`): Insignias compactas, chips, metadatos y menús de navegación inferior.
-
-## Layout & Motion
-
-- **Mobile-First:** Diseño restringido para sentirse como una app nativa PWA. Menú de navegación inferior fijo.
-- **Elevación:** Sombras muy sutiles (`shadow-sm`, `shadow-md`) y bordes suaves (`border-stone-200/80` o `border-white/[0.08]` en dark mode). Nunca se usa `border-slate` agresivo.
-- **Animaciones (Tailwind-animate):** Todo estado de carga o transición de vista usa animaciones orgánicas:
-  - Modales: `animate-in slide-in-from-bottom-8 zoom-in-95`
-  - Paneles/Tarjetas: `animate-in fade-in slide-in-from-bottom-4`
-  - Feedback visual (Pulsaciones, IA pensando): `animate-pulse`, `animate-spin`, `animate-ping` (para botones activos como el inicio del temporizador de contracciones).
-
-## Do's and Don'ts
-
-### Do:
-- **Do** usar botones masivos con iconos grandes para herramientas que ocurren bajo estrés (ej. botón gigante de Contracciones).
-- **Do** mantener el feedback visual inmediato. Si hay una carga de red (Firebase), el botón debe mostrar "Conectando..." y deshabilitarse con un `animate-spin` integrado.
-- **Do** respetar el esquema de color orgánico. Mantén el modo oscuro en los tonos de violeta cálido (`#181520`).
-
-### Don't:
-- **Don't** usar colores vibrantes estilo neón (Cyans, Magentas) o sombras severas.
-- **Don't** usar componentes estáticos que "saltan" a la pantalla sin un `animate-in`.
-- **Don't** crear un "Mar de Tarjetas" con bordes severos repetitivos. Usa fondos sutiles y separadores tenues.
+## 4. Componentes Específicos
+- **Línea de Tiempo (Diario):** Uso de una línea vertical absoluta (`w-px bg-stone-200`) que conecta avatares circulares. El uso de `animationDelay` escalonado permite que las entradas aparezcan una por una.
+- **Contador de Contracciones (Circulo Ripple):** Uso de `animate-ping` de Tailwind en anillos concéntricos para guiar la respiración durante la contracción.
+- **Interacciones Táctiles:** Todos los botones interactivos (incluyendo los de Herramientas) tienen estados `active:scale-95`, proporcionando un feedback táctil crítico en pantallas móviles.
