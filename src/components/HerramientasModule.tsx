@@ -2625,6 +2625,35 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
     return "¡Listo para conocer el mundo! 🌍";
   };
 
+  const STORY_STYLES = [
+    { 
+      id: 'botanico', name: 'Botánico', 
+      container: 'bg-gradient-to-br from-sage/20 via-stone-50 to-terracotta/20 dark:from-sage/40 dark:via-[#1a1625] dark:to-terracotta/40', 
+      textPrimary: 'text-sage', textSecondary: 'text-terracotta', textBase: 'text-stone-800 dark:text-[#eae6e1]', 
+      cardBg: 'bg-white/90 dark:bg-black/40 border-sage/20', cardText: 'text-stone-600 dark:text-stone-300', cardTextBold: 'text-stone-800 dark:text-white'
+    },
+    { 
+      id: 'magico', name: 'Nocturno', 
+      container: 'bg-gradient-to-br from-indigo-950 via-slate-900 to-violet-950', 
+      textPrimary: 'text-indigo-300', textSecondary: 'text-violet-300', textBase: 'text-white', 
+      cardBg: 'bg-white/10 dark:bg-black/60 backdrop-blur-md border-white/20', cardText: 'text-white/80', cardTextBold: 'text-white'
+    },
+    { 
+      id: 'amanecer', name: 'Amanecer', 
+      container: 'bg-gradient-to-tr from-rose-100 via-amber-50 to-orange-100 dark:from-rose-950/50 dark:via-orange-950/30 dark:to-amber-900/40', 
+      textPrimary: 'text-rose-600 dark:text-rose-400', textSecondary: 'text-amber-600 dark:text-amber-400', textBase: 'text-stone-800 dark:text-[#eae6e1]', 
+      cardBg: 'bg-white/80 dark:bg-black/40 border-rose-200 dark:border-rose-900/50', cardText: 'text-stone-600 dark:text-stone-300', cardTextBold: 'text-stone-800 dark:text-white'
+    },
+    { 
+      id: 'limpio', name: 'Limpio', 
+      container: 'bg-stone-50 dark:bg-[#1a1625]', 
+      textPrimary: 'text-stone-900 dark:text-white', textSecondary: 'text-stone-500 dark:text-stone-400', textBase: 'text-stone-800 dark:text-[#eae6e1]', 
+      cardBg: 'bg-white dark:bg-[#221d2d] border-stone-200 dark:border-white/10 shadow-sm', cardText: 'text-stone-600 dark:text-[#a6a1b2]', cardTextBold: 'text-stone-800 dark:text-white'
+    }
+  ];
+  const [activeStyleId, setActiveStyleId] = useState('botanico');
+  const currentStyle = STORY_STYLES.find(s => s.id === activeStyleId) || STORY_STYLES[0];
+
   const [isGenerating, setIsGenerating] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [customImage, setCustomImage] = useState<string | null>(null);
@@ -2724,16 +2753,16 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
         <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center gap-6">
           <div className="relative shadow-xl rounded-[2rem] overflow-hidden border-4 border-white dark:border-[#2d273a] w-[260px] sm:w-[320px] shrink-0 aspect-[9/16]">
             
-            <div ref={storyRef} className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-8 text-stone-800 text-center bg-gradient-to-br from-sage/20 via-stone-50 to-terracotta/20 dark:from-sage/40 dark:via-[#1a1625] dark:to-terracotta/40">
+            <div ref={storyRef} className={`absolute inset-0 w-full h-full flex flex-col items-center justify-center p-8 text-center ${currentStyle.container}`}>
               <div className="absolute top-6 left-1/2 -translate-x-1/2 opacity-20 flex items-center gap-2">
-                 <span className="font-black text-xl tracking-tighter text-sage">PandaJR.</span>
+                 <span className={`font-black text-xl tracking-tighter ${currentStyle.textPrimary}`}>PandaJR.</span>
               </div>
               
               <div className="mt-8 space-y-1 relative z-10 pt-4">
-                <p className="text-sm font-bold tracking-widest uppercase text-terracotta">
+                <p className={`text-sm font-bold tracking-widest uppercase ${currentStyle.textSecondary}`}>
                   ¡ESTAMOS EN LA!
                 </p>
-                <h3 className="text-5xl font-black text-sage tracking-tighter leading-tight" >
+                <h3 className={`text-5xl font-black tracking-tighter leading-tight ${currentStyle.textPrimary}`} >
                   Semana {week}
                 </h3>
               </div>
@@ -2750,20 +2779,20 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
                 )}
               </div>
 
-              <div className="bg-white/90 rounded-2xl p-4 w-full relative z-10 shadow-sm border border-white/50" >
-                <p className="text-sm font-semibold text-stone-600" >
+              <div className={`rounded-2xl p-4 w-full relative z-10 shadow-sm border ${currentStyle.cardBg}`} >
+                <p className={`text-sm font-semibold ${currentStyle.cardText}`} >
                   Nuestro bebé es del tamaño de:
                 </p>
-                <p className="text-xl font-black text-stone-800 mt-1 capitalize" >
+                <p className={`text-xl font-black mt-1 capitalize ${currentStyle.cardTextBold}`} >
                   {fruit}
                 </p>
                 <div className="flex justify-between items-center mt-2 border-t border-stone-200/50 pt-2">
-                  <p className="text-xs text-stone-500 font-bold" >
+                  <p className={`text-xs font-bold ${currentStyle.cardText}`} >
                     {weekData.size} • {weekData.weight}
                   </p>
                 </div>
-                <div className="mt-3 bg-white/90 p-3 rounded-xl border border-sage/20 shadow-sm">
-                  <p className="text-xs font-bold text-sage text-center">
+                <div className={`mt-3 p-3 rounded-xl shadow-sm border border-transparent ${currentStyle.cardBg}`}>
+                  <p className={`text-xs font-bold text-center ${currentStyle.textPrimary}`}>
                     {getMilestonePhrase(week)}
                   </p>
                 </div>
@@ -2778,6 +2807,17 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
           <div className="w-full flex flex-col gap-3">
             {!imageUrl ? (
               <>
+                <div className="flex flex-wrap gap-2 justify-center w-full mb-1">
+                  {STORY_STYLES.map(style => (
+                    <button
+                      key={style.id}
+                      onClick={() => setActiveStyleId(style.id)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${activeStyleId === style.id ? 'border-terracotta text-terracotta bg-terracotta/10 dark:bg-terracotta/20 shadow-sm' : 'border-stone-200 dark:border-white/10 text-stone-500 dark:text-[#a6a1b2] hover:bg-stone-100 dark:hover:bg-white/5'}`}
+                    >
+                      {style.name}
+                    </button>
+                  ))}
+                </div>
                 <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
                 <button 
                   onClick={() => fileInputRef.current?.click()}
