@@ -24,136 +24,93 @@ export interface UserProfile {
 
 
 export function SOSSintomas() {
-  const [expanded, setExpanded] = React.useState<string | null>("mareos");
+  const [expanded, setExpanded] = React.useState<string | null>("alarma");
   
   const symptoms = [
     {
+      id: "alarma",
+      title: "🚨 Señales de Alarma Médica (Ir a Urgencias)",
+      icon: <AlertTriangle className="text-terracotta dark:text-terracotta" size={20} />,
+      color: "bg-terracotta/10 border-terracotta/20 dark:bg-terracotta/10 dark:border-terracotta/30 border",
+      content: (
+        <ul className="text-sm text-stone-800 dark:text-stone-300 font-medium space-y-3 mt-2 list-disc pl-5 marker:text-terracotta">
+          <li><strong className="text-terracotta dark:text-terracotta/90">Sangrado vaginal:</strong> Especialmente si es abundante, rojo brillante o acompañado de coágulos/dolor.</li>
+          <li><strong className="text-terracotta dark:text-terracotta/90">Dolor abdominal intenso:</strong> Cólicos severos o dolor punzante en el abdomen o pelvis que no mejora con el reposo.</li>
+          <li><strong className="text-terracotta dark:text-terracotta/90">Señales de Preeclampsia:</strong> Dolor de cabeza severo que no cede, visión borrosa, moscas volantes, dolor debajo de las costillas derechas, o hinchazón repentina de cara/manos.</li>
+          <li><strong className="text-terracotta dark:text-terracotta/90">Fuga de líquido:</strong> Sospecha de rotura de bolsa (líquido claro, constante, que no huele a orina).</li>
+          <li><strong className="text-terracotta dark:text-terracotta/90">Disminución de movimientos:</strong> A partir de la semana 28, si el bebé se mueve mucho menos de lo normal (menos de 10 veces en 2 horas al estar recostada).</li>
+          <li><strong className="text-terracotta dark:text-terracotta/90">Fiebre alta:</strong> Temperatura mayor a 38°C (100.4°F) sostenida.</li>
+        </ul>
+      )
+    },
+    {
       id: "mareos",
-      title: "Náuseas y Mareos",
-      icon: <Utensils className="text-terracotta/100" size={20} />,
-      color: "bg-terracotta/10 dark:bg-[#241b12]",
+      title: "Náuseas y Vómitos (Hiperémesis)",
+      icon: <Utensils className="text-amber-500" size={20} />,
+      color: "bg-stone-50 border-stone-100 dark:bg-[#221d2d] dark:border-white/5 border",
       content: (
         <ul className="text-sm text-stone-600 dark:text-[#a6a1b2] space-y-2 mt-2 list-disc pl-5">
           <li><strong className="text-stone-900 dark:text-[#eae6e1]">Estómago con colchón:</strong> Coman galletas saladas o tostadas antes de levantarse de la cama.</li>
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Hidratación táctica:</strong> Beber agua muy fría en pequeños tragos. Rodajas de limón o jengibre fresco son magia pura.</li>
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Vitamina B6:</strong> Consulten con su médico materno-fetal si pueden recetar un suplemento de B6.</li>
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Oler alcohol:</strong> Una toallita de alcohol isopropílico bajo la nariz ayuda a cortar el mareo agudo al instante.</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Hidratación táctica:</strong> Beber agua muy fría en pequeños tragos. Rodajas de limón o jengibre fresco son efectivos.</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Consulta médica si:</strong> No tolera líquidos por más de 12 horas, hay pérdida de peso evidente o signos de deshidratación (orina muy oscura). Podrían recetarle Diclegis o vitamina B6.</li>
         </ul>
       )
     },
     {
       id: "acidez",
       title: "Acidez y Reflujo",
-      icon: <Heart className="text-terracotta/100" size={20} />,
-      color: "bg-terracotta/10 dark:bg-[#251518]",
+      icon: <Heart className="text-amber-500" size={20} />,
+      color: "bg-stone-50 border-stone-100 dark:bg-[#221d2d] dark:border-white/5 border",
       content: (
         <ul className="text-sm text-stone-600 dark:text-[#a6a1b2] space-y-2 mt-2 list-disc pl-5">
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Poco pero seguido:</strong> 5 o 6 comidas pequeñas al día en lugar de 3 grandes para no sobrecargar el esfínter.</li>
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Física básica:</strong> Esperar al menos 2 horas después de cenar para ir a la cama (gravedad a su favor).</li>
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Evitar disparadores:</strong> Cítricos, tomate, chocolate, y comidas muy grasas o picantes.</li>
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Leche fría o almendras:</strong> Neutralizan la acidez al instante de forma natural.</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Poco pero seguido:</strong> 5 o 6 comidas pequeñas al día en lugar de 3 grandes para no sobrecargar el esfínter esofágico.</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Física básica:</strong> Esperar al menos 2 horas después de cenar para ir a la cama (gravedad a su favor) y usar almohadas extra.</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Consulta médica si:</strong> La acidez es intratable, interrumpe el sueño constantemente, o viene acompañada de dificultad para tragar.</li>
         </ul>
       )
     },
     {
       id: "ciatica",
-      title: "Dolor de Espalda (Ciática)",
-      icon: <Activity className="text-blue-500" size={20} />,
-      color: "bg-blue-50 dark:bg-[#1a2230]",
+      title: "Dolor Pélvico y Ciática",
+      icon: <Activity className="text-sage" size={20} />,
+      color: "bg-stone-50 border-stone-100 dark:bg-[#221d2d] dark:border-white/5 border",
       content: (
         <ul className="text-sm text-stone-600 dark:text-[#a6a1b2] space-y-2 mt-2 list-disc pl-5">
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Compresas tibias:</strong> Aplicar calor en la espalda baja por 15-20 minutos (tú puedes encargarte de prepararlas).</li>
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Postura al dormir:</strong> Siempre del lado izquierdo, con la almohada de embarazo entre las rodillas.</li>
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Estiramientos suaves:</strong> Ayúdala con ejercicios de yoga prenatal (postura del gato-vaca) para aliviar la presión del útero.</li>
-        </ul>
-      )
-    },
-    {
-      id: "alarma",
-      title: "🚨 Señales de Alarma Médica",
-      icon: <AlertTriangle className="text-rose-600 dark:text-terracotta" size={20} />,
-      color: "bg-terracotta/10 dark:bg-[#251518]",
-      content: (
-        <ul className="text-sm text-rose-800 dark:text-rose-300 font-medium space-y-2 mt-2 list-disc pl-5">
-          <li><strong className="text-rose-950 dark:text-rose-200">Sangrado vaginal</strong> (cualquier cantidad, contactar al médico).</li>
-          <li><strong className="text-rose-950 dark:text-rose-200">Dolor abdominal intenso</strong> o cólicos persistentes que no ceden al descansar.</li>
-          <li><strong className="text-rose-950 dark:text-rose-200">Dolor de cabeza severo</strong> o visión borrosa (riesgo de preeclampsia).</li>
-          <li><strong className="text-rose-950 dark:text-rose-200">Hinchazón repentina extrema</strong> en cara, manos o pies.</li>
-          <li><strong className="text-rose-950 dark:text-rose-200">Disminución de movimientos fetales</strong> (si sienten menos de 10 en 2 horas después de la semana 24).</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Compresas tibias:</strong> Aplicar calor en la zona sacroilíaca por 15-20 minutos (tú puedes encargarte de prepararlas).</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Postura y soporte:</strong> Usar faja o cinturón pélvico premamá si el médico lo avala. Dormir siempre del lado izquierdo, con almohada entre las rodillas.</li>
+          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Estiramientos:</strong> Ayúdala con ejercicios de yoga prenatal y estiramientos suaves bajo guía profesional.</li>
         </ul>
       )
     }
   ];
 
   return (
-    <div className="flex flex-col py-2 animate-in fade-in duration-300 h-full w-full">
-      
-
-      {/* Banner de Emergencia Rápida */}
-      <div className="bg-gradient-to-r from-terracotta/10 to-red-50 dark:from-[#251518] dark:to-[#201316] border border-rose-200 dark:border-terracotta/100/25 rounded-2xl p-4 mb-4 flex items-center justify-between gap-3 shadow-xs">
-        <div>
-          <h4 className="font-bold text-rose-800 dark:text-rose-300 text-sm flex items-center gap-1.5">
-            <AlertTriangle size={16} className="text-rose-600 shrink-0" /> ¿Emergencia o Alarma?
-          </h4>
-          <p className="text-xs text-rose-600 dark:text-terracotta mt-0.5">Acceso rápido ante signos de alerta</p>
-        </div>
-        <div className="flex gap-2 shrink-0">
-          <a
-            href="tel:911"
-            className="bg-rose-600 hover:bg-terracotta active:scale-95 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-xs transition-all"
-            aria-label="Llamar a Urgencias médicas"
-          >
-            📞 Llamar
-          </a>
-          <a
-            href="https://maps.google.com/?q=hospital+maternidad"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-white dark:bg-[#221d2d] hover:bg-terracotta/20/50 dark:hover:bg-[#2d273a] active:scale-95 border border-rose-200 dark:border-terracotta/100/25 text-terracotta dark:text-rose-300 font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-xs transition-all"
-            aria-label="Ver ruta al hospital más cercano"
-          >
-            🏥 Hospital
-          </a>
-        </div>
+    <div className="flex flex-col animate-in fade-in duration-300 h-full w-full pb-20">
+      <div className="bg-gradient-to-br from-terracotta/10 to-transparent p-5 shrink-0 border-b border-terracotta/20 dark:border-terracotta/10 relative overflow-hidden">
+        <h2 className="text-xl font-black text-stone-800 dark:text-[#eae6e1] relative z-10 flex items-center gap-2">
+          <AlertCircle className="text-terracotta" /> SOS Síntomas
+        </h2>
+        <p className="text-sm text-stone-600 dark:text-[#a6a1b2] mt-1 relative z-10">
+          Clasificación clínica de síntomas y acciones de mitigación. En caso de duda, <strong className="text-terracotta">siempre contacta a tu obstetra</strong>.
+        </p>
       </div>
-
-      <div className="space-y-3 overflow-y-auto pb-8">
-        {symptoms.map(sym => (
-          <div key={sym.id} className="bg-white dark:bg-[#221d2d] rounded-2xl shadow-xs border border-stone-200/80 dark:border-white/[0.08] overflow-hidden">
+      
+      <div className="p-4 space-y-3 w-full max-w-lg mx-auto">
+        {symptoms.map(s => (
+          <div key={s.id} className={`rounded-2xl overflow-hidden transition-all duration-300 shadow-sm ${s.color}`}>
             <button 
-              type="button"
-              onClick={() => setExpanded(expanded === sym.id ? null : sym.id)}
-              className="w-full p-4 flex items-center justify-between text-left transition-colors hover:bg-stone-50 dark:hover:bg-[#2d273a]/50"
+              onClick={() => setExpanded(expanded === s.id ? null : s.id)}
+              className="w-full p-4 flex items-center justify-between font-bold text-stone-800 dark:text-[#eae6e1]"
             >
-              <div className="flex items-center gap-3">
-                <div className={`${sym.color} p-2 rounded-full`}>{sym.icon}</div>
-                <span className="font-bold text-stone-800 dark:text-[#eae6e1]">{sym.title}</span>
-              </div>
-              {expanded === sym.id ? <ChevronUp size={20} className="text-stone-400 dark:text-[#a6a1b2]" /> : <ChevronDown size={20} className="text-stone-400 dark:text-[#a6a1b2]" />}
+              <span className="flex items-center gap-3">
+                {s.icon} 
+                {s.title}
+              </span>
+              <ChevronDown className={`transition-transform duration-300 ${expanded === s.id ? "rotate-180" : ""}`} size={20} />
             </button>
-            {expanded === sym.id && (
-              <div className="p-4 pt-0 bg-stone-50 dark:bg-[#2d273a]/30 border-t border-stone-100 dark:border-white/[0.06] animate-in slide-in-from-top-2">
-                {sym.content}
-                {sym.id === "alarma" && (
-                  <div className="mt-4 pt-3 border-t border-rose-200 dark:border-terracotta/100/30 flex gap-2">
-                    <a
-                      href="tel:911"
-                      className="flex-1 bg-rose-600 hover:bg-terracotta active:scale-95 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
-                    >
-                      📞 Llamar al Obstetra / 911
-                    </a>
-                    <a
-                      href="https://maps.google.com/?q=hospital+maternidad"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 bg-white dark:bg-[#221d2d] hover:bg-terracotta/10 dark:hover:bg-[#2d273a] active:scale-95 border border-rose-300 dark:border-terracotta/100/30 text-rose-800 dark:text-rose-300 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
-                    >
-                      🏥 Hospital
-                    </a>
-                  </div>
-                )}
-              </div>
-            )}
+            <div className={`overflow-hidden transition-all duration-300 px-4 ${expanded === s.id ? "max-h-96 pb-4 opacity-100" : "max-h-0 opacity-0"}`}>
+              {s.content}
+            </div>
           </div>
         ))}
       </div>
@@ -494,7 +451,7 @@ export function LecturasView({ week, onClose, showToast }: { week: number, onClo
           <button 
             key={t}
             onClick={() => setSelectedTri(t)}
-            className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${selectedTri === t ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-md' : 'bg-stone-200 dark:bg-[#2d273a] text-stone-600 dark:text-[#a6a1b2]'}`}
+            className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${selectedTri === t ? 'bg-terracotta dark:bg-terracotta text-white shadow-md' : 'bg-stone-200 dark:bg-[#2d273a] text-stone-600 dark:text-[#a6a1b2]'}`}
           >
             Trimestre ${t}
           </button>
@@ -505,20 +462,20 @@ export function LecturasView({ week, onClose, showToast }: { week: number, onClo
         {articles[selectedTri as 1|2|3].map((art, i) => (
           <div key={i} onClick={() => alert("Artículo completo próximamente...")} className="bg-white dark:bg-[#221d2d] border border-stone-200 dark:border-white/[0.06] rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
             <div className="flex justify-between items-start mb-2">
-              <span className="text-[10px] uppercase tracking-wider font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-2 py-0.5 rounded-full">
+              <span className="text-[10px] uppercase tracking-wider font-bold text-terracotta dark:text-terracotta bg-terracotta/10 dark:bg-terracotta/10 px-2 py-0.5 rounded-full">
                 {art.type}
               </span>
               <span className="text-xs font-medium text-stone-400 dark:text-[#a6a1b2] flex items-center gap-1">
                 <Clock size={12} /> {art.readTime}
               </span>
             </div>
-            <h3 className="text-base font-bold text-stone-800 dark:text-[#eae6e1] leading-tight mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+            <h3 className="text-base font-bold text-stone-800 dark:text-[#eae6e1] leading-tight mb-2 group-hover:text-terracotta dark:group-hover:text-blue-400 transition-colors">
               {art.title}
             </h3>
             <p className="text-sm text-stone-600 dark:text-[#a6a1b2] leading-relaxed">
               {art.desc}
             </p>
-            <div className="mt-4 flex items-center text-xs font-bold text-blue-500 dark:text-blue-400 gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+            <div className="mt-4 flex items-center text-xs font-bold text-terracotta dark:text-terracotta gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
               Leer artículo <ExternalLink size={14} />
             </div>
           </div>
@@ -560,11 +517,11 @@ export function HerramientasView({ showToast, profile }: { showToast: any, profi
     { id: "sos", label: "SOS Síntomas", icon: <HeartPulse size={24} />, desc: "Síntomas de alarma", color: "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400", border: "border-rose-100 dark:border-rose-500/20" },
     { id: "contracciones", label: "Contracciones", icon: <Activity size={24} />, desc: "Contador 5-1-1", color: "bg-terracotta/10 text-terracotta", border: "border-terracotta/20" },
     { id: "patadas", label: "Patadas", icon: <Baby size={24} />, desc: "Monitor Cardiff", color: "bg-sage/10 text-sage", border: "border-sage/20" },
-    { id: "diario", label: "Diario", icon: <FileText size={24} />, desc: "Memorias del bebé", color: "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400", border: "border-indigo-100 dark:border-indigo-500/20" },
+    { id: "diario", label: "Diario", icon: <FileText size={24} />, desc: "Memorias del bebé", color: "bg-sage/10 text-sage dark:bg-sage/100/10 dark:text-sage", border: "border-sage/20 dark:border-sage/20" },
     { id: "maleta", label: "Maleta", icon: <Package size={24} />, desc: "Hospital Go-Bag", color: "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400", border: "border-amber-100 dark:border-amber-500/20" },
     { id: "nombres", label: "Nombres", icon: <Users size={24} />, desc: "Votador en pareja", color: "bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400", border: "border-sky-100 dark:border-sky-500/20" },
     { id: "parto", label: "Plan de Parto", icon: <ClipboardList size={24} />, desc: "PDF Clínico", color: "bg-emerald-50 text-sage dark:bg-sage/10 dark:text-sage-400", border: "border-emerald-100 dark:border-sage/20" },
-      { id: "lecturas", label: "Lecturas", icon: <BookOpen size={24} />, desc: "Por trimestre", color: "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400", border: "border-blue-100 dark:border-blue-500/20" },
+      { id: "lecturas", label: "Lecturas", icon: <BookOpen size={24} />, desc: "Por trimestre", color: "bg-terracotta/10 text-terracotta dark:bg-terracotta/10 dark:text-terracotta", border: "border-blue-100 dark:border-blue-500/20" },
   ];
 
   if (activeTool) {
@@ -2742,8 +2699,12 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
     }
   };
 
-  return (
-    <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  
+  if (!mounted) return null;
+  const content = (
+    <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm z-[999] flex items-center justify-center p-4 animate-in fade-in duration-200">
       <div className="bg-stone-50 dark:bg-[#1a1625] w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
         <div className="p-4 flex justify-between items-center bg-white dark:bg-[#221d2d] border-b border-stone-100 dark:border-white/10 shrink-0">
           <h2 className="font-bold flex items-center gap-2 text-stone-800 dark:text-stone-200">
@@ -2755,7 +2716,7 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center gap-6">
-          <div className="relative shadow-xl rounded-[2rem] overflow-hidden border-4 border-white dark:border-[#2d273a] w-full max-w-[320px] aspect-[9/16]">
+          <div className="relative shadow-xl rounded-[2rem] overflow-hidden border-4 border-white dark:border-[#2d273a] w-[260px] sm:w-[320px] shrink-0 aspect-[9/16]">
             
             <div ref={storyRef} className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-8 text-stone-800 text-center bg-gradient-to-br from-sage/20 via-stone-50 to-terracotta/20 dark:from-sage/40 dark:via-[#1a1625] dark:to-terracotta/40">
               <div className="absolute top-6 left-1/2 -translate-x-1/2 opacity-20 flex items-center gap-2">
@@ -2849,6 +2810,7 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
       </div>
     </div>
   );
+  return typeof document !== "undefined" ? require("react-dom").createPortal(content, document.body) : null;
 }
 
 
