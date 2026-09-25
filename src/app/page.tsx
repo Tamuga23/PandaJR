@@ -801,51 +801,110 @@ function PregnancyProgressBar({ week }: { week: number }) {
 }
 
 function MomStatusCard({ profile, remoteMomStatus }: { profile: UserProfile, remoteMomStatus?: any }) {
+  const [isEditing, setIsEditing] = React.useState(false);
+  const [text, setText] = React.useState("");
+  const [emoji, setEmoji] = React.useState("😊");
+
+  const emojis = ["😊", "😴", "🤢", "😭", "🥰", "😡", "🧘‍♀️", "🤰"];
+
+  const handleSave = async () => {
+    if (profile.pregnancyId && profile.role === "mama") {
+      import('@/lib/firebase/pairing').then(({ saveMomStatus }) => {
+        saveMomStatus(profile.pregnancyId!, text || "Me siento bien", emoji);
+      });
+    }
+    setIsEditing(false);
+  };
+
+  const statusText = remoteMomStatus?.text || (profile.role === "mama" ? "Aún no has compartido cómo te sientes hoy." : "Aún no ha actualizado su estado hoy.");
+  const statusEmoji = remoteMomStatus?.emoji || "💭";
+  const statusTime = remoteMomStatus?.lastUpdated || "Recientemente";
+
+  if (isEditing) {
+    return (
+      <div className="bg-gradient-to-br from-terracotta/10 to-white dark:from-[#2a222f] dark:to-[#1a1724] rounded-3xl shadow-sm border border-terracotta/20 dark:border-terracotta/10 p-6 animate-in fade-in transition-colors">
+        <h3 className="text-base font-black text-stone-800 dark:text-[#eae6e1] mb-3">¿Cómo te sientes hoy?</h3>
+        
+        <div className="flex flex-wrap gap-2 mb-4">
+          {emojis.map(e => (
+            <button 
+              key={e} 
+              onClick={() => setEmoji(e)}
+              className={`text-2xl p-2 rounded-xl transition-all ${emoji === e ? 'bg-terracotta/20 scale-110' : 'hover:bg-stone-100 dark:hover:bg-white/5 opacity-60 hover:opacity-100'}`}
+            >
+              {e}
+            </button>
+          ))}
+        </div>
+
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Escribe un breve mensaje para tu copiloto..."
+          className="w-full bg-stone-50 dark:bg-[#1a1724] rounded-xl p-3 text-sm border border-stone-200 dark:border-white/10 dark:text-white mb-4 resize-none h-24 focus:ring-2 focus:ring-terracotta/50 outline-none"
+        />
+
+        <div className="flex gap-2">
+          <button onClick={() => setIsEditing(false)} className="flex-1 bg-stone-100 dark:bg-white/5 hover:bg-stone-200 dark:hover:bg-white/10 text-stone-600 dark:text-stone-300 font-bold py-2.5 rounded-xl transition-colors">Cancelar</button>
+          <button onClick={handleSave} className="flex-1 bg-terracotta hover:bg-terracotta-hover text-white font-bold py-2.5 rounded-xl transition-colors">Guardar Estado</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gradient-to-br from-terracotta/10 to-white dark:from-[#2a222f] dark:to-[#1a1724] rounded-3xl shadow-sm border border-terracotta/20 dark:border-terracotta/10 p-6 animate-in fade-in transition-colors">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full overflow-hidden bg-stone-100 border border-stone-200 dark:border-white/[0.06] shrink-0">
-            {/* Avatar placeholder */}
             <div className="w-full h-full bg-terracotta/20 flex items-center justify-center text-terracotta font-bold text-lg">
-              {profile.name ? profile.name.charAt(0).toUpperCase() : "E"}
+              {profile.role === "mama" ? (profile.name ? profile.name.charAt(0).toUpperCase() : "M") : (profile.name ? "M" : "E")}
             </div>
           </div>
           <div>
-            <h3 className="text-base font-black text-stone-800 dark:text-[#eae6e1] tracking-tight leading-tight">¿Cómo se siente {profile.name || "Elena"} hoy?</h3>
-            <p className="text-xs text-stone-500 dark:text-[#a6a1b2] mt-0.5">Actualizado hace 40 min por ella</p>
+            <h3 className="text-base font-black text-stone-800 dark:text-[#eae6e1] tracking-tight leading-tight">
+              {profile.role === "mama" ? "¿Cómo te sientes hoy?" : `Estado de mamá hoy`}
+            </h3>
+            <p className="text-xs text-stone-500 dark:text-[#a6a1b2] mt-0.5">
+              {remoteMomStatus ? `Actualizado ${statusTime}` : "Sin actualizaciones recientes"}
+            </p>
           </div>
         </div>
         <div className="hidden sm:flex items-center gap-1.5 bg-terracotta/10 dark:bg-[#2d273a] px-3 py-1.5 rounded-full border border-terracotta/20 dark:border-white/[0.06] shrink-0">
-          <span className="text-xs">🥰</span>
-          <span className="text-[11px] font-bold text-terracotta dark:text-terracotta">Muy feliz y relajada</span>
+          <span className="text-xl">{statusEmoji}</span>
         </div>
       </div>
       
-      {/* Mobile status badge fallback */}
       <div className="sm:hidden flex items-center gap-1.5 bg-terracotta/10 dark:bg-[#2d273a] px-3 py-1.5 rounded-full border border-terracotta/20 dark:border-white/[0.06] mb-3 w-fit">
-        <span className="text-xs">🥰</span>
-        <span className="text-[11px] font-bold text-terracotta dark:text-terracotta">Muy feliz y relajada</span>
+        <span className="text-xl">{statusEmoji}</span>
       </div>
       
-      {/* Quote bubble */}
       <div className="bg-stone-50 dark:bg-[#1a1724] rounded-2xl p-4 mb-4 border border-stone-100 dark:border-white/[0.04] relative">
         <p className="text-sm italic text-stone-700 dark:text-[#eae6e1]/90">
-          "¡El masaje de pies fue la gloria! Y el bebé no paró de responder a las caricias antes de cenar ✨"
+          "{statusText}"
         </p>
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row items-center gap-3">
-        <button className="w-full sm:flex-1 bg-sage/10 hover:bg-sage/20 dark:bg-sage/20 dark:hover:bg-sage/30 text-sage dark:text-sage-hover border border-sage/20 rounded-xl py-2.5 text-xs font-bold transition-colors flex items-center justify-center gap-2">
-          <CheckCircle2 size={16} />
-          Masaje completado
+      {profile.role === "mama" ? (
+        <button 
+          onClick={() => {
+            setText(remoteMomStatus?.text || "");
+            setEmoji(remoteMomStatus?.emoji || "😊");
+            setIsEditing(true);
+          }} 
+          className="w-full bg-terracotta/10 hover:bg-terracotta/20 dark:bg-terracotta/20 dark:hover:bg-terracotta/30 text-terracotta dark:text-terracotta-hover border border-terracotta/20 rounded-xl py-2.5 text-xs font-bold transition-colors flex items-center justify-center gap-2"
+        >
+          <Edit3 size={16} />
+          Actualizar mi estado
         </button>
-        <button className="w-full sm:flex-1 bg-terracotta hover:bg-terracotta-hover text-white rounded-xl py-2.5 text-xs font-bold transition-colors flex items-center justify-center gap-2 shadow-sm">
-          <Heart size={16} />
-          Charla en la cama
-        </button>
-      </div>
+      ) : (
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <button onClick={() => {}} className="w-full sm:flex-1 bg-sage/10 hover:bg-sage/20 dark:bg-sage/20 dark:hover:bg-sage/30 text-sage dark:text-sage-hover border border-sage/20 rounded-xl py-2.5 text-xs font-bold transition-colors flex items-center justify-center gap-2">
+            <Heart size={16} />
+            Mandar abrazo virtual
+          </button>
+        </div>
+      )}
     </div>
   );
 }
