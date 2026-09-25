@@ -914,97 +914,70 @@ const masterCategories = [
   // TRIMESTRE 1 (Semanas 1-13)
   {
     id: "t1_nutricion", trimester: 1, defaultExpanded: true,
-    title: "Neuro-Nutrición (Pilar 1)",
+    title: "Neuro-Nutrición & Clínico",
     icon: <Utensils className="text-terracotta/100" size={20} />, color: "bg-terracotta/10",
     tasks: [
-      { id: 110, text: "Garantizar Suplemento de Ácido Fólico diario" },
-      { id: 111, text: "Mantener su termo de agua lleno (volumen amniótico)" },
-      { id: 112, text: "Snacks secos en su buró (contra náuseas matutinas)" },
+      { id: 110, text: "Garantizar Ácido Fólico (mín 400 mcg/día)", detail: "Previene defectos del tubo neural (espina bífida) en esta fase crítica." },
+      { id: 111, text: "Eliminar embutidos crudos, sushi y quesos no pasteurizados", detail: "Prevención estricta de Listeriosis y Toxoplasmosis." },
+      { id: 112, text: "Agendar primer control y ecografía precoz (Semanas 6-8)", detail: "Para confirmar viabilidad, ubicación uterina y latido fetal." }
     ]
   },
   {
-    id: "t1_toxicos", trimester: 1, defaultExpanded: true,
-    title: "Escudo Ambiental (Pilar 2)",
+    id: "t1_entorno", trimester: 1, defaultExpanded: true,
+    title: "Escudo Ambiental & Soporte",
     icon: <AlertTriangle className="text-terracotta/100" size={20} />, color: "bg-terracotta/10",
     tasks: [
-      { id: 113, text: "Tirar/Donar tuppers de plástico (BPA interfiere hormonas)" },
-      { id: 114, text: "Asumir tú la limpieza con químicos (evitar VOCs)" },
-      { id: 115, text: "Asumir tú la caja del gato 100% (Prevención Toxoplasmosis)" },
+      { id: 113, text: "Asumir la limpieza de cajas de arena (Gatos)", detail: "Riesgo alto de Toxoplasmosis para la madre; el copiloto debe hacerlo." },
+      { id: 114, text: "Mitigar náuseas matutinas (Hiperémesis)", detail: "Tener siempre galletas saladas en su buró antes de que se levante." },
+      { id: 115, text: "Revisar productos de limpieza", detail: "Alejar parabenos, ftalatos y evitar limpiar con lejía/amoniaco en espacios cerrados." }
     ]
   },
-  {
-    id: "t1_citas", trimester: 1, defaultExpanded: false,
-    title: "Salud y Citas Médicas",
-    icon: <Activity className="text-terracotta" size={20} />, color: "bg-sage/10",
-    tasks: [
-      { id: 101, text: "Agendar primera cita obstétrica" },
-      { id: 102, text: "Preguntar sobre cobertura de seguro médico" },
-      { id: 103, text: "Acompañar a la primera ecografía" },
-    ]
-  },
+  
   // TRIMESTRE 2 (Semanas 14-27)
   {
     id: "t2_nutricion", trimester: 2, defaultExpanded: true,
-    title: "Neuro-Nutrición y DHA",
-    icon: <Utensils className="text-terracotta/100" size={20} />, color: "bg-terracotta/10",
+    title: "Desarrollo Fetal & Clínico",
+    icon: <HeartPulse className="text-sage" size={20} />, color: "bg-sage/10",
     tasks: [
-      { id: 210, text: "Suplemento DHA/Omega-3 (Desarrollo corteza frontal)" },
-      { id: 211, text: "Garantizar Colina en dieta (Huevos, pollo magro)" },
-      { id: 212, text: "Monitorear hierro (Prevenir anemia por dilución de sangre)" },
+      { id: 210, text: "Incrementar ingesta de Hierro y Vitamina C", detail: "El volumen de sangre materna aumenta 50%, el hierro previene la anemia." },
+      { id: 211, text: "Suplementación con DHA (Omega-3)", detail: "Fundamental para la explosión sináptica del cerebro fetal y la retina." },
+      { id: 212, text: "Agendar Ecografía Morfológica (Semanas 20-22)", detail: "El ultrasonido más detallado para descartar anomalías anatómicas." },
+      { id: 213, text: "Test de O'Sullivan (Semanas 24-28)", detail: "Curva de tolerancia a la glucosa para descartar diabetes gestacional." }
     ]
   },
   {
-    id: "t2_estres", trimester: 2, defaultExpanded: true,
-    title: "Gestor de Cortisol (Pilar 3)",
-    icon: <Heart className="text-terracotta/100" size={20} />, color: "bg-terracotta/10",
+    id: "t2_preparacion", trimester: 2, defaultExpanded: true,
+    title: "Preparación al Parto",
+    icon: <Baby className="text-sage" size={20} />, color: "bg-sage/10",
     tasks: [
-      { id: 213, text: "Asumir la carga mental de planear las cenas" },
-      { id: 214, text: "Agendarle un masaje prenatal o día de descanso total" },
-      { id: 215, text: "Bloquear críticas o estrés externo hacia ella" },
+      { id: 214, text: "Acondicionar ergonomía para el descanso", detail: "Conseguir almohada de embarazo (forma de U/C) para aliviar la ciática pélvica." },
+      { id: 215, text: "Inscribirse en clases de psicoprofilaxis perinatal", detail: "Aprender juntos técnicas de respiración, masaje y posiciones de parto." },
+      { id: 216, text: "Pintar y ventilar la habitación del bebé", detail: "Hacerlo ahora para asegurar que los gases tóxicos (COVs) se disipen a tiempo." }
+    ]
+  },
+
+  // TRIMESTRE 3 (Semanas 28-40)
+  {
+    id: "t3_clinico", trimester: 3, defaultExpanded: true,
+    title: "Recta Final & Clínica",
+    icon: <Activity className="text-amber-500" size={20} />, color: "bg-amber-100/50 dark:bg-amber-500/10",
+    tasks: [
+      { id: 310, text: "Aplicar vacuna Tdap materno (Semanas 27-36)", detail: "Traspasa anticuerpos al bebé contra tos ferina, tétanos y difteria." },
+      { id: 311, text: "Agendar Cultivo de Estreptococo Grupo B (SGB)", detail: "Semana 35-37. Previene infecciones neonatales graves durante el parto vaginal." },
+      { id: 312, text: "Conocer Regla 5-1-1 y Signos de Alarma", detail: "Practica con la app para saber exactamente cuándo ir a urgencias (sangrado, baja de movimientos)." }
     ]
   },
   {
-    id: "t2_compras", trimester: 2, defaultExpanded: false,
-    title: "Primeras compras",
-    icon: <ShoppingBag className="text-terracotta" size={20} />, color: "bg-sage/10",
+    id: "t3_logistica", trimester: 3, defaultExpanded: true,
+    title: "Logística y Supervivencia",
+    icon: <ClipboardList className="text-amber-500" size={20} />, color: "bg-amber-100/50 dark:bg-amber-500/10",
     tasks: [
-      { id: 204, text: "Cotizar cochecito/carriola" },
-      { id: 205, text: "Comprar almohada de embarazo (Alineación pélvica)" },
-    ]
-  },
-  // TRIMESTRE 3 (Semanas 28+)
-  {
-    id: "t3_biomecanica", trimester: 3, defaultExpanded: true,
-    title: "Microbioma y Pelvis (Pilar 4)",
-    icon: <Activity className="text-terracotta" size={20} />, color: "bg-sage/10",
-    tasks: [
-      { id: 310, text: "Vacuna DTPa para ambos (Anticuerpos pasivos al feto)" },
-      { id: 311, text: "Probióticos en dieta (Yogur/Kefir) para sembrar microbioma" },
-      { id: 312, text: "Ejercicios en pelota de pilates para abrir pelvis" },
-    ]
-  },
-  {
-    id: "t3_maleta", trimester: 3, defaultExpanded: true,
-    title: "Maleta de hospital",
-    icon: <BriefcaseMedical className="text-terracotta/100" size={20} />, color: "bg-terracotta/10",
-    tasks: [
-      { id: 301, text: "Documentos de identidad y seguro" },
-      { id: 302, text: "Ropa cómoda para tu pareja" },
-      { id: 303, text: "Primera ropita del bebé" },
-      { id: 304, text: "Snacks (Dátiles para energía durante dilatación)" },
-    ]
-  },
-  {
-    id: "t3_logistica", trimester: 3, defaultExpanded: false,
-    title: "Logística del parto",
-    icon: <MapPin className="text-terracotta" size={20} />, color: "bg-sage/10",
-    tasks: [
-      { id: 305, text: "Instalar silla de coche y aprender a usarla" },
-      { id: 306, text: "Simulacro de ruta al hospital (medir tiempos)" },
-      { id: 307, text: "Imprimir plan de parto" },
+      { id: 313, text: "Vacunar al círculo íntimo (Estrategia Capullo)", detail: "El papá y abuelos cuidadores deben tener la vacuna Tdap e Influenza al día." },
+      { id: 314, text: "Instalar y certificar la silla de auto (Car Seat)", detail: "El hospital no les dará el alta si el bebé no está asegurado correctamente en el auto." },
+      { id: 315, text: "Armar maleta del hospital y simular ruta", detail: "Hacer simulacro nocturno de manejo para medir tiempos y saber por qué puerta entrar de madrugada." }
     ]
   }
-];
+];;
 
 function getWeekData(week: number, theme: "frutas"|"geek" = "frutas") {
   const weeklyDetails = [
