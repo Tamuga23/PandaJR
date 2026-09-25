@@ -5,9 +5,9 @@ import { getWeekData } from "./weekData";
 ﻿
 import React, { useState, useEffect, useRef } from "react";
 import { usePandaStore } from "@/store/usePandaStore";
-import { ensureAuth, createPregnancyForMom, joinPregnancyAsDad, listenToPregnancy, listenToMomStatus, updatePregnancyWeek, saveMomStatus, saveEvents, listenToEvents, saveKickSessions, listenToKickSessions, saveContractions, listenToContractions, saveBabyNames, listenToBabyNames, saveBirthPlan, listenToBirthPlan, saveChecklistProgress, listenToChecklistProgress, saveAppointmentPrep, listenToAppointmentPrep } from "@/lib/firebase/pairing";
+import { ensureAuth, createPregnancyForMom, joinPregnancyAsDad, listenToPregnancy, listenToMomStatus, updatePregnancyWeek, saveMomStatus, saveEvents, listenToEvents, saveKickSessions, listenToKickSessions, saveContractions, listenToContractions, saveBabyNames, listenToBabyNames, saveBirthPlan, listenToBirthPlan, saveChecklistProgress, listenToChecklistProgress, saveAppointmentPrep, listenToAppointmentPrep , saveBudget, listenToBudget } from "@/lib/firebase/pairing";
 import Image from "next/image";
-import { Camera, Wand2, Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, AlertCircle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2, Bell, RotateCcw, Trash2, PhoneCall, Check, Undo2, Printer, Copy, Edit3, Sun, Moon, BookOpen, ExternalLink , Wallet, Music } from "lucide-react";
+import { Camera, Wand2, Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, AlertCircle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2, Bell, RotateCcw, Trash2, PhoneCall, Check, Undo2, Printer, Copy, Edit3, Sun, Moon, BookOpen, ExternalLink , Wallet, Music , Tag} from "lucide-react";
 
 type Tab = "planificacion" | "agenda" | "herramientas" | "pandaia";
 
@@ -502,7 +502,7 @@ export function HerramientasView({ showToast, profile }: { showToast: any, profi
           {activeTool === 'nombres' && <VotadorNombres showToast={showToast} />}
           {activeTool === 'parto' && <PlanParto profile={profile} showToast={showToast} />}
           {activeTool === 'lecturas' && profile && <LecturasView week={profile.week} onClose={() => setActiveTool(null)} showToast={showToast} />}
-          {activeTool === 'presupuesto' && <CalculadoraPresupuesto onClose={() => setActiveTool(null)} />}
+          {activeTool === 'presupuesto' && <CalculadoraPresupuesto profile={profile} onClose={() => setActiveTool(null)} />}
           {activeTool === 'story' && <PandaStoryGenerator profile={profile} onClose={() => setActiveTool(null)} />}
           {activeTool === 'reproductor' && <ReproductorView onClose={() => setActiveTool(null)} />}
 
@@ -2327,26 +2327,47 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile, showT
 
 
 // --- CALCULADORA DE PRESUPUESTO DEL BEBÉ ---
-export function CalculadoraPresupuesto({ onClose }: { onClose: () => void }) {
+
+
+
+
+export function CalculadoraPresupuesto({ profile, onClose }: { profile?: any, onClose: () => void }) {
   const [budget, setBudget] = useState(5000);
-  const [expenses, setExpenses] = useState<{ id: string, name: string, amount: number, category: string }[]>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("pandajr_budget_expenses");
-      if (saved) return JSON.parse(saved);
-    }
-    return [];
-  });
+  const [expenses, setExpenses] = useState<{ id: string, name: string, amount: number, category: string, isPurchased?: boolean }[]>([]);
   const [newItem, setNewItem] = useState("");
   const [newAmount, setNewAmount] = useState("");
   const [newCategory, setNewCategory] = useState("Cuidado");
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem("pandajr_budget_expenses", JSON.stringify(expenses));
-  }, [expenses]);
+    if (profile?.pregnancyId) {
+      const unsubscribe = listenToBudget(profile.pregnancyId, (items: any) => {
+        if (items && items.length > 0) {
+          setExpenses(items);
+        } else {
+          setExpenses([]);
+        }
+        setIsLoaded(true);
+      });
+      return () => unsubscribe();
+    } else {
+      setIsLoaded(true);
+    }
+  }, [profile?.pregnancyId]);
+
+  const updateFirebase = async (newExpenses: any[]) => {
+    if (profile?.pregnancyId) {
+      await saveBudget(profile.pregnancyId, newExpenses);
+    } else {
+      localStorage.setItem("pandajr_budget_expenses", JSON.stringify(newExpenses));
+    }
+  };
 
   const totalSpent = expenses.reduce((acc, curr) => acc + curr.amount, 0);
+  const totalPurchased = expenses.filter(e => e.isPurchased).reduce((acc, curr) => acc + curr.amount, 0);
   const remaining = budget - totalSpent;
   const progressPercent = Math.min((totalSpent / budget) * 100, 100);
+  const purchasePercent = Math.min((totalPurchased / budget) * 100, 100);
 
   const addExpense = (e: React.FormEvent) => {
     e.preventDefault();
@@ -2354,18 +2375,42 @@ export function CalculadoraPresupuesto({ onClose }: { onClose: () => void }) {
     const amountNum = parseFloat(newAmount);
     if (isNaN(amountNum)) return;
 
-    setExpenses([{
+    const newList = [{
       id: Date.now().toString(),
       name: newItem,
       amount: amountNum,
-      category: newCategory
-    }, ...expenses]);
+      category: newCategory,
+      isPurchased: false
+    }, ...expenses];
+    setExpenses(newList);
+    updateFirebase(newList);
+    
     setNewItem("");
     setNewAmount("");
   };
 
+  const togglePurchased = (id: string) => {
+    const newList = expenses.map(e => e.id === id ? { ...e, isPurchased: !e.isPurchased } : e);
+    setExpenses(newList);
+    updateFirebase(newList);
+  };
+
   const removeExpense = (id: string) => {
-    setExpenses(expenses.filter(e => e.id !== id));
+    const newList = expenses.filter(e => e.id !== id);
+    setExpenses(newList);
+    updateFirebase(newList);
+  };
+
+  const addQuickSuggestion = (name: string, amount: number, cat: string) => {
+    const newList = [{
+      id: Date.now().toString() + Math.random(),
+      name,
+      amount,
+      category: cat,
+      isPurchased: false
+    }, ...expenses];
+    setExpenses(newList);
+    updateFirebase(newList);
   };
 
   const categories = ["Cuidado", "Habitación", "Transporte", "Médico", "Ropa", "Otros"];
@@ -2374,133 +2419,138 @@ export function CalculadoraPresupuesto({ onClose }: { onClose: () => void }) {
     <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
       <div className="bg-white dark:bg-[#1a1625] w-full max-w-lg sm:rounded-3xl rounded-t-3xl h-[85vh] sm:h-auto max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-stone-200 dark:border-white/10 animate-in slide-in-from-bottom-8">
         
-        {/* Header */}
         <div className="bg-gradient-to-r from-sage to-[#547a66] p-5 shrink-0 flex items-center justify-between text-white relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
           <div>
             <h2 className="text-xl font-black flex items-center gap-2 relative z-10">
               <Wallet size={24} className="text-stone-100" />
-              Presupuesto del Bebé
+              Presupuesto Compartido
             </h2>
-            <p className="text-stone-100/80 text-sm mt-1 relative z-10">Control de gastos y compras</p>
+            <p className="text-stone-100/80 text-sm mt-1 relative z-10">Sincronizado entre mamá y papá</p>
           </div>
           <button onClick={onClose} className="p-2 bg-black/10 hover:bg-black/20 rounded-full transition-colors relative z-10">
             <X size={20} />
           </button>
         </div>
 
-        {/* Content */}
         <div className="flex-1 overflow-y-auto p-5 space-y-6">
           
-          {/* Resumen */}
-          <div className="bg-stone-50 dark:bg-[#221d2d] rounded-3xl p-5 border border-stone-100 dark:border-white/5">
-            <div className="flex justify-between items-end mb-4">
+          <div className="bg-stone-50 dark:bg-[#221d2d] rounded-3xl p-5 border border-stone-100 dark:border-white/5 relative overflow-hidden">
+            <div className="flex justify-between items-end mb-4 relative z-10">
               <div>
-                <p className="text-sm font-semibold text-stone-500 dark:text-stone-400">Restante</p>
+                <p className="text-sm font-semibold text-stone-500 dark:text-stone-400">Restante del Total</p>
                 <p className={`text-3xl font-black tracking-tight ${remaining < 0 ? 'text-rose-500' : 'text-sage dark:text-sage-400'}`}>
                   ${remaining.toLocaleString()}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-xs font-semibold text-stone-400">Presupuesto</p>
-                <div className="flex items-center gap-1">
+                <p className="text-xs font-semibold text-stone-400 mb-1">Tu Presupuesto</p>
+                <div className="flex items-center gap-1 bg-white dark:bg-black/20 p-1.5 px-3 rounded-xl border border-stone-200 dark:border-white/10">
                   <span className="text-sm font-bold text-stone-700 dark:text-stone-300">$</span>
                   <input 
                     type="number" 
                     value={budget}
                     onChange={(e) => setBudget(Number(e.target.value))}
-                    className="w-20 text-sm font-bold text-stone-700 dark:text-stone-300 bg-transparent border-b border-stone-300 dark:border-stone-600 focus:outline-none focus:border-sage text-right"
+                    className="w-20 bg-transparent text-right font-bold text-stone-800 dark:text-white outline-none"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="h-3 w-full bg-stone-200 dark:bg-stone-800 rounded-full overflow-hidden">
+            <div className="w-full bg-stone-200 dark:bg-black/30 h-3 rounded-full overflow-hidden relative z-10">
               <div 
-                className={`h-full rounded-full transition-all duration-500 ${progressPercent > 90 ? 'bg-rose-500' : 'bg-sage'}`}
-                style={{ width: `${progressPercent}%` }}
+                className={`h-full absolute left-0 top-0 transition-all ${progressPercent > 100 ? 'bg-rose-500/30' : 'bg-sage/30'}`}
+                style={{ width: `${Math.min(progressPercent, 100)}%` }}
+              ></div>
+              <div 
+                className="h-full absolute left-0 top-0 bg-terracotta transition-all"
+                style={{ width: `${purchasePercent}%` }}
               ></div>
             </div>
-            <p className="text-xs text-stone-500 mt-2 font-medium flex justify-between">
-              <span>Gastado: ${totalSpent.toLocaleString()}</span>
-              <span>{progressPercent.toFixed(0)}%</span>
-            </p>
+            <div className="flex justify-between text-[10px] font-bold text-stone-400 uppercase tracking-wider mt-2 relative z-10">
+              <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-terracotta"></div> Ya comprado (${totalPurchased.toLocaleString()})</span>
+              <span className="flex items-center gap-1">Planeado (${totalSpent.toLocaleString()}) <div className="w-2 h-2 rounded-full bg-sage/30"></div></span>
+            </div>
           </div>
 
-          {/* Agregar Gasto */}
-          <form onSubmit={addExpense} className="flex gap-2 bg-white dark:bg-[#221d2d] p-3 rounded-2xl border border-stone-200 dark:border-white/10 shadow-sm focus-within:border-sage transition-colors">
+          <form onSubmit={addExpense} className="flex gap-2">
             <div className="flex-1 flex flex-col gap-2">
               <input 
                 type="text" 
-                placeholder="Ej. Silla de coche" 
+                placeholder="Ej. Cuna, pañales..." 
                 value={newItem}
-                onChange={e => setNewItem(e.target.value)}
-                className="w-full text-sm font-semibold bg-transparent focus:outline-none text-stone-700 dark:text-stone-200"
+                onChange={(e) => setNewItem(e.target.value)}
+                className="w-full bg-stone-50 dark:bg-[#221d2d] border border-stone-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-sage dark:text-white"
               />
               <div className="flex gap-2">
                 <select 
                   value={newCategory}
-                  onChange={e => setNewCategory(e.target.value)}
-                  className="text-xs bg-stone-100 dark:bg-[#1a1625] text-stone-600 dark:text-stone-300 rounded-lg px-2 py-1 outline-none"
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  className="bg-stone-50 dark:bg-[#221d2d] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-semibold text-stone-600 dark:text-stone-300 focus:outline-none focus:ring-2 focus:ring-sage"
                 >
                   {categories.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
-                <div className="flex items-center gap-1 text-sm bg-stone-50 dark:bg-[#1a1625] px-2 py-1 rounded-lg">
-                  <span className="text-stone-400 font-bold">$</span>
+                <div className="flex-1 relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm font-bold">$</span>
                   <input 
-                    type="number"
-                    placeholder="0.00"
+                    type="number" 
+                    placeholder="0" 
                     value={newAmount}
-                    onChange={e => setNewAmount(e.target.value)}
-                    className="w-16 bg-transparent outline-none font-bold text-stone-700 dark:text-stone-200"
+                    onChange={(e) => setNewAmount(e.target.value)}
+                    className="w-full bg-stone-50 dark:bg-[#221d2d] border border-stone-200 dark:border-white/10 rounded-xl pl-7 pr-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-sage dark:text-white"
                   />
                 </div>
               </div>
             </div>
             <button 
-              type="submit"
+              type="submit" 
               disabled={!newItem.trim() || !newAmount}
-              className="bg-sage hover:bg-[#547a66] disabled:opacity-50 text-white p-3 rounded-xl transition-all h-full shrink-0 flex items-center justify-center"
+              className="bg-sage hover:bg-[#466856] disabled:opacity-50 text-white rounded-xl px-4 flex flex-col items-center justify-center transition-colors shadow-sm"
             >
-              <Plus size={20} />
+              <Plus size={24} />
             </button>
           </form>
 
-          {/* Lista de Gastos */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-bold text-stone-800 dark:text-stone-200">Historial de Compras</h3>
-            {expenses.length === 0 ? (
-              <div className="text-center py-8 bg-stone-50 dark:bg-[#221d2d] rounded-2xl border border-dashed border-stone-200 dark:border-white/10">
-                <Wallet className="mx-auto text-stone-300 dark:text-stone-600 mb-2" size={32} />
-                <p className="text-sm font-medium text-stone-500 dark:text-stone-400">Aún no hay gastos registrados.</p>
+          {expenses.length === 0 ? (
+            <div className="text-center py-6">
+              <p className="text-stone-500 dark:text-stone-400 text-sm mb-4">Aún no hay gastos en la lista. Puedes usar estas sugerencias rápidas:</p>
+              <div className="flex flex-wrap gap-2 justify-center">
+                <button onClick={() => addQuickSuggestion("Cuna", 250, "Habitación")} className="bg-stone-100 dark:bg-white/5 hover:bg-stone-200 text-stone-600 dark:text-stone-300 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors">+ Cuna ($250)</button>
+                <button onClick={() => addQuickSuggestion("Cochecito", 300, "Transporte")} className="bg-stone-100 dark:bg-white/5 hover:bg-stone-200 text-stone-600 dark:text-stone-300 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors">+ Cochecito ($300)</button>
+                <button onClick={() => addQuickSuggestion("Pañales", 50, "Cuidado")} className="bg-stone-100 dark:bg-white/5 hover:bg-stone-200 text-stone-600 dark:text-stone-300 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors">+ Pañales ($50)</button>
+                <button onClick={() => addQuickSuggestion("Silla", 150, "Transporte")} className="bg-stone-100 dark:bg-white/5 hover:bg-stone-200 text-stone-600 dark:text-stone-300 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors">+ Silla de coche ($150)</button>
               </div>
-            ) : (
-              <div className="space-y-2">
-                {expenses.map(expense => (
-                  <div key={expense.id} className="flex items-center justify-between p-3 bg-white dark:bg-[#221d2d] rounded-2xl border border-stone-100 dark:border-white/5 shadow-xs group">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-sage/20 dark:bg-sage/20 flex items-center justify-center text-sage dark:text-sage-400 font-black text-sm shrink-0">
-                        {expense.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="font-bold text-sm text-stone-800 dark:text-stone-200 leading-tight">{expense.name}</p>
-                        <p className="text-xs font-semibold text-stone-400 mt-0.5">{expense.category}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <p className="font-black text-stone-700 dark:text-stone-300">${expense.amount.toLocaleString()}</p>
-                      <button 
-                        onClick={() => removeExpense(expense.id)}
-                        className="text-stone-300 hover:text-rose-500 transition-colors"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {expenses.map((expense) => (
+                <div key={expense.id} className={`group flex items-center justify-between p-4 rounded-2xl border transition-all ${expense.isPurchased ? 'bg-stone-50 dark:bg-white/5 border-transparent opacity-60' : 'bg-white dark:bg-[#221d2d] border-stone-100 dark:border-white/5 shadow-sm hover:border-sage/30'}`}>
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <button onClick={() => togglePurchased(expense.id)} className={`shrink-0 ${expense.isPurchased ? 'text-terracotta' : 'text-stone-300 hover:text-sage transition-colors'}`}>
+                      {expense.isPurchased ? <CheckCircle2 size={24} /> : <Circle size={24} />}
+                    </button>
+                    <div>
+                      <h4 className={`font-bold truncate max-w-[180px] ${expense.isPurchased ? 'text-stone-500 line-through decoration-terracotta/50' : 'text-stone-800 dark:text-stone-200'}`}>{expense.name}</h4>
+                      <p className="text-xs font-semibold text-stone-400 dark:text-stone-500 flex items-center gap-1">
+                        <Tag size={10} /> {expense.category}
+                      </p>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className={`font-black ${expense.isPurchased ? 'text-stone-400' : 'text-stone-700 dark:text-stone-300'}`}>
+                      ${expense.amount.toLocaleString()}
+                    </span>
+                    <button 
+                      onClick={() => removeExpense(expense.id)}
+                      className="text-stone-300 hover:text-rose-500 transition-colors p-1"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -2508,35 +2558,39 @@ export function CalculadoraPresupuesto({ onClose }: { onClose: () => void }) {
 }
 
 
-
-
-
-// --- PANDA JR STORY GENERATOR ---
 export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClose: () => void }) {
   const getMilestonePhrase = (w: number) => {
     if (w <= 8) return "Su corazoncito ya late a mil por hora ❤️";
     if (w <= 12) return "¡Ya tiene huellas dactilares únicas! 🖐️";
-    if (w <= 16) return "Comienza a escuchar los latidos de mamá 🎵";
+    if (w <= 16) return "Comienza a escuchar los latidos de mamá 🎶";
     if (w <= 20) return "¡Primeras pataditas en camino! 🦶";
-    if (w <= 24) return "Puede escuchar tu voz y la música 🎶";
+    if (w <= 24) return "Puede escuchar tu voz y la música 🎵";
     if (w <= 28) return "Abre y cierra sus ojitos 👀";
-    if (w <= 32) return "Sus pulmones se preparan para respirar 🫁";
+    if (w <= 32) return "Sus pulmones se preparan para respirar 🌬️";
     if (w <= 36) return "Reconoce canciones y voces familiares 🧸";
     return "¡Listo para conocer el mundo! 🌍";
   };
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [customImage, setCustomImage] = useState<string | null>(null);
   const storyRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const week = profile?.week || 14;
   
-  const weekData = getWeekData(week, profile?.theme || "frutas");
+  const weekData = (window as any).getWeekData ? (window as any).getWeekData(week, profile?.theme || "frutas") : { size: "Limón 🍋", weight: "45g" }; 
   const sizeText = weekData.size || "Limón 🍋";
   const emojiMatch = sizeText.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]|\p{Emoji_Presentation}/gu);
   const emoji = emojiMatch ? emojiMatch[emojiMatch.length - 1] : '🍋';
   const fruit = sizeText.replace(emoji, '').trim();
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const url = URL.createObjectURL(e.target.files[0]);
+      setCustomImage(url);
+    }
+  };
 
   const generateStory = async () => {
     if (!storyRef.current) return;
@@ -2557,7 +2611,7 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
     }
   };
 
-    const shareStory = async () => {
+  const shareStory = async () => {
     if (!imageUrl) return;
 
     const triggerDownload = () => {
@@ -2609,10 +2663,9 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center gap-6">
-          <div ref={storyRef} className="relative shadow-xl rounded-[2rem] overflow-hidden border-4 border-white dark:border-[#2d273a] w-full max-w-[320px] aspect-[9/16] bg-gradient-to-br from-sage/20 via-white to-terracotta/20 dark:from-sage/40 dark:via-[#1a1625] dark:to-terracotta/40">
+          <div className="relative shadow-xl rounded-[2rem] overflow-hidden border-4 border-white dark:border-[#2d273a] w-full max-w-[320px] aspect-[9/16]">
             
-            <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-8 text-stone-800 text-center bg-gradient-to-br from-sage/20 via-stone-50 to-terracotta/20"
-            >
+            <div ref={storyRef} className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-8 text-stone-800 text-center bg-gradient-to-br from-sage/20 via-stone-50 to-terracotta/20 dark:from-sage/40 dark:via-[#1a1625] dark:to-terracotta/40">
               <div className="absolute top-6 left-1/2 -translate-x-1/2 opacity-20 flex items-center gap-2">
                  <span className="font-black text-xl tracking-tighter text-sage">PandaJR.</span>
               </div>
@@ -2627,14 +2680,18 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
               </div>
 
               <div className="flex-1 flex items-center justify-center relative w-full my-6">
-                
-                <div className="text-[8rem] leading-none  relative z-10 animate-in zoom-in duration-500" >
-                  {emoji}
-                </div>
+                {customImage ? (
+                  <div className="relative z-10 animate-in zoom-in duration-500 w-40 h-40 rounded-full border-4 border-white shadow-xl overflow-hidden mt-4">
+                    <img src={customImage} alt="Baby" className="w-full h-full object-cover" crossOrigin="anonymous" />
+                  </div>
+                ) : (
+                  <div className="text-[8rem] leading-none relative z-10 animate-in zoom-in duration-500" >
+                    {emoji}
+                  </div>
+                )}
               </div>
 
               <div className="bg-white/90 rounded-2xl p-4 w-full relative z-10 shadow-sm border border-white/50" >
-   
                 <p className="text-sm font-semibold text-stone-600" >
                   Nuestro bebé es del tamaño de:
                 </p>
@@ -2651,25 +2708,34 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
                     {getMilestonePhrase(week)}
                   </p>
                 </div>
-</div>
+              </div>
             </div>
             
             {imageUrl && (
               <img src={imageUrl} alt="PandaJR Story" className="absolute inset-0 w-full h-full object-cover z-20" />
             )}
-            
-            
           </div>
 
           <div className="w-full flex flex-col gap-3">
             {!imageUrl ? (
-              <button 
-                onClick={generateStory}
-                disabled={isGenerating}
-                className="w-full bg-terracotta hover:bg-[#c46548] text-white font-bold py-4 rounded-2xl shadow-lg transition-transform active:scale-95 flex justify-center items-center gap-2"
-              >
-                <Wand2 size={20} /> Generar Tarjeta
-              </button>
+              <>
+                <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full bg-white dark:bg-white/10 hover:bg-stone-50 text-stone-700 dark:text-stone-300 font-bold py-3.5 rounded-2xl shadow-sm border border-stone-200 dark:border-white/10 transition-transform active:scale-95 flex justify-center items-center gap-2 mb-1"
+                >
+                  <Camera size={20} className="text-stone-500" />
+                  {customImage ? "Cambiar foto" : "Subir Ecografía / Foto"}
+                </button>
+                <button 
+                  onClick={generateStory}
+                  disabled={isGenerating}
+                  className="w-full bg-terracotta hover:bg-[#c46548] text-white font-bold py-4 rounded-2xl shadow-lg transition-transform active:scale-95 flex justify-center items-center gap-2"
+                >
+                  {isGenerating ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Wand2 size={20} />}
+                  {isGenerating ? "Creando magia..." : "Generar Tarjeta"}
+                </button>
+              </>
             ) : (
               <div className="flex gap-2">
                 <button 
@@ -2680,15 +2746,13 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
                 </button>
                 <button 
                   onClick={() => setImageUrl(null)}
-                  className="p-4 bg-stone-200 dark:bg-[#2d273a] text-stone-600 dark:text-stone-300 rounded-2xl hover:bg-stone-300 transition-colors"
-                  aria-label="Generar de nuevo"
+                  className="flex-1 bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold py-4 rounded-2xl shadow-lg transition-transform active:scale-95 flex justify-center items-center gap-2"
                 >
-                  <RotateCcw size={20} />
+                  Nueva
                 </button>
               </div>
             )}
           </div>
-
         </div>
       </div>
     </div>
@@ -2696,22 +2760,73 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
 }
 
 
-
-// --- REPRODUCTOR DE ESTIMULACIÓN ---
 export function ReproductorView({ onClose }: { onClose: () => void }) {
   const [activeTab, setActiveTab] = useState<"dormir" | "estimulacion" | "latidos">("dormir");
+  const [isPlaying, setIsPlaying] = useState(false);
+  
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const sourceRef = useRef<AudioBufferSourceNode | null>(null);
 
   const playlists = {
     dormir: "https://open.spotify.com/embed/playlist/37i9dQZF1DWZq91oLsHZvy?utm_source=generator&theme=0",
-    estimulacion: "https://open.spotify.com/embed/playlist/37i9dQZF1DX8C9xQcOrE6T?utm_source=generator&theme=0",
-    latidos: "https://open.spotify.com/embed/playlist/37i9dQZF1DWUvHZA1zLcjW?utm_source=generator&theme=0"
+    estimulacion: "https://open.spotify.com/embed/playlist/37i9dQZF1DX8C9xQcOrE6T?utm_source=generator&theme=0"
   };
+
+  const toggleNoise = () => {
+    if (isPlaying) {
+      if (sourceRef.current) {
+        sourceRef.current.stop();
+        sourceRef.current.disconnect();
+      }
+      setIsPlaying(false);
+    } else {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new AudioContext();
+      }
+      const ctx = audioCtxRef.current;
+      
+      if (ctx.state === 'suspended') ctx.resume();
+
+      const bufferSize = ctx.sampleRate * 2;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      
+      let lastOut = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        let white = Math.random() * 2 - 1;
+        data[i] = (lastOut + (0.02 * white)) / 1.02;
+        lastOut = data[i];
+        data[i] *= 3.5; 
+      }
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 400;
+
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.loop = true;
+      source.connect(filter);
+      filter.connect(ctx.destination);
+      source.start();
+
+      sourceRef.current = source;
+      setIsPlaying(true);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (sourceRef.current) sourceRef.current.stop();
+      if (audioCtxRef.current) audioCtxRef.current.close();
+    };
+  }, []);
 
   return (
     <div className="fixed inset-0 bg-black/70 dark:bg-black/90 backdrop-blur-md z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
       <div className="bg-white dark:bg-[#15131a] w-full max-w-md sm:rounded-[2.5rem] rounded-t-[2.5rem] h-[85vh] sm:h-auto max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-white/20 dark:border-white/5 animate-in slide-in-from-bottom-8">
         
-        {/* Header con gradiente premium */}
         <div className="bg-gradient-to-br from-[#2a2631] to-[#15131a] border-b border-white/5 p-6 shrink-0 relative overflow-hidden text-white">
           <div className="absolute top-0 right-0 w-48 h-48 bg-white/20 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-stone-800/40 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none"></div>
@@ -2732,61 +2847,74 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
           </div>
         </div>
 
-        {/* Content */}
         <div className="flex-1 overflow-y-auto bg-stone-50 dark:bg-[#15131a] flex flex-col">
           
-          {/* Custom Tabs */}
           <div className="px-4 pt-6 pb-2">
             <div className="flex bg-stone-200/50 dark:bg-[#221d2d] p-1.5 rounded-2xl">
               <button 
                 onClick={() => setActiveTab("dormir")}
-                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === "dormir" ? "bg-white dark:bg-[#383147] text-sage dark:text-sage shadow-sm" : "text-stone-500 dark:text-[#a6a1b2] hover:text-stone-700 dark:hover:text-stone-300"}`}
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === "dormir" ? "bg-white dark:bg-[#383147] text-sage shadow-sm" : "text-stone-500 dark:text-[#a6a1b2]"}`}
               >
-                🌙 Dormir
+                💤 Dormir
               </button>
               <button 
                 onClick={() => setActiveTab("estimulacion")}
-                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === "estimulacion" ? "bg-white dark:bg-[#383147] text-terracotta dark:text-terracotta shadow-sm" : "text-stone-500 dark:text-[#a6a1b2] hover:text-stone-700 dark:hover:text-stone-300"}`}
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === "estimulacion" ? "bg-white dark:bg-[#383147] text-terracotta shadow-sm" : "text-stone-500 dark:text-[#a6a1b2]"}`}
               >
-                🎵 Estimulación
+                🎶 Estimulación
               </button>
               <button 
                 onClick={() => setActiveTab("latidos")}
-                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === "latidos" ? "bg-white dark:bg-[#383147] text-stone-800 dark:text-stone-200 shadow-sm" : "text-stone-500 dark:text-[#a6a1b2] hover:text-stone-700 dark:hover:text-stone-300"}`}
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === "latidos" ? "bg-white dark:bg-[#383147] text-stone-800 dark:text-stone-200 shadow-sm" : "text-stone-500 dark:text-[#a6a1b2]"}`}
               >
-                ❤️ Latidos
+                🌬️ Útero
               </button>
             </div>
           </div>
 
-          <div className="p-4 flex-1 flex flex-col animate-in fade-in slide-in-from-right-4 duration-300 key={activeTab}">
+          <div className="p-4 flex-1 flex flex-col animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="mb-4 px-2">
               <h3 className="text-lg font-black text-stone-800 dark:text-stone-200">
-                {activeTab === "dormir" && "Ruido Blanco y Cunas"}
+                {activeTab === "dormir" && "Listas para arrullar"}
                 {activeTab === "estimulacion" && "Mozart & Desarrollo"}
-                {activeTab === "latidos" && "Latidos y Útero"}
+                {activeTab === "latidos" && "Simulador de Útero Offline"}
               </h3>
               <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
-                {activeTab === "dormir" && "Sonidos envolventes para calmar la ansiedad de los papás y arrullar al bebé."}
+                {activeTab === "dormir" && "Música seleccionada en Spotify para calmar la ansiedad de los papás y al bebé."}
                 {activeTab === "estimulacion" && "Música clásica seleccionada para el desarrollo neurológico fetal."}
-                {activeTab === "latidos" && "El sonido que el bebé escucha dentro del vientre. Perfecto para recién nacidos."}
+                {activeTab === "latidos" && "Un generador de ruido marrón infinito que imita el sonido del flujo sanguíneo materno que el bebé escucha."}
               </p>
             </div>
-            
-            <div className="flex-1 rounded-3xl overflow-hidden shadow-lg border border-stone-200 dark:border-white/10 bg-black">
-              <iframe 
-                src={playlists[activeTab]} 
-                width="100%" 
-                height="100%" 
-                frameBorder="0" 
-                allowFullScreen={false} 
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                loading="lazy"
-                className="w-full h-full min-h-[380px]"
-              ></iframe>
-            </div>
-          </div>
 
+            {activeTab !== "latidos" ? (
+              <div className="flex-1 min-h-[350px] bg-stone-200/50 dark:bg-[#221d2d] rounded-3xl overflow-hidden shadow-inner p-2 border border-stone-200/80 dark:border-white/[0.04]">
+                <iframe 
+                  style={{ borderRadius: '20px' }} 
+                  src={activeTab === "dormir" ? playlists.dormir : playlists.estimulacion} 
+                  width="100%" 
+                  height="100%" 
+                  frameBorder="0" 
+                  allowFullScreen 
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                  loading="lazy"
+                ></iframe>
+              </div>
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center p-6 bg-gradient-to-br from-sage/10 to-transparent dark:from-sage/5 rounded-3xl border border-sage/20">
+                 <div className="relative w-40 h-40 mb-8 flex items-center justify-center">
+                    {isPlaying && <div className="absolute inset-0 bg-sage/20 rounded-full animate-ping"></div>}
+                    {isPlaying && <div className="absolute inset-4 bg-sage/30 rounded-full animate-pulse"></div>}
+                    <div className="w-32 h-32 bg-sage text-white rounded-full flex items-center justify-center shadow-xl relative z-10 transition-transform hover:scale-105 cursor-pointer" onClick={toggleNoise}>
+                      {isPlaying ? <Square size={40} className="fill-current" /> : <Play size={40} className="fill-current ml-2" />}
+                    </div>
+                 </div>
+                 
+                 <h4 className="font-black text-xl text-stone-800 dark:text-stone-200 mb-2">Ruido Blanco Materno</h4>
+                 <p className="text-sm text-stone-500 text-center mb-6">Generador offline sin anuncios. Funciona con la pantalla apagada.</p>
+              </div>
+            )}
+            
+          </div>
         </div>
       </div>
     </div>

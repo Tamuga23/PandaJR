@@ -264,3 +264,18 @@ export function listenToAppointmentPrep(pregnancyId: string, eventId: string, ca
     }
   });
 }
+
+// --- BUDGET (Presupuesto) ---
+export async function saveBudget(pregnancyId: string, budgetItems: any[]) {
+  const ref = doc(db, "pregnancies", pregnancyId, "shared_data", "budget");
+  await setDoc(ref, { items: budgetItems, updatedAt: serverTimestamp() }, { merge: true });
+}
+
+export function listenToBudget(pregnancyId: string, callback: (items: any[]) => void) {
+  const ref = doc(db, "pregnancies", pregnancyId, "shared_data", "budget");
+  return onSnapshot(ref, (docSnap) => {
+    if (docSnap.exists()) {
+      callback(docSnap.data().items || []);
+    }
+  });
+}
