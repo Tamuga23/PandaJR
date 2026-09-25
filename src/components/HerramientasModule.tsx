@@ -1,6 +1,6 @@
 "use client";
 
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 import { getWeekData } from "./weekData";
 ﻿
 import React, { useState, useEffect, useRef } from "react";
@@ -2464,8 +2464,12 @@ export function CalculadoraPresupuesto({ profile, onClose }: { profile?: any, on
 
   const categories = ["Cuidado", "Habitación", "Transporte", "Médico", "Ropa", "Otros"];
 
-  return (
-    <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+  
+  if (!mounted) return null;
+  const content = (
+    <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm z-[999] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
       <div className="bg-white dark:bg-[#1a1625] w-full max-w-lg sm:rounded-3xl rounded-t-3xl h-[85vh] sm:h-auto max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-stone-200 dark:border-white/10 animate-in slide-in-from-bottom-8">
         
         <div className="bg-gradient-to-r from-sage to-[#547a66] p-5 shrink-0 flex items-center justify-between text-white relative overflow-hidden">
@@ -2604,6 +2608,7 @@ export function CalculadoraPresupuesto({ profile, onClose }: { profile?: any, on
       </div>
     </div>
   );
+  return typeof document !== "undefined" ? require("react-dom").createPortal(content, document.body) : null;
 }
 
 
@@ -2646,15 +2651,16 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClo
     setIsGenerating(true);
     try {
       await new Promise(r => setTimeout(r, 300));
-      const canvas = await html2canvas(storyRef.current, {
-        scale: 3, 
-        backgroundColor: null,
-        useCORS: true,
+      const dataUrl = await toPng(storyRef.current, { 
+        quality: 1, 
+        pixelRatio: 3,
+        cacheBust: true,
+        style: { transform: 'scale(1)', transformOrigin: 'top left' } 
       });
-      const url = canvas.toDataURL("image/png");
-      setImageUrl(url);
+      setImageUrl(dataUrl);
     } catch (error) {
-      console.error("Error generating story:", error); alert("Hubo un error al generar la imagen. Intenta de nuevo.");
+      console.error("Error generating story:", error);
+      alert("Hubo un error al generar la imagen. Intenta de nuevo.");
     } finally {
       setIsGenerating(false);
     }
@@ -2877,8 +2883,12 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
     };
   }, []);
 
-  return (
-    <div className="fixed inset-0 bg-black/70 dark:bg-black/90 backdrop-blur-md z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+  
+  if (!mounted) return null;
+  const content = (
+    <div className="fixed inset-0 bg-black/70 dark:bg-black/90 backdrop-blur-md z-[999] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
       <div className="bg-white dark:bg-[#15131a] w-full max-w-md sm:rounded-[2.5rem] rounded-t-[2.5rem] h-[85vh] sm:h-auto max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-white/20 dark:border-white/5 animate-in slide-in-from-bottom-8">
         
         <div className="bg-gradient-to-br from-[#2a2631] to-[#15131a] border-b border-white/5 p-6 shrink-0 relative overflow-hidden text-white">
@@ -2973,4 +2983,5 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
       </div>
     </div>
   );
+  return typeof document !== "undefined" ? require("react-dom").createPortal(content, document.body) : null;
 }
