@@ -3,6 +3,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
+  --safe-top: max(0.625rem, env(safe-area-inset-top));
+  --safe-bottom: max(0.75rem, env(safe-area-inset-bottom));
   /* Fondo cálido alabastro */
   --background: #fdfbf7;
   --foreground: #2d2a26;

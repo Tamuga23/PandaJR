@@ -588,9 +588,9 @@ export default function PandaJRApp() {
   if (!hasHydrated) return null;
 
   return (
-    <div className={`flex flex-col ${activeTab === "pandaia" ? "h-screen overflow-hidden" : "min-h-screen pb-16"} w-full max-w-md mx-auto bg-[#faf9f5] dark:bg-[#181520] text-stone-900 dark:text-[#eae6e1] font-sans relative shadow-2xl overflow-x-hidden transition-colors duration-200 border-x border-stone-200/60 dark:border-white/[0.08]`}>
+    <div className={`flex flex-col ${activeTab === "pandaia" ? "h-screen overflow-hidden" : "min-h-screen pb-[calc(3.5rem+var(--safe-bottom))]"} w-full max-w-md mx-auto bg-[#faf9f5] dark:bg-[#181520] text-stone-900 dark:text-[#eae6e1] font-sans relative shadow-2xl overflow-x-hidden transition-colors duration-200 border-x border-stone-200/60 dark:border-white/[0.08]`}>
       {/* Header con Logo, Switch Modo Oscuro, Alerta de Cita y Selector Global de Perfil */}
-      <header className="bg-white/95 dark:bg-[#181520]/95 backdrop-blur-md px-3 sm:px-4 py-2.5 shadow-xs border-b border-stone-200/70 dark:border-white/[0.08] sticky top-0 z-40 w-full flex items-center justify-between shrink-0 transition-colors">
+      <header className="bg-white/95 dark:bg-[#181520]/95 backdrop-blur-md px-3 sm:px-4 pt-[var(--safe-top)] pb-2.5 shadow-xs border-b border-stone-200/70 dark:border-white/[0.08] sticky top-0 z-40 w-full flex items-center justify-between shrink-0 transition-colors">
         <div className="flex items-center">
           <h1 className="sr-only">PandaJR</h1>
           <Image 
@@ -734,7 +734,7 @@ export default function PandaJRApp() {
       )}
 
       {/* Bottom Navigation */}
-      <nav aria-label="Navegación principal" className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 dark:bg-[#181520]/95 backdrop-blur-md border-t border-stone-200/80 dark:border-white/[0.08] flex justify-around items-center px-2 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] z-50 transition-colors">
+      <nav aria-label="Navegación principal" className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 dark:bg-[#181520]/95 backdrop-blur-md border-t border-stone-200/80 dark:border-white/[0.08] flex justify-around items-center px-2 pt-2 pb-[var(--safe-bottom)] z-50 transition-colors">
         <NavItem
           icon={<Compass size={24} />}
           label="Guía"
