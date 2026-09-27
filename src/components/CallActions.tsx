@@ -1,0 +1,218 @@
+"use client";
+
+import React, { useState } from "react";
+import { MapPin, Pencil, Phone, PhoneCall, Siren, UserPen } from "lucide-react";
+import { useCareTeam } from "@/lib/useCareTeam";
+import { hospitalMapsUrl, telHref } from "@/lib/urgency";
+import { CareTeamSheet } from "@/components/CareTeamForm";
+
+type CallContext = "sos" | "contracciones" | "pretermino" | "patadas" | "chat";
+type ActionKey = "emergency" | "ob" | "hospital" | "addOb";
+
+const focusRing =
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink";
+
+const baseAction =
+  "flex w-full items-center gap-3 rounded-2xl px-3.5 text-left transition-[background-color,transform] " +
+  "active:scale-[0.98] motion-reduce:active:scale-100 " +
+  focusRing;
+
+const secondaryAction =
+  "bg-white dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 text-stone-900 dark:text-[#eae6e1] " +
+  "hover:bg-stone-50 dark:hover:bg-[#352e44]";
+
+const iconWell = "grid place-items-center shrink-0 rounded-full";
+const subText = "block truncate text-sm leading-snug text-stone-600 dark:text-[#a6a1b2]";
+
+const emergencyClass =
+  `${baseAction} min-h-[56px] py-2.5 bg-terracotta-ink hover:bg-terracotta-ink-hover text-white shadow-[0_3px_10px_-3px_rgba(165,72,51,0.55)]`;
+
+/** Aviso cuando el número de emergencias no se pudo confirmar para la región. */
+function EmergencyConfirmNote({ number }: { number: string }) {
+  return (
+    <p className="pt-1 text-sm leading-snug text-stone-600 dark:text-[#a6a1b2]">
+      No pudimos confirmar tu región. Revisa que <span className="font-semibold tabular-nums text-stone-800 dark:text-[#eae6e1]">{number}</span> sea el número de emergencias de tu país.
+    </p>
+  );
+}
+
+/**
+ * Solo el botón "Emergencias · N" (a un toque), para pantallas donde el resto de las
+ * llamadas va plegado. Con `withNote` añade el aviso si la región no está confirmada.
+ */
+export function EmergencyCallLink({
+  className,
+  withNote = false,
+  compact = false,
+}: {
+  className?: string;
+  withNote?: boolean;
+  /** Para contenedores estrechos (burbuja del chat): texto e icono algo menores, mismo alto. */
+  compact?: boolean;
+}) {
+  const { careTeam, emergency } = useCareTeam();
+  const needsEmergencyConfirm = !careTeam.emergencyNumber && !emergency.confident;
+  return (
+    <div className={`flex flex-col gap-1${className ? ` ${className}` : ""}`}>
+      <a href={telHref(emergency.number)} aria-label={`Llamar a emergencias, ${emergency.number}`} className={emergencyClass}>
+        <span className={`${iconWell} ${compact ? "w-9 h-9" : "w-10 h-10"} bg-white/15`}>
+          <Siren size={compact ? 20 : 22} aria-hidden="true" />
+        </span>
+        <span className={`min-w-0 flex-1 ${compact ? "text-base" : "text-lg"} font-bold leading-tight`}>
+          Emergencias <span className="whitespace-nowrap">· <span className="tabular-nums">{emergency.number}</span></span>
+        </span>
+        {/* En la variante compacta el icono final se omite para que "Emergencias · N" quepa en una línea. */}
+        {!compact && <PhoneCall size={18} className="shrink-0" aria-hidden="true" />}
+      </a>
+      {withNote && needsEmergencyConfirm && <EmergencyConfirmNote number={emergency.number} />}
+    </div>
+  );
+}
+
+/**
+ * Acciones de llamada para la ruta de urgencia: emergencias, obstetra y hospital.
+ * Emergencias es siempre la acción visualmente más fuerte.
+ * - "contracciones" (5-1-1 de término): el camino habitual es obstetra → hospital.
+ * - "pretermino": obstetra o emergencias, ya; el mapa al final.
+ * - Resto: emergencias primero.
+ * Sin teléfono del obstetra, la primera acción siempre es una llamada (emergencias),
+ * nunca una búsqueda en el mapa.
+ * `showEmergency={false}` omite emergencias cuando la pantalla ya lo muestra aparte.
+ */
+export function CallActions({
+  context = "sos",
+  className,
+  showEmergency = true,
+}: {
+  context?: CallContext;
+  className?: string;
+  showEmergency?: boolean;
+}) {
+  const { careTeam, emergency } = useCareTeam();
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  const compact = context === "chat";
+  const obPhone = careTeam.obPhone?.trim();
+  const obName = careTeam.obName?.trim();
+  const maps = hospitalMapsUrl(careTeam);
+  const needsEmergencyConfirm = showEmergency && !careTeam.emergencyNumber && !emergency.confident;
+
+  const baseOrder: ActionKey[] = !obPhone
+    ? ["emergency", "hospital", "addOb"]
+    : context === "contracciones"
+      ? ["ob", "hospital", "emergency"]
+      : context === "pretermino"
+        ? ["ob", "emergency", "hospital"]
+        : ["emergency", "ob", "hospital"];
+  const order = showEmergency ? baseOrder : baseOrder.filter((k) => k !== "emergency");
+
+  // Llamar al obstetra es una llamada: 56px siempre. El mapa y "añadir" pueden ser más bajos en el chat.
+  const callHeight = "min-h-[56px] py-2.5";
+  const secondaryHeight = compact ? "min-h-[48px] py-2" : "min-h-[56px] py-2.5";
+  const wellSize = compact ? "w-9 h-9" : "w-10 h-10";
+  const iconSize = compact ? 18 : 20;
+
+  const render = (key: ActionKey) => {
+    switch (key) {
+      case "emergency":
+        return (
+          <a
+            key={key}
+            href={telHref(emergency.number)}
+            aria-label={`Llamar a emergencias, ${emergency.number}`}
+            className={emergencyClass}
+          >
+            <span className={`${iconWell} ${wellSize} bg-white/15`}>
+              <Siren size={compact ? 20 : 22} aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1 text-lg font-bold leading-tight">
+              Emergencias <span className="whitespace-nowrap">· <span className="tabular-nums">{emergency.number}</span></span>
+            </span>
+            <PhoneCall size={18} className="shrink-0" aria-hidden="true" />
+          </a>
+        );
+
+      case "ob":
+        return (
+          <a key={key} href={telHref(obPhone || "")} className={`${baseAction} ${secondaryAction} ${callHeight}`}>
+            <span className={`${iconWell} ${wellSize} bg-sage/15 text-sage-ink`}>
+              <Phone size={iconSize} aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-base font-bold leading-tight">
+                {obName ? `Llamar a ${obName}` : "Llamar a tu obstetra"}
+              </span>
+              <span className={`${subText} tabular-nums`}>{obPhone}</span>
+            </span>
+          </a>
+        );
+
+      case "hospital": {
+        const detail = maps.personalized
+          ? careTeam.hospitalName && careTeam.hospitalAddress
+            ? careTeam.hospitalAddress
+            : "Abre la ruta en el mapa"
+          : "Abre el mapa con opciones cerca de ti";
+        return (
+          <a
+            key={key}
+            href={maps.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${baseAction} ${secondaryAction} ${secondaryHeight}`}
+          >
+            <span className={`${iconWell} ${wellSize} bg-stone-100 dark:bg-white/10 text-stone-700 dark:text-[#eae6e1]`}>
+              <MapPin size={iconSize} aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-base font-bold leading-tight">{maps.label}</span>
+              {!compact && <span className={subText}>{detail}</span>}
+              <span className="sr-only"> (se abre en otra pestaña)</span>
+            </span>
+          </a>
+        );
+      }
+
+      case "addOb":
+        return (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setSheetOpen(true)}
+            className={`${baseAction} ${secondaryHeight} border border-dashed border-stone-400 dark:border-white/25 text-stone-900 dark:text-[#eae6e1] hover:bg-stone-100/70 dark:hover:bg-white/5`}
+          >
+            <span className={`${iconWell} ${wellSize} bg-sage/15 text-sage-ink`}>
+              <UserPen size={iconSize} aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-base font-bold leading-tight">Añadir el teléfono de tu obstetra</span>
+              {!compact && <span className={subText}>Para llamarle con un toque</span>}
+            </span>
+          </button>
+        );
+    }
+  };
+
+  return (
+    <div
+      role="group"
+      aria-label="Llamadas y ruta al hospital"
+      className={`flex flex-col ${compact ? "gap-2" : "gap-2.5"}${className ? ` ${className}` : ""}`}
+    >
+      {order.map(render)}
+
+      {needsEmergencyConfirm && <EmergencyConfirmNote number={emergency.number} />}
+
+      <button
+        type="button"
+        onClick={() => setSheetOpen(true)}
+        className={`self-start inline-flex items-center gap-1.5 min-h-[44px] px-1 rounded-lg text-sm font-semibold text-stone-600 dark:text-[#a6a1b2] hover:text-stone-900 dark:hover:text-[#eae6e1] underline-offset-4 hover:underline transition-colors ${focusRing}`}
+      >
+        <Pencil size={14} aria-hidden="true" />
+        Editar equipo de salud
+      </button>
+
+      <CareTeamSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
+    </div>
+  );
+}

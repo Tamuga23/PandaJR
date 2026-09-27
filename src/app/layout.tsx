@@ -19,7 +19,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#f8fafc" }, { media: "(prefers-color-scheme: dark)", color: "#0c0a10" }],
+  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#fdfbf7" }, { media: "(prefers-color-scheme: dark)", color: "#181520" }],
 };
 
 export const metadata: Metadata = {
@@ -100,7 +100,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 w-full overflow-x-hidden transition-colors duration-200">{children}</body>
+      <body className="min-h-full flex flex-col bg-[#faf9f5] dark:bg-[#181520] text-stone-900 dark:text-[#eae6e1] w-full overflow-x-hidden transition-colors duration-200">{children}</body>
     </html>
   );
 }

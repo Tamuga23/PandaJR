@@ -17,6 +17,14 @@
   --color-terracotta-hover: #c96651;
   --color-sage: #6c9a84;
   --color-sage-hover: #5a8570;
+
+  /* Tintas accesibles (WCAG AA). ink = texto sobre superficies claras y relleno con texto blanco. */
+  --terracotta-ink: #a54833;       /* blanco sobre ella 5.87:1 · sobre #faf9f5 5.58:1 · sobre terracotta/20 4.63:1 */
+  --terracotta-ink-fill: #a54833;
+  --terracotta-ink-hover: #8f3c2a; /* blanco 7.37:1 */
+  --sage-ink: #44695a;             /* blanco 6.15:1 · sobre #faf9f5 5.84:1 · sobre sage/20 4.83:1 */
+  --sage-ink-fill: #44695a;
+  --sage-ink-hover: #37574a;       /* blanco 8.00:1 */
 }
 
 .dark {
@@ -32,6 +40,14 @@
   --color-terracotta-hover: #b85c49;
   --color-sage: #619b7e;
   --color-sage-hover: #50866b;
+
+  /* En oscuro el texto necesita una tinta clara y el relleno una oscura: se separan. */
+  --terracotta-ink: #eb9279;       /* texto: sobre #181520 7.64:1 · sobre #221d2d 6.96:1 */
+  --terracotta-ink-fill: #b4533d;  /* relleno: blanco 4.95:1 */
+  --terracotta-ink-hover: #9c4632; /* blanco 6.30:1 */
+  --sage-ink: #89bca0;             /* texto: sobre #181520 8.37:1 · sobre #221d2d 7.62:1 */
+  --sage-ink-fill: #48705d;        /* relleno: blanco 5.60:1 */
+  --sage-ink-hover: #3d5f4f;       /* blanco 7.12:1 */
 }
 
 @theme inline {
@@ -44,6 +60,13 @@
   --color-terracotta-hover: var(--color-terracotta-hover);
   --color-sage: var(--color-sage);
   --color-sage-hover: var(--color-sage-hover);
+  /* text-/border-/outline-*-ink leen --color-*; bg-*-ink lee --background-color-* (relleno para texto blanco). */
+  --color-terracotta-ink: var(--terracotta-ink);
+  --background-color-terracotta-ink: var(--terracotta-ink-fill);
+  --color-terracotta-ink-hover: var(--terracotta-ink-hover);
+  --color-sage-ink: var(--sage-ink);
+  --background-color-sage-ink: var(--sage-ink-fill);
+  --color-sage-ink-hover: var(--sage-ink-hover);
   --font-sans: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
 }

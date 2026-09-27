@@ -1,20 +1,59 @@
 "use client";
 
-import { toPng } from 'html-to-image';
+import React, { useState, useEffect, useRef, useMemo, useCallback, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
+import { toPng } from "html-to-image";
 import { getWeekData } from "./weekData";
-﻿
-import React, { useState, useEffect, useRef } from "react";
 import { usePandaStore } from "@/store/usePandaStore";
-import { ensureAuth, createPregnancyForMom, joinPregnancyAsDad, listenToPregnancy, listenToMomStatus, updatePregnancyWeek, saveMomStatus, saveEvents, listenToEvents, saveKickSessions, listenToKickSessions, saveContractions, listenToContractions, saveBabyNames, listenToBabyNames, saveBirthPlan, listenToBirthPlan, saveChecklistProgress, listenToChecklistProgress, saveAppointmentPrep, listenToAppointmentPrep , saveBudget, listenToBudget } from "@/lib/firebase/pairing";
-import Image from "next/image";
-import { Camera, Wand2, Compass, Calendar, Bot, Send, CheckCircle2, Circle, Clock, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Play, Square, Plus, Users, ClipboardList, Trophy, BriefcaseMedical, ShoppingBag, Home, FileText, AlertTriangle, AlertCircle, Download, ArrowRight, ArrowLeft, History, CheckCircle, FileDown, Settings, Paperclip, MapPin, Briefcase, Package, Share2, Bell, RotateCcw, Trash2, PhoneCall, Check, Undo2, Printer, Copy, Edit3, Sun, Moon, BookOpen, ExternalLink , Wallet, Music , Tag} from "lucide-react";
+import {
+  listenToKickSessions,
+  mutateKickSessions,
+  listenToContractions,
+  mutateContractions,
+  listenToBudget,
+  mutateBudgetItems,
+  saveBudgetCap,
+  listenToBudgetCap,
+  listenToBirthPlan,
+  saveBirthPlan,
+  listenToBabyNamesV2,
+  addBabyName,
+  voteBabyName,
+  migrateLegacyBabyNames,
+  isMatch,
+  babyNameKey,
+  listenToJournal,
+  addJournalEntry,
+  importJournalEntries,
+  deleteJournalEntry,
+  listenToGoBag,
+  toggleGoBagItem,
+  type BabyName,
+  type Member,
+  type SharedDocMeta,
+} from "@/lib/firebase/pairing";
+import { formatDateShort, formatMoney, formatRelative, repairMojibake, toDateSafe } from "@/lib/format";
+import { LEGACY_SEED_NAMES, isLegacySeedKickSession, isLegacySeedNameItem, linkedFromLocalKey, localToSharedFlag } from "@/lib/seeds";
+import { AuthorChip } from "@/components/AuthorChip";
+import { SyncBadge, useOnline, usePartner } from "@/components/SyncBadge";
+import { CallActions, EmergencyCallLink } from "@/components/CallActions";
+import { useDetectedEmergency } from "@/lib/useCareTeam";
+import { URGENT_SIGNS, CALL_TODAY_SIGNS, clinicalWeek, isPreterm, telHref, type AlarmSign } from "@/lib/urgency";
+import {
+  Activity, AlertTriangle, ArrowLeft, ArrowRight, Baby, BookOpen, CalendarClock, Camera, Check, CheckCircle, CheckCircle2,
+  ChevronDown, ChevronRight, ChevronUp, Circle, CircleAlert, ClipboardList, Clock, CloudOff, Edit3, FileText, Flame, HeartHandshake,
+  Heart, HeartPulse, History, ImagePlus, Info, LoaderCircle, Minus, Moon, Music, Package, Pencil, Phone, PhoneCall, Play,
+  Plus, Printer, RefreshCw, RotateCcw, Send, Share2, Siren, Sparkles, Square, Tag, Trash2, Trophy, Undo2, Users, Utensils,
+  Wallet, Wand2, Waves, X,
+} from "lucide-react";
 
-type Tab = "planificacion" | "agenda" | "herramientas" | "pandaia";
 
 export interface UserProfile {
   role: "papa" | "mama";
   name: string;
   week: number;
+  /** Semana sin confirmar: las reglas clínicas la tratan como desconocida. */
+  weekUnknown?: boolean;
   location?: string;
   notes?: string;
   pregnancyId?: string;
@@ -23,289 +62,1265 @@ export interface UserProfile {
 }
 
 
-export function SOSSintomas() {
-  const [expanded, setExpanded] = React.useState<string | null>("alarma");
-  
-  const symptoms = [
-    {
-      id: "alarma",
-      title: "🚨 Señales de Alarma Médica (Ir a Urgencias)",
-      icon: <AlertTriangle className="text-terracotta dark:text-terracotta" size={20} />,
-      color: "bg-terracotta/10 border-terracotta/20 dark:bg-terracotta/10 dark:border-terracotta/30 border",
-      content: (
-        <ul className="text-sm text-stone-800 dark:text-stone-300 font-medium space-y-3 mt-2 list-disc pl-5 marker:text-terracotta">
-          <li><strong className="text-terracotta dark:text-terracotta/90">Sangrado vaginal:</strong> Especialmente si es abundante, rojo brillante o acompañado de coágulos/dolor.</li>
-          <li><strong className="text-terracotta dark:text-terracotta/90">Dolor abdominal intenso:</strong> Cólicos severos o dolor punzante en el abdomen o pelvis que no mejora con el reposo.</li>
-          <li><strong className="text-terracotta dark:text-terracotta/90">Señales de Preeclampsia:</strong> Dolor de cabeza severo que no cede, visión borrosa, moscas volantes, dolor debajo de las costillas derechas, o hinchazón repentina de cara/manos.</li>
-          <li><strong className="text-terracotta dark:text-terracotta/90">Fuga de líquido:</strong> Sospecha de rotura de bolsa (líquido claro, constante, que no huele a orina).</li>
-          <li><strong className="text-terracotta dark:text-terracotta/90">Disminución de movimientos:</strong> A partir de la semana 28, si el bebé se mueve mucho menos de lo normal (menos de 10 veces en 2 horas al estar recostada).</li>
-          <li><strong className="text-terracotta dark:text-terracotta/90">Fiebre alta:</strong> Temperatura mayor a 38°C (100.4°F) sostenida.</li>
-        </ul>
-      )
-    },
-    {
-      id: "mareos",
-      title: "Náuseas y Vómitos (Hiperémesis)",
-      icon: <Utensils className="text-amber-500" size={20} />,
-      color: "bg-stone-50 border-stone-100 dark:bg-[#221d2d] dark:border-white/5 border",
-      content: (
-        <ul className="text-sm text-stone-600 dark:text-[#a6a1b2] space-y-2 mt-2 list-disc pl-5">
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Estómago con colchón:</strong> Coman galletas saladas o tostadas antes de levantarse de la cama.</li>
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Hidratación táctica:</strong> Beber agua muy fría en pequeños tragos. Rodajas de limón o jengibre fresco son efectivos.</li>
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Consulta médica si:</strong> No tolera líquidos por más de 12 horas, hay pérdida de peso evidente o signos de deshidratación (orina muy oscura). Podrían recetarle Diclegis o vitamina B6.</li>
-        </ul>
-      )
-    },
-    {
-      id: "acidez",
-      title: "Acidez y Reflujo",
-      icon: <Heart className="text-amber-500" size={20} />,
-      color: "bg-stone-50 border-stone-100 dark:bg-[#221d2d] dark:border-white/5 border",
-      content: (
-        <ul className="text-sm text-stone-600 dark:text-[#a6a1b2] space-y-2 mt-2 list-disc pl-5">
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Poco pero seguido:</strong> 5 o 6 comidas pequeñas al día en lugar de 3 grandes para no sobrecargar el esfínter esofágico.</li>
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Física básica:</strong> Esperar al menos 2 horas después de cenar para ir a la cama (gravedad a su favor) y usar almohadas extra.</li>
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Consulta médica si:</strong> La acidez es intratable, interrumpe el sueño constantemente, o viene acompañada de dificultad para tragar.</li>
-        </ul>
-      )
-    },
-    {
-      id: "ciatica",
-      title: "Dolor Pélvico y Ciática",
-      icon: <Activity className="text-sage" size={20} />,
-      color: "bg-stone-50 border-stone-100 dark:bg-[#221d2d] dark:border-white/5 border",
-      content: (
-        <ul className="text-sm text-stone-600 dark:text-[#a6a1b2] space-y-2 mt-2 list-disc pl-5">
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Compresas tibias:</strong> Aplicar calor en la zona sacroilíaca por 15-20 minutos (tú puedes encargarte de prepararlas).</li>
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Postura y soporte:</strong> Usar faja o cinturón pélvico premamá si el médico lo avala. Dormir siempre del lado izquierdo, con almohada entre las rodillas.</li>
-          <li><strong className="text-stone-900 dark:text-[#eae6e1]">Estiramientos:</strong> Ayúdala con ejercicios de yoga prenatal y estiramientos suaves bajo guía profesional.</li>
-        </ul>
-      )
-    }
-  ];
+type SosLinkTool = "patadas" | "contracciones";
 
+/**
+ * Semana gestacional usable (entera y positiva) o undefined si no se conoce o no está
+ * confirmada (registro omitido): nunca se aplica una regla clínica a una semana de relleno.
+ */
+function knownWeek(profile?: UserProfile): number | undefined {
+  // Misma regla que el chat y el servidor: sin confirmar o menor de 4 → desconocida.
+  return clinicalWeek(profile);
+}
+
+/**
+ * Emergencias siempre a un toque; obstetra y hospital plegados debajo.
+ * Para los contadores, donde las llamadas deben estar a mano sin tapar el cronómetro.
+ */
+function QuickCallBlock({ context, children }: { context: "patadas" | "contracciones"; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const panelId = React.useId();
   return (
-    <div className="flex flex-col animate-in fade-in duration-300 h-full w-full pb-20">
-      <div className="bg-gradient-to-br from-terracotta/10 to-transparent p-5 shrink-0 border-b border-terracotta/20 dark:border-terracotta/10 relative overflow-hidden">
-        <h2 className="text-xl font-black text-stone-800 dark:text-[#eae6e1] relative z-10 flex items-center gap-2">
-          <AlertCircle className="text-terracotta" /> SOS Síntomas
-        </h2>
-        <p className="text-sm text-stone-600 dark:text-[#a6a1b2] mt-1 relative z-10">
-          Clasificación clínica de síntomas y acciones de mitigación. En caso de duda, <strong className="text-terracotta">siempre contacta a tu obstetra</strong>.
-        </p>
-      </div>
-      
-      <div className="p-4 space-y-3 w-full max-w-lg mx-auto">
-        {symptoms.map(s => (
-          <div key={s.id} className={`rounded-2xl overflow-hidden transition-all duration-300 shadow-sm ${s.color}`}>
-            <button 
-              onClick={() => setExpanded(expanded === s.id ? null : s.id)}
-              className="w-full p-4 flex items-center justify-between font-bold text-stone-800 dark:text-[#eae6e1]"
-            >
-              <span className="flex items-center gap-3">
-                {s.icon} 
-                {s.title}
-              </span>
-              <ChevronDown className={`transition-transform duration-300 ${expanded === s.id ? "rotate-180" : ""}`} size={20} />
-            </button>
-            <div className={`overflow-hidden transition-all duration-300 px-4 ${expanded === s.id ? "max-h-96 pb-4 opacity-100" : "max-h-0 opacity-0"}`}>
-              {s.content}
-            </div>
-          </div>
-        ))}
+    <div className="rounded-3xl border border-stone-200 dark:border-white/[0.08] bg-[#fdfbf7] dark:bg-[#221d2d] p-4">
+      {children}
+      <EmergencyCallLink className="mt-3" withNote />
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen((v) => !v)}
+        className={`mt-1 -ml-1 inline-flex min-h-[44px] items-center gap-1.5 rounded-lg px-1 text-sm font-bold text-terracotta-ink underline-offset-4 hover:underline ${sosFocusRing}`}
+      >
+        <Phone size={16} aria-hidden="true" />
+        {open ? "Ocultar obstetra y hospital" : "Obstetra y hospital"}
+        {open ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
+      </button>
+      <div id={panelId} hidden={!open}>
+        {open && <CallActions context={context} showEmergency={false} className="mt-2" />}
       </div>
     </div>
   );
 }
 
+/** Lee JSON de localStorage sin romper en modo privado o SSR. */
+function readStored<T>(key: string): T | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch {
+    return null;
+  }
+}
+function writeStored(key: string, value: unknown) {
+  try {
+    if (value === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Sin almacenamiento local: el estado en memoria sigue.
+  }
+}
 
-export function DiarioView({ profile, onClose }: { profile: UserProfile, onClose: () => void }) {
-  const [entries, setEntries] = React.useState<any[]>([]);
-  const [newEntry, setNewEntry] = React.useState("");
-  const [selectedTag, setSelectedTag] = React.useState<string | null>(null);
-  const [selectedMood, setSelectedMood] = React.useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+// ---------------------------------------------------------------------------
+// Utilidades compartidas: sincronización honesta con la pareja (fase 2)
+// ---------------------------------------------------------------------------
 
-  const tags = ["Mensaje al bebé", "Hito médico", "Antojo", "Pensamiento", "Recuerdo"];
-  const moods = ["🥰", "😊", "😭", "😴", "🤢", "🤔"];
+/** Contrato del toast de page.tsx: solo pinta "Deshacer" si llega onUndo (nunca pases () => {}). */
+export type ShowToast = (message: string, onUndo?: () => void) => void;
+type Role = "mama" | "papa";
+
+const noopSubscribe = () => () => {};
+/** true en el cliente y false en el servidor (para portales sin setState en efectos). */
+function useIsClient(): boolean {
+  return useSyncExternalStore(noopSubscribe, () => true, () => false);
+}
+
+/** Reloj que se refresca cada `intervalMs` mientras `active` (para "hace 5 minutos" y cronómetros). */
+function useNow(intervalMs: number, active = true): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!active) return;
+    const tick = () => setNow(Date.now());
+    const first = setTimeout(tick, 0);
+    const id = setInterval(tick, intervalMs);
+    return () => {
+      clearTimeout(first);
+      clearInterval(id);
+    };
+  }, [intervalMs, active]);
+  return now;
+}
+
+/**
+ * Marca de tiempo para manejadores de evento. (El linter del compilador de React no distingue
+ * algunos manejadores que escriben refs de código de render; aquí nunca se llama al renderizar.)
+ */
+function nowMs(): number {
+  return Date.now();
+}
+
+/** Id para ítems nuevos. */
+function newId(): string {
+  try {
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") return crypto.randomUUID();
+  } catch {
+    // contexto no seguro: seguimos con el respaldo
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function asArray(v: unknown): unknown[] {
+  return Array.isArray(v) ? v : [];
+}
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null && !Array.isArray(v);
+}
+/** Texto limpio (repara mojibake antiguo) o "" si no es texto. */
+function cleanStr(v: unknown, max = 200): string {
+  return typeof v === "string" ? repairMojibake(v).trim().slice(0, max) : "";
+}
+function finiteNum(v: unknown): number | null {
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+function omitKey<V>(o: Record<string, V>, key: string): Record<string, V> {
+  if (!(key in o)) return o;
+  const next = { ...o };
+  delete next[key];
+  return next;
+}
+
+/** Quién marcó algo en una lista compartida. */
+type Authored = { byUid?: string; byName?: string; byRole?: Role };
+
+function authoredFrom(r: Record<string, unknown>): Authored {
+  const byRole = r.byRole === "mama" || r.byRole === "papa" ? r.byRole : undefined;
+  return {
+    byUid: typeof r.byUid === "string" ? r.byUid : undefined,
+    byName: cleanStr(r.byName, 60) || undefined,
+    byRole,
+  };
+}
+
+/** Identidad de este teléfono en el embarazo compartido (sin vínculo: solo nombre y rol). */
+function useMe() {
+  const pid = usePandaStore((s) => s.profile.pregnancyId);
+  const name = usePandaStore((s) => s.profile.name);
+  const role = usePandaStore((s) => s.profile.role);
+  const partner = usePartner(!!pid);
+  return { pid, name, role, partner, myUid: partner.myUid, members: partner.members };
+}
+
+type Me = ReturnType<typeof useMe>;
+
+/** Firma para lo que registra este teléfono (solo con vínculo: sin pareja no hay a quién mostrarlo). */
+function authorStamp(me: Me): Authored {
+  if (!me.pid) return {};
+  return { byUid: me.myUid ?? undefined, byName: me.name?.trim() || undefined, byRole: me.role };
+}
+
+/** Inicial de quien marcó el ítem. Usa el nombre actual del miembro si sigue en el embarazo. */
+function ItemAuthor({ item, members, size = "xs" }: { item: Authored; members: Member[]; size?: "xs" | "sm" }) {
+  if (!item.byRole && !item.byName && !item.byUid) return null;
+  const member = item.byUid ? members.find((m) => m.uid === item.byUid) : undefined;
+  return <AuthorChip name={member?.name ?? item.byName} role={member?.role ?? item.byRole} size={size} />;
+}
+
+// --- Aviso de error con "Reintentar" (el toast de page.tsx solo sabe "Deshacer") ---
+
+type RetryState = { message: string; retry: () => void } | null;
+
+function useRetry() {
+  const [retryState, setRetryState] = useState<RetryState>(null);
+  const fail = useCallback((message: string, retry: () => void) => setRetryState({ message, retry }), []);
+  const clearRetry = useCallback(() => setRetryState(null), []);
+  return { retryState, fail, clearRetry };
+}
+
+function RetryNotice({ state, onDismiss, className = "" }: { state: RetryState; onDismiss?: () => void; className?: string }) {
+  if (!state) return null;
+  return (
+    <div
+      role="alert"
+      className={`flex items-center gap-2 rounded-2xl border border-terracotta-ink/30 bg-terracotta/10 py-1 pl-4 pr-1 dark:bg-terracotta/[0.12] ${className}`}
+    >
+      <CircleAlert size={18} className="shrink-0 text-terracotta-ink" aria-hidden="true" />
+      <p className="min-w-0 flex-1 py-2 text-sm leading-snug text-stone-800 dark:text-[#eae6e1]">{state.message}</p>
+      <button
+        type="button"
+        onClick={() => {
+          onDismiss?.();
+          state.retry();
+        }}
+        className={`inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-xl px-3 text-sm font-bold text-terracotta-ink hover:bg-terracotta/15 ${sosFocusRing}`}
+      >
+        <RefreshCw size={15} aria-hidden="true" />
+        Reintentar
+      </button>
+      {onDismiss && (
+        <button
+          type="button"
+          onClick={onDismiss}
+          aria-label="Cerrar aviso"
+          className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-stone-600 hover:bg-terracotta/15 dark:text-[#a6a1b2] ${sosFocusRing}`}
+        >
+          <X size={16} aria-hidden="true" />
+        </button>
+      )}
+    </div>
+  );
+}
+
+/** Aviso cuando no se pudo leer lo compartido (sin permisos o sin red). */
+function LoadErrorNotice({ what, onRetry }: { what: string; onRetry: () => void }) {
+  return (
+    <RetryNotice state={{ message: `No pudimos cargar ${what}. Revisa tu conexión.`, retry: onRetry }} />
+  );
+}
+
+// --- Listas compartidas (patadas, contracciones, presupuesto) ---
+
+type SharedListSpec<T extends { id: string | number }> = {
+  /** Clave de localStorage para el modo sin vínculo. */
+  localKey: string;
+  listen: (pid: string, cb: (items: unknown[], meta: SharedDocMeta) => void, onError?: (e: Error) => void) => () => void;
+  mutate: (pid: string, fn: (items: T[]) => T[]) => Promise<T[]>;
+  /** Valida, limpia y ordena lo que llega (sin semillas). Debe ser una función estable (de módulo). */
+  sanitize: (raw: unknown[]) => T[];
+  /** Semillas antiguas que se purgan UNA vez por embarazo, tras el primer snapshot del servidor. */
+  seed?: { name: string; is: (item: unknown) => boolean };
+  /**
+   * Traspaso único de lo guardado en este teléfono (localKey) al embarazo compartido:
+   * - siempre que el teléfono se vincula después de registrar sin vínculo (marca linkedFromLocalKey);
+   * - con `upgrade: true`, también para parejas ya vinculadas cuya versión anterior guardaba esta
+   *   lista SOLO en el teléfono (patadas y contracciones).
+   */
+  localMerge: { tool: string; upgrade: boolean };
+};
+
+type PendingOp<T> = { key: number; pid: string; fn: (items: T[]) => T[]; committed: boolean };
+
+/** Purga única e idempotente de semillas (marca en localStorage por embarazo). */
+function purgeSeedsOnce<T extends { id: string | number }>(pid: string, spec: SharedListSpec<T>, raw: unknown[]) {
+  const seed = spec.seed;
+  if (!seed) return;
+  const flag = `pandajr_mig_${seed.name}_${pid}`;
+  if (readStored(flag)) return;
+  if (!raw.some(seed.is)) {
+    writeStored(flag, true);
+    return;
+  }
+  spec.mutate(pid, (items) => items.filter((item) => !seed.is(item))).then(
+    () => writeStored(flag, true),
+    () => {
+      // Se intentará la próxima vez que se abra la herramienta; mientras, la UI ya las oculta.
+    }
+  );
+}
+
+/**
+ * Traspaso único (por herramienta, embarazo y teléfono) de lo que había "Solo en este teléfono"
+ * al embarazo compartido. Solo agrega por id lo que falte: nunca pisa ni borra lo remoto.
+ */
+function mergeLocalOnce<T extends { id: string | number }>(
+  pid: string,
+  spec: SharedListSpec<T>,
+  raw: unknown[],
+  stamp: Authored
+) {
+  const flag = localToSharedFlag(spec.localMerge.tool, pid);
+  if (readStored(flag)) return;
+  if (!spec.localMerge.upgrade && !readStored(linkedFromLocalKey(pid))) {
+    writeStored(flag, true);
+    return;
+  }
+  const remoteIds = new Set(spec.sanitize(raw).map((i) => String(i.id)));
+  const missing = spec
+    .sanitize(asArray(readStored(spec.localKey)))
+    .filter((i) => !remoteIds.has(String(i.id)))
+    // Lo registrado sin vínculo no tenía firma: se firma con quien lo sube (sin pisar una firma existente).
+    .map((i) => {
+      const item = i as T & Authored;
+      return {
+        ...item,
+        byUid: item.byUid ?? stamp.byUid,
+        byName: item.byName ?? stamp.byName,
+        byRole: item.byRole ?? stamp.byRole,
+      } as T;
+    });
+  if (!missing.length) {
+    writeStored(flag, true);
+    return;
+  }
+  spec.mutate(pid, restoreItems(missing)).then(
+    () => writeStored(flag, true),
+    () => {
+      // Se intentará la próxima vez que se abra la herramienta.
+    }
+  );
+}
+
+const outboxKey = (localKey: string, pid: string) => `pandajr_outbox_${localKey}_${pid}`;
+
+// Bandeja de salida en localStorage como "store externo" (texto crudo: estable entre renders).
+const outboxListeners = new Set<() => void>();
+function subscribeOutbox(cb: () => void) {
+  outboxListeners.add(cb);
+  return () => {
+    outboxListeners.delete(cb);
+  };
+}
+function notifyOutbox() {
+  outboxListeners.forEach((l) => l());
+}
+function readRawStored(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Lista compartida con UI optimista y sin bucles (PRODUCT.md §2):
+ * - Con vínculo: el listener solo actualiza estado; `apply(fn)` escribe con una transacción
+ *   (mutate*) desde el manejador y muestra el cambio al instante como operación pendiente.
+ *   `fn` debe ser pura e idempotente (agregar/quitar/editar por id), porque se aplica sobre
+ *   la versión del servidor y puede volver a aplicarse sobre el siguiente snapshot.
+ * - `add(item)`: los registros NUEVOS van además a una bandeja de salida en localStorage
+ *   (por embarazo). Si la transacción falla o la app se cierra sin señal, el registro no se
+ *   pierde: se sigue viendo ("Sin enviar"), cuenta para las alertas y se reenvía al volver la
+ *   conexión o al abrir la herramienta.
+ * - "Cargado" = llegó un dato del servidor (un snapshot vacío que viene solo de la caché no
+ *   cuenta: sería un estado vacío falso).
+ * - Sin vínculo: localStorage (se lee al abrir y se escribe en cada cambio).
+ */
+function useSharedList<T extends { id: string | number }>(pid: string | undefined, spec: SharedListSpec<T>, stamp?: Authored) {
+  const { localKey, listen, mutate, sanitize } = spec;
+  const [local, setLocal] = useState<T[]>(() => sanitize(asArray(readStored(localKey))));
+  const localRef = useRef(local);
+  const [remote, setRemote] = useState<{ pid: string; items: T[]; meta: SharedDocMeta } | null>(null);
+  const [errorPid, setErrorPid] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const [ops, setOps] = useState<PendingOp<T>[]>([]);
+  const opKey = useRef(0);
+  const flushingRef = useRef(false);
+  // Registros nuevos cuya transacción sigue en curso: con señal no se marcan "Sin enviar" todavía.
+  const [inflight, setInflight] = useState<ReadonlySet<string>>(() => new Set());
+  const online = useOnline();
+  const stampRef = useRef(stamp);
+  useEffect(() => {
+    stampRef.current = stamp;
+  });
+
+  const editOutbox = useCallback(
+    (p: string, fn: (items: T[]) => T[]) => {
+      const key = outboxKey(localKey, p);
+      const next = fn(sanitize(asArray(readStored(key))));
+      writeStored(key, next.length ? next : null);
+      notifyOutbox();
+    },
+    [localKey, sanitize]
+  );
+
+  /** Reenvía la bandeja de salida (agregar por id: idempotente). */
+  const flushOutbox = useCallback(
+    (p: string) => {
+      const pending = sanitize(asArray(readStored(outboxKey(localKey, p))));
+      if (!pending.length || flushingRef.current) return;
+      flushingRef.current = true;
+      const sent = new Set(pending.map((i) => String(i.id)));
+      mutate(p, restoreItems(pending))
+        .then(
+          () => editOutbox(p, (items) => items.filter((i) => !sent.has(String(i.id)))),
+          () => {
+            // Sigue en la bandeja: se reintenta con la próxima conexión o al volver a abrir.
+          }
+        )
+        .finally(() => {
+          flushingRef.current = false;
+        });
+    },
+    [localKey, mutate, sanitize, editOutbox]
+  );
 
   useEffect(() => {
-    let unsub: (() => void) | null = null;
-    if (profile.pregnancyId) {
-      import('@/lib/firebase/pairing').then(({ listenToJournal }) => {
-        unsub = listenToJournal(profile.pregnancyId!, (data) => setEntries(data));
-      });
-    }
-    return () => { if (unsub) unsub(); };
-  }, [profile.pregnancyId]);
+    if (!pid) return;
+    let firstServerSnapshot = true;
+    return listen(
+      pid,
+      (raw, meta) => {
+        setRemote({ pid, items: sanitize(raw), meta });
+        setErrorPid(null);
+        // Las operaciones ya confirmadas vienen incluidas en este snapshot.
+        setOps((prev) => (prev.some((o) => o.committed) ? prev.filter((o) => !o.committed) : prev));
+        // Migraciones y reenvíos de una vez por apertura, solo con datos del servidor.
+        if (firstServerSnapshot && !meta.fromCache) {
+          firstServerSnapshot = false;
+          purgeSeedsOnce(pid, spec, raw);
+          mergeLocalOnce(pid, spec, raw, stampRef.current ?? {});
+          flushOutbox(pid);
+        }
+      },
+      () => setErrorPid(pid)
+    );
+    // `spec` es una constante de módulo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pid, attempt]);
 
-  const handlePost = async () => {
-    if (newEntry.trim() && profile.pregnancyId) {
-      setIsSubmitting(true);
-      try {
-        const { addJournalEntry } = await import('@/lib/firebase/pairing');
-        await addJournalEntry(profile.pregnancyId, profile.role, profile.name, newEntry.trim(), selectedTag || undefined, selectedMood || undefined);
-        setNewEntry("");
-        setSelectedTag(null);
-        setSelectedMood(null);
-      } catch(e) {
-        console.error(e);
-      } finally {
-        setIsSubmitting(false);
-      }
+  // Al volver la señal se reenvía lo que quedó sin enviar (manejador de evento, no de snapshot).
+  useEffect(() => {
+    if (!pid) return;
+    const onOnline = () => flushOutbox(pid);
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
+  }, [pid, flushOutbox]);
+
+  const current = pid && remote?.pid === pid ? remote : null;
+  // Snapshot vacío que viene solo de la caché (sin señal o el servidor aún no responde): no es "vacío".
+  const serverLoaded = !!current && !(current.meta.fromCache && !current.meta.exists);
+
+  const outboxStorageKey = pid ? outboxKey(localKey, pid) : "";
+  const outboxRaw = useSyncExternalStore(
+    subscribeOutbox,
+    () => (outboxStorageKey ? readRawStored(outboxStorageKey) : null),
+    () => null
+  );
+  const outbox = useMemo(() => {
+    if (!outboxRaw) return [];
+    try {
+      return sanitize(asArray(JSON.parse(outboxRaw)));
+    } catch {
+      return [];
     }
+  }, [outboxRaw, sanitize]);
+
+  // Sin useMemo: con la bandeja de salida el compilador de React no puede conservarlo, y la lista
+  // es corta (sin operaciones pendientes devuelve el mismo array del snapshot).
+  const items = (() => {
+    if (!pid) return local;
+    const base = current?.items ?? [];
+    const mine = ops.filter((o) => o.pid === pid);
+    if (!mine.length && !outbox.length) return base;
+    const withOps = mine.reduce((list, op) => op.fn(list), base);
+    // Lo que sigue en la bandeja de salida y aún no está en la lista (agregar por id).
+    const present = new Set(withOps.map((i) => String(i.id)));
+    const unsent = outbox.filter((o) => !present.has(String(o.id)));
+    return sanitize([...unsent, ...withOps]);
+  })();
+
+  /** Ids de registros propios que aún no llegan al servidor (sin contar los que se están enviando con señal). */
+  const unsentIds = useMemo(() => {
+    if (!pid || !outbox.length) return new Set<string>();
+    const onServer = new Set((current?.items ?? []).map((i) => String(i.id)));
+    return new Set(
+      outbox.map((i) => String(i.id)).filter((id) => !onServer.has(id) && (!online || !inflight.has(id)))
+    );
+  }, [pid, outbox, current, online, inflight]);
+
+  const apply = useCallback(
+    (fn: (items: T[]) => T[]): Promise<boolean> => {
+      if (!pid) {
+        const next = sanitize(fn(localRef.current.slice()));
+        localRef.current = next;
+        setLocal(next);
+        writeStored(localKey, next);
+        return Promise.resolve(true);
+      }
+      const key = ++opKey.current;
+      const opPid = pid;
+      // Borrar o editar un registro que sigue en la bandeja también lo cambia ahí (sin agregar otros).
+      const inOutbox = new Set(sanitize(asArray(readStored(outboxKey(localKey, opPid)))).map((i) => String(i.id)));
+      if (inOutbox.size) editOutbox(opPid, (list) => fn(list).filter((i) => inOutbox.has(String(i.id))));
+      setOps((prev) => [...prev, { key, pid: opPid, fn, committed: false }]);
+      return mutate(opPid, fn).then(
+        () => {
+          setOps((prev) => prev.map((o) => (o.key === key ? { ...o, committed: true } : o)));
+          return true;
+        },
+        () => {
+          setOps((prev) => prev.filter((o) => o.key !== key));
+          return false;
+        }
+      );
+    },
+    [pid, localKey, mutate, sanitize, editOutbox]
+  );
+
+  /**
+   * Registro nuevo. Con vínculo queda en la bandeja de salida hasta que el servidor lo confirma:
+   * nunca desaparece por un fallo de red (no hace falta "Reintentar", se reenvía solo).
+   */
+  const add = useCallback(
+    (item: T): Promise<boolean> => {
+      if (!pid) return apply(upsertFirst(item));
+      const p = pid;
+      const id = String(item.id);
+      editOutbox(p, (list) => [item, ...list.filter((i) => String(i.id) !== id)]);
+      setInflight((prev) => new Set(prev).add(id));
+      return apply(upsertFirst(item)).then((ok) => {
+        if (ok) editOutbox(p, (list) => list.filter((i) => String(i.id) !== id));
+        setInflight((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+        return ok;
+      });
+    },
+    [pid, apply, editOutbox]
+  );
+
+  return {
+    items,
+    linked: !!pid,
+    loaded: !pid || serverLoaded,
+    meta: current?.meta ?? null,
+    loadError: !!pid && errorPid === pid && !serverLoaded,
+    retryLoad: () => setAttempt((a) => a + 1),
+    apply,
+    add,
+    unsentIds,
+    retryUnsent: () => {
+      if (pid) flushOutbox(pid);
+    },
+  };
+}
+
+/** Aviso de registros propios que aún no llegan a la pareja (se reenvían solos). */
+function UnsentNotice({ count, onRetry, one, many }: { count: number; onRetry: () => void; one: string; many: string }) {
+  const online = useOnline();
+  if (count === 0) return null;
+  return (
+    <div role="status" className="flex items-center gap-2 rounded-2xl border border-amber-700/30 bg-amber-50 py-1 pl-4 pr-1 dark:border-amber-300/25 dark:bg-amber-300/[0.08]">
+      <CloudOff size={18} className="shrink-0 text-amber-800 dark:text-amber-300" aria-hidden="true" />
+      <p className="min-w-0 flex-1 py-2 text-sm leading-snug text-stone-800 dark:text-[#eae6e1]">
+        {count === 1 ? `1 ${one} aún sin enviar a tu pareja.` : `${count} ${many} aún sin enviar a tu pareja.`}{" "}
+        {online ? "No se pierde: queda en este teléfono y se reenvía." : "No se pierde: queda en este teléfono y se enviará al volver la señal."}
+      </p>
+      {online && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className={`inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-xl px-3 text-sm font-bold text-amber-900 hover:bg-amber-100 dark:text-amber-200 dark:hover:bg-amber-300/10 ${sosFocusRing}`}
+        >
+          <RefreshCw size={15} aria-hidden="true" />
+          Reintentar
+        </button>
+      )}
+    </div>
+  );
+}
+
+/** Carga de lo compartido: distingue "conectando" de "sin señal" (nunca un vacío falso). */
+function SharedLoading({ what }: { what: string }) {
+  const online = useOnline();
+  return (
+    <p role="status" className="py-6 text-center text-sm text-stone-600 dark:text-[#a6a1b2]">
+      {online
+        ? `Cargando ${what}…`
+        : `Sin conexión: no podemos mostrar ${what}. Lo que registres aquí se guarda en este teléfono.`}
+    </p>
+  );
+}
+
+/** Agrega (o reemplaza) por id al principio: idempotente. */
+function upsertFirst<T extends { id: string | number }>(item: T) {
+  return (items: T[]) => [item, ...items.filter((i) => String(i.id) !== String(item.id))];
+}
+function removeById<T extends { id: string | number }>(id: string | number) {
+  return (items: T[]) => items.filter((i) => String(i.id) !== String(id));
+}
+function patchById<T extends { id: string | number }>(id: string | number, patch: Partial<T>) {
+  return (items: T[]) => items.map((i) => (String(i.id) === String(id) ? { ...i, ...patch } : i));
+}
+/** Vuelve a poner ítems borrados (deshacer) sin duplicar los que ya estén. */
+function restoreItems<T extends { id: string | number }>(restored: T[]) {
+  return (items: T[]) => {
+    const present = new Set(items.map((i) => String(i.id)));
+    return [...restored.filter((r) => !present.has(String(r.id))), ...items];
+  };
+}
+
+/** "Hoy, 10:30" / "Ayer, 10:30" / "12 oct, 10:30" a partir de un timestamp. */
+function formatDayTime(ts: number, now: number): string {
+  const d = new Date(ts);
+  if (Number.isNaN(d.getTime())) return "";
+  const time = d.toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" });
+  const today = new Date(now);
+  const startOf = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const days = Math.round((startOf(today) - startOf(d)) / 86_400_000);
+  if (days === 0) return `Hoy, ${time}`;
+  if (days === 1) return `Ayer, ${time}`;
+  return `${formatDateShort(d)}, ${time}`;
+}
+
+/**
+ * Atajos de teclado de los contadores: no deben disparar cuando el foco está en un
+ * control (botón, enlace, campo) ni dentro de un diálogo como la hoja del equipo de salud.
+ */
+function isControlTarget(target: EventTarget | null): boolean {
+  if (typeof Element === "undefined" || !(target instanceof Element)) return false;
+  return !!target.closest('input, textarea, select, button, a, [contenteditable="true"], [role="dialog"]');
+}
+
+const sosFocusRing =
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink";
+
+/** Herramientas que HerramientasView puede abrir por `openRequest`. */
+const OPENABLE_TOOLS = [
+  "sos", "contracciones", "patadas", "diario", "maleta", "nombres", "parto", "lecturas", "presupuesto", "story", "reproductor",
+];
+
+const COMMON_DISCOMFORTS: {
+  id: string;
+  title: string;
+  icon: React.ReactNode;
+  tips: { lead: string; text: string }[];
+  alarm: string;
+}[] = [
+  {
+    id: "nauseas",
+    title: "Náuseas y vómitos",
+    icon: <Utensils size={20} aria-hidden="true" />,
+    tips: [
+      { lead: "Antes de levantarte:", text: "come unas galletas saladas o pan tostado." },
+      { lead: "Líquidos en sorbos:", text: "agua fría en tragos pequeños y frecuentes. A algunas personas les ayuda el jengibre o el limón." },
+      { lead: "Consulta a tu obstetra si:", text: "bajas de peso, la orina se ve muy oscura o las náuseas no te dejan comer. Puede indicarte un tratamiento (por ejemplo, vitamina B6 con doxilamina)." },
+    ],
+    alarm: "Si vomitas todo y no retienes ni el agua, es una señal de alarma: ve a urgencias.",
+  },
+  {
+    id: "acidez",
+    title: "Acidez y reflujo",
+    icon: <Flame size={20} aria-hidden="true" />,
+    tips: [
+      { lead: "Poco y seguido:", text: "5 o 6 comidas pequeñas al día en lugar de 3 grandes." },
+      { lead: "Dale tiempo a la digestión:", text: "espera al menos 2 horas después de cenar para acostarte y eleva la cabecera con una almohada extra." },
+      { lead: "Consulta a tu obstetra si:", text: "la acidez no cede, te despierta seguido o te cuesta tragar." },
+    ],
+    alarm: "Si el dolor es fuerte o está bajo las costillas del lado derecho, sobre todo con dolor de cabeza o visión borrosa, es una señal de alarma: ve a urgencias.",
+  },
+  {
+    id: "ciatica",
+    title: "Dolor pélvico y ciática",
+    icon: <Activity size={20} aria-hidden="true" />,
+    tips: [
+      { lead: "Calor local:", text: "compresas tibias en la espalda baja durante 15 a 20 minutos. Si eres la pareja, puedes prepararlas tú." },
+      { lead: "Postura y soporte:", text: "una faja o cinturón pélvico para embarazo puede ayudar si tu obstetra lo aprueba. Para dormir, acuéstate de lado, de preferencia el izquierdo, con una almohada entre las rodillas." },
+      { lead: "Estiramientos suaves:", text: "yoga prenatal o ejercicios guiados por una persona profesional." },
+    ],
+    alarm: "Si el dolor lumbar va y viene a ritmo o sientes presión en la pelvis antes de la semana 37, puede ser parto pretérmino: llama ya.",
+  },
+];
+
+/**
+ * SOS Síntomas: ruta de urgencia. Las señales urgentes son una lista estática siempre
+ * visible (fuente única: URGENT_SIGNS en src/lib/urgency.ts) con las llamadas justo
+ * debajo del título; después "llama hoy", salud emocional y, al final, molestias comunes.
+ * La cabecera de la herramienta ya muestra "SOS Síntomas": aquí no se repite.
+ */
+export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; onOpenTool?: (tool: SosLinkTool) => void }) {
+  const [openDiscomfort, setOpenDiscomfort] = React.useState<string | null>(null);
+  const baseId = React.useId();
+  const obPhone = usePandaStore((s) => s.careTeam?.obPhone?.trim() || "");
+  const obName = usePandaStore((s) => s.careTeam?.obName?.trim() || "");
+  const customEmergency = usePandaStore((s) => s.careTeam?.emergencyNumber?.trim() || "");
+  const detectedEmergency = useDetectedEmergency();
+  const emergencyNumber = customEmergency || detectedEmergency.number;
+
+  const week = knownWeek(profile);
+  const preterm = isPreterm(week);
+  const highlightMovement = typeof week === "number" && week >= 28;
+
+  const callTodaySigns = CALL_TODAY_SIGNS.filter((s) => s.id !== "animo");
+  const moodSign = CALL_TODAY_SIGNS.find((s) => s.id === "animo");
+  const harmSign = URGENT_SIGNS.find((s) => s.id === "salud-mental");
+
+  const signNote = (sign: AlarmSign): { text: string; tool?: SosLinkTool; toolLabel?: string } | null => {
+    if (typeof week !== "number") {
+      if (sign.id === "movimientos") {
+        return { text: "Desde la semana 28, cuenta sus movimientos cada día.", tool: "patadas", toolLabel: "Abrir el contador de patadas" };
+      }
+      if (sign.id === "pretermino") {
+        return { text: "Si tienes contracciones, el contador te dice cuándo llamar.", tool: "contracciones", toolLabel: "Abrir el contador de contracciones" };
+      }
+      return null;
+    }
+    if (sign.id === "movimientos") {
+      if (week >= 28) {
+        return {
+          text: `Estás en la semana ${week}: cuenta sus movimientos cada día, en un momento tranquilo.`,
+          tool: "patadas",
+          toolLabel: "Abrir el contador de patadas",
+        };
+      }
+      if (week < 20) return { text: `En la semana ${week} es normal que todavía no sientas sus movimientos.` };
+    }
+    if (sign.id === "pretermino") {
+      return preterm
+        ? {
+            text: `Estás en la semana ${week}: si cuentas 4 o más contracciones en 1 hora, llama ya.`,
+            tool: "contracciones",
+            toolLabel: "Abrir el contador de contracciones",
+          }
+        : {
+            text: `Ya estás en la semana ${week}: las contracciones regulares pueden ser trabajo de parto. El contador te indica cuándo llamar.`,
+            tool: "contracciones",
+            toolLabel: "Abrir el contador de contracciones",
+          };
+    }
+    return null;
   };
 
-  const handleDelete = async (entryId: string) => {
-    if (profile.pregnancyId && confirm("¿Eliminar esta memoria?")) {
-      const { deleteJournalEntry } = await import('@/lib/firebase/pairing');
-      await deleteJournalEntry(profile.pregnancyId, entryId);
+  const listSurface =
+    "rounded-3xl border bg-[#fdfbf7] dark:bg-[#1c1826] divide-y divide-stone-200/80 dark:divide-white/[0.07]";
+
+  return (
+    <div className="mx-auto flex w-full max-w-lg flex-col gap-10 pb-8 animate-in fade-in duration-300">
+      {/* Señales urgentes + llamadas */}
+      <section aria-labelledby={`${baseId}-urgente`}>
+        <h3 id={`${baseId}-urgente`} className="flex items-center gap-2 text-2xl font-black leading-tight text-terracotta-ink">
+          <Siren size={24} className="shrink-0" aria-hidden="true" />
+          Ve a urgencias ya
+        </h3>
+        <p className="mt-1.5 text-base leading-relaxed text-stone-700 dark:text-[#eae6e1]">
+          Si tienes cualquiera de estas señales, llama a emergencias o ve al hospital ahora. No esperes a ver si se pasa.
+        </p>
+
+        <CallActions context="sos" className="mt-4" />
+
+        <ul className={`mt-5 ${listSurface} border-terracotta-ink/25`}>
+          {URGENT_SIGNS.map((sign) => {
+            const note = signNote(sign);
+            const emphasized = sign.id === "movimientos" && highlightMovement;
+            return (
+              <li
+                key={sign.id}
+                className={`px-4 py-3.5 first:rounded-t-3xl last:rounded-b-3xl ${emphasized ? "bg-terracotta/10 dark:bg-terracotta/[0.12]" : ""}`}
+              >
+                <p className={`text-base font-bold leading-snug ${emphasized ? "text-terracotta-ink" : "text-stone-900 dark:text-[#eae6e1]"}`}>
+                  {sign.title}
+                </p>
+                <p className="mt-0.5 text-sm leading-relaxed text-stone-700 dark:text-[#a6a1b2]">{sign.detail}</p>
+                {note && (
+                  <div className="mt-2">
+                    <p className="text-sm font-semibold leading-snug text-stone-900 dark:text-[#eae6e1]">{note.text}</p>
+                    {note.tool && onOpenTool && (
+                      <button
+                        type="button"
+                        onClick={() => onOpenTool(note.tool as SosLinkTool)}
+                        className={`mt-0.5 -ml-1 inline-flex min-h-[44px] items-center gap-1 rounded-lg px-1 text-sm font-bold text-terracotta-ink underline-offset-4 hover:underline ${sosFocusRing}`}
+                      >
+                        {note.toolLabel}
+                        <ChevronRight size={16} aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      {/* Llama hoy */}
+      <section aria-labelledby={`${baseId}-hoy`}>
+        <h3 id={`${baseId}-hoy`} className="flex items-center gap-2 text-xl font-black leading-tight text-stone-900 dark:text-[#eae6e1]">
+          <CalendarClock size={22} className="shrink-0 text-terracotta-ink" aria-hidden="true" />
+          Llama hoy a tu obstetra
+        </h3>
+        <p className="mt-1.5 text-base leading-relaxed text-stone-700 dark:text-[#a6a1b2]">
+          No es una emergencia, pero conviene que te revisen pronto.
+        </p>
+        <ul className={`mt-4 ${listSurface} border-stone-200 dark:border-white/[0.08]`}>
+          {callTodaySigns.map((sign) => (
+            <li key={sign.id} className="px-4 py-3.5">
+              <p className="text-base font-bold leading-snug text-stone-900 dark:text-[#eae6e1]">{sign.title}</p>
+              <p className="mt-0.5 text-sm leading-relaxed text-stone-700 dark:text-[#a6a1b2]">{sign.detail}</p>
+            </li>
+          ))}
+        </ul>
+        {obPhone && (
+          <a
+            href={telHref(obPhone)}
+            className={`mt-3 flex min-h-[56px] w-full items-center gap-3 rounded-2xl border border-stone-200 bg-white px-3.5 py-2.5 text-stone-900 transition-colors hover:bg-stone-50 active:scale-[0.98] motion-reduce:active:scale-100 dark:border-white/10 dark:bg-[#2d273a] dark:text-[#eae6e1] dark:hover:bg-[#352e44] ${sosFocusRing}`}
+          >
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-sage/15 text-sage-ink">
+              <Phone size={20} aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-base font-bold leading-tight">{obName ? `Llamar a ${obName}` : "Llamar a tu obstetra"}</span>
+              <span className="block truncate text-sm leading-snug tabular-nums text-stone-600 dark:text-[#a6a1b2]">{obPhone}</span>
+            </span>
+          </a>
+        )}
+      </section>
+
+      {/* Salud emocional */}
+      <section aria-labelledby={`${baseId}-emocional`}>
+        <h3 id={`${baseId}-emocional`} className="flex items-center gap-2 text-xl font-black leading-tight text-stone-900 dark:text-[#eae6e1]">
+          <HeartHandshake size={22} className="shrink-0 text-sage-ink" aria-hidden="true" />
+          Tu salud emocional
+        </h3>
+        <p className="mt-1.5 text-base leading-relaxed text-stone-700 dark:text-[#a6a1b2]">
+          Lo que sientes también cuenta. Hablarlo es parte de cuidarte.
+        </p>
+        <div className={`mt-4 ${listSurface} border-stone-200 dark:border-white/[0.08]`}>
+          {moodSign && (
+            <div className="px-4 py-3.5">
+              <p className="text-base font-bold leading-snug text-stone-900 dark:text-[#eae6e1]">{moodSign.title}</p>
+              <p className="mt-0.5 text-sm leading-relaxed text-stone-700 dark:text-[#a6a1b2]">{moodSign.detail}</p>
+            </div>
+          )}
+          {harmSign && (
+            <div className="rounded-b-3xl bg-terracotta/10 px-4 py-3.5 dark:bg-terracotta/[0.12]">
+              <p className="text-base font-bold leading-snug text-terracotta-ink">{harmSign.title}</p>
+              <p className="mt-0.5 text-sm leading-relaxed text-stone-800 dark:text-[#eae6e1]">{harmSign.detail}</p>
+              <a
+                href={telHref(emergencyNumber)}
+                aria-label={`Llamar a emergencias, ${emergencyNumber}`}
+                className={`mt-3 flex min-h-[56px] w-full items-center gap-3 rounded-2xl bg-terracotta-ink px-3.5 py-2.5 text-white transition-[background-color,transform] hover:bg-terracotta-ink-hover active:scale-[0.98] motion-reduce:active:scale-100 ${sosFocusRing}`}
+              >
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/15">
+                  <Siren size={22} aria-hidden="true" />
+                </span>
+                <span className="min-w-0 flex-1 text-lg font-bold leading-tight">
+                  Emergencias · <span className="tabular-nums">{emergencyNumber}</span>
+                </span>
+                <PhoneCall size={18} className="shrink-0" aria-hidden="true" />
+              </a>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Molestias comunes (secundario) */}
+      <section aria-labelledby={`${baseId}-molestias`}>
+        <h3 id={`${baseId}-molestias`} className="text-lg font-bold leading-tight text-stone-800 dark:text-[#eae6e1]">
+          Molestias comunes
+        </h3>
+        <p className="mt-1 text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
+          Son frecuentes y suelen mejorar con cuidados en casa. Ante la duda, consulta a tu obstetra.
+        </p>
+        <ul className={`mt-3 ${listSurface} border-stone-200 dark:border-white/[0.08]`}>
+          {COMMON_DISCOMFORTS.map((d) => {
+            const open = openDiscomfort === d.id;
+            const panelId = `${baseId}-${d.id}`;
+            return (
+              <li key={d.id} className="p-1.5">
+                <h4>
+                  <button
+                    type="button"
+                    aria-expanded={open}
+                    aria-controls={panelId}
+                    onClick={() => setOpenDiscomfort(open ? null : d.id)}
+                    className={`flex min-h-[48px] w-full items-center justify-between gap-3 rounded-2xl px-3 py-2.5 text-left text-base font-bold text-stone-800 transition-colors hover:bg-stone-100 dark:text-[#eae6e1] dark:hover:bg-white/[0.05] ${sosFocusRing}`}
+                  >
+                    <span className="flex items-center gap-3">
+                      <span className="text-stone-500 dark:text-[#a6a1b2]">{d.icon}</span>
+                      {d.title}
+                    </span>
+                    <ChevronDown
+                      size={20}
+                      aria-hidden="true"
+                      className={`shrink-0 text-stone-500 transition-transform duration-200 motion-reduce:transition-none dark:text-[#a6a1b2] ${open ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                </h4>
+                <div id={panelId} hidden={!open} className="px-3 pb-3 pt-1">
+                  <ul className="space-y-2 text-sm leading-relaxed text-stone-700 dark:text-[#a6a1b2]">
+                    {d.tips.map((t) => (
+                      <li key={t.lead}>
+                        <strong className="font-semibold text-stone-900 dark:text-[#eae6e1]">{t.lead}</strong> {t.text}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-3 text-sm font-semibold leading-snug text-terracotta-ink">{d.alarm}</p>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+        <p className="mt-4 text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
+          Esta guía no reemplaza la valoración de tu obstetra. Si algo te preocupa, llama.
+        </p>
+      </section>
+    </div>
+  );
+}
+
+
+type JournalEntry = {
+  id: string;
+  authorRole?: string;
+  authorName?: string;
+  authorUid?: string | null;
+  text: string;
+  tag?: string | null;
+  mood?: string | null;
+  createdAt?: unknown;
+};
+
+const LOCAL_JOURNAL_KEY = "pandajr_journal_local";
+const JOURNAL_TAGS = ["Mensaje al bebé", "Hito médico", "Antojo", "Pensamiento", "Recuerdo"];
+const JOURNAL_MOODS: { emoji: string; label: string }[] = [
+  { emoji: "🥰", label: "Con mucho amor" },
+  { emoji: "😊", label: "Contenta o contento" },
+  { emoji: "😭", label: "Sensible" },
+  { emoji: "😴", label: "Con sueño" },
+  { emoji: "🤢", label: "Con náuseas" },
+  { emoji: "🤔", label: "Pensativa o pensativo" },
+];
+
+function sanitizeJournal(raw: unknown[]): JournalEntry[] {
+  const out: JournalEntry[] = [];
+  for (const r of raw) {
+    if (!isRecord(r)) continue;
+    const text = typeof r.text === "string" ? repairMojibake(r.text) : "";
+    const id = typeof r.id === "string" || typeof r.id === "number" ? String(r.id) : "";
+    if (!text || !id) continue;
+    out.push({
+      id,
+      authorRole: typeof r.authorRole === "string" ? r.authorRole : undefined,
+      authorName: cleanStr(r.authorName, 60) || undefined,
+      authorUid: typeof r.authorUid === "string" ? r.authorUid : null,
+      text,
+      tag: cleanStr(r.tag, 40) || null,
+      mood: typeof r.mood === "string" ? r.mood : null,
+      createdAt: r.createdAt,
+    });
+  }
+  return out;
+}
+
+function journalDate(v: unknown): Date | null {
+  return toDateSafe(v as Parameters<typeof toDateSafe>[0]);
+}
+
+/** Traspaso único al vincular: los recuerdos "Solo en este teléfono" pasan al diario compartido. */
+function mergeLocalJournalOnce(pid: string) {
+  const flag = localToSharedFlag("journal", pid);
+  if (readStored(flag)) return;
+  const local = sanitizeJournal(asArray(readStored(LOCAL_JOURNAL_KEY)));
+  if (!readStored(linkedFromLocalKey(pid)) || !local.length) {
+    writeStored(flag, true);
+    return;
+  }
+  importJournalEntries(
+    pid,
+    local.map((e) => ({
+      id: e.id,
+      authorRole: e.authorRole,
+      authorName: e.authorName,
+      text: e.text,
+      tag: e.tag,
+      mood: e.mood,
+      createdAt: typeof e.createdAt === "number" ? e.createdAt : undefined,
+    }))
+  ).then(
+    () => writeStored(flag, true),
+    () => {
+      // Se intentará la próxima vez que se abra el Diario (ids deterministas: no duplica).
     }
+  );
+}
+
+export function DiarioView({ profile, showToast }: { profile: UserProfile; onClose?: () => void; showToast?: ShowToast }) {
+  const me = useMe();
+  const pid = me.pid;
+  const [localEntries, setLocalEntries] = useState<JournalEntry[]>(() => sanitizeJournal(asArray(readStored(LOCAL_JOURNAL_KEY))));
+  const localRef = useRef(localEntries);
+  const [remote, setRemote] = useState<{ pid: string; entries: JournalEntry[] } | null>(null);
+  const [errorPid, setErrorPid] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const [newEntry, setNewEntry] = useState("");
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedMood, setSelectedMood] = useState<string | null>(null);
+  const { retryState, fail, clearRetry } = useRetry();
+  const baseId = React.useId();
+
+  useEffect(() => {
+    if (!pid) return;
+    let merged = false;
+    return listenToJournal(
+      pid,
+      (data) => {
+        setRemote({ pid, entries: sanitizeJournal(data) });
+        setErrorPid(null);
+        // Una sola vez, tras el primer snapshot (nunca como reacción a los siguientes).
+        if (!merged) {
+          merged = true;
+          mergeLocalJournalOnce(pid);
+        }
+      },
+      () => setErrorPid(pid)
+    );
+  }, [pid, attempt]);
+
+  const linked = !!pid;
+  const current = linked && remote?.pid === pid ? remote : null;
+  const entries = linked ? current?.entries ?? [] : localEntries;
+  const loading = linked && !current && errorPid !== pid;
+
+  const commitLocal = (next: JournalEntry[]) => {
+    localRef.current = next;
+    setLocalEntries(next);
+    writeStored(LOCAL_JOURNAL_KEY, next);
+  };
+
+  const post = (text: string, tag: string | null, mood: string | null) => {
+    if (!linked || !pid) {
+      commitLocal([
+        { id: newId(), authorRole: profile.role, authorName: profile.name, authorUid: null, text, tag, mood, createdAt: nowMs() },
+        ...localRef.current,
+      ]);
+      return;
+    }
+    const entryPid = pid;
+    // Firestore muestra la entrada al instante (caché local) y la envía al reconectar.
+    function send() {
+      addJournalEntry(entryPid, profile.role, profile.name, text, tag || undefined, mood || undefined).catch(() => {
+        setNewEntry((draft) => draft || text);
+        fail("No se guardó tu recuerdo. Lo dejamos en el cuadro de texto.", () => {
+          setNewEntry((draft) => (draft === text ? "" : draft));
+          send();
+        });
+      });
+    }
+    send();
+  };
+
+  const handlePost = (e: React.FormEvent) => {
+    e.preventDefault();
+    const text = newEntry.trim();
+    if (!text) return;
+    clearRetry();
+    post(text, selectedTag, selectedMood);
+    setNewEntry("");
+    setSelectedTag(null);
+    setSelectedMood(null);
+  };
+
+  /** Solo quien escribió puede borrar: por uid; las entradas antiguas sin uid, por nombre y rol. */
+  const canDelete = (entry: JournalEntry) => {
+    if (!linked) return true;
+    if (entry.authorUid) return !!me.myUid && entry.authorUid === me.myUid;
+    return !!entry.authorName && entry.authorName === profile.name && entry.authorRole === profile.role;
+  };
+
+  const handleDelete = (entry: JournalEntry) => {
+    if (!linked || !pid) {
+      const index = localRef.current.findIndex((x) => x.id === entry.id);
+      commitLocal(localRef.current.filter((x) => x.id !== entry.id));
+      showToast?.("Recuerdo eliminado", () => {
+        if (localRef.current.some((x) => x.id === entry.id)) return;
+        const next = [...localRef.current];
+        next.splice(Math.max(0, index), 0, entry);
+        commitLocal(next);
+      });
+      return;
+    }
+    if (!confirm("¿Eliminar este recuerdo? Tu pareja también dejará de verlo.")) return;
+    deleteJournalEntry(pid, entry.id).catch(() => fail("No se pudo eliminar el recuerdo.", () => handleDelete(entry)));
   };
 
   return (
     <div className="w-full flex flex-col pb-20 animate-in fade-in duration-300">
-      <div className="bg-gradient-to-br from-terracotta/10 to-sage/10 dark:from-[#2a222f] dark:to-[#1a1724] p-5 shrink-0 border-b border-terracotta/20 dark:border-white/5 relative overflow-hidden">
-        <BookOpen size={48} className="absolute -bottom-4 -right-4 text-terracotta/10 dark:text-terracotta/5 -rotate-12" />
-        <h2 className="text-xl font-black text-stone-800 dark:text-[#eae6e1] relative z-10">Diario del Bebé</h2>
-        <p className="text-sm text-stone-600 dark:text-[#a6a1b2] relative z-10">Recuerdos compartidos de este viaje.</p>
-      </div>
+      <div className="p-4 max-w-lg mx-auto w-full flex-1 flex flex-col gap-6">
+        <div className="space-y-1">
+          <h3 className="text-xl font-black text-stone-900 dark:text-[#eae6e1]">Diario del bebé</h3>
+          <p className="text-sm text-stone-600 dark:text-[#a6a1b2]">
+            {linked ? "Recuerdos que escriben entre los dos." : "Tus recuerdos de este viaje."}
+          </p>
+          <SyncBadge />
+        </div>
 
-      <div className="p-4 max-w-lg mx-auto w-full flex-1 flex flex-col gap-6 relative">
+        <RetryNotice state={retryState} onDismiss={clearRetry} />
+
         {/* Editor de nueva entrada */}
-        <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-4 shadow-sm border border-stone-200 dark:border-white/[0.08] relative z-20 animate-in slide-in-from-top-4">
-          <textarea 
+        <form
+          onSubmit={handlePost}
+          className="bg-white dark:bg-[#221d2d] rounded-3xl p-4 shadow-sm border border-stone-200 dark:border-white/[0.08]"
+        >
+          <label htmlFor={`${baseId}-texto`} className="sr-only">Nuevo recuerdo</label>
+          <textarea
+            id={`${baseId}-texto`}
             value={newEntry}
-            onChange={e => setNewEntry(e.target.value)}
-            placeholder="Escribe un recuerdo, hito o mensaje para el bebé..."
-            className="w-full bg-stone-50 dark:bg-[#181520] rounded-2xl p-3 resize-none h-24 text-sm text-stone-800 dark:text-white placeholder:text-stone-400 dark:placeholder:text-stone-600 focus:outline-none focus:ring-2 focus:ring-terracotta/30 transition-all border border-transparent dark:border-white/5"
+            onChange={(e) => setNewEntry(e.target.value)}
+            maxLength={2000}
+            placeholder="Escribe un recuerdo, un hito o un mensaje para el bebé…"
+            className="w-full bg-stone-50 dark:bg-[#181520] rounded-2xl p-3 resize-none h-24 text-base text-stone-800 dark:text-white placeholder:text-stone-500 dark:placeholder:text-[#8f899c] focus:outline-none focus:ring-2 focus:ring-terracotta-ink/40 border border-transparent dark:border-white/5"
           />
-          
-          <div className="mt-3 flex flex-wrap gap-2">
-            {tags.map(tag => (
-              <button 
-                key={tag}
-                onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
-                className={`px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all ${tag === selectedTag ? 'bg-sage text-white border-sage' : 'bg-stone-50 dark:bg-[#181520] text-stone-500 dark:text-stone-400 border-stone-200 dark:border-white/5 hover:border-sage/50'}`}
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
 
-          <div className="flex justify-between items-end mt-4 pt-3 border-t border-stone-100 dark:border-white/5">
-            <div className="flex gap-1 bg-stone-50 dark:bg-[#181520] p-1 rounded-full border border-stone-100 dark:border-white/5">
-              {moods.map(mood => (
-                <button 
-                  key={mood}
-                  onClick={() => setSelectedMood(mood === selectedMood ? null : mood)}
-                  className={`w-7 h-7 rounded-full text-sm flex items-center justify-center transition-transform ${mood === selectedMood ? 'bg-terracotta/20 scale-110' : 'opacity-60 hover:opacity-100 hover:bg-stone-200 dark:hover:bg-white/10'}`}
+          <fieldset className="mt-3">
+            <legend className="sr-only">Etiqueta</legend>
+            <div className="flex flex-wrap gap-2">
+              {JOURNAL_TAGS.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  aria-pressed={tag === selectedTag}
+                  onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
+                  className={`min-h-[44px] px-3 rounded-full text-xs font-bold border transition-colors ${sosFocusRing} ${
+                    tag === selectedTag
+                      ? "bg-sage-ink text-white border-transparent"
+                      : "bg-stone-50 dark:bg-[#181520] text-stone-600 dark:text-[#a6a1b2] border-stone-200 dark:border-white/10 hover:border-sage-ink/50"
+                  }`}
                 >
-                  {mood}
+                  {tag}
                 </button>
               ))}
             </div>
-            <button 
-              onClick={handlePost}
-              disabled={!newEntry.trim() || isSubmitting}
-              className="bg-terracotta text-white px-5 py-2.5 rounded-xl text-sm font-bold disabled:opacity-50 transition-all flex items-center gap-2 hover:bg-terracotta-hover active:scale-95"
+          </fieldset>
+
+          <fieldset className="mt-3">
+            <legend className="sr-only">Cómo te sientes</legend>
+            <div className="flex flex-wrap gap-1">
+              {JOURNAL_MOODS.map((mood) => (
+                <button
+                  key={mood.emoji}
+                  type="button"
+                  aria-pressed={mood.emoji === selectedMood}
+                  aria-label={mood.label}
+                  title={mood.label}
+                  onClick={() => setSelectedMood(mood.emoji === selectedMood ? null : mood.emoji)}
+                  className={`grid h-11 w-11 place-items-center rounded-full text-lg transition-colors ${sosFocusRing} ${
+                    mood.emoji === selectedMood ? "bg-terracotta/20 ring-2 ring-terracotta-ink/50" : "hover:bg-stone-100 dark:hover:bg-white/10"
+                  }`}
+                >
+                  <span aria-hidden="true">{mood.emoji}</span>
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          <div className="mt-4 pt-3 border-t border-stone-100 dark:border-white/5 flex justify-end">
+            <button
+              type="submit"
+              disabled={!newEntry.trim()}
+              className={`min-h-[44px] bg-terracotta-ink text-white px-5 rounded-xl text-sm font-bold disabled:opacity-50 transition-colors flex items-center gap-2 hover:bg-terracotta-ink-hover active:scale-95 ${sosFocusRing}`}
             >
-              {isSubmitting ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-              ) : (
-                <><Send size={16} /> Guardar</>
-              )}
+              <Send size={16} aria-hidden="true" /> Guardar
             </button>
           </div>
-        </div>
+        </form>
 
-        {/* Timeline */}
+        {errorPid === pid && linked && !current && (
+          <LoadErrorNotice what="el diario compartido" onRetry={() => setAttempt((a) => a + 1)} />
+        )}
+
+        {/* Línea de tiempo */}
         <div className="relative pl-4 mt-2">
-          {entries.length > 0 && (
-            <div className="absolute left-[23px] top-4 bottom-0 w-px bg-stone-200 dark:bg-white/10 z-0"></div>
-          )}
-          
-          <div className="flex flex-col gap-6 relative z-10">
-            {entries.length === 0 ? (
-              <div className="text-center py-12 animate-in zoom-in-95">
-                <div className="w-16 h-16 bg-sage/20 rounded-full flex items-center justify-center mx-auto mb-4 text-sage border-4 border-white dark:border-[#181520]">
-                  <FileText size={24} />
-                </div>
-                <h3 className="font-bold text-stone-800 dark:text-[#eae6e1] mb-1">El diario está vacío</h3>
-                <p className="text-sm text-stone-500 dark:text-[#a6a1b2]">El primer recuerdo de este viaje empieza aquí.</p>
+          {entries.length > 0 && <div className="absolute left-[35px] top-4 bottom-0 w-px bg-stone-200 dark:bg-white/10" aria-hidden="true" />}
+
+          {linked && !current && errorPid === pid ? null : loading ? (
+            <p className="py-10 text-center text-sm text-stone-600 dark:text-[#a6a1b2]" role="status">
+              Cargando el diario compartido…
+            </p>
+          ) : entries.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-sage/15 rounded-full flex items-center justify-center mx-auto mb-4 text-sage-ink">
+                <FileText size={24} aria-hidden="true" />
               </div>
-            ) : (
-              entries.map((entry, idx) => (
-                <div key={entry.id} className="flex gap-4 animate-in slide-in-from-bottom-4 fade-in" style={{ animationDelay: `${Math.min(idx * 100, 500)}ms` }}>
-                  {/* Avatar Timeline Node */}
-                  <div className="relative mt-1 shrink-0">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-black border-4 border-[#faf9f5] dark:border-[#181520] shadow-sm z-10 relative ${entry.authorRole === 'mama' ? 'bg-terracotta/20 text-terracotta' : 'bg-sage/20 text-sage'}`}>
-                      {entry.authorName.charAt(0)}
+              <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] mb-1">El diario está vacío</h4>
+              <p className="text-sm text-stone-600 dark:text-[#a6a1b2]">El primer recuerdo de este viaje empieza aquí.</p>
+            </div>
+          ) : (
+            <ol className="flex flex-col gap-6 relative">
+              {entries.map((entry) => {
+                const date = journalDate(entry.createdAt);
+                const isMama = entry.authorRole === "mama";
+                const initial = Array.from((entry.authorName || (isMama ? "Mamá" : "Copiloto")).trim())[0]?.toLocaleUpperCase("es") ?? "?";
+                return (
+                  <li key={entry.id} className="flex gap-4">
+                    <div
+                      aria-hidden="true"
+                      className={`relative mt-1 w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-sm font-black border-4 border-[#faf9f5] dark:border-[#181520] ${
+                        isMama ? "bg-terracotta/20 text-terracotta-ink" : "bg-sage/20 text-sage-ink"
+                      }`}
+                    >
+                      {initial}
                     </div>
-                  </div>
-                  
-                  {/* Entry Card */}
-                  <div className="bg-white dark:bg-[#221d2d] rounded-3xl rounded-tl-sm p-4 shadow-sm border border-stone-200/60 dark:border-white/[0.08] flex-1 group">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-bold text-stone-800 dark:text-[#eae6e1]">{entry.authorName}</p>
-                          {entry.mood && <span className="text-sm">{entry.mood}</span>}
+
+                    <article className="min-w-0 bg-white dark:bg-[#221d2d] rounded-3xl rounded-tl-sm p-4 shadow-sm border border-stone-200/60 dark:border-white/[0.08] flex-1">
+                      <div className="flex justify-between items-start gap-2 mb-2">
+                        <div className="min-w-0">
+                          <p className="flex items-center gap-1.5 text-sm font-bold text-stone-800 dark:text-[#eae6e1]">
+                            <span className="truncate">{entry.authorName || (isMama ? "Mamá" : "Copiloto")}</span>
+                            {entry.mood && <span aria-label={JOURNAL_MOODS.find((m) => m.emoji === entry.mood)?.label}>{entry.mood}</span>}
+                          </p>
+                          <p className="text-xs text-stone-600 dark:text-[#a6a1b2]">
+                            {date
+                              ? date.toLocaleString("es", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+                              : "Guardando…"}
+                          </p>
                         </div>
-                        <p className="text-[10px] font-medium text-stone-400 dark:text-stone-500 uppercase tracking-wider">
-                          {entry.createdAt?.toDate ? entry.createdAt.toDate().toLocaleString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Guardando...'}
-                        </p>
+                        {canDelete(entry) && (
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(entry)}
+                            aria-label="Eliminar este recuerdo"
+                            className={`-mr-2 -mt-2 grid h-11 w-11 shrink-0 place-items-center rounded-full text-stone-500 hover:bg-terracotta/10 hover:text-terracotta-ink dark:text-[#a6a1b2] transition-colors ${sosFocusRing}`}
+                          >
+                            <Trash2 size={16} aria-hidden="true" />
+                          </button>
+                        )}
                       </div>
-                      
-                      {entry.authorName === profile.name && (
-                        <button 
-                          onClick={() => handleDelete(entry.id)} 
-                          className="w-6 h-6 rounded-full flex items-center justify-center text-stone-300 hover:bg-rose-50 hover:text-rose-500 transition-colors"
-                        >
-                          <Trash2 size={12} />
-                        </button>
+
+                      {entry.tag && (
+                        <span className="inline-block px-2 py-0.5 bg-stone-100 dark:bg-[#181520] text-stone-600 dark:text-[#a6a1b2] rounded-md text-xs font-bold mb-2">
+                          {entry.tag}
+                        </span>
                       )}
-                    </div>
-                    
-                    {entry.tag && (
-                      <span className="inline-block px-2 py-0.5 bg-stone-100 dark:bg-[#181520] text-stone-500 dark:text-[#a6a1b2] rounded-md text-[10px] font-bold mb-2">
-                        {entry.tag}
-                      </span>
-                    )}
-                    
-                    <p className="text-stone-700 dark:text-[#eae6e1]/90 text-sm whitespace-pre-wrap leading-relaxed">{entry.text}</p>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+
+                      <p className="text-stone-700 dark:text-[#eae6e1]/90 text-sm whitespace-pre-wrap break-words leading-relaxed">{entry.text}</p>
+                    </article>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
+const LOCAL_GOBAG_KEY = "pandajr_gobag";
 
-
-export function MaletaView({ profile, onClose }: { profile: UserProfile, onClose: () => void }) {
-  const [bag, setBag] = React.useState<Record<string, boolean>>({});
+export function MaletaView({ profile }: { profile: UserProfile; onClose?: () => void }) {
+  const pid = profile.pregnancyId;
+  const [localBag, setLocalBag] = useState<Record<string, boolean>>(() => {
+    const saved = readStored<unknown>(LOCAL_GOBAG_KEY);
+    return isRecord(saved) ? (saved as Record<string, boolean>) : {};
+  });
+  const [remote, setRemote] = useState<{ pid: string; bag: Record<string, boolean> } | null>(null);
+  const [overlay, setOverlay] = useState<Record<string, boolean>>({});
+  const { retryState, fail, clearRetry } = useRetry();
 
   useEffect(() => {
-    let unsub: (() => void) | null = null;
-    if (profile.pregnancyId) {
-      import('@/lib/firebase/pairing').then(({ listenToGoBag }) => {
-        unsub = listenToGoBag(profile.pregnancyId!, (data) => setBag(data));
-      });
-    }
-    return () => { if (unsub) unsub(); };
-  }, [profile.pregnancyId]);
+    if (!pid) return;
+    return listenToGoBag(pid, (data) => setRemote({ pid, bag: isRecord(data) ? (data as Record<string, boolean>) : {} }));
+  }, [pid]);
 
-  const toggleItem = async (id: string, checked: boolean) => {
-    setBag(prev => ({ ...prev, [id]: !checked })); // optimistic
-    if (profile.pregnancyId) {
-      const { toggleGoBagItem } = await import('@/lib/firebase/pairing');
-      await toggleGoBagItem(profile.pregnancyId, id, !checked);
+  const bag: Record<string, boolean> = pid ? { ...(remote?.pid === pid ? remote.bag : {}), ...overlay } : localBag;
+
+  const toggleItem = (id: string) => {
+    const next = !bag[id];
+    if (!pid) {
+      const updated = { ...localBag, [id]: next };
+      setLocalBag(updated);
+      writeStored(LOCAL_GOBAG_KEY, updated);
+      return;
     }
+    setOverlay((o) => ({ ...o, [id]: next }));
+    toggleGoBagItem(pid, id, next).then(
+      () => setOverlay((o) => omitKey(o, id)),
+      () => {
+        setOverlay((o) => omitKey(o, id));
+        fail("No se guardó el cambio en la maleta.", () => toggleItem(id));
+      }
+    );
   };
 
   const items = {
@@ -337,161 +1352,137 @@ export function MaletaView({ profile, onClose }: { profile: UserProfile, onClose
   return (
     <div className="w-full">
       <div className="p-4 max-w-lg mx-auto space-y-6 pb-20">
-        
+        <SyncBadge />
+        <RetryNotice state={retryState} onDismiss={clearRetry} />
+
         {Object.entries(items).map(([category, list]) => (
-          <div key={category}>
-            <h3 className="font-black text-sm text-stone-400 uppercase tracking-wider mb-3">
-              {category === 'mama' ? 'Para Mamá' : category === 'bebe' ? 'Para el Bebé' : 'Para Papá / Copiloto'}
+          <section key={category} aria-label={category === 'mama' ? 'Para mamá' : category === 'bebe' ? 'Para el bebé' : 'Para el copiloto'}>
+            <h3 className="font-bold text-sm text-stone-600 dark:text-[#a6a1b2] mb-3">
+              {category === 'mama' ? 'Para mamá' : category === 'bebe' ? 'Para el bebé' : 'Para el copiloto'}
             </h3>
-            <div className="bg-white dark:bg-[#181a20] rounded-2xl shadow-sm border border-stone-200 dark:border-white/[0.05] overflow-hidden">
-              {list.map((item, i) => (
-                <div 
-                  key={item.id} 
-                  onClick={() => toggleItem(item.id, bag[item.id] || false)}
-                  className={`flex items-center gap-3 p-4 cursor-pointer transition-colors hover:bg-stone-50 dark:hover:bg-white/[0.02] ${i !== list.length - 1 ? 'border-b border-stone-100 dark:border-white/5' : ''}`}
-                >
-                  <div className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${bag[item.id] ? 'bg-sage border-sage text-white' : 'border-stone-300 dark:border-stone-600'}`}>
-                    {bag[item.id] && <Check size={14} strokeWidth={3} />}
-                  </div>
-                  <span className={`text-sm font-medium transition-all ${bag[item.id] ? 'text-stone-400 dark:text-stone-500 line-through' : 'text-stone-700 dark:text-stone-200'}`}>
-                    {item.label}
-                  </span>
-                </div>
+            <ul className="bg-white dark:bg-[#181a20] rounded-2xl shadow-sm border border-stone-200 dark:border-white/[0.05] overflow-hidden divide-y divide-stone-100 dark:divide-white/5">
+              {list.map((item) => (
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    aria-pressed={!!bag[item.id]}
+                    onClick={() => toggleItem(item.id)}
+                    className={`flex w-full min-h-[52px] items-center gap-3 p-4 text-left transition-colors hover:bg-stone-50 dark:hover:bg-white/[0.02] ${sosFocusRing}`}
+                  >
+                    <span aria-hidden="true" className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${bag[item.id] ? 'bg-sage-ink border-transparent text-white' : 'border-stone-300 dark:border-stone-600'}`}>
+                      {bag[item.id] && <Check size={14} strokeWidth={3} />}
+                    </span>
+                    <span className={`text-sm font-medium ${bag[item.id] ? 'text-stone-500 dark:text-stone-400 line-through' : 'text-stone-700 dark:text-stone-200'}`}>
+                      {item.label}
+                    </span>
+                  </button>
+                </li>
               ))}
-            </div>
-          </div>
+            </ul>
+          </section>
         ))}
       </div>
     </div>
   );
 }
 
+const LECTURAS: Record<1 | 2 | 3, { title: string; desc: string; type: string }[]> = {
+  1: [
+    { title: "Náuseas del primer trimestre", desc: "Qué ayuda con las náuseas y la hidratación en las primeras semanas.", type: "Guía" },
+    { title: "El ácido fólico y el tubo neural", desc: "Por qué este suplemento es clave en el primer trimestre.", type: "Nutrición" },
+    { title: "Cómo y cuándo dar la noticia", desc: "Ideas para contarlo a la familia, a tus amistades y en el trabajo.", type: "Guía" },
+  ],
+  2: [
+    { title: "Omega-3 (DHA) y desarrollo cerebral", desc: "El pescado bajo en mercurio y otras fuentes en el segundo trimestre.", type: "Nutrición" },
+    { title: "Conectar con tu bebé", desc: "Su oído se desarrolla: cómo sus voces forman parte de su día.", type: "Guía" },
+    { title: "Preparar el cuarto sin riesgos", desc: "Qué evitar al pintar o armar muebles nuevos.", type: "Guía" },
+  ],
+  3: [
+    { title: "Entender las contracciones", desc: "Contracciones de práctica y trabajo de parto: la regla 5-1-1.", type: "Guía" },
+    { title: "Masaje perineal", desc: "Técnicas con evidencia para prepararte para un parto vaginal.", type: "Guía" },
+    { title: "El posparto", desc: "Salud mental, sueño y cómo el copiloto puede tomar el mando de la casa.", type: "Guía" },
+  ],
+};
 
-
-export function LecturasView({ week, onClose, showToast }: { week: number, onClose: () => void, showToast: any }) {
-  const currentTrimester = week <= 13 ? 1 : week <= 27 ? 2 : 3;
-  const [selectedTri, setSelectedTri] = useState(currentTrimester);
-
-  const articles = {
-    1: [
-      {
-        title: "Sobreviviendo a las Náuseas Matutinas",
-        desc: "Estrategias de neuro-nutrición e hidratación táctica para las primeras semanas.",
-        readTime: "4 min",
-        type: "Artículo",
-        url: "#"
-      },
-      {
-        title: "El Ácido Fólico y el Tubo Neural",
-        desc: "Por qué este suplemento es el superhéroe indiscutible del primer trimestre.",
-        readTime: "3 min",
-        type: "Ciencia",
-        url: "#"
-      },
-      {
-        title: "Comunicando la Noticia",
-        desc: "¿Cuándo y cómo decirle a la familia, amigos y al trabajo? Tiempos recomendados.",
-        readTime: "5 min",
-        type: "Guía",
-        url: "#"
-      }
-    ],
-    2: [
-      {
-        title: "Desarrollo Cerebral y Omega-3 (DHA)",
-        desc: "La importancia del pescado bajo en mercurio en el segundo trimestre para su corteza frontal.",
-        readTime: "6 min",
-        type: "Nutrición",
-        url: "#"
-      },
-      {
-        title: "Conectando con tu Bebé",
-        desc: "El oído fetal se desarrolla: cómo la voz de papá y mamá estimulan su cerebro en esta etapa.",
-        readTime: "4 min",
-        type: "Artículo",
-        url: "#"
-      },
-      {
-        title: "Preparando el 'Nido'",
-        desc: "Toxinas a evitar al pintar el cuarto o armar muebles nuevos.",
-        readTime: "5 min",
-        type: "Guía Ambiental",
-        url: "#"
-      }
-    ],
-    3: [
-      {
-        title: "Entendiendo las Contracciones",
-        desc: "Braxton Hicks vs. Trabajo de Parto real. Qué es y cómo aplicar la regla del 5-1-1.",
-        readTime: "4 min",
-        type: "Guía Médica",
-        url: "#"
-      },
-      {
-        title: "Masaje Perineal y Preparación",
-        desc: "Técnicas basadas en evidencia para reducir el riesgo de desgarros en el parto vaginal.",
-        readTime: "7 min",
-        type: "Artículo",
-        url: "#"
-      },
-      {
-        title: "El Cuarto Trimestre (Posparto)",
-        desc: "Salud mental materna, privación de sueño y cómo el copiloto debe tomar el mando de la casa.",
-        readTime: "8 min",
-        type: "Lectura Esencial",
-        url: "#"
-      }
-    ]
-  };
+export function LecturasView({ profile }: { profile?: UserProfile; onClose?: () => void; showToast?: ShowToast }) {
+  const week = knownWeek(profile);
+  const currentTrimester: 1 | 2 | 3 | undefined = typeof week === "number" ? (week <= 13 ? 1 : week <= 27 ? 2 : 3) : undefined;
+  const [selectedTri, setSelectedTri] = useState<1 | 2 | 3>(currentTrimester ?? 1);
 
   return (
-    <div className="w-full flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-300">
-      <div className="px-1 py-3 flex gap-2 overflow-x-auto hide-scrollbar shrink-0 mb-2">
-        {[1, 2, 3].map(t => (
-          <button 
+    <div className="w-full flex flex-col h-full animate-in fade-in duration-300">
+      <p className="text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
+        Estas lecturas aún no están disponibles. Mientras tanto, ante cualquier duda consulta a tu obstetra.
+      </p>
+
+      <div className="mt-3 mb-2 flex gap-2 overflow-x-auto hide-scrollbar shrink-0 py-1" role="group" aria-label="Trimestre">
+        {([1, 2, 3] as const).map((t) => (
+          <button
             key={t}
+            type="button"
+            aria-pressed={selectedTri === t}
             onClick={() => setSelectedTri(t)}
-            className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${selectedTri === t ? 'bg-terracotta dark:bg-terracotta text-white shadow-md' : 'bg-stone-200 dark:bg-[#2d273a] text-stone-600 dark:text-[#a6a1b2]'}`}
+            className={`min-h-[44px] px-4 rounded-xl text-sm font-bold whitespace-nowrap transition-colors ${sosFocusRing} ${
+              selectedTri === t ? "bg-terracotta-ink text-white" : "bg-stone-200 dark:bg-[#2d273a] text-stone-700 dark:text-[#a6a1b2]"
+            }`}
           >
-            Trimestre ${t}
+            Trimestre {t}
+            {currentTrimester === t && <span className="sr-only"> (tu trimestre)</span>}
           </button>
         ))}
       </div>
 
-      <div className="flex-1 space-y-4 pb-12">
-        {articles[selectedTri as 1|2|3].map((art, i) => (
-          <div key={i} onClick={() => alert("Artículo completo próximamente...")} className="bg-white dark:bg-[#221d2d] border border-stone-200 dark:border-white/[0.06] rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
-            <div className="flex justify-between items-start mb-2">
-              <span className="text-[10px] uppercase tracking-wider font-bold text-terracotta dark:text-terracotta bg-terracotta/10 dark:bg-terracotta/10 px-2 py-0.5 rounded-full">
-                {art.type}
-              </span>
-              <span className="text-xs font-medium text-stone-400 dark:text-[#a6a1b2] flex items-center gap-1">
-                <Clock size={12} /> {art.readTime}
-              </span>
-            </div>
-            <h3 className="text-base font-bold text-stone-800 dark:text-[#eae6e1] leading-tight mb-2 group-hover:text-terracotta dark:group-hover:text-blue-400 transition-colors">
-              {art.title}
-            </h3>
-            <p className="text-sm text-stone-600 dark:text-[#a6a1b2] leading-relaxed">
-              {art.desc}
+      <ul className="flex-1 space-y-3 pb-12">
+        {LECTURAS[selectedTri].map((art) => (
+          <li key={art.title} className="bg-white dark:bg-[#221d2d] border border-stone-200 dark:border-white/[0.06] rounded-2xl p-4">
+            <h3 className="text-base font-bold text-stone-800 dark:text-[#eae6e1] leading-tight">{art.title}</h3>
+            <p className="mt-1.5 text-sm text-stone-600 dark:text-[#a6a1b2] leading-relaxed">{art.desc}</p>
+            <p className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-stone-600 dark:text-[#a6a1b2]">
+              <Clock size={13} aria-hidden="true" />
+              {art.type} · Próximamente
             </p>
-            <div className="mt-4 flex items-center text-xs font-bold text-terracotta dark:text-terracotta gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
-              Leer artículo <ExternalLink size={14} />
-            </div>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }
 
-export function HerramientasView({ showToast, profile }: { showToast: any, profile?: UserProfile }) {
-  const [activeTool, setActiveTool] = useState<any>(null);
+export function HerramientasView({ showToast, profile, openRequest }: { showToast: ShowToast, profile?: UserProfile, openRequest?: { tool: string; nonce: number } }) {
+  const [activeTool, setActiveTool] = useState<string | null>(null);
+  const toolHeadingRef = useRef<HTMLHeadingElement>(null);
+  const focusedRequestRef = useRef<number | null>(null);
+
+  const requestedTool = openRequest?.tool;
+  const requestNonce = openRequest?.nonce;
+
+  // Apertura externa (p. ej. el acceso a SOS del header): cada nonce nuevo abre esa herramienta.
+  // Se ajusta el estado durante el render al cambiar el nonce (patrón de React para derivar
+  // estado de props) en lugar de un setState dentro de un efecto.
+  const [handledNonce, setHandledNonce] = useState<number | undefined>(undefined);
+  if (requestNonce !== undefined && requestNonce !== handledNonce) {
+    setHandledNonce(requestNonce);
+    if (requestedTool && OPENABLE_TOOLS.includes(requestedTool)) setActiveTool(requestedTool);
+  }
+
+  // Ya abierta: vuelve arriba y lleva el foco al título de la herramienta (una vez por petición).
+  useEffect(() => {
+    if (requestNonce === undefined || focusedRequestRef.current === requestNonce) return;
+    if (!requestedTool || activeTool !== requestedTool) return;
+    focusedRequestRef.current = requestNonce;
+    window.scrollTo({ top: 0 });
+    toolHeadingRef.current?.focus({ preventScroll: true });
+  }, [activeTool, requestNonce, requestedTool]);
+
+  const openToolFromSos = (tool: "patadas" | "contracciones") => {
+    setActiveTool(tool);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0 });
+  };
 
   const tools = [
     {
       id: "reproductor",
-      icon: <Music className="text-stone-3000" size={26} />,
+      icon: <Music className="text-sage-ink" size={26} />,
       label: "Panda Audio",
       desc: "Relajación y ruidos",
       color: "bg-sage/10 dark:bg-stone-800/40 border-sage/20 dark:border-sage/20"
@@ -499,7 +1490,7 @@ export function HerramientasView({ showToast, profile }: { showToast: any, profi
 
     {
       id: "story",
-      icon: <Camera className="text-terracotta" size={26} />,
+      icon: <Camera className="text-terracotta-ink" size={26} />,
       label: "Panda Story",
       desc: "Comparte tu avance",
       color: "bg-terracotta/10 dark:bg-terracotta/20 border-terracotta/20 dark:border-terracotta/30"
@@ -507,21 +1498,20 @@ export function HerramientasView({ showToast, profile }: { showToast: any, profi
 
     {
       id: "presupuesto",
-      icon: <Wallet className="text-sage" size={26} />,
+      icon: <Wallet className="text-sage-ink" size={26} />,
       label: "Presupuesto",
       desc: "Control de gastos",
       color: "bg-sage/20 dark:bg-sage/20 border-sage/30 dark:border-sage/20",
-      
     },
 
     { id: "sos", label: "SOS Síntomas", icon: <HeartPulse size={24} />, desc: "Síntomas de alarma", color: "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400", border: "border-rose-100 dark:border-rose-500/20" },
-    { id: "contracciones", label: "Contracciones", icon: <Activity size={24} />, desc: "Contador 5-1-1", color: "bg-terracotta/10 text-terracotta", border: "border-terracotta/20" },
-    { id: "patadas", label: "Patadas", icon: <Baby size={24} />, desc: "Monitor Cardiff", color: "bg-sage/10 text-sage", border: "border-sage/20" },
-    { id: "diario", label: "Diario", icon: <FileText size={24} />, desc: "Memorias del bebé", color: "bg-sage/10 text-sage dark:bg-sage/100/10 dark:text-sage", border: "border-sage/20 dark:border-sage/20" },
-    { id: "maleta", label: "Maleta", icon: <Package size={24} />, desc: "Hospital Go-Bag", color: "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400", border: "border-amber-100 dark:border-amber-500/20" },
-    { id: "nombres", label: "Nombres", icon: <Users size={24} />, desc: "Votador en pareja", color: "bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400", border: "border-sky-100 dark:border-sky-500/20" },
-    { id: "parto", label: "Plan de Parto", icon: <ClipboardList size={24} />, desc: "PDF Clínico", color: "bg-emerald-50 text-sage dark:bg-sage/10 dark:text-sage-400", border: "border-emerald-100 dark:border-sage/20" },
-      { id: "lecturas", label: "Lecturas", icon: <BookOpen size={24} />, desc: "Por trimestre", color: "bg-terracotta/10 text-terracotta dark:bg-terracotta/10 dark:text-terracotta", border: "border-blue-100 dark:border-blue-500/20" },
+    { id: "contracciones", label: "Contracciones", icon: <Activity size={24} />, desc: "Frecuencia y duración", color: "bg-terracotta/10 text-terracotta-ink", border: "border-terracotta/20" },
+    { id: "patadas", label: "Patadas", icon: <Baby size={24} />, desc: "Método Cardiff", color: "bg-sage/10 text-sage-ink", border: "border-sage/20" },
+    { id: "diario", label: "Diario", icon: <FileText size={24} />, desc: "Memorias del bebé", color: "bg-sage/10 text-sage-ink", border: "border-sage/20 dark:border-sage/20" },
+    { id: "maleta", label: "Maleta", icon: <Package size={24} />, desc: "Para el hospital", color: "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400", border: "border-amber-100 dark:border-amber-500/20" },
+    { id: "nombres", label: "Nombres", icon: <Users size={24} />, desc: "Voten por separado", color: "bg-terracotta/10 text-terracotta-ink", border: "border-terracotta/20" },
+    { id: "parto", label: "Plan de parto", icon: <ClipboardList size={24} />, desc: "Tus preferencias", color: "bg-sage/10 text-sage-ink", border: "border-sage/20" },
+    { id: "lecturas", label: "Lecturas", icon: <BookOpen size={24} />, desc: "Próximamente", color: "bg-stone-100 text-stone-600 dark:bg-white/5 dark:text-[#a6a1b2]", border: "border-stone-200 dark:border-white/10" },
   ];
 
   if (activeTool) {
@@ -530,28 +1520,28 @@ export function HerramientasView({ showToast, profile }: { showToast: any, profi
       <div className="flex flex-col h-full w-full bg-stone-50 dark:bg-[#120f18] animate-in fade-in zoom-in-95 duration-200">
         
         {/* Only show generic header if it's not one of our new custom modal tools */}
-        {!['presupuesto', 'story', 'reproductor'].includes(activeTool) && (
-          <div className="sticky top-0 z-20 bg-white/80 dark:bg-[#181520]/80 backdrop-blur-md px-4 py-3 flex items-center gap-3 border-b border-stone-200 dark:border-white/5">
+        {!["presupuesto", "story", "reproductor"].includes(activeTool) && (
+          <div className="sticky top-[calc(3.4375rem+var(--safe-top))] z-20 bg-white/90 dark:bg-[#181520]/90 backdrop-blur-md px-4 py-3 flex items-center gap-3 border-b border-stone-200 dark:border-white/5">
 
-          <button onClick={() => setActiveTool(null)} className="w-10 h-10 rounded-full bg-stone-100 dark:bg-white/5 flex items-center justify-center text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-white/10 transition-colors">
-            <ArrowLeft size={20} />
+          <button type="button" onClick={() => setActiveTool(null)} aria-label="Volver a Herramientas" className="w-11 h-11 shrink-0 rounded-full bg-stone-100 dark:bg-white/5 flex items-center justify-center text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-white/10 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink">
+            <ArrowLeft size={20} aria-hidden="true" />
           </button>
           <div>
-            <h2 className="font-bold text-lg text-stone-800 dark:text-white leading-tight">{tool?.label}</h2>
+            <h2 ref={toolHeadingRef} tabIndex={-1} className="font-bold text-lg text-stone-800 dark:text-white leading-tight outline-none">{tool?.label}</h2>
             <p className="text-[10px] uppercase tracking-wider text-stone-500 dark:text-[#a6a1b2] font-bold">{tool?.desc}</p>
           </div>
         </div>
         )}
         <div className="flex-1 overflow-y-auto p-4">
-          {activeTool === 'diario' && profile && <DiarioView profile={profile} onClose={() => setActiveTool(null)} />}
-          {activeTool === 'maleta' && profile && <MaletaView profile={profile} onClose={() => setActiveTool(null)} />}
-          {activeTool === 'sos' && <SOSSintomas />}
-          {activeTool === 'patadas' && <ContadorPatadas showToast={showToast} />}
-          {activeTool === 'contracciones' && <ContadorContracciones showToast={showToast} />}
+          {activeTool === 'diario' && profile && <DiarioView profile={profile} showToast={showToast} />}
+          {activeTool === 'maleta' && profile && <MaletaView profile={profile} />}
+          {activeTool === 'sos' && <SOSSintomas profile={profile} onOpenTool={openToolFromSos} />}
+          {activeTool === 'patadas' && <ContadorPatadas showToast={showToast} profile={profile} />}
+          {activeTool === 'contracciones' && <ContadorContracciones showToast={showToast} profile={profile} />}
           {activeTool === 'nombres' && <VotadorNombres showToast={showToast} />}
           {activeTool === 'parto' && <PlanParto profile={profile} showToast={showToast} />}
-          {activeTool === 'lecturas' && profile && <LecturasView week={profile.week} onClose={() => setActiveTool(null)} showToast={showToast} />}
-          {activeTool === 'presupuesto' && <CalculadoraPresupuesto profile={profile} onClose={() => setActiveTool(null)} />}
+          {activeTool === 'lecturas' && <LecturasView profile={profile} />}
+          {activeTool === 'presupuesto' && <CalculadoraPresupuesto profile={profile} onClose={() => setActiveTool(null)} showToast={showToast} />}
           {activeTool === 'story' && <PandaStoryGenerator profile={profile} onClose={() => setActiveTool(null)} />}
           {activeTool === 'reproductor' && <ReproductorView onClose={() => setActiveTool(null)} />}
 
@@ -571,20 +1561,21 @@ export function HerramientasView({ showToast, profile }: { showToast: any, profi
 
       <div className="grid grid-cols-2 gap-4 pb-24">
         {/* SOS takes full width */}
-        <button 
+        <button
+          type="button"
           onClick={() => setActiveTool('sos')}
-          className="col-span-2 bg-rose-500 text-white rounded-2xl p-4 flex items-center justify-between shadow-sm border border-rose-600/50 hover:bg-rose-600 transition-colors group"
+          className="col-span-2 bg-terracotta-ink hover:bg-terracotta-ink-hover text-white rounded-2xl p-4 min-h-[72px] flex items-center justify-between shadow-sm transition-colors group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
         >
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <HeartPulse size={28} />
+            <div className="w-12 h-12 shrink-0 rounded-full bg-white/15 flex items-center justify-center group-hover:scale-110 motion-reduce:group-hover:scale-100 transition-transform">
+              <HeartPulse size={28} aria-hidden="true" />
             </div>
             <div className="text-left">
               <h3 className="font-bold text-lg leading-tight">SOS Síntomas</h3>
-              <p className="text-rose-100 text-xs">Cuándo ir a urgencias</p>
+              <p className="text-white text-sm leading-snug">Cuándo ir a urgencias y a quién llamar</p>
             </div>
           </div>
-          <ChevronRight size={24} className="opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+          <ChevronRight size={24} aria-hidden="true" className="shrink-0 opacity-80 group-hover:opacity-100 group-hover:translate-x-1 motion-reduce:group-hover:translate-x-0 transition-all" />
         </button>
 
         {/* Other tools */}
@@ -615,7 +1606,7 @@ interface KickRecord {
   intervalSecs: number | null;
 }
 
-interface KickSessionItem {
+type KickSessionItem = {
   id: number;
   timestamp: number;
   dateFormatted: string;
@@ -623,59 +1614,93 @@ interface KickSessionItem {
   durationSeconds: number;
   durationFormatted: string;
   note?: string;
+} & Authored;
+
+const KICK_SESSIONS_KEY = "pandajr_kick_sessions";
+const ACTIVE_KICK_KEY = "pandajr_kick_active";
+// Más allá de 3 horas, una sesión abierta es un registro olvidado: no se restaura.
+const ACTIVE_KICK_MAX_MS = 3 * 60 * 60 * 1000;
+type ActiveKickSession = { startTime: number; kicks: KickRecord[] };
+
+/** Sesión de conteo en curso guardada en el teléfono (sobrevive a cambiar de herramienta). */
+function loadActiveKickSession(): ActiveKickSession | null {
+  const s = readStored<ActiveKickSession>(ACTIVE_KICK_KEY);
+  if (!s || typeof s.startTime !== "number" || !Array.isArray(s.kicks)) return null;
+  const age = Date.now() - s.startTime;
+  if (age < 0 || age > ACTIVE_KICK_MAX_MS || s.kicks.length >= 10) return null;
+  return s;
 }
 
-export function ContadorPatadas({ showToast }: { showToast: any }) {
-  const [count, setCount] = useState(0);
-  const [startTime, setStartTime] = useState<number | null>(null);
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [kicks, setKicks] = useState<KickRecord[]>([]);
+/** Historial válido, sin las sesiones de ejemplo que versiones anteriores guardaban como reales. */
+function sanitizeKickSessions(raw: unknown[]): KickSessionItem[] {
+  const out: KickSessionItem[] = [];
+  const seen = new Set<number>();
+  for (const r of raw) {
+    if (!isRecord(r) || isLegacySeedKickSession(r)) continue;
+    const id = finiteNum(r.id);
+    if (id === null || seen.has(id)) continue;
+    seen.add(id);
+    out.push({
+      id,
+      timestamp: finiteNum(r.timestamp) ?? (id > 1e11 ? id : 0),
+      dateFormatted: cleanStr(r.dateFormatted, 60) || cleanStr(r.date, 60),
+      count: finiteNum(r.count) ?? 10,
+      durationSeconds: finiteNum(r.durationSeconds) ?? 0,
+      durationFormatted: cleanStr(r.durationFormatted, 30) || cleanStr(r.duration, 30),
+      note: cleanStr(r.note, 60) || undefined,
+      ...authoredFrom(r),
+    });
+  }
+  return out.sort((a, b) => b.timestamp - a.timestamp);
+}
+
+const KICK_LIST: SharedListSpec<KickSessionItem> = {
+  localKey: KICK_SESSIONS_KEY,
+  listen: listenToKickSessions,
+  mutate: mutateKickSessions,
+  sanitize: sanitizeKickSessions,
+  seed: { name: "kickseeds", is: (item) => isRecord(item) && isLegacySeedKickSession(item) },
+  // La versión anterior guardaba las patadas solo en el teléfono, aun con vínculo.
+  localMerge: { tool: "kicks", upgrade: true },
+};
+
+export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, profile?: UserProfile }) {
+  const week = knownWeek(profile);
+  const me = useMe();
+  const callPanelId = React.useId();
+  // Sesión en curso restaurada: abrir Síntomas u otra herramienta no la pierde.
+  const [restored] = useState(loadActiveKickSession);
+  const [count, setCount] = useState(restored ? restored.kicks.length : 0);
+  const [startTime, setStartTime] = useState<number | null>(restored ? restored.startTime : null);
+  const [elapsedSeconds, setElapsedSeconds] = useState(() => (restored ? Math.floor((Date.now() - restored.startTime) / 1000) : 0));
+  const [kicks, setKicks] = useState<KickRecord[]>(restored ? restored.kicks : []);
   const [showGuide, setShowGuide] = useState(false);
   const [showTimeline, setShowTimeline] = useState(false);
   const [completedSession, setCompletedSession] = useState<KickSessionItem | null>(null);
   const [selectedNote, setSelectedNote] = useState<string>("");
 
-  // Historial con persistencia real en localStorage
-  const [sessions, setSessions] = useState<KickSessionItem[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("pandajr_kick_sessions");
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-        }
-      } catch (e) {}
-    }
-    // Sesiones de referencia clínica inicial
-    return [
-      {
-        id: 1,
-        timestamp: Date.now() - 86400000,
-        dateFormatted: "Ayer, 08:30 PM",
-        count: 10,
-        durationSeconds: 1380,
-        durationFormatted: "23 min",
-        note: "En reposo nocturno"
-      },
-      {
-        id: 2,
-        timestamp: Date.now() - 172800000,
-        dateFormatted: "Hace 2 días, 01:15 PM",
-        count: 10,
-        durationSeconds: 1020,
-        durationFormatted: "17 min",
-        note: "Después de almorzar"
-      }
-    ];
-  });
+  // Historial: solo conteos reales. Con vínculo se comparte (y se ven los de la pareja);
+  // sin vínculo vive en este teléfono.
+  const history = useSharedList(me.pid, KICK_LIST, authorStamp(me));
+  const sessions = history.items;
+  const { retryState, fail, clearRetry } = useRetry();
+  const listNow = useNow(60_000);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem("pandajr_kick_sessions", JSON.stringify(sessions));
-      const pid = usePandaStore.getState().profile.pregnancyId;
-      if (pid) saveKickSessions(pid, sessions).catch(() => {});
-    } catch (e) {}
-  }, [sessions]);
+  // Mutación deliberada (PRODUCT.md §2): el historial se guarda solo desde manejadores de
+  // evento, nunca como efecto de que cambie `sessions`.
+  const commitSessions = (fn: (items: KickSessionItem[]) => KickSessionItem[], failMessage: string) => {
+    function run() {
+      history.apply(fn).then((ok) => {
+        if (!ok) fail(failMessage, run);
+      });
+    }
+    run();
+  };
+
+  // Sesión en curso en el teléfono (o se borra al terminar / reiniciar).
+  const persistActive = (start: number | null, list: KickRecord[]) => {
+    writeStored(ACTIVE_KICK_KEY, start !== null && list.length < 10 ? { startTime: start, kicks: list } : null);
+  };
 
   // Cronómetro activo durante la sesión
   useEffect(() => {
@@ -713,7 +1738,8 @@ export function ContadorPatadas({ showToast }: { showToast: any }) {
     const newCount = count + 1;
     let actualStart = startTime;
 
-    if (count === 0 || !startTime) {
+    // El tiempo arranca con la primera patada, salvo que la sesión ya se haya iniciado sin movimientos.
+    if (!startTime) {
       actualStart = now;
       setStartTime(now);
       setElapsedSeconds(0);
@@ -723,7 +1749,9 @@ export function ContadorPatadas({ showToast }: { showToast: any }) {
     if (typeof navigator !== "undefined" && navigator.vibrate) {
       try {
         navigator.vibrate(35);
-      } catch (e) {}
+      } catch {
+        // sin vibración
+      }
     }
 
     const timeStr = new Date(now).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -731,8 +1759,10 @@ export function ContadorPatadas({ showToast }: { showToast: any }) {
       ? Math.floor((now - (kicks[kicks.length - 1]?.id || actualStart)) / 1000) 
       : null;
 
-    setKicks(prev => [...prev, { id: now, timeStr, intervalSecs }]);
+    const nextKicks = [...kicks, { id: now, timeStr, intervalSecs }];
+    setKicks(nextKicks);
     setCount(newCount);
+    persistActive(newCount >= 10 ? null : actualStart, nextKicks);
 
     if (newCount === 10) {
       const durSecs = Math.floor((now - (actualStart || now)) / 1000);
@@ -743,74 +1773,87 @@ export function ContadorPatadas({ showToast }: { showToast: any }) {
         count: 10,
         durationSeconds: durSecs,
         durationFormatted: formatDurationText(durSecs),
-        note: ""
+        note: "",
+        ...authorStamp(me),
       };
       setCompletedSession(newSessionItem);
-      setSessions(prev => [newSessionItem, ...prev]);
+      // Registro nuevo: si no llega al servidor queda "Sin enviar" en este teléfono y se reenvía solo.
+      void history.add(newSessionItem);
       setStartTime(null);
-      showToast("🔔", () => {});
+      showToast("Meta de 10 movimientos alcanzada");
     }
   };
 
   const handleUndo = () => {
     if (count <= 0) return;
-    setCount(prev => prev - 1);
-    setKicks(prev => prev.slice(0, -1));
-    if (count === 1) {
+    const nextKicks = kicks.slice(0, -1);
+    setCount(nextKicks.length);
+    setKicks(nextKicks);
+    // Si el tiempo empezó con esa patada se vuelve al inicio; si la sesión se inició sin
+    // movimientos, el tiempo sigue corriendo.
+    const startedWithKick = kicks[0]?.id === startTime;
+    const nextStart = nextKicks.length === 0 && startedWithKick ? null : startTime;
+    if (nextStart === null) {
       setStartTime(null);
       setElapsedSeconds(0);
     }
-    showToast("Último movimiento deshecho (-1)", () => {});
+    persistActive(nextStart, nextKicks);
+    showToast("Quitamos el último movimiento");
   };
 
-  // Atajo de teclado: Barra espaciadora para registrar patada
+  // Empezar a medir sin haber sentido ningún movimiento: así los avisos de 90 min y 2 h
+  // también funcionan cuando el bebé no se mueve, que es el caso que más importa.
+  const startEmptySession = () => {
+    if (startTime) return;
+    const now = Date.now();
+    setStartTime(now);
+    setElapsedSeconds(0);
+    persistActive(now, kicks);
+  };
+
+  // Atajo de teclado: Barra espaciadora para registrar patada. El listener se registra una
+  // vez y llama siempre al manejador del último render (sin cierres con estado viejo).
+  const kickKeyRef = useRef<{ count: number; handleKick: () => void }>({ count, handleKick });
+  useEffect(() => {
+    kickKeyRef.current = { count, handleKick };
+  });
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (
-        target &&
-        (target.tagName === "INPUT" ||
-         target.tagName === "TEXTAREA" ||
-         target.tagName === "SELECT" ||
-         target.isContentEditable)
-      ) {
-        return;
-      }
+      // Sobre un botón o enlace, Espacio activa ese control (el botón grande ya registra
+      // con su propio clic); dentro de la hoja del equipo de salud no debe contar.
+      if (isControlTarget(e.target)) return;
 
-      if ((e.code === "Space" || e.key === " ") && count < 10) {
+      if ((e.code === "Space" || e.key === " ") && kickKeyRef.current.count < 10) {
         e.preventDefault();
-        handleKick();
+        kickKeyRef.current.handleKick();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [count, startTime, kicks]);
+  }, []);
 
   const reset = () => {
     setCount(0);
     setStartTime(null);
     setElapsedSeconds(0);
     setKicks([]);
+    persistActive(null, []);
     setSelectedNote("");
     setCompletedSession(null);
     setShowTimeline(false);
   };
 
-  const deleteSession = (id: number) => {
-    const sessionToRestore = sessions.find(s => s.id === id);
-    setSessions(prev => prev.filter(s => s.id !== id));
-    if (sessionToRestore) {
-      showToast("Sesión eliminada del historial", () => {
-        setSessions(prev => [sessionToRestore, ...prev].sort((a, b) => b.timestamp - a.timestamp));
-      });
-    }
+  const deleteSession = (session: KickSessionItem) => {
+    commitSessions(removeById<KickSessionItem>(session.id), "No se pudo eliminar la sesión.");
+    showToast("Sesión eliminada del historial", () =>
+      commitSessions(restoreItems([session]), "No se pudo recuperar la sesión.")
+    );
   };
 
   const saveSessionNote = (noteText: string) => {
     if (!completedSession) return;
-    setSessions(prev => prev.map(s => s.id === completedSession.id ? { ...s, note: noteText } : s));
+    commitSessions(patchById<KickSessionItem>(completedSession.id, { note: noteText }), "No se guardó la nota de la sesión.");
     setSelectedNote(noteText);
-    showToast("Nota de la sesión guardada", () => {});
   };
 
   // Estadísticas inteligentes
@@ -819,101 +1862,100 @@ export function ContadorPatadas({ showToast }: { showToast: any }) {
     ? Math.round(validSessions.reduce((acc, s) => acc + (s.durationSeconds / 60), 0) / validSessions.length)
     : null;
 
-  // Alerta de más de 90 min (Cardiff timeout warning)
+  // Alerta de más de 90 min (Cardiff timeout warning) y, a las 2 horas, indicación de llamar.
   const isOvertime = startTime !== null && elapsedSeconds >= 5400 && count < 10;
+  const isTwoHours = isOvertime && elapsedSeconds >= 7200;
 
   return (
     <div className="flex flex-col py-2 animate-in fade-in duration-300 w-full space-y-6">
       
-      {/* HEADER CON PROTOCOLO CARDIFF Y GUíA */}
+      {/* ENCABEZADO CON MÉTODO CARDIFF Y GUÍA */}
       <div className="text-center">
-        <div className="inline-flex items-center gap-1.5 bg-sage/10 dark:bg-[#1a1724] border border-sage/30/80 dark:border-sage/100/25 px-3 py-1 rounded-full text-xs font-bold text-sage dark:text-sage/80 mb-2 shadow-xs">
-          <Baby size={14} className="text-terracotta dark:text-sage" /> Protocolo Cardiff (Contar hasta 10)
-        </div>
-        <h3 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1]">Monitor Fetal Inteligente</h3>
-        <p className="text-xs text-stone-500 dark:text-[#a6a1b2] max-w-xs mx-auto mt-1 leading-relaxed">
-          Monitorea el bienestar del bebé registrando 10 movimientos activos en menos de 2 horas.
+        <h3 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1]">Cuenta sus movimientos</h3>
+        <p className="text-sm text-stone-600 dark:text-[#a6a1b2] max-w-xs mx-auto mt-1 leading-relaxed">
+          Método Cardiff: registra 10 movimientos. Lo habitual es llegar a 10 en menos de 2 horas.
         </p>
+        {typeof week === "number" && week < 28 && (
+          <p className="mt-2 mx-auto max-w-xs inline-flex items-start gap-1.5 text-left text-sm leading-snug text-stone-600 dark:text-[#a6a1b2]">
+            <Info size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+            <span>El conteo de movimientos se recomienda desde la semana 28. Estás en la semana {week}.</span>
+          </p>
+        )}
 
         {/* Botón para desplegar guía médica */}
         <button
           type="button"
           onClick={() => setShowGuide(!showGuide)}
-          className="mt-3 text-xs font-bold text-sage dark:text-sage/80 hover:text-sage dark:hover:text-sage/30 inline-flex items-center gap-1 bg-sage/10/60 dark:bg-[#1a1724] hover:bg-sage/20/70 dark:hover:bg-[#19322c] px-3 py-1.5 rounded-xl border border-sage/30/60 dark:border-sage/100/25 transition-colors"
+          className="mt-3 min-h-[44px] text-xs font-bold text-sage-ink hover:underline underline-offset-4 inline-flex items-center gap-1 bg-sage/10 dark:bg-[#1a1724] hover:bg-sage/20 dark:hover:bg-[#19322c] px-3 py-1.5 rounded-xl border border-sage/30 dark:border-sage/25 transition-colors"
         >
-          <Info size={14} className="text-terracotta dark:text-sage" />
+          <Info size={14} className="text-sage-ink" />
           <span>{showGuide ? "Ocultar guía clínica" : "¿Cómo y cuándo contar patadas?"}</span>
           {showGuide ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </button>
       </div>
 
-      {/* GUíA MÉDICA DESPLEGABLE */}
+      {/* GUÍA MÉDICA DESPLEGABLE */}
       {showGuide && (
-        <div className="bg-gradient-to-br from-sage/10/90 to-emerald-50/70 dark:from-[#221d2d] dark:to-[#1a1724] border border-sage/30 dark:border-sage/100/25 rounded-3xl p-5 text-left text-xs text-stone-700 dark:text-[#eae6e1]/90 space-y-3 shadow-xs animate-in fade-in slide-in-from-top-2">
-          <h4 className="font-bold text-sage dark:text-sage/80 text-sm flex items-center gap-2">
-            <ClipboardList size={16} className="text-sage dark:text-sage" /> Guía Obstétrica: Protocolo Cardiff
+        <div className="bg-gradient-to-br from-sage/10 to-emerald-50/70 dark:from-[#221d2d] dark:to-[#1a1724] border border-sage/30 dark:border-sage/25 rounded-3xl p-5 text-left text-xs text-stone-700 dark:text-[#eae6e1]/90 space-y-3 shadow-xs animate-in fade-in slide-in-from-top-2">
+          <h4 className="font-bold text-sage-ink text-sm flex items-center gap-2">
+            <ClipboardList size={16} className="text-sage-ink" aria-hidden="true" /> Guía Obstétrica: Protocolo Cardiff
           </h4>
           <ul className="space-y-2 leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
             <li className="flex items-start gap-2">
-              <span className="text-terracotta dark:text-sage font-bold">1.</span>
+              <span className="text-terracotta-ink font-bold">1.</span>
               <span><strong>¿Cuándo iniciar?</strong> Recomendado a partir de la semana 28 (o semana 24 si tu médico lo indicó).</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-terracotta dark:text-sage font-bold">2.</span>
+              <span className="text-terracotta-ink font-bold">2.</span>
               <span><strong>Mejor momento:</strong> 30 a 60 minutos después de comer o por la noche, cuando el feto recibe más glucosa y la madre está en reposo.</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-terracotta dark:text-sage font-bold">3.</span>
+              <span className="text-terracotta-ink font-bold">3.</span>
               <span><strong>Postura recomendada:</strong> Recuéstate sobre tu costado izquierdo para maximizar la oxigenación placentaria.</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-terracotta dark:text-sage font-bold">4.</span>
+              <span className="text-terracotta-ink font-bold">4.</span>
               <span><strong>¿Qué cuenta como movimiento?</strong> Patadas, aleteos, giros o presiones claras. El hipo rítmico no se cuenta como patada voluntaria.</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-terracotta dark:text-sage font-bold">5.</span>
+              <span className="text-terracotta-ink font-bold">5.</span>
               <span><strong>Meta normal:</strong> Sentir 10 movimientos. La gran mayoría de bebés lo logra en menos de 30 a 45 minutos.</span>
             </li>
           </ul>
         </div>
       )}
 
-      {/* ALERTA CLíNICA CARDIFF (>90 MIN) */}
+      {/* ALERTA CARDIFF: A LOS 90 MIN SIN 10 MOVIMIENTOS; A LAS 2 H, LLAMAR */}
       {isOvertime && (
-        <div className="bg-terracotta/10 dark:bg-[#241b12] border-2 border-terracotta/80 dark:border-terracotta/100/40 rounded-3xl p-4 text-left shadow-md animate-in fade-in" role="alert">
-          <div className="flex gap-3 items-start">
-            <AlertTriangle className="text-amber-600 shrink-0 mt-0.5" size={22} />
-            <div>
-              <h4 className="font-bold text-terracotta dark:text-terracotta/80 text-sm">Sesión Prolongada (+90 min sin 10 patadas)</h4>
-              <p className="text-xs text-terracotta dark:text-terracotta/30 mt-1 leading-relaxed">
-                Si el bebé está inactivo, prueba estos pasos clínicos de estimulación:
+        <section
+          aria-labelledby={`${callPanelId}-alerta`}
+          className="rounded-3xl border border-terracotta-ink/35 bg-terracotta/10 dark:bg-terracotta/[0.12] p-4 text-left animate-in fade-in"
+        >
+          <div role="alert" aria-live="assertive" className="flex gap-3 items-start">
+            <AlertTriangle className="text-terracotta-ink shrink-0 mt-0.5" size={22} aria-hidden="true" />
+            <div className="min-w-0">
+              <h4 id={`${callPanelId}-alerta`} className="text-base font-bold leading-snug text-terracotta-ink">
+                {isTwoHours ? "Pasaron 2 horas sin llegar a 10 movimientos" : "Van 90 minutos sin llegar a 10 movimientos"}
+              </h4>
+              <p className="mt-1 text-sm leading-relaxed text-stone-800 dark:text-[#eae6e1]">
+                {isTwoHours
+                  ? "Llama ahora a tu obstetra o ve a urgencias para que revisen al bebé."
+                  : "Recuéstate de lado y sigue contando con calma. Si a las 2 horas no llegas a 10 movimientos, llama a tu obstetra o ve a urgencias."}
               </p>
-              <ul className="text-xs text-terracotta/90 dark:text-terracotta/30/90 list-disc list-inside mt-1.5 space-y-0.5">
-                <li>Bebe un vaso de agua muy fría o jugo de frutas natural.</li>
-                <li>Recuéstate 20 minutos sobre tu costado izquierdo en completo silencio.</li>
-                <li>Toca suavemente tu abdomen o pon música suave.</li>
-              </ul>
-              <p className="text-xs font-semibold text-rose-800 dark:text-rose-300 mt-2">
-                Si tras 2 horas completas el bebé no alcanza 10 movimientos o notas una reducción drástica, contacta a tu equipo médico de inmediato.
+              <p className="mt-2 text-sm font-semibold leading-relaxed text-stone-900 dark:text-[#eae6e1]">
+                Si notas que se mueve menos de lo habitual, no esperes a completar el conteo: llama.
               </p>
-              <div className="mt-3 pt-2.5 border-t border-terracotta/30 dark:border-terracotta/100/30 flex gap-2">
-                <a
-                  href="tel:911"
-                  className="inline-flex items-center gap-1.5 bg-rose-600 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-xs hover:bg-terracotta active:scale-95 transition-all"
-                >
-                  <PhoneCall size={14} /> Llamada al Médico / SOS
-                </a>
-              </div>
             </div>
           </div>
-        </div>
+          <CallActions context="patadas" className="mt-4" />
+        </section>
       )}
 
       {/* TRACKER VISUAL DE 10 PASOS */}
       <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] space-y-3">
         <div className="flex items-center justify-between text-xs font-bold">
           <span className="text-stone-700 dark:text-[#eae6e1]">Progreso de la Sesión</span>
-          <span className="text-sage dark:text-sage/80">{count} de 10 patadas</span>
+          <span className="text-sage-ink">{count} de 10 patadas</span>
         </div>
 
         {/* 10 Pills Indicadoras */}
@@ -926,10 +1968,10 @@ export function ContadorPatadas({ showToast }: { showToast: any }) {
                 key={idx}
                 className={`h-9 rounded-xl flex items-center justify-center text-xs font-bold transition-all ${
                   isDone
-                    ? "bg-terracotta text-white shadow-xs scale-100"
+                    ? "bg-terracotta-ink text-white shadow-xs scale-100"
                     : isCurrent
-                    ? "bg-terracotta/20 dark:bg-[#241b12] text-terracotta dark:text-terracotta/80 border-2 border-terracotta animate-pulse scale-105"
-                    : "bg-stone-100 dark:bg-[#2d273a] text-stone-400 dark:text-[#a6a1b2]/60"
+                    ? "bg-terracotta/20 dark:bg-[#241b12] text-terracotta-ink border-2 border-terracotta-ink animate-pulse motion-reduce:animate-none scale-105"
+                    : "bg-stone-100 dark:bg-[#2d273a] text-stone-600 dark:text-[#a6a1b2]"
                 }`}
               >
                 {isDone ? <Check size={14} /> : idx + 1}
@@ -941,7 +1983,7 @@ export function ContadorPatadas({ showToast }: { showToast: any }) {
         {/* Barra de progreso suave */}
         <div className="w-full bg-stone-100 dark:bg-[#2d273a] rounded-full h-2 overflow-hidden">
           <div
-            className="bg-gradient-to-r from-sage/100 to-emerald-500 h-full transition-all duration-300 rounded-full"
+            className="bg-sage-ink h-full transition-all duration-300 rounded-full"
             style={{ width: `${Math.min(100, (count / 10) * 100)}%` }}
           />
         </div>
@@ -954,29 +1996,25 @@ export function ContadorPatadas({ showToast }: { showToast: any }) {
           onClick={handleKick}
           disabled={count >= 10}
           aria-label={count >= 10 ? "Meta de 10 patadas completada" : "Registrar movimiento o patada del bebé"}
-          className={`relative z-10 w-60 h-60 rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-200 transform active:scale-95 select-none focus:outline-none focus:ring-4 focus:ring-sage/80 dark:focus:ring-sage ${
-            count >= 10 
-              ? "bg-gradient-to-br from-emerald-500 to-sage dark:from-[#15342c] dark:to-[#0f241e] text-white border-4 border-white dark:border-sage/100/30 cursor-default" 
-              : count === 0
-              ? "bg-gradient-to-br from-sage/100 to-sage dark:from-[#221d2d] dark:to-[#181520] text-white dark:text-[#eae6e1] border-4 border-white dark:border-sage/100/30 hover:shadow-sage/30/80 hover:scale-[1.02]"
-              : "bg-gradient-to-br from-sage/100 via-sage to-sage-hover dark:from-[#183a31] dark:to-[#102721] text-white dark:text-[#eae6e1] border-4 border-white dark:border-sage/100/40 hover:scale-[1.02]"
+          className={`relative z-10 w-60 h-60 rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-200 transform active:scale-95 motion-reduce:active:scale-100 select-none focus:outline-none focus-visible:ring-4 focus-visible:ring-sage-ink/60 bg-sage-ink text-white border-4 border-white dark:border-white/15 ${
+            count >= 10 ? "cursor-default" : "hover:bg-sage-ink-hover hover:scale-[1.02] motion-reduce:hover:scale-100"
           }`}
         >
           {count < 10 ? (
             <>
               <span className="text-8xl font-black tracking-tighter leading-none">{count}</span>
-              <span className="text-xs font-black uppercase tracking-widest mt-2 bg-white/20 px-3 py-1 rounded-full text-sage/10">
-                {count === 0 ? "Toca para Iniciar" : "Registrar Patada"}
+              <span className="text-sm font-bold mt-2 bg-black/20 px-3 py-1 rounded-full text-white">
+                {count === 0 && !startTime ? "Toca en cada movimiento" : "Registrar movimiento"}
               </span>
-              <span className="text-xs text-sage/20 mt-1 opacity-90 font-medium">
-                {count === 0 ? "1ª patada activa el tiempo" : `Faltan ${10 - count} para la meta`}
+              <span className="text-xs text-white mt-1 font-medium">
+                {count === 0 ? (startTime ? "El tiempo ya corre" : "El primero inicia el tiempo") : `Faltan ${10 - count} para la meta`}
               </span>
             </>
           ) : (
             <>
-              <Sparkles size={40} className="text-terracotta/80 mb-1 animate-pulse motion-reduce:animate-none" />
+              <CheckCircle2 size={40} className="mb-1" aria-hidden="true" />
               <span className="text-4xl font-black tracking-tight leading-tight">¡Meta 10!</span>
-              <span className="text-xs font-bold tracking-tight text-stone-100 mt-1">Completada con éxito</span>
+              <span className="text-xs font-bold tracking-tight text-white mt-1">Completada con éxito</span>
             </>
           )}
         </button>
@@ -986,10 +2024,21 @@ export function ContadorPatadas({ showToast }: { showToast: any }) {
           <button
             type="button"
             onClick={handleUndo}
-            className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-stone-600 dark:text-[#eae6e1] hover:text-stone-900 dark:hover:text-white bg-white dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 hover:bg-stone-50 dark:hover:bg-[#2a2e37] px-3.5 py-1.5 rounded-full shadow-xs active:scale-95 transition-all"
+            className="mt-4 inline-flex min-h-[44px] items-center gap-1.5 text-xs font-bold text-stone-600 dark:text-[#eae6e1] hover:text-stone-900 dark:hover:text-white bg-white dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 hover:bg-stone-50 dark:hover:bg-[#2a2e37] px-3.5 py-1.5 rounded-full shadow-xs active:scale-95 transition-all"
             aria-label="Deshacer último movimiento registrado"
           >
             <Undo2 size={13} /> Deshacer última patada (-1)
+          </button>
+        )}
+
+        {count === 0 && !startTime && (
+          <button
+            type="button"
+            onClick={startEmptySession}
+            className="mt-4 inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-stone-300 dark:border-white/15 bg-white dark:bg-[#2d273a] px-4 text-sm font-bold text-stone-800 dark:text-[#eae6e1] hover:bg-stone-50 dark:hover:bg-[#352e44] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+          >
+            <Clock size={16} aria-hidden="true" />
+            Aún no lo siento: iniciar el tiempo
           </button>
         )}
 
@@ -1004,15 +2053,24 @@ export function ContadorPatadas({ showToast }: { showToast: any }) {
         )}
       </div>
 
+      {/* LLAMAR SIN ESPERAR AL CONTEO (la alerta de 90 min ya trae sus propias llamadas) */}
+      {!isOvertime && (
+        <QuickCallBlock context="patadas">
+          <p className="text-sm leading-relaxed text-stone-700 dark:text-[#eae6e1]">
+            <strong className="font-bold text-stone-900 dark:text-[#eae6e1]">Si notas que se mueve menos de lo habitual,</strong> no esperes a completar el conteo: llama.
+          </p>
+        </QuickCallBlock>
+      )}
+
       {/* TARJETA DE CRONÓMETRO Y ACCIONES DE SESIÓN */}
       <div className="bg-white dark:bg-[#221d2d] w-full rounded-3xl shadow-xs border border-stone-100 dark:border-white/[0.08] p-4 flex flex-col gap-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="bg-sage/10 dark:bg-[#1a1724] text-sage dark:text-sage/80 p-2.5 rounded-2xl">
-              <Clock size={22} className={startTime ? "animate-pulse text-terracotta dark:text-sage" : ""} />
+            <div className="bg-sage/10 dark:bg-[#1a1724] text-sage-ink p-2.5 rounded-2xl">
+              <Clock size={22} className={startTime ? "animate-pulse motion-reduce:animate-none text-sage-ink" : ""} />
             </div>
             <div>
-              <p className="text-xs text-sage dark:text-sage/80 font-bold tracking-tight">Tiempo de Sesión</p>
+              <p className="text-xs text-sage-ink font-bold tracking-tight">Tiempo de Sesión</p>
               <p className="text-2xl font-black text-stone-800 dark:text-[#eae6e1] tracking-tight font-mono tabular-nums">{formatTimer(elapsedSeconds)}</p>
             </div>
           </div>
@@ -1020,7 +2078,7 @@ export function ContadorPatadas({ showToast }: { showToast: any }) {
           <button 
             type="button"
             onClick={reset} 
-            className="text-terracotta dark:text-rose-300 hover:text-rose-800 dark:hover:text-rose-200 font-bold text-xs bg-terracotta/10/70 dark:bg-[#251518] hover:bg-terracotta/20/80 dark:hover:bg-[#301c20] px-3.5 py-2 rounded-xl transition-colors tracking-tight flex items-center gap-1.5 active:scale-95 border border-rose-200/60 dark:border-terracotta/100/25"
+            className="min-h-[44px] text-terracotta-ink font-bold text-xs bg-terracotta/10 hover:bg-terracotta/20 dark:bg-terracotta/[0.12] dark:hover:bg-terracotta/20 px-3.5 py-2 rounded-xl transition-colors tracking-tight flex items-center gap-1.5 active:scale-95 border border-terracotta-ink/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
             title="Reiniciar conteo y cronómetro"
           >
             <RotateCcw size={13} /> Reiniciar
@@ -1033,10 +2091,10 @@ export function ContadorPatadas({ showToast }: { showToast: any }) {
             <button
               type="button"
               onClick={() => setShowTimeline(!showTimeline)}
-              className="w-full flex items-center justify-between text-xs font-bold text-stone-600 dark:text-[#a6a1b2] hover:text-sage dark:hover:text-sage/80 py-1 transition-colors"
+              className="w-full flex items-center justify-between text-xs font-bold text-stone-600 dark:text-[#a6a1b2] hover:text-stone-900 dark:hover:text-[#eae6e1] py-1 transition-colors"
             >
               <span className="flex items-center gap-1.5">
-                <Activity size={14} className="text-terracotta dark:text-sage" />
+                <Activity size={14} className="text-sage-ink" />
                 <span>Ver ritmo de movimientos ({kicks.length} registrados)</span>
               </span>
               {showTimeline ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -1048,7 +2106,7 @@ export function ContadorPatadas({ showToast }: { showToast: any }) {
                   <div key={k.id} className="flex justify-between items-center text-xs bg-slate-50 dark:bg-[#2d273a]/60 px-3 py-1.5 rounded-xl border border-slate-100 dark:border-white/[0.06]">
                     <span className="font-bold text-stone-700 dark:text-[#eae6e1]">Patada #{idx + 1}</span>
                     <span className="text-stone-500 dark:text-[#a6a1b2] font-mono">{k.timeStr}</span>
-                    <span className="text-sage dark:text-sage/80 font-semibold text-xs">
+                    <span className="text-sage-ink font-semibold text-xs">
                       {k.intervalSecs !== null ? `+${formatDurationText(k.intervalSecs)}` : "Inicio"}
                     </span>
                   </div>
@@ -1061,50 +2119,51 @@ export function ContadorPatadas({ showToast }: { showToast: any }) {
 
       {/* TARJETA DE CELEBRACIÓN Y NOTA AL COMPLETAR */}
       {completedSession && (
-        <div className="bg-gradient-to-br from-emerald-500 to-sage text-white rounded-3xl p-5 shadow-lg space-y-4 animate-in zoom-in-95 duration-200">
+        <div className="bg-sage-ink text-white rounded-3xl p-5 shadow-lg space-y-4 animate-in zoom-in-95 duration-200">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               <div className="bg-white/20 p-2.5 rounded-2xl">
-                <Sparkles size={24} className="text-terracotta/80" />
+                <CheckCircle2 size={24} aria-hidden="true" />
               </div>
               <div>
                 <h4 className="text-lg font-black leading-tight">¡Sesión Exitosa Registrada!</h4>
-                <p className="text-xs text-white/80 mt-0.5">10 movimientos completados en {completedSession.durationFormatted}</p>
+                <p className="text-xs text-white mt-0.5">10 movimientos completados en {completedSession.durationFormatted}</p>
               </div>
             </div>
             <button
               type="button"
               onClick={() => setCompletedSession(null)}
-              className="text-white/80 hover:text-white min-w-[40px] min-h-[40px] flex items-center justify-center p-2 rounded-xl hover:bg-white/10 transition-colors"
+              className="text-white hover:text-white min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-xl hover:bg-white/10 transition-colors"
               aria-label="Cerrar aviso de sesión completada"
             >
               <X size={18} />
             </button>
           </div>
 
-          <p className="text-xs text-white/90 leading-relaxed bg-white/10 p-3 rounded-2xl">
-            âš¡ <strong>Evaluación médica:</strong> Tu bebé mostró un ritmo activo y reactivo saludable. La sesión ya está registrada en el historial.
+          <p className="text-xs text-white leading-relaxed bg-black/15 p-3 rounded-2xl">
+            Sesión guardada en el historial. Si otro día notas que tarda mucho más de lo habitual o se mueve menos, llama a tu obstetra.
           </p>
 
           <div>
-            <p className="text-xs font-bold tracking-tight text-white/80 mb-2">Añadir contexto a la sesión:</p>
+            <p className="text-xs font-bold tracking-tight text-white mb-2">Añadir contexto a la sesión:</p>
               <div className="flex flex-wrap gap-1.5">
                 {[
-                  "🍽️ Después de comer",
-                  "🛋️ En reposo",
-                  "🎵 Con música",
-                  "🌙 Por la noche",
-                  "☀️ En la mañana",
-                  "🚶 Tras caminar"
+                  "Después de comer",
+                  "En reposo",
+                  "Con música",
+                  "Por la noche",
+                  "En la mañana",
+                  "Tras caminar"
                 ].map(note => (
                 <button
                   key={note}
                   type="button"
                   onClick={() => saveSessionNote(note)}
-                  className={`text-xs px-3 py-1.5 rounded-xl font-medium transition-all ${
+                  aria-pressed={selectedNote === note}
+                  className={`min-h-[44px] text-xs px-3 py-1.5 rounded-xl font-medium transition-all ${
                     selectedNote === note
-                      ? "bg-white text-sage font-bold shadow-sm"
-                      : "bg-white/15 text-white hover:bg-white/25"
+                      ? "bg-white text-sage-ink font-bold shadow-sm"
+                      : "bg-black/15 text-white hover:bg-black/25"
                   }`}
                 >
                   {note}
@@ -1116,57 +2175,79 @@ export function ContadorPatadas({ showToast }: { showToast: any }) {
           <button
             type="button"
             onClick={reset}
-            className="w-full py-3 bg-white text-sage rounded-2xl font-bold text-xs hover:bg-sage/10 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2"
+            className="w-full min-h-[48px] py-3 bg-white text-sage-ink rounded-2xl font-bold text-sm hover:bg-stone-100 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2"
           >
             <RotateCcw size={14} /> Iniciar Nueva Sesión
           </button>
         </div>
       )}
 
-      {/* ESTADíSTICAS INTELIGENTES Y PROMEDIO */}
+      {/* PROMEDIO PERSONAL (sin juicios clínicos: solo tu referencia) */}
       {avgDurationMinutes !== null && (
-        <div className="bg-gradient-to-br from-sage/10/70 to-emerald-50/60 dark:from-[#221d2d] dark:to-[#1a1724] rounded-3xl p-4 border border-sage/20 dark:border-sage/100/25 flex items-center justify-between shadow-xs">
+        <div className="bg-sage/10 dark:bg-[#221d2d] rounded-3xl p-4 border border-sage/20 dark:border-white/[0.08] flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="bg-sage/20 dark:bg-[#1a1724] text-sage dark:text-sage/80 p-2.5 rounded-2xl">
-              <Trophy size={20} className="text-sage dark:text-sage" />
+            <div className="bg-sage/20 dark:bg-[#1a1724] text-sage-ink p-2.5 rounded-2xl">
+              <Trophy size={20} aria-hidden="true" />
             </div>
             <div>
-              <p className="text-xs font-bold text-stone-800 dark:text-[#eae6e1]">Promedio Personal (10 Patadas)</p>
-              <p className="text-lg font-black text-sage dark:text-sage/80 font-mono">~{avgDurationMinutes} minutos</p>
+              <p className="text-xs font-bold text-stone-800 dark:text-[#eae6e1]">Tu promedio para llegar a 10</p>
+              <p className="text-lg font-black text-sage-ink tabular-nums">~{avgDurationMinutes} minutos</p>
             </div>
           </div>
-          <span className="text-xs font-bold text-sage dark:text-sage/80 bg-sage/20/80 dark:bg-[#1a1724] px-2.5 py-1 rounded-full tracking-tight">
-            Ritmo Normal
+          <span className="text-xs font-semibold text-stone-600 dark:text-[#a6a1b2] tabular-nums">
+            {validSessions.length} {validSessions.length === 1 ? "sesión" : "sesiones"}
           </span>
         </div>
       )}
 
-      {/* HISTORIAL CLíNICO DE SESIONES CON PERSISTENCIA */}
+      {/* HISTORIAL DE SESIONES */}
       <div>
-        <div className="flex justify-between items-center mb-3">
+        <div className="flex flex-wrap justify-between items-center gap-x-3 gap-y-1 mb-3">
           <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] flex items-center gap-2 text-sm">
-            <History size={18} className="text-terracotta dark:text-sage/80"/> Historial Clínico ({sessions.length})
+            <History size={18} className="text-sage-ink" aria-hidden="true" /> Historial ({sessions.length})
           </h4>
-          <span className="text-xs font-semibold text-stone-500 dark:text-[#a6a1b2]">Guardado automático</span>
+          <SyncBadge lastSyncedAt={history.meta?.updatedAt ?? null} waiting={!history.loaded} />
         </div>
 
-        {sessions.length === 0 ? (
+        <RetryNotice state={retryState} onDismiss={clearRetry} className="mb-3" />
+        {history.unsentIds.size > 0 && (
+          <div className="mb-3">
+            <UnsentNotice count={history.unsentIds.size} onRetry={history.retryUnsent} one="sesión" many="sesiones" />
+          </div>
+        )}
+        {history.loadError && (
+          <div className="mb-3">
+            <LoadErrorNotice what="el historial compartido" onRetry={history.retryLoad} />
+          </div>
+        )}
+
+        {history.loadError ? null : !history.loaded && sessions.length === 0 ? (
+          <SharedLoading what="el historial compartido" />
+        ) : sessions.length === 0 ? (
           <div className="bg-stone-50 dark:bg-[#221d2d]/60 rounded-2xl p-6 text-center border border-dashed border-stone-200 dark:border-white/[0.08]">
-            <Baby className="mx-auto text-stone-300 dark:text-[#a6a1b2]/50 mb-2" size={32} />
-            <p className="text-stone-500 dark:text-[#a6a1b2] text-xs font-medium">Aún no hay sesiones guardadas. Completa 10 patadas para archivar tu primer registro.</p>
+            <Baby className="mx-auto text-stone-400 dark:text-[#a6a1b2]/50 mb-2" size={32} aria-hidden="true" />
+            <p className="text-stone-600 dark:text-[#a6a1b2] text-sm">Aún no hay sesiones guardadas. Completa 10 movimientos para guardar la primera.</p>
           </div>
         ) : (
           <div className="space-y-2.5">
             {sessions.map(s => (
-              <div key={s.id} className="bg-white dark:bg-[#221d2d] p-3.5 rounded-2xl border border-stone-200/80 dark:border-white/[0.08] shadow-xs flex justify-between items-center group hover:border-sage/30 dark:hover:border-sage/100/30 transition-all">
+              <div key={s.id} className="bg-white dark:bg-[#221d2d] p-3.5 rounded-2xl border border-stone-200/80 dark:border-white/[0.08] shadow-xs flex justify-between items-center group hover:border-sage/30 dark:hover:border-sage/30 transition-all">
                 <div className="flex items-center gap-3">
                   <div className="bg-emerald-50 dark:bg-[#1a1724] text-sage-hover dark:text-sage/80 p-2 rounded-xl shrink-0">
                     <CheckCircle size={18}/>
                   </div>
-                  <div>
-                    <span className="font-bold text-stone-800 dark:text-[#eae6e1] text-xs leading-tight block">{s.dateFormatted}</span>
+                  <div className="min-w-0">
+                    <span className="flex items-center gap-1.5 font-bold text-stone-800 dark:text-[#eae6e1] text-xs leading-tight">
+                      {s.timestamp > 0 ? formatDayTime(s.timestamp, listNow) : s.dateFormatted}
+                      {history.linked && <ItemAuthor item={s} members={me.members} />}
+                    </span>
+                    {history.unsentIds.has(String(s.id)) && (
+                      <span className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-amber-800 dark:text-amber-300">
+                        <CloudOff size={12} aria-hidden="true" /> Sin enviar
+                      </span>
+                    )}
                     {s.note && (
-                      <span className="text-xs font-medium text-sage dark:text-sage/80 bg-sage/10 dark:bg-[#1a1724] px-2 py-0.5 rounded-md inline-block mt-0.5">
+                      <span className="text-xs font-medium text-sage-ink bg-sage/10 dark:bg-[#1a1724] px-2 py-0.5 rounded-md inline-block mt-0.5">
                         {s.note}
                       </span>
                     )}
@@ -1180,11 +2261,11 @@ export function ContadorPatadas({ showToast }: { showToast: any }) {
                   </div>
                   <button
                     type="button"
-                    onClick={() => deleteSession(s.id)}
-                    aria-label={`Eliminar sesión de ${s.dateFormatted}`}
-                    className="min-w-[40px] min-h-[40px] flex items-center justify-center text-stone-400 dark:text-[#a6a1b2] hover:text-rose-600 dark:hover:text-terracotta hover:bg-stone-100 dark:hover:bg-[#2d273a] p-2 rounded-xl transition-colors"
+                    onClick={() => deleteSession(s)}
+                    aria-label={`Eliminar sesión de ${s.timestamp > 0 ? formatDayTime(s.timestamp, listNow) : s.dateFormatted}`}
+                    className={`min-w-[44px] min-h-[44px] flex items-center justify-center text-stone-500 dark:text-[#a6a1b2] hover:text-terracotta-ink hover:bg-stone-100 dark:hover:bg-[#2d273a] p-2 rounded-xl transition-colors ${sosFocusRing}`}
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={16} aria-hidden="true" />
                   </button>
                 </div>
               </div>
@@ -1197,34 +2278,127 @@ export function ContadorPatadas({ showToast }: { showToast: any }) {
   );
 }
 
-export function ContadorContracciones({ showToast }: { showToast: any }) {
-  const [isRecording, setIsRecording] = useState(false);
-  const [startTime, setStartTime] = useState<number | null>(null);
-  const [currentDuration, setCurrentDuration] = useState(0);
-  const [lastEndedAt, setLastEndedAt] = useState<number | null>(null);
-  const [restSeconds, setRestSeconds] = useState(0);
+type ContractionItem = { id: number; start: number; duration: number; interval: number | null } & Authored;
 
-  // Historial con persistencia en localStorage sin alarmas falsas en la primera carga
-  const [history, setHistory] = useState<{ id: number, start: number, duration: number, interval: number | null }[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("pandajr_contractions_history");
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) return parsed;
-        }
-      } catch (e) {}
+/** Ventana móvil sobre la que se evalúan las reglas: los últimos 60 minutos. */
+const CONTRACTION_WINDOW_MS = 60 * 60 * 1000;
+/**
+ * Tolerancia en los bordes de la ventana para decir que el registro "cubre la hora":
+ * la primera contracción de la ventana debe caer en sus primeros 7,5 min (1,5 × 5 min)
+ * y la última no puede tener más de 7,5 min (el patrón sigue activo).
+ */
+const CONTRACTION_EDGE_MS = 7.5 * 60 * 1000;
+
+/**
+ * Reglas de contracciones sobre la ventana móvil de 60 min.
+ * - Antes de la semana 37: 4 o más en la última hora → posible parto pretérmino (llamar ya).
+ * - Semana 37 o más: 5-1-1 → intervalo medio ≤ 5 min, duración media ≥ 60 s y el registro
+ *   cubre la hora completa.
+ * - Semana desconocida: se vigilan las dos (ante la duda, avisar).
+ */
+function analyzeContractions(history: ContractionItem[], now: number, week?: number) {
+  const windowStart = now - CONTRACTION_WINDOW_MS;
+  // Con vínculo, mamá y copiloto pueden cronometrar la MISMA contracción en dos teléfonos:
+  // las que se solapan en el tiempo cuentan una sola vez (no inflan el conteo de la alerta).
+  const recent: ContractionItem[] = [];
+  for (const h of history.filter((x) => x.start >= windowStart).sort((a, b) => a.start - b.start)) {
+    const prev = recent[recent.length - 1];
+    if (prev && h.start <= prev.start + prev.duration * 1000) continue;
+    recent.push(h);
+  }
+  const count = recent.length;
+  const avgDuration = count > 0 ? Math.round(recent.reduce((acc, h) => acc + h.duration, 0) / count) : 0;
+  const avgInterval = count > 1 ? Math.round((recent[count - 1].start - recent[0].start) / 1000 / (count - 1)) : 0;
+  const weekKnown = typeof week === "number";
+  const preterm = isPreterm(week);
+  const pretermAlert = (preterm || !weekKnown) && count >= 4;
+  const coversHour =
+    count >= 3 &&
+    recent[0].start - windowStart <= CONTRACTION_EDGE_MS &&
+    now - recent[count - 1].start <= CONTRACTION_EDGE_MS;
+  const activeLabor = !preterm && coversHour && avgInterval > 0 && avgInterval <= 300 && avgDuration >= 60;
+  return { count, avgDuration, avgInterval, preterm, weekKnown, pretermAlert, activeLabor };
+}
+
+const ACTIVE_CONTRACTION_KEY = "pandajr_contraction_active";
+// Una contracción dura 1 o 2 minutos: más de 10 minutos abierta es un registro olvidado.
+const ACTIVE_CONTRACTION_MAX_MS = 10 * 60 * 1000;
+
+const CONTRACTIONS_KEY = "pandajr_contractions_history";
+
+function sanitizeContractions(raw: unknown[]): ContractionItem[] {
+  const out: ContractionItem[] = [];
+  const seen = new Set<number>();
+  for (const r of raw) {
+    if (!isRecord(r)) continue;
+    const id = finiteNum(r.id);
+    const start = finiteNum(r.start);
+    const duration = finiteNum(r.duration);
+    if (id === null || start === null || duration === null || seen.has(id)) continue;
+    seen.add(id);
+    out.push({ id, start, duration, interval: finiteNum(r.interval), ...authoredFrom(r) });
+  }
+  return out.sort((a, b) => b.start - a.start);
+}
+
+const CONTRACTION_LIST: SharedListSpec<ContractionItem> = {
+  localKey: CONTRACTIONS_KEY,
+  listen: listenToContractions,
+  mutate: mutateContractions,
+  sanitize: sanitizeContractions,
+  // La versión anterior guardaba las contracciones solo en el teléfono, aun con vínculo.
+  localMerge: { tool: "contractions", upgrade: true },
+};
+
+/** Inicio de la contracción que se estaba cronometrando (sobrevive a cambiar de herramienta). */
+function loadActiveContraction(): number | null {
+  const s = readStored<{ startTime?: unknown }>(ACTIVE_CONTRACTION_KEY);
+  const t = s && typeof s.startTime === "number" ? s.startTime : null;
+  if (t === null) return null;
+  const age = Date.now() - t;
+  return age >= 0 && age <= ACTIVE_CONTRACTION_MAX_MS ? t : null;
+}
+
+export function ContadorContracciones({ showToast, profile }: { showToast: ShowToast, profile?: UserProfile }) {
+  const week = knownWeek(profile);
+  const me = useMe();
+  const alertId = React.useId();
+  // Contracción en curso restaurada: abrir Síntomas u otra herramienta no la pierde.
+  const [restoredStart] = useState(loadActiveContraction);
+  const [isRecording, setIsRecording] = useState(restoredStart !== null);
+  const [startTime, setStartTime] = useState<number | null>(restoredStart);
+  const [currentDuration, setCurrentDuration] = useState(() => (restoredStart ? Math.floor((Date.now() - restoredStart) / 1000) : 0));
+  // Reloj de la ventana móvil: se refresca cada 15 s y al registrar/quitar contracciones.
+  const [now, setNow] = useState(() => Date.now());
+
+  // Historial: con vínculo se comparte (el listener trae las de la pareja); sin vínculo, en este teléfono.
+  const shared = useSharedList(me.pid, CONTRACTION_LIST, authorStamp(me));
+  const history = shared.items;
+  const { retryState, fail, clearRetry } = useRetry();
+
+  // El descanso cuenta desde la última contracción registrada por cualquiera (id = fin de la contracción).
+  const latestEnd = history.reduce((max, h) => Math.max(max, h.id), 0);
+  const lastEndedAt = latestEnd > 0 && now - latestEnd < CONTRACTION_WINDOW_MS ? latestEnd : null;
+  const restClock = useNow(1000, !isRecording && lastEndedAt !== null);
+  const restSeconds = lastEndedAt ? Math.max(0, Math.floor((restClock - lastEndedAt) / 1000)) : 0;
+
+  // Mutación deliberada (PRODUCT.md §2): guardar solo desde manejadores de evento,
+  // nunca como efecto secundario de que cambie `history`.
+  const commitHistory = (fn: (items: ContractionItem[]) => ContractionItem[], failMessage: string) => {
+    setNow(Date.now());
+    function run() {
+      shared.apply(fn).then((ok) => {
+        if (!ok) fail(failMessage, run);
+      });
     }
-    return [];
-  });
+    run();
+  };
 
   useEffect(() => {
-    try {
-      localStorage.setItem("pandajr_contractions_history", JSON.stringify(history));
-      const pid2 = usePandaStore.getState().profile.pregnancyId;
-      if (pid2) saveContractions(pid2, history).catch(() => {});
-    } catch (e) {}
-  }, [history]);
+    if (history.length === 0) return;
+    const id = setInterval(() => setNow(Date.now()), 15000);
+    return () => clearInterval(id);
+  }, [history.length]);
 
   // Cronómetro de contracción activa
   useEffect(() => {
@@ -1237,24 +2411,15 @@ export function ContadorContracciones({ showToast }: { showToast: any }) {
     return () => clearInterval(interval);
   }, [isRecording, startTime]);
 
-  // Cronómetro de intervalo de descanso entre contracciones
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (!isRecording && lastEndedAt) {
-      interval = setInterval(() => {
-        setRestSeconds(Math.floor((Date.now() - lastEndedAt) / 1000));
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isRecording, lastEndedAt]);
-
   const toggleRecording = () => {
     const now = Date.now();
     if (!isRecording) {
       setStartTime(now);
       setCurrentDuration(0);
       setIsRecording(true);
+      writeStored(ACTIVE_CONTRACTION_KEY, { startTime: now });
     } else {
+      writeStored(ACTIVE_CONTRACTION_KEY, null);
       if (startTime) {
         const durationSecs = Math.max(1, Math.floor((now - startTime) / 1000));
         let intervalSecs: number | null = null;
@@ -1262,31 +2427,33 @@ export function ContadorContracciones({ showToast }: { showToast: any }) {
           const lastStart = history[0].start;
           intervalSecs = Math.floor((startTime - lastStart) / 1000);
         }
-        setHistory(prev => [{
-          id: now,
-          start: startTime,
-          duration: durationSecs,
-          interval: intervalSecs
-        }, ...prev]);
-        setLastEndedAt(now);
-        setRestSeconds(0);
+        // Registro nuevo: si no llega al servidor queda "Sin enviar" en este teléfono, sigue contando
+        // para las alertas y se reenvía solo (nunca se pierde por un fallo de red).
+        setNow(Date.now());
+        void shared.add({ id: now, start: startTime, duration: durationSecs, interval: intervalSecs, ...authorStamp(me) });
       }
       setIsRecording(false);
       setStartTime(null);
     }
   };
 
-  // Atajo de teclado: Barra espaciadora para iniciar/detener
+  // Atajo de teclado: Barra espaciadora para iniciar/detener (siempre con el manejador del último render).
+  const toggleKeyRef = useRef(toggleRecording);
+  useEffect(() => {
+    toggleKeyRef.current = toggleRecording;
+  });
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === "Space" && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
+      // Sobre un botón o enlace, Espacio activa ese control (el botón grande ya alterna
+      // con su propio clic); dentro de la hoja del equipo de salud no debe contar.
+      if ((e.code === "Space" || e.key === " ") && !isControlTarget(e.target)) {
         e.preventDefault();
-        toggleRecording();
+        toggleKeyRef.current();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isRecording, startTime, history]);
+  }, []);
 
   const formatTime = (secs: number) => {
     if (secs < 60) return `${secs}s`;
@@ -1298,82 +2465,106 @@ export function ContadorContracciones({ showToast }: { showToast: any }) {
   const clearHistory = () => {
     if (history.length === 0) return;
     const backup = [...history];
-    setHistory([]);
-    setLastEndedAt(null);
-    setRestSeconds(0);
-    showToast("Historial de contracciones reiniciado", () => setHistory(backup));
+    const ids = new Set(backup.map((h) => h.id));
+    // Quita solo lo que se veía (si la pareja registra otra en ese instante, se conserva).
+    commitHistory((items) => items.filter((h) => !ids.has(h.id)), "No se pudo reiniciar el historial.");
+    showToast("Historial de contracciones reiniciado", () =>
+      commitHistory(restoreItems(backup), "No se pudo recuperar el historial.")
+    );
   };
 
-  const deleteItem = (id: number) => {
-    const backup = [...history];
-    setHistory(prev => prev.filter(h => h.id !== id));
-    showToast("Contracción eliminada", () => setHistory(backup));
+  const deleteItem = (item: ContractionItem) => {
+    commitHistory(removeById<ContractionItem>(item.id), "No se pudo eliminar la contracción.");
+    showToast("Contracción eliminada", () => commitHistory(restoreItems([item]), "No se pudo recuperar la contracción."));
   };
 
-  // Cálculos de promedios
-  const avgDuration = history.length > 0 ? Math.round(history.reduce((acc, h) => acc + h.duration, 0) / history.length) : 0;
-  const intervals = history.filter(h => h.interval !== null);
-  const avgInterval = intervals.length > 0 ? Math.round(intervals.reduce((acc, h) => acc + (h.interval || 0), 0) / intervals.length) : 0;
-
-  // Regla 5-1-1: Frecuencia <= 5-6 min (360s), Duración >= 45s, al menos 3 consecutivas
-  const is511 = history.length >= 3 && avgDuration >= 45 && avgInterval > 0 && avgInterval <= 360;
+  // Promedios y reglas sobre la ventana móvil de los últimos 60 minutos
+  const { count: recentCount, avgDuration, avgInterval, preterm, weekKnown, pretermAlert, activeLabor } = analyzeContractions(history, now, week);
+  // Con semana desconocida y 5-1-1 cumplido, basta la alerta de trabajo de parto (también pide llamar).
+  const showPretermAlert = pretermAlert && !activeLabor;
 
   return (
     <div className="flex flex-col py-2 animate-in fade-in duration-300 w-full space-y-4">
-      
-      {/* Alerta de Parto Activo (Regla 5-1-1) */}
-      {is511 && (
-        <div className="bg-terracotta/10 dark:bg-[#251518] border border-rose-200 dark:border-terracotta/100/25 p-4 rounded-3xl shadow-xs animate-in slide-in-from-top-3" role="alert" aria-live="assertive">
-          <div className="flex gap-3">
-            <div className="bg-terracotta/20 dark:bg-[#341b21] text-rose-600 dark:text-rose-300 p-2.5 rounded-2xl shrink-0">
-              <AlertTriangle size={24} />
+
+      {/* Alerta: posible parto pretérmino (antes de la semana 37, 4 o más en 1 hora) */}
+      {showPretermAlert && (
+        <section
+          aria-labelledby={`${alertId}-pretermino`}
+          className="rounded-3xl border border-terracotta-ink/35 bg-terracotta/10 dark:bg-terracotta/[0.12] p-4 animate-in slide-in-from-top-3"
+        >
+          <div role="alert" aria-live="assertive" className="flex gap-3">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-terracotta-ink text-white">
+              <AlertTriangle size={22} aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <h4 id={`${alertId}-pretermino`} className="text-base font-bold leading-snug text-terracotta-ink">
+                {weekKnown ? "Posible parto pretérmino" : "4 o más contracciones en la última hora"}
+              </h4>
+              {weekKnown ? (
+                <p className="mt-1 text-sm leading-relaxed text-stone-800 dark:text-[#eae6e1]">
+                  Registraste {recentCount} contracciones en la última hora y estás en la semana {week}.{" "}
+                  <strong className="font-bold text-stone-900 dark:text-white">Llama ya a tu obstetra o a emergencias.</strong>{" "}
+                  No esperes a que se detengan.
+                </p>
+              ) : (
+                <p className="mt-1 text-sm leading-relaxed text-stone-800 dark:text-[#eae6e1]">
+                  Registraste {recentCount} contracciones en la última hora.{" "}
+                  <strong className="font-bold text-stone-900 dark:text-white">Si estás antes de la semana 37, llama ya a tu obstetra o a emergencias:</strong>{" "}
+                  puede ser parto pretérmino. Indica tu semana en Ajustes para que el aviso sea exacto.
+                </p>
+              )}
             </div>
-            <div>
-              <h4 className="font-bold text-rose-950 dark:text-rose-300 text-sm">¡Regla 5-1-1 Detectada! (Parto Activo)</h4>
-              <p className="text-rose-800 dark:text-rose-300/90 text-xs mt-1 leading-snug">
-                Tus contracciones vienen cada ~{Math.round(avgInterval / 60)} min y duran ~{avgDuration}s. Es momento de acudir al hospital o contactar a tu obstetra o matrona.
+          </div>
+          <CallActions context="pretermino" className="mt-4" />
+        </section>
+      )}
+
+      {/* Alerta: posible trabajo de parto activo (regla 5-1-1, semana 37 o más) */}
+      {activeLabor && (
+        <section
+          aria-labelledby={`${alertId}-511`}
+          className="rounded-3xl border border-terracotta-ink/35 bg-terracotta/10 dark:bg-terracotta/[0.12] p-4 animate-in slide-in-from-top-3"
+        >
+          <div role="alert" aria-live="assertive" className="flex gap-3">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-terracotta-ink text-white">
+              <AlertTriangle size={22} aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <h4 id={`${alertId}-511`} className="text-base font-bold leading-snug text-terracotta-ink">
+                Posible trabajo de parto activo
+              </h4>
+              <p className="mt-1 text-sm leading-relaxed text-stone-800 dark:text-[#eae6e1]">
+                En la última hora tus contracciones llegaron cada {formatTime(avgInterval)} en promedio y duraron unos {formatTime(avgDuration)}.{" "}
+                <strong className="font-bold text-stone-900 dark:text-white">Es momento de llamar a tu obstetra o ir al hospital.</strong>
               </p>
             </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-rose-200/80 dark:border-terracotta/100/20 flex gap-2">
-            <a
-              href="tel:911"
-              className="flex-1 bg-rose-600 hover:bg-terracotta active:scale-95 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
-            >
-              📞 Llamar al Obstetra
-            </a>
-            <a
-              href="https://maps.google.com/?q=hospital+maternidad"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1 bg-white dark:bg-[#221d2d] hover:bg-terracotta/20/50 dark:hover:bg-[#2d273a] active:scale-95 border border-rose-300 dark:border-terracotta/100/30 text-terracotta dark:text-rose-300 font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all text-center"
-            >
-              🏥 Hospital
-            </a>
-          </div>
-        </div>
+          <CallActions context="contracciones" className="mt-4" />
+        </section>
       )}
 
-      {/* Tarjetas de Promedios */}
+      {/* Tarjetas de Promedios (última hora) */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] flex flex-col items-center justify-center text-center">
-          <p className="text-xs text-sage dark:text-sage/80 font-bold tracking-tight mb-1">Duración Promedio</p>
-          <p className="text-xl font-black text-sage dark:text-sage/80 tabular-nums">{history.length > 0 ? formatTime(avgDuration) : "—"}</p>
+          <p className="text-xs text-stone-600 dark:text-[#a6a1b2] font-bold tracking-tight mb-1">Duración media</p>
+          <p className="text-xl font-black text-sage-ink tabular-nums">{recentCount > 0 ? formatTime(avgDuration) : "—"}</p>
+          <p className="text-xs text-stone-600 dark:text-[#a6a1b2] mt-0.5">última hora</p>
         </div>
         <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] flex flex-col items-center justify-center text-center">
-          <p className="text-xs text-rose-800 dark:text-rose-300 font-bold tracking-tight mb-1">Frecuencia Promedio</p>
-          <p className="text-xl font-black text-rose-600 dark:text-terracotta tabular-nums">{avgInterval ? formatTime(avgInterval) : "—"}</p>
+          <p className="text-xs text-stone-600 dark:text-[#a6a1b2] font-bold tracking-tight mb-1">Frecuencia media</p>
+          <p className="text-xl font-black text-terracotta-ink tabular-nums">{avgInterval ? formatTime(avgInterval) : "—"}</p>
+          <p className="text-xs text-stone-600 dark:text-[#a6a1b2] mt-0.5">última hora</p>
         </div>
       </div>
-      
+
       {/* Botón Principal del Cronómetro */}
-      <button 
+      <button
         type="button"
         onClick={toggleRecording}
-        className={`w-full py-7 rounded-3xl shadow-xl text-white font-bold text-xl flex flex-col items-center justify-center gap-2 transition-all duration-300 transform active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-sage ${
-          isRecording 
-            ? "bg-terracotta/100 hover:bg-rose-600 ring-4 ring-rose-200 dark:ring-terracotta/100/30" 
-            : "bg-terracotta hover:bg-terracotta-hover"
+        className={`w-full py-7 rounded-3xl shadow-xl text-white font-bold text-xl flex flex-col items-center justify-center gap-2 transition-all duration-300 transform active:scale-95 motion-reduce:active:scale-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-sage ${
+          isRecording
+            ? "bg-terracotta-ink-hover ring-4 ring-terracotta/35"
+            : "bg-terracotta-ink hover:bg-terracotta-ink-hover"
         }`}
         aria-label={isRecording ? "Detener registro de contracción" : "Iniciar registro de contracción"}
       >
@@ -1383,102 +2574,152 @@ export function ContadorContracciones({ showToast }: { showToast: any }) {
             {isRecording ? formatTime(currentDuration) : "Iniciar Contracción"}
           </span>
         </div>
-        <span className="text-xs font-medium opacity-90">
+        <span className="text-xs font-medium">
           {isRecording ? "Toca o presiona Espacio al terminar" : "Toca o presiona Espacio al sentir que inicia"}
         </span>
       </button>
 
+      {/* La regla que aplica y las llamadas, siempre a un toque (las alertas traen las suyas) */}
+      {!showPretermAlert && !activeLabor && (
+        <QuickCallBlock context="contracciones">
+          <div className="flex gap-3">
+            <Info size={20} className="mt-0.5 shrink-0 text-terracotta-ink" aria-hidden="true" />
+            {preterm ? (
+              <p className="text-sm leading-relaxed text-stone-700 dark:text-[#eae6e1]">
+                Estás en la semana {week}. Antes de la semana 37, <strong className="font-bold text-stone-900 dark:text-white">4 o más contracciones en 1 hora</strong>, presión en la pelvis o dolor lumbar que va y viene son motivo para llamar ya.
+                {recentCount > 0 && ` En la última hora llevas ${recentCount} ${recentCount === 1 ? "contracción" : "contracciones"}.`}
+              </p>
+            ) : !weekKnown ? (
+              <p className="text-sm leading-relaxed text-stone-700 dark:text-[#eae6e1]">
+                No tenemos confirmada tu semana, así que vigilamos las dos reglas. <strong className="font-bold text-stone-900 dark:text-white">Antes de la semana 37:</strong> 4 o más contracciones en 1 hora son motivo para llamar ya. <strong className="font-bold text-stone-900 dark:text-white">Desde la semana 37:</strong> cada 5 minutos o menos, de 1 minuto, durante 1 hora (5-1-1).
+                {recentCount > 0 && ` En la última hora llevas ${recentCount} ${recentCount === 1 ? "contracción" : "contracciones"}.`}
+              </p>
+            ) : (
+              <p className="text-sm leading-relaxed text-stone-700 dark:text-[#eae6e1]">
+                <strong className="font-bold text-stone-900 dark:text-white">Si se rompe la fuente, tienes sangrado o el bebé se mueve menos,</strong> no esperes a la regla 5-1-1: llama.
+              </p>
+            )}
+          </div>
+        </QuickCallBlock>
+      )}
+
       {/* MODO RECUPERACIÓN Y RESPIRACIÓN GUIADA ENTRE CONTRACCIONES */}
       {!isRecording && history.length > 0 && (
-        <div className="bg-gradient-to-br from-sage/10/80 via-emerald-50/50 to-white dark:from-[#221d2d] dark:to-[#1a1724] rounded-3xl p-5 border border-sage/30/80 dark:border-sage/100/25 shadow-xs space-y-4 animate-in fade-in">
+        <div className="bg-sage/[0.08] dark:bg-[#221d2d] rounded-3xl p-5 border border-sage/30 dark:border-white/[0.08] space-y-4 animate-in fade-in">
           <div className="flex items-center justify-between border-b border-sage/20 dark:border-white/[0.06] pb-2.5">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-sage animate-ping"></span>
-              <h4 className="text-xs font-bold text-teal-950 dark:text-sage/80 tracking-tight">Intervalo de Descanso Activo</h4>
+              <span className="w-2.5 h-2.5 rounded-full bg-sage-ink animate-ping motion-reduce:animate-none" aria-hidden="true"></span>
+              <h4 className="text-xs font-bold text-stone-900 dark:text-[#eae6e1] tracking-tight">Descanso entre contracciones</h4>
             </div>
-            <span className="text-xs font-bold text-sage dark:text-sage/80 font-mono tabular-nums">
+            <span className="text-xs font-bold text-sage-ink font-mono tabular-nums">
               Descanso: {formatTime(restSeconds)}
             </span>
           </div>
 
           {/* Pacer Visual de Respiración */}
           <div className="flex flex-col items-center justify-center py-2 text-center">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-sage/20 to-emerald-400/30 border-2 border-sage/100 flex items-center justify-center animate-pulse motion-reduce:animate-none">
-              <HeartPulse size={32} className="text-terracotta dark:text-sage" />
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-sage/20 to-emerald-400/30 border-2 border-sage flex items-center justify-center animate-pulse motion-reduce:animate-none">
+              <HeartPulse size={32} className="text-sage-ink" aria-hidden="true" />
             </div>
-            <p className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm mt-3">Inhala lento en 4s ... Exhala suave en 6s</p>
-            <p className="text-xs text-stone-500 dark:text-[#a6a1b2] max-w-xs mt-0.5">
+            <p className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm mt-3">Inhala lento en 4 s… exhala suave en 6 s</p>
+            <p className="text-xs text-stone-600 dark:text-[#a6a1b2] max-w-xs mt-0.5">
               Suelta mandíbula y hombros para relajar la musculatura del suelo pélvico.
             </p>
           </div>
 
           {/* Guía Rápida para el Acompañante */}
-          <div className="bg-white/90 dark:bg-[#2d273a]/80 rounded-2xl p-3 border border-sage/20/90 dark:border-white/10 text-xs space-y-1">
-            <p className="font-bold text-sage dark:text-sage/80 flex items-center gap-1">
-              <span>🤝 Acompañamiento del Papá / Pareja:</span>
+          <div className="border-t border-sage/20 dark:border-white/[0.08] pt-4 text-sm space-y-1.5">
+            <p className="font-bold text-sage-ink flex items-center gap-1.5">
+              <HeartHandshake size={14} className="shrink-0" aria-hidden="true" />
+              <span>Si eres su acompañante:</span>
             </p>
-            <p className="text-stone-600 dark:text-[#a6a1b2] leading-relaxed">• Ofrece un sorbo pequeño de agua fresca o bálsamo labial.</p>
-            <p className="text-stone-600 dark:text-[#a6a1b2] leading-relaxed">• Aplica contrapresión firme con el talón de la mano en el sacro (espalda baja).</p>
-            <p className="text-stone-600 dark:text-[#a6a1b2] leading-relaxed">• Recuérdale con voz serena: <em>"Respira profundo, lo estás haciendo genial."</em></p>
+            <ul className="list-disc space-y-1 pl-5 text-stone-600 dark:text-[#a6a1b2] leading-relaxed marker:text-sage-ink">
+              <li>Ofrece un sorbo pequeño de agua fresca o bálsamo labial.</li>
+              <li>Aplica contrapresión firme con el talón de la mano en el sacro (espalda baja).</li>
+              <li>Recuérdale con voz serena: <em>“Respira profundo, lo estás haciendo genial.”</em></li>
+            </ul>
           </div>
         </div>
       )}
 
+      {/* Dónde vive el historial y avisos de guardado */}
+      <div className="flex flex-col gap-2">
+        <SyncBadge lastSyncedAt={shared.meta?.updatedAt ?? null} waiting={!shared.loaded} />
+        <RetryNotice state={retryState} onDismiss={clearRetry} />
+        <UnsentNotice count={shared.unsentIds.size} onRetry={shared.retryUnsent} one="contracción" many="contracciones" />
+        {shared.loadError && <LoadErrorNotice what="el historial compartido" onRetry={shared.retryLoad} />}
+      </div>
+
       {/* Historial o Estado Inicial */}
-      {history.length === 0 ? (
+      {shared.loadError ? null : !shared.loaded && history.length === 0 ? (
+        <SharedLoading what="el historial compartido" />
+      ) : history.length === 0 ? (
         <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-6 border border-dashed border-stone-200 dark:border-white/[0.08] text-center shadow-xs">
-          <div className="bg-sage/10 dark:bg-[#1a1724] w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 text-terracotta dark:text-sage/80">
+          <div className="bg-sage/10 dark:bg-[#1a1724] w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 text-sage-ink">
             <HeartPulse size={24} />
           </div>
           <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm mb-1">Sin contracciones registradas</h4>
-          <p className="text-xs text-stone-500 dark:text-[#a6a1b2] max-w-xs mx-auto leading-relaxed">
-            Cuando sientas que tu abdomen se tensa o empiece una contracción, toca el botón grande. El sistema calculará la duración, el intervalo y te avisará si cumples la regla 5-1-1 para acudir al hospital.
+          <p className="text-sm text-stone-600 dark:text-[#a6a1b2] max-w-xs mx-auto leading-relaxed">
+            {preterm || !weekKnown
+              ? "Cuando sientas que tu vientre se endurece, toca el botón grande al empezar y otra vez al terminar. Te avisamos si registras 4 o más contracciones en 1 hora (antes de la semana 37) o si se cumple la regla 5-1-1."
+              : "Cuando sientas que tu vientre se endurece, toca el botón grande al empezar y otra vez al terminar. Medimos la última hora y te avisamos cuando se cumpla la regla 5-1-1: cada 5 minutos o menos, de 1 minuto o más, durante 1 hora."}
           </p>
+          {!preterm && (
+            <p className="mt-2 text-sm text-stone-600 dark:text-[#a6a1b2] max-w-xs mx-auto leading-relaxed">
+              Las contracciones de práctica (Braxton Hicks) suelen ser irregulares y se calman al descansar; las de trabajo de parto se vuelven regulares, más largas y más seguidas.
+            </p>
+          )}
         </div>
       ) : (
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm flex items-center gap-2">
-              <Activity size={18} className="text-terracotta dark:text-sage/80"/> Historial ({history.length})
+              <Activity size={18} className="text-terracotta-ink" aria-hidden="true" /> Historial ({history.length})
             </h4>
             <button
               type="button"
               onClick={clearHistory}
-              className="text-xs font-bold text-stone-400 dark:text-[#a6a1b2] hover:text-rose-600 dark:hover:text-terracotta transition-colors"
+              className="min-h-[44px] px-2 -mr-2 rounded-lg text-xs font-bold text-stone-600 dark:text-[#a6a1b2] hover:text-terracotta-ink transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
             >
               Reiniciar historial
             </button>
           </div>
 
           <div className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-xs border border-stone-200/80 dark:border-white/[0.08] overflow-hidden">
-            <div className="grid grid-cols-4 bg-stone-50 dark:bg-[#2d273a]/50 p-3 text-xs font-bold text-stone-500 dark:text-[#a6a1b2] tracking-tight text-center">
+            <div className="grid grid-cols-4 bg-stone-50 dark:bg-[#2d273a]/50 p-3 text-xs font-bold text-stone-600 dark:text-[#a6a1b2] tracking-tight text-center">
               <div>Hora</div>
               <div>Duración</div>
               <div>Frecuencia</div>
               <div>Quitar</div>
             </div>
-            <div className="divide-y divide-gray-50 dark:divide-white/[0.06] text-xs text-center">
+            <div className="divide-y divide-stone-100 dark:divide-white/[0.06] text-xs text-center">
               {history.map((item) => (
-                <div key={item.id} className="grid grid-cols-4 p-3.5 items-center hover:bg-stone-50/70 dark:hover:bg-[#2d273a]/40 transition-colors">
-                  <div className="text-stone-600 dark:text-[#a6a1b2] font-medium">
-                    {new Date(item.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                <div key={item.id} className="grid grid-cols-4 px-3 py-1.5 items-center hover:bg-stone-50/70 dark:hover:bg-[#2d273a]/40 transition-colors">
+                  <div className="flex items-center justify-center gap-1.5 text-stone-700 dark:text-[#a6a1b2] font-medium tabular-nums">
+                    {shared.linked && <ItemAuthor item={item} members={me.members} />}
+                    {new Date(item.start).toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" })}
+                    {shared.unsentIds.has(String(item.id)) && (
+                      <span role="img" aria-label="Sin enviar" title="Sin enviar a tu pareja" className="text-amber-800 dark:text-amber-300">
+                        <CloudOff size={12} aria-hidden="true" />
+                      </span>
+                    )}
                   </div>
                   <div>
-                    <span className="font-bold text-sage dark:text-sage/80 bg-sage/10 dark:bg-[#1a1724] py-1 px-2 rounded-lg inline-block tabular-nums">
+                    <span className="font-bold text-sage-ink bg-sage/10 dark:bg-[#1a1724] py-1 px-2 rounded-lg inline-block tabular-nums">
                       {formatTime(item.duration)}
                     </span>
                   </div>
-                  <div className="font-bold text-rose-600 dark:text-terracotta tabular-nums">
+                  <div className="font-bold text-terracotta-ink tabular-nums">
                     {item.interval ? formatTime(item.interval) : "—"}
                   </div>
                   <div>
                     <button
                       type="button"
-                      onClick={() => deleteItem(item.id)}
-                      aria-label="Eliminar contracción"
-                      className="min-w-[40px] min-h-[40px] inline-flex items-center justify-center text-stone-400 dark:text-[#a6a1b2] hover:text-rose-600 dark:hover:text-terracotta hover:bg-stone-100 dark:hover:bg-[#2d273a] p-2 rounded-xl transition-colors"
+                      onClick={() => deleteItem(item)}
+                      aria-label={`Eliminar la contracción de las ${new Date(item.start).toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" })}`}
+                      className={`min-w-[44px] min-h-[44px] inline-flex items-center justify-center text-stone-500 dark:text-[#a6a1b2] hover:text-terracotta-ink hover:bg-stone-100 dark:hover:bg-[#2d273a] p-2 rounded-xl transition-colors ${sosFocusRing}`}
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={16} aria-hidden="true" />
                     </button>
                   </div>
                 </div>
@@ -1491,295 +2732,685 @@ export function ContadorContracciones({ showToast }: { showToast: any }) {
   );
 }
 
-export function VotadorNombres({ showToast }: { showToast: any }) {
-  // Firestore sync for baby names
-  useEffect(() => {
-    const pid = usePandaStore.getState().profile.pregnancyId;
-    if (pid) {
-      const unsub = listenToBabyNames(pid, (remoteNames) => {
-        if (remoteNames.length > 0) setNames(remoteNames);
-      });
-      return () => unsub();
-    }
-  }, []);
+// --- NOMBRES: votos por persona (subcolección baby_names) ---
 
-  const [names, setNames] = useState<any[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("pandajr_baby_names");
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-        }
-      } catch (e) {}
-    }
-    return [
-      { id: 1, text: "Valentina", origin: "Latín", meaning: "Valerosa, vigorosa.", status: "pending", partnerLiked: true, gender: "niña" },
-      { id: 2, text: "Mateo", origin: "Hebreo", meaning: "El gran regalo de Dios.", status: "pending", partnerLiked: false, gender: "niño" },
-      { id: 3, text: "Noa", origin: "Hebreo", meaning: "Delicia, descanso.", status: "pending", partnerLiked: true, gender: "neutro" },
-      { id: 4, text: "Emilio", origin: "Latín", meaning: "El que se esfuerza.", status: "pending", partnerLiked: true, gender: "niño" },
-      { id: 5, text: "Lucía", origin: "Latín", meaning: "La que nació a la luz del día.", status: "pending", partnerLiked: false, gender: "niña" },
-      { id: 6, text: "Alex", origin: "Griego", meaning: "Defensor/a.", status: "pending", partnerLiked: true, gender: "neutro" },
-    ];
+type NameGender = NonNullable<BabyName["gender"]>;
+type NameFilter = "todos" | NameGender;
+type NameVote = "like" | "nope";
+
+const NAME_FILTERS: { id: NameFilter; label: string }[] = [
+  { id: "todos", label: "Todos" },
+  { id: "nina", label: "Niña" },
+  { id: "nino", label: "Niño" },
+  { id: "unisex", label: "Unisex" },
+];
+const GENDER_LABEL: Record<NameGender, string> = { nina: "Niña", nino: "Niño", unisex: "Unisex" };
+/** Lo que entiende /api/names. */
+const API_GENDER: Record<NameFilter, string> = { todos: "todos", nina: "niña", nino: "niño", unisex: "neutro" };
+
+/** Nombre en este teléfono (modo sin vínculo): solo MI voto. */
+type LocalName = {
+  id: string;
+  name: string;
+  gender?: NameGender;
+  origin?: string;
+  meaning?: string;
+  source?: BabyName["source"];
+  vote?: NameVote;
+  createdAt: number;
+};
+
+const LOCAL_NAMES_KEY = "pandajr_baby_names_v2";
+const LEGACY_LOCAL_NAMES_KEY = "pandajr_baby_names";
+/** Mi voto optimista mientras Firestore lo confirma (se retira con el siguiente snapshot). */
+type VoteOverlay = { vote: NameVote | null; confirmed: boolean };
+const EMPTY_VOTES: Record<string, VoteOverlay> = {};
+
+function toGender(g: unknown): NameGender | undefined {
+  if (typeof g !== "string") return undefined;
+  const k = babyNameKey(g);
+  if (k === "nina" || k === "f" || k === "femenino") return "nina";
+  if (k === "nino" || k === "m" || k === "masculino") return "nino";
+  if (k === "unisex" || k === "neutro") return "unisex";
+  return undefined;
+}
+
+function sanitizeLocalNames(raw: unknown[]): LocalName[] {
+  const seen = new Set<string>();
+  const out: LocalName[] = [];
+  raw.forEach((r, index) => {
+    if (!isRecord(r)) return;
+    const name = cleanStr(r.name ?? r.text, 60);
+    const key = babyNameKey(name);
+    if (!name || !key || seen.has(key)) return;
+    seen.add(key);
+    const source = r.source === "user" || r.source === "ai" || r.source === "suggestion" ? r.source : undefined;
+    out.push({
+      id: typeof r.id === "string" && r.id ? r.id : `local-${key}`,
+      name,
+      gender: toGender(r.gender),
+      origin: cleanStr(r.origin) || undefined,
+      meaning: cleanStr(r.meaning, 400) || undefined,
+      source,
+      vote: r.vote === "like" || r.vote === "nope" ? r.vote : undefined,
+      createdAt: finiteNum(r.createdAt) ?? index,
+    });
   });
+  return out;
+}
 
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [genderFilter, setGenderFilter] = useState<"todos"|"niño"|"niña"|"neutro">("todos");
+/**
+ * Nombres de este teléfono. La primera vez convierte el formato antiguo: quita los 6 nombres
+ * de ejemplo (traían "votos de la pareja" inventados) y conserva el `status` como voto propio,
+ * porque sin vínculo solo votaba quien usa este teléfono.
+ */
+function loadLocalNames(): LocalName[] {
+  const v2 = readStored<unknown>(LOCAL_NAMES_KEY);
+  if (Array.isArray(v2)) return sanitizeLocalNames(v2);
+  const legacy = readStored<unknown>(LEGACY_LOCAL_NAMES_KEY);
+  if (!Array.isArray(legacy)) return [];
+  return sanitizeLocalNames(
+    legacy
+      .filter((item) => isRecord(item) && !isLegacySeedNameItem(item))
+      .map((item) => {
+        const r = item as Record<string, unknown>;
+        return {
+          ...r,
+          id: undefined,
+          source: "ai",
+          vote: r.status === "liked" ? "like" : r.status === "disliked" ? "nope" : undefined,
+        };
+      })
+  );
+}
+
+/** Migración única por embarazo del formato antiguo compartido (sin semillas y sin votos). */
+function migrateNamesOnce(pid: string) {
+  const flag = `pandajr_mig_babynames_${pid}`;
+  if (readStored(flag)) return;
+  migrateLegacyBabyNames(pid, LEGACY_SEED_NAMES).then(
+    () => writeStored(flag, true),
+    () => {
+      // Sin conexión o sin permisos: se intentará la próxima vez que se abra Nombres.
+    }
+  );
+}
+
+/**
+ * Traspaso único al vincular: los nombres que había solo en este teléfono pasan al embarazo
+ * compartido con MI voto (nunca votos de la pareja). addBabyName usa id estable por nombre:
+ * si ya existe no duplica ni borra votos. Idempotente.
+ */
+function mergeLocalNamesOnce(pid: string, uid: string, myName?: string) {
+  const flag = localToSharedFlag("names", pid);
+  if (readStored(flag)) return;
+  if (!readStored(linkedFromLocalKey(pid))) {
+    writeStored(flag, true);
+    return;
+  }
+  const local = loadLocalNames();
+  if (!local.length) {
+    writeStored(flag, true);
+    return;
+  }
+  Promise.all(
+    local.map(async (n) => {
+      const id = await addBabyName(pid, {
+        name: n.name,
+        gender: n.gender,
+        origin: n.origin,
+        meaning: n.meaning,
+        source: n.source ?? "user",
+        addedBy: uid,
+        addedByName: myName?.trim() || undefined,
+      });
+      if (n.vote) await voteBabyName(pid, id, uid, n.vote);
+    })
+  ).then(
+    () => writeStored(flag, true),
+    () => {
+      // Se intentará la próxima vez que se abra Nombres (idempotente).
+    }
+  );
+}
+
+type NameCard = {
+  id: string;
+  name: string;
+  gender?: NameGender;
+  origin?: string;
+  meaning?: string;
+  source?: BabyName["source"];
+  addedByName?: string;
+  votes: Record<string, NameVote>;
+  myVote?: NameVote;
+};
+
+function sourceLabel(card: NameCard): string {
+  if (card.source === "ai") return "Sugerencia de PandaIA";
+  if (card.source === "suggestion") return "De la lista de ideas de PandaJR";
+  if (card.addedByName) return `Lo agregó ${card.addedByName}`;
+  return "Agregado a mano";
+}
+
+export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
+  const me = useMe();
+  const { pid, myUid, members } = me;
+  const linked = !!pid;
+  const online = useOnline();
+  const baseId = React.useId();
+  const { retryState, fail, clearRetry } = useRetry();
+
+  // Sin vínculo: localStorage con solo mis votos.
+  const [localNames, setLocalNames] = useState<LocalName[]>(loadLocalNames);
+  const localRef = useRef(localNames);
+  const commitLocal = (next: LocalName[]) => {
+    localRef.current = next;
+    setLocalNames(next);
+    writeStored(LOCAL_NAMES_KEY, next);
+  };
+
+  // Con vínculo: subcolección compartida; mis votos optimistas encima mientras se confirman.
+  const [remote, setRemote] = useState<{ pid: string; names: BabyName[] } | null>(null);
+  const [errorPid, setErrorPid] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const [overlay, setOverlay] = useState<{ pid: string; votes: Record<string, VoteOverlay> }>({ pid: "", votes: {} });
 
   useEffect(() => {
-    try {
-      localStorage.setItem("pandajr_baby_names", JSON.stringify(names));
-    const pidNames = usePandaStore.getState().profile.pregnancyId;
-    if (pidNames) saveBabyNames(pidNames, names).catch(() => {});
-    } catch (e) {}
-  }, [names]);
+    if (!pid) return;
+    let migrationChecked = false;
+    return listenToBabyNamesV2(
+      pid,
+      (names) => {
+        setRemote({ pid, names });
+        setErrorPid(null);
+        // Los votos ya confirmados vienen incluidos en este snapshot.
+        setOverlay((o) => {
+          if (o.pid !== pid) return o;
+          const pending = Object.entries(o.votes).filter(([, v]) => !v.confirmed);
+          return pending.length === Object.keys(o.votes).length ? o : { pid, votes: Object.fromEntries(pending) };
+        });
+        // Una sola vez por embarazo, tras el primer snapshot (nunca como reacción a los siguientes).
+        if (!migrationChecked) {
+          migrationChecked = true;
+          migrateNamesOnce(pid);
+        }
+      },
+      () => setErrorPid(pid)
+    );
+  }, [pid, attempt]);
 
-  const handleRequestMoreNames = async () => {
+  const [filter, setFilter] = useState<NameFilter>("todos");
+  const [lastVote, setLastVote] = useState<{ id: string; name: string; prev?: NameVote } | null>(null);
+  const [draft, setDraft] = useState("");
+  const [adding, setAdding] = useState<string[]>([]);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const current = linked && remote?.pid === pid ? remote : null;
+  const overlayVotes = overlay.pid === pid ? overlay.votes : EMPTY_VOTES;
+
+  // Traspaso único de los nombres "Solo en este teléfono" al vincular: después del primer snapshot
+  // y con el uid ya conocido (para firmar mi voto). La bandera evita que se repita.
+  const namesReady = !!current;
+  const myNameRef = useRef(me.name);
+  useEffect(() => {
+    myNameRef.current = me.name;
+  });
+  useEffect(() => {
+    if (!pid || !myUid || !namesReady) return;
+    mergeLocalNamesOnce(pid, myUid, myNameRef.current);
+  }, [pid, myUid, namesReady]);
+  const loaded = !linked || (!!current && !!myUid);
+  const loadError = linked && errorPid === pid && !current;
+
+  const cards: NameCard[] = useMemo(() => {
+    if (!linked) {
+      return localNames.map((n) => ({ ...n, votes: {}, myVote: n.vote }));
+    }
+    if (!current) return [];
+    return current.names.map((n) => {
+      const votes = { ...n.votes };
+      if (myUid && n.id in overlayVotes) {
+        const v = overlayVotes[n.id].vote;
+        if (v) votes[myUid] = v;
+        else delete votes[myUid];
+      }
+      return {
+        id: n.id,
+        name: n.name,
+        gender: n.gender,
+        origin: n.origin,
+        meaning: n.meaning,
+        source: n.source,
+        addedByName: n.addedByName,
+        votes,
+        myVote: myUid ? votes[myUid] : undefined,
+      };
+    });
+  }, [linked, localNames, current, myUid, overlayVotes]);
+
+  const memberUids = useMemo(() => members.map((m) => m.uid), [members]);
+  const others = members.filter((m) => m.uid !== myUid);
+  const partnerMember = others.length > 0 ? others[others.length - 1] : undefined;
+  const partnerName = partnerMember?.name || (partnerMember ? (partnerMember.role === "mama" ? "mamá" : "tu copiloto") : undefined);
+  const PartnerName = partnerName ? partnerName.charAt(0).toLocaleUpperCase("es") + partnerName.slice(1) : "Tu pareja";
+  const canMatch = linked && !!myUid && memberUids.length >= 2 && !!partnerMember;
+
+  // Con roles: hace falta el "me gusta" de la mamá y el del copiloto (dos uids de la misma persona no bastan).
+  const matches = canMatch ? cards.filter((c) => isMatch(c, members)) : [];
+  const matchIds = new Set(matches.map((m) => m.id));
+  const favorites = cards.filter((c) => c.myVote === "like" && !matchIds.has(c.id));
+  const discarded = cards.filter((c) => c.myVote === "nope");
+  const pending = cards.filter((c) => !c.myVote && (filter === "todos" || c.gender === filter));
+  const card = pending[0];
+
+  const setVote = (target: { id: string; name: string }, vote: NameVote | null) => {
+    if (!linked) {
+      commitLocal(localRef.current.map((n) => (n.id === target.id ? { ...n, vote: vote ?? undefined } : n)));
+      return;
+    }
+    if (!pid || !myUid) return;
+    const votePid = pid;
+    const entry: VoteOverlay = { vote, confirmed: false };
+    setOverlay((o) => ({ pid: votePid, votes: { ...(o.pid === votePid ? o.votes : {}), [target.id]: entry } }));
+    const isMine = (o: { pid: string; votes: Record<string, VoteOverlay> }) => o.pid === votePid && o.votes[target.id] === entry;
+    voteBabyName(votePid, target.id, myUid, vote).then(
+      () => setOverlay((o) => (isMine(o) ? { pid: votePid, votes: { ...o.votes, [target.id]: { vote, confirmed: true } } } : o)),
+      () => {
+        setOverlay((o) => (isMine(o) ? { pid: votePid, votes: omitKey(o.votes, target.id) } : o));
+        fail(`No se guardó tu voto por ${target.name}.`, () => setVote(target, vote));
+      }
+    );
+  };
+
+  const vote = (target: NameCard, v: NameVote) => {
+    setLastVote({ id: target.id, name: target.name, prev: target.myVote });
+    setVote(target, v);
+  };
+
+  const unlike = (target: NameCard) => {
+    setLastVote({ id: target.id, name: target.name, prev: target.myVote });
+    setVote(target, null);
+  };
+
+  const undoLastVote = () => {
+    if (!lastVote) return;
+    setVote(lastVote, lastVote.prev ?? null);
+    setLastVote(null);
+  };
+
+  /** Solo quita MIS "no": los votos de la pareja no se tocan. */
+  const revoteDiscarded = () => {
+    const targets = discarded.map((c) => ({ id: c.id, name: c.name }));
+    if (targets.length === 0) return;
+    targets.forEach((t) => setVote(t, null));
+    setLastVote(null);
+    showToast(
+      targets.length === 1 ? "Volvió 1 nombre que habías descartado" : `Volvieron ${targets.length} nombres que habías descartado`,
+      () => targets.forEach((t) => setVote(t, "nope"))
+    );
+  };
+
+  const submitName = (name: string) => {
+    if (!linked || !pid) {
+      commitLocal([...localRef.current, { id: newId(), name, source: "user", createdAt: nowMs() }]);
+      return;
+    }
+    const namePid = pid;
+    const data = { name, source: "user" as const, addedBy: myUid ?? undefined, addedByName: me.name?.trim() || undefined };
+    function send() {
+      setAdding((a) => [...a, name]);
+      addBabyName(namePid, data)
+        .catch(() => fail(`No se pudo agregar ${name}.`, send))
+        .finally(() => setAdding((a) => a.filter((x) => x !== name)));
+    }
+    send();
+  };
+
+  const addName = (e: React.FormEvent) => {
+    e.preventDefault();
+    const name = draft.trim().replace(/\s+/g, " ").slice(0, 60);
+    if (!name) return;
+    const key = babyNameKey(name);
+    setDraft("");
+    if (cards.some((c) => babyNameKey(c.name) === key) || adding.some((a) => babyNameKey(a) === key)) {
+      showToast(`${name} ya está en la lista`);
+      return;
+    }
+    submitName(name);
+  };
+
+  const requestMoreNames = async () => {
     if (isLoadingMore) return;
     setIsLoadingMore(true);
-
+    clearRetry();
     try {
-      const existingNames = names.map(n => n.text);
       const res = await fetch("/api/names", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          gender: genderFilter,
-          existingNames,
-          count: 6
-        })
+        body: JSON.stringify({ gender: API_GENDER[filter], existingNames: cards.map((c) => c.name), count: 6 }),
       });
-
-      if (!res.ok) throw new Error("Error en servidor al generar nombres");
-      const data = await res.json();
-
-      if (Array.isArray(data.names) && data.names.length > 0) {
-        const formatted = data.names.map((item: any, idx: number) => ({
-          id: Date.now() + idx,
-          text: item.text,
-          origin: item.origin || "Inspiración",
-          meaning: item.meaning || "Significado especial",
-          gender: item.gender || (genderFilter === "todos" ? "neutro" : genderFilter),
-          status: "pending",
-          partnerLiked: Math.random() > 0.45
-        }));
-
-        setNames(prev => [...prev, ...formatted]);
-        const msg = data.source === "gemini" 
-          ? `¡PandaIA generó ${formatted.length} nuevos nombres únicos con IA! âœ¨` 
-          : `¡${formatted.length} nuevos nombres únicos listos para votar! 👶`;
-        showToast(msg, () => {});
-      } else {
-        showToast("No hay más nombres disponibles para este filtro.", () => {});
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data: unknown = await res.json();
+      const incoming = isRecord(data) ? asArray(data.names) : [];
+      const source: BabyName["source"] = isRecord(data) && data.source === "gemini" ? "ai" : "suggestion";
+      const seen = new Set(cards.map((c) => babyNameKey(c.name)));
+      const fresh: Omit<LocalName, "id" | "createdAt">[] = [];
+      for (const item of incoming) {
+        if (!isRecord(item)) continue;
+        const name = cleanStr(item.text ?? item.name, 60);
+        const key = babyNameKey(name);
+        if (!name || !key || seen.has(key)) continue;
+        seen.add(key);
+        fresh.push({ name, gender: toGender(item.gender), origin: cleanStr(item.origin) || undefined, meaning: cleanStr(item.meaning, 400) || undefined, source });
       }
-    } catch (err) {
-      console.error(err);
-      showToast("No se pudo conectar con PandaIA. Intenta nuevamente.", () => {});
+      if (fresh.length === 0) {
+        showToast("No encontramos nombres nuevos para este filtro.");
+        return;
+      }
+      if (!linked || !pid) {
+        const now = nowMs();
+        commitLocal([...localRef.current, ...fresh.map((f, i) => ({ ...f, id: newId(), createdAt: now + i }))]);
+      } else {
+        const results = await Promise.allSettled(
+          fresh.map((f) => addBabyName(pid, { ...f, addedBy: myUid ?? undefined, addedByName: me.name?.trim() || undefined }))
+        );
+        const failed = results.filter((r) => r.status === "rejected").length;
+        if (failed === fresh.length) throw new Error("add failed");
+        if (failed > 0) {
+          showToast(`No se pudieron agregar ${failed} de los nombres sugeridos. Vuelve a pedir ideas en un momento.`);
+          return;
+        }
+      }
+      const n = fresh.length;
+      showToast(
+        source === "ai"
+          ? `PandaIA sugirió ${n} ${n === 1 ? "nombre nuevo" : "nombres nuevos"}`
+          : `Agregamos ${n} ${n === 1 ? "idea" : "ideas"} de nuestra lista`
+      );
+    } catch {
+      showToast("No pudimos traer más nombres. Revisa tu conexión e inténtalo de nuevo.");
     } finally {
       setIsLoadingMore(false);
     }
   };
 
-  const pendingNames = names.filter(n => n.status === "pending" && (genderFilter === "todos" || n.gender === genderFilter));
-  const current = pendingNames[0];
-  const matches = names.filter(n => n.status === "liked" && n.partnerLiked);
-  const [lastVotedId, setLastVotedId] = useState<number | null>(null);
-
-  const vote = (id: number, status: "liked" | "disliked") => {
-    setLastVotedId(id);
-    setNames(prev => prev.map(n => n.id === id ? { ...n, status } : n));
-  };
-
-  const undoLastVote = () => {
-    if (lastVotedId !== null) {
-      setNames(prev => prev.map(n => n.id === lastVotedId ? { ...n, status: "pending" } : n));
-      setLastVotedId(null);
-      showToast("Último voto deshecho", () => {});
-    }
-  };
-
+  // Deslizar: derecha = me gusta, izquierda = no.
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [swipeOffset, setSwipeOffset] = useState(0);
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-  const onTouchMove = (e: React.TouchEvent) => {
-    if (touchStart === null) return;
-    const currentX = e.targetTouches[0].clientX;
-    const diff = currentX - touchStart;
-    setSwipeOffset(diff);
-  };
   const onTouchEnd = () => {
-    if (!current) {
-      setTouchStart(null);
-      setSwipeOffset(0);
-      return;
-    }
-    if (swipeOffset > 80) vote(current.id, "liked");
-    else if (swipeOffset < -80) vote(current.id, "disliked");
+    if (card && swipeOffset > 80) vote(card, "like");
+    else if (card && swipeOffset < -80) vote(card, "nope");
     setTouchStart(null);
     setSwipeOffset(0);
   };
 
-  return (
-    <div className="flex flex-col py-2 animate-in fade-in duration-300 w-full">
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <h3 className="text-xl font-bold text-stone-800 dark:text-[#eae6e1]">Nombres del Bebé</h3>
-          <p className="text-xs text-stone-500 dark:text-[#a6a1b2]">¿Hará match con tu pareja?</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {matches.length > 0 && (
-            <div className="bg-terracotta/20 dark:bg-[#251518] text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-terracotta/100/20 font-bold px-3 py-1 rounded-full text-xs flex items-center gap-1 animate-pulse">
-              <Heart size={12} fill="currentColor"/> {matches.length} Matches
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={handleRequestMoreNames}
-            disabled={isLoadingMore}
-            className="text-xs font-bold text-sage dark:text-sage/80 bg-sage/10 dark:bg-[#1a1724] hover:bg-sage/20 dark:hover:bg-[#19322c] px-3 py-1.5 min-h-[38px] rounded-full border border-sage/30/70 dark:border-sage/100/25 flex items-center gap-1.5 transition-colors disabled:opacity-60 shadow-xs active:scale-95"
-            title="Pedir más nombres a PandaIA"
-          >
-            {isLoadingMore ? (
-              <div className="w-3 h-3 border-2 border-sage dark:border-sage/80 border-t-transparent rounded-full animate-spin"></div>
-            ) : (
-              <Sparkles size={12} className="text-terracotta/100" />
-            )}
-            <span>+ Nombres</span>
-          </button>
-        </div>
-      </div>
+  const likersOf = (c: NameCard) => members.filter((m) => c.votes[m.uid] === "like");
 
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-          {["todos", "niña", "niño", "neutro"].map(f => (
-            <button 
-              key={f}
-              onClick={() => setGenderFilter(f as any)}
-              className={`px-3.5 py-2 min-h-[40px] rounded-full text-xs font-bold uppercase transition-colors whitespace-nowrap active:scale-95 ${
-                genderFilter === f 
-                  ? "bg-terracotta text-white shadow-xs" 
-                  : "bg-stone-100 dark:bg-[#2d273a] text-stone-600 dark:text-[#a6a1b2] hover:bg-stone-200 dark:hover:bg-[#383147]"
+  const intro = !linked
+    ? "Vota los nombres que te gusten. Invita a tu pareja para votar por separado y ver en qué coinciden."
+    : partnerMember
+      ? `Voten por separado. Cuando a ti y a ${partnerName} les guste el mismo nombre, aparece en Coincidieron.`
+      : "Vota los nombres que te gusten. Cuando tu pareja se una, verán en qué coinciden.";
+
+  const pillButton = `inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-full px-4 text-sm font-bold transition-colors active:scale-95 motion-reduce:active:scale-100 ${sosFocusRing}`;
+
+  return (
+    <div className="flex w-full flex-col gap-6 py-2 animate-in fade-in duration-300">
+      <header className="space-y-1.5">
+        <h3 className="text-xl font-black leading-tight text-stone-900 dark:text-[#eae6e1]">Nombres del bebé</h3>
+        <p className="text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">{intro}</p>
+        <SyncBadge />
+      </header>
+
+      <RetryNotice state={retryState} onDismiss={clearRetry} />
+      {loadError && <LoadErrorNotice what="los nombres compartidos" onRetry={() => setAttempt((a) => a + 1)} />}
+
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar py-1" role="group" aria-label="Filtrar por género">
+          {NAME_FILTERS.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              aria-pressed={filter === f.id}
+              onClick={() => setFilter(f.id)}
+              className={`${pillButton} whitespace-nowrap ${
+                filter === f.id
+                  ? "bg-terracotta-ink text-white"
+                  : "bg-stone-100 text-stone-700 hover:bg-stone-200 dark:bg-[#2d273a] dark:text-[#a6a1b2] dark:hover:bg-[#383147]"
               }`}
             >
-              {f}
+              {f.label}
             </button>
           ))}
         </div>
 
-        {lastVotedId !== null && (
+        {lastVote && (
           <button
             type="button"
             onClick={undoLastVote}
-            className="text-xs font-bold text-stone-600 dark:text-[#eae6e1] hover:text-stone-900 dark:hover:text-white bg-white dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 hover:bg-stone-100 dark:hover:bg-[#383147] px-3 py-2 min-h-[40px] rounded-full shadow-xs active:scale-95 transition-all flex items-center gap-1 shrink-0 ml-2"
-            title="Deshacer el último voto de nombre"
+            aria-label={`Deshacer tu voto por ${lastVote.name}`}
+            className={`${pillButton} shrink-0 border border-stone-200 bg-white text-stone-700 hover:bg-stone-100 dark:border-white/10 dark:bg-[#2d273a] dark:text-[#eae6e1] dark:hover:bg-[#383147]`}
           >
-            <Undo2 size={13} /> Deshacer
+            <Undo2 size={15} aria-hidden="true" /> Deshacer
           </button>
         )}
       </div>
-      
-      {current ? (
-        <div 
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-          style={{ transform: touchStart !== null ? `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.05}deg)` : "translateX(0) rotate(0)", transition: touchStart !== null ? "none" : "transform 0.3s ease-out" }}
-          className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-xl border border-stone-100 dark:border-white/[0.08] p-8 flex flex-col items-center text-center relative overflow-hidden mb-6 select-none touch-pan-y w-full"
-        >
-          <div className="absolute top-0 w-full h-2 bg-gradient-to-r from-sage to-terracotta"></div>
-          <h2 className="text-4xl font-black text-stone-800 dark:text-[#eae6e1] mb-2 mt-4">{current.text}</h2>
-          <span className="text-xs font-bold uppercase tracking-widest text-sage dark:text-sage/80 bg-sage/10 dark:bg-[#1a1724] px-3 py-1 rounded-full mb-4">
-            Origen: {current.origin} • {current.gender}
-          </span>
-          <p className="text-sm text-stone-500 dark:text-[#a6a1b2] italic mb-8 max-w-[200px]">"{current.meaning}"</p>
-          
-          <div className="flex gap-6 w-full justify-center">
-            <button 
-              type="button"
-              onClick={() => vote(current.id, "disliked")} 
-              aria-label={`Descartar el nombre ${current.text}`}
-              className="bg-white dark:bg-[#2d273a] border-2 border-stone-100 dark:border-white/10 p-5 rounded-full shadow-xs hover:bg-stone-50 dark:hover:bg-[#383147] text-stone-400 dark:text-[#a6a1b2] hover:text-stone-600 dark:hover:text-[#eae6e1] transition-transform active:scale-90 focus:outline-none focus:ring-2 focus:ring-rose-300"
-            >
-              <X size={32} />
-            </button>
-            <button 
-              type="button"
-              onClick={() => vote(current.id, "liked")} 
-              aria-label={`Guardar como favorito el nombre ${current.text}`}
-              className="bg-terracotta/100 p-5 rounded-full shadow-lg hover:bg-rose-600 text-white transition-transform active:scale-90 focus:outline-none focus:ring-2 focus:ring-rose-300"
-            >
-              <Heart size={32} fill="currentColor" />
-            </button>
-          </div>
+
+      {loadError ? null : !loaded ? (
+        <div role="status" className="rounded-3xl border border-stone-200 bg-white p-8 text-center text-sm text-stone-600 dark:border-white/[0.08] dark:bg-[#221d2d] dark:text-[#a6a1b2]">
+          Cargando los nombres compartidos…
         </div>
-      ) : (
-        <div className="bg-gradient-to-br from-sage/10 to-terracotta/10 dark:from-[#221d2d] dark:to-[#1a1724] rounded-3xl border border-sage/20 dark:border-sage/100/25 p-8 text-center mb-6 shadow-xs flex flex-col items-center w-full">
-            <div className="bg-white dark:bg-[#2d273a] p-4 rounded-full mb-4 shadow-xs">
-              <Sparkles className="text-terracotta/100" size={32} />
-            </div>
-            <h4 className="text-xl font-bold text-stone-800 dark:text-[#eae6e1] mb-2">
-              {matches.length > 0 ? "¡Excelente trabajo en equipo!" : "¡Sigue buscando!"}
-            </h4>
-            <p className="text-stone-600 dark:text-[#a6a1b2] text-sm mb-6 leading-relaxed">
-              {matches.length > 0 
-                ? `Han coincidido en ${matches.length} nombre${matches.length > 1 ? "s" : ""}. Este bebé ya tiene opciones increíbles.` 
-                : "Has revisado esta lista, pero aún no hay coincidencias. ¡No te rindas, el nombre perfecto está ahí afuera!"}
+      ) : card ? (
+        <article
+          aria-labelledby={`${baseId}-nombre`}
+          onTouchStart={(e) => setTouchStart(e.targetTouches[0].clientX)}
+          onTouchMove={(e) => {
+            if (touchStart !== null) setSwipeOffset(e.targetTouches[0].clientX - touchStart);
+          }}
+          onTouchEnd={onTouchEnd}
+          style={{
+            transform: touchStart !== null ? `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.05}deg)` : undefined,
+            transition: touchStart !== null ? "none" : "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+          className="w-full select-none touch-pan-y rounded-3xl border border-stone-200 bg-white px-6 py-8 text-center shadow-[0_12px_32px_-16px_rgba(60,40,30,0.35)] dark:border-white/[0.08] dark:bg-[#221d2d]"
+        >
+          <h4 id={`${baseId}-nombre`} className="break-words text-4xl font-black leading-tight text-stone-900 dark:text-[#eae6e1]">
+            {card.name}
+          </h4>
+          {(card.origin || card.gender) && (
+            <p className="mt-2 text-sm font-semibold text-sage-ink">
+              {[card.origin, card.gender ? GENDER_LABEL[card.gender] : ""].filter(Boolean).join(" · ")}
             </p>
-            <button 
+          )}
+          {card.meaning && (
+            <p className="mx-auto mt-3 max-w-xs text-base italic leading-relaxed text-stone-700 dark:text-[#cfcad8]">“{card.meaning}”</p>
+          )}
+          <p className="mt-3 text-xs text-stone-600 dark:text-[#a6a1b2]">{sourceLabel(card)}</p>
+
+          <div className="mt-6 flex justify-center gap-6">
+            <button
               type="button"
-              disabled={isLoadingMore}
-              onClick={handleRequestMoreNames}
-              className="bg-terracotta text-white font-bold py-3.5 px-6 rounded-full shadow-md hover:bg-terracotta-hover transition-colors flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60 w-full max-w-xs"
+              onClick={() => vote(card, "nope")}
+              aria-label={`No me gusta ${card.name}`}
+              className={`grid h-16 w-16 place-items-center rounded-full border-2 border-stone-200 bg-white text-stone-600 transition-transform hover:bg-stone-50 active:scale-90 motion-reduce:active:scale-100 dark:border-white/10 dark:bg-[#2d273a] dark:text-[#a6a1b2] dark:hover:bg-[#383147] ${sosFocusRing}`}
             >
-              {isLoadingMore ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Buscando nombres únicos...</span>
-                </>
-              ) : (
-                <>
-                  <Bot size={18} /> Pedir más ideas a PandaIA
-                </>
-              )}
+              <X size={30} aria-hidden="true" />
             </button>
-            <button 
+            <button
               type="button"
-              onClick={() => {
-                 setNames(prev => prev.map(n => ({...n, status: "pending"})));
-                 showToast("Nombres restablecidos a pendientes para volver a votar", () => {});
-              }}
-              className="mt-4 text-xs font-bold text-stone-500 dark:text-[#a6a1b2] hover:text-stone-700 dark:hover:text-[#eae6e1] tracking-tight transition-colors focus:outline-none"
+              onClick={() => vote(card, "like")}
+              aria-label={`Me gusta ${card.name}`}
+              className={`grid h-16 w-16 place-items-center rounded-full bg-terracotta-ink text-white shadow-md transition-transform hover:bg-terracotta-ink-hover active:scale-90 motion-reduce:active:scale-100 ${sosFocusRing}`}
             >
-              Volver a votar los anteriores
+              <Heart size={30} fill="currentColor" aria-hidden="true" />
             </button>
           </div>
+          <p className="mt-4 text-xs text-stone-600 dark:text-[#a6a1b2]">
+            {pending.length === 1 ? "Es el último por votar" : `Quedan ${pending.length} por votar`}
+            {filter !== "todos" && ` en ${NAME_FILTERS.find((f) => f.id === filter)?.label.toLowerCase()}`}
+          </p>
+        </article>
+      ) : (
+        <div className="flex w-full flex-col items-center rounded-3xl border border-stone-200 bg-white p-7 text-center dark:border-white/[0.08] dark:bg-[#221d2d]">
+          <h4 className="text-lg font-bold text-stone-900 dark:text-[#eae6e1]">
+            {cards.length === 0 ? "Aún no hay nombres en la lista" : "No quedan nombres por votar"}
+          </h4>
+          <p className="mt-1.5 max-w-xs text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
+            {cards.length === 0
+              ? "Escribe uno que te guste o pide ideas a PandaIA."
+              : filter !== "todos"
+                ? "Prueba con otro filtro, escribe un nombre o pide más ideas."
+                : matches.length > 0
+                  ? `Coinciden en ${matches.length} ${matches.length === 1 ? "nombre" : "nombres"}. Puedes seguir buscando.`
+                  : "Escribe un nombre o pide más ideas a PandaIA."}
+          </p>
+          {discarded.length > 0 && (
+            <button
+              type="button"
+              onClick={revoteDiscarded}
+              className={`mt-3 inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-3 text-sm font-bold text-stone-700 underline-offset-4 hover:underline dark:text-[#eae6e1] ${sosFocusRing}`}
+            >
+              <RotateCcw size={15} aria-hidden="true" />
+              Volver a votar los que descartaste ({discarded.length})
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Agregar nombres: a mano o con ideas de PandaIA */}
+      <div className="space-y-3">
+        <form onSubmit={addName} className="flex gap-2">
+          <label htmlFor={`${baseId}-nuevo`} className="sr-only">Agregar un nombre</label>
+          <input
+            id={`${baseId}-nuevo`}
+            type="text"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            maxLength={60}
+            placeholder="Escribe un nombre que te guste"
+            autoComplete="off"
+            className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-stone-200 bg-white px-4 text-base text-stone-900 placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-terracotta-ink/40 dark:border-white/10 dark:bg-[#221d2d] dark:text-[#eae6e1] dark:placeholder:text-[#8f899c]"
+          />
+          <button
+            type="submit"
+            disabled={!draft.trim()}
+            className={`inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-xl bg-sage-ink px-4 text-sm font-bold text-white transition-colors hover:bg-sage-ink-hover disabled:opacity-50 ${sosFocusRing}`}
+          >
+            <Plus size={16} aria-hidden="true" /> Agregar
+          </button>
+        </form>
+        {adding.length > 0 && (
+          <p role="status" className="text-xs text-stone-600 dark:text-[#a6a1b2]">
+            {online ? `Agregando ${adding.join(", ")}…` : `Sin conexión: ${adding.join(", ")} se agregará al reconectar.`}
+          </p>
         )}
+        <button
+          type="button"
+          onClick={() => void requestMoreNames()}
+          disabled={isLoadingMore}
+          className={`flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl border border-stone-200 bg-white text-sm font-bold text-stone-800 transition-colors hover:bg-stone-50 disabled:opacity-60 dark:border-white/10 dark:bg-[#221d2d] dark:text-[#eae6e1] dark:hover:bg-[#2d273a] ${sosFocusRing}`}
+        >
+          {isLoadingMore ? (
+            <>
+              <LoaderCircle size={18} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
+              Buscando nombres…
+            </>
+          ) : (
+            <>
+              <Sparkles size={18} className="text-terracotta-ink" aria-hidden="true" />
+              Pedir ideas a PandaIA
+            </>
+          )}
+        </button>
+      </div>
 
       {matches.length > 0 && (
-        <div className="mt-4">
-          <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] mb-3 flex items-center gap-2"><Sparkles size={18} className="text-terracotta/100"/> ¡It's a Match!</h4>
-          <div className="grid grid-cols-2 gap-3">
-            {matches.map(n => (
-              <div key={n.id} className="bg-gradient-to-br from-sage/10 to-white dark:from-[#221d2d] dark:to-[#2d273a] border border-sage/20 dark:border-white/[0.08] p-4 rounded-2xl flex flex-col items-center justify-center shadow-xs">
-                <Heart size={20} className="text-terracotta mb-1" fill="currentColor"/>
-                <span className="font-bold text-stone-800 dark:text-[#eae6e1]">{n.text}</span>
-              </div>
+        <section aria-labelledby={`${baseId}-coinciden`}>
+          <h4 id={`${baseId}-coinciden`} className="flex items-center gap-2 text-base font-bold text-stone-900 dark:text-[#eae6e1]">
+            <Heart size={18} className="text-terracotta-ink" fill="currentColor" aria-hidden="true" />
+            ¡Coincidieron!
+          </h4>
+          <p className="mt-0.5 text-sm text-stone-600 dark:text-[#a6a1b2]">
+            {partnerName ? `A ti y a ${partnerName} les gustan estos nombres.` : "A los dos les gustan estos nombres."}
+          </p>
+          <ul className="mt-3 divide-y divide-stone-100 rounded-2xl border border-stone-200 bg-white dark:divide-white/[0.06] dark:border-white/[0.08] dark:bg-[#221d2d]">
+            {matches.map((m) => (
+              <li key={m.id} className="flex min-h-[56px] items-center justify-between gap-3 px-4 py-2">
+                <span className="min-w-0 truncate text-lg font-bold text-stone-900 dark:text-[#eae6e1]">{m.name}</span>
+                <span className="flex shrink-0 -space-x-1">
+                  {likersOf(m).map((liker) => (
+                    <AuthorChip key={liker.uid} name={liker.name} role={liker.role} title={`A ${liker.name ?? "esta persona"} le gusta`} />
+                  ))}
+                </span>
+              </li>
             ))}
-          </div>
-        </div>
+          </ul>
+        </section>
+      )}
+
+      {favorites.length > 0 && (
+        <section aria-labelledby={`${baseId}-favoritos`}>
+          <h4 id={`${baseId}-favoritos`} className="text-base font-bold text-stone-900 dark:text-[#eae6e1]">Tus favoritos</h4>
+          <p className="mt-0.5 text-sm text-stone-600 dark:text-[#a6a1b2]">
+            {!linked
+              ? "Invita a tu pareja para hacer match."
+              : !partnerMember
+                ? "Cuando tu pareja se una, verán en qué coinciden."
+                : "Los nombres que te gustan y aún no coinciden."}
+          </p>
+          <ul className="mt-3 divide-y divide-stone-100 rounded-2xl border border-stone-200 bg-white dark:divide-white/[0.06] dark:border-white/[0.08] dark:bg-[#221d2d]">
+            {favorites.map((f) => {
+              const partnerVote = partnerMember ? f.votes[partnerMember.uid] : undefined;
+              return (
+                <li key={f.id} className="flex min-h-[56px] items-center gap-3 py-1.5 pl-4 pr-1">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-bold text-stone-900 dark:text-[#eae6e1]">{f.name}</p>
+                    {canMatch && (
+                      <p className="text-xs text-stone-600 dark:text-[#a6a1b2]">
+                        {partnerVote === "nope" ? `A ${partnerName} no le convenció` : `${PartnerName} aún no lo vota`}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => unlike(f)}
+                    aria-label={`Quitar ${f.name} de tus favoritos`}
+                    className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 dark:text-[#a6a1b2] dark:hover:bg-white/5 ${sosFocusRing}`}
+                  >
+                    <X size={16} aria-hidden="true" />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
       )}
     </div>
   );
 }
 
+// --- PLAN DE PARTO: tres estados por opción, sin nada marcado de antemano ---
+
+type PlanPref = "want" | "avoid" | "discuss";
+type PlanPrefs = Record<string, PlanPref>;
+type PlanPatient = { motherName: string; partnerName: string; hospital: string; doctor: string; notes: string };
+
+const PLAN_PREFS: { id: PlanPref; label: string }[] = [
+  { id: "want", label: "Lo deseo" },
+  { id: "avoid", label: "Prefiero evitarlo" },
+  { id: "discuss", label: "Lo hablaré con mi obstetra" },
+];
+const PLAN_PRINT_GROUP: Record<PlanPref, string> = {
+  want: "Deseo",
+  avoid: "Prefiero evitar",
+  discuss: "Lo hablaré con mi obstetra",
+};
+
 interface PlanOption {
   id: string;
   label: string;
   desc: string;
-  checked: boolean;
 }
 
 interface PlanSection {
@@ -1790,533 +3421,705 @@ interface PlanSection {
   options: PlanOption[];
 }
 
-const DEFAULT_PLAN_SECTIONS: PlanSection[] = [
+const PLAN_SECTIONS: PlanSection[] = [
   {
     id: 1,
     category: "Ambiente",
-    title: "1. Acompañamiento y Ambiente de Parto",
-    subtitle: "Tus preferencias para un entorno sereno, seguro y respetado.",
+    title: "Acompañamiento y ambiente",
+    subtitle: "Cómo te gustaría que fuera el entorno durante el trabajo de parto.",
     options: [
-      { id: "a1", label: "Acompañante continuo en todo momento", desc: "Deseo que mi pareja o acompañante esté presente en dilatación, expulsivo y recuperación sin interrupción.", checked: true },
-      { id: "a2", label: "Ambiente con luz tenue y silencioso", desc: "Reducir la iluminación artificial y el ruido en la sala para favorecer la producción de oxitocina natural.", checked: true },
-      { id: "a3", label: "Música propia y ropa cómoda", desc: "Llevaré mi propia lista de música relajante y ropa personal en lugar de la bata institucional abierta.", checked: true },
-      { id: "a4", label: "Libertad de movimiento y esferodinamia", desc: "Poder caminar, cambiar de postura libremente y utilizar pelota de pilates durante la fase de dilatación.", checked: true },
-      { id: "a5", label: "Hidratación y líquidos claros", desc: "Poder beber agua, infusiones o caldos ligeros para mantener energía durante el trabajo de parto.", checked: true },
-      { id: "a6", label: "Acceso a ducha o hidroterapia con agua caliente", desc: "Uso del agua tibia como método fisiológico y natural para el alivio del dolor de las contracciones.", checked: true }
-    ]
+      { id: "a1", label: "Acompañante en todo momento", desc: "Que mi pareja o acompañante esté presente en la dilatación, el expulsivo y la recuperación." },
+      { id: "a2", label: "Luz tenue y silencio", desc: "Reducir la luz y el ruido en la sala para favorecer un ambiente tranquilo." },
+      { id: "a3", label: "Música propia y ropa cómoda", desc: "Llevar mi propia música y ropa personal en lugar de la bata del hospital." },
+      { id: "a4", label: "Libertad de movimiento", desc: "Poder caminar, cambiar de postura y usar una pelota durante la dilatación." },
+      { id: "a5", label: "Beber líquidos claros", desc: "Poder tomar agua, infusiones o caldos ligeros durante el trabajo de parto." },
+      { id: "a6", label: "Ducha o agua tibia", desc: "Usar la ducha o el agua tibia para aliviar el dolor de las contracciones." },
+    ],
   },
   {
     id: 2,
-    category: "Dolor y Procedimientos",
-    title: "2. Manejo del Dolor y Procedimientos Médicos",
-    subtitle: "Intervenciones farmacológicas y monitoreo clínico informado.",
+    category: "Dolor y procedimientos",
+    title: "Manejo del dolor y procedimientos",
+    subtitle: "Alivio del dolor y procedimientos médicos durante el trabajo de parto.",
     options: [
-      { id: "d1", label: "Alivio no farmacológico primero", desc: "Masajes lumbares por mi acompañante, técnicas de respiración guiada, compresas y libertad postural.", checked: true },
-      { id: "d2", label: "Anestesia Epidural a demanda informada", desc: "Deseo que la epidural esté disponible y se aplique cuando yo lo solicite expresamente, sin apresurar.", checked: true },
-      { id: "d3", label: "Rotura espontánea de bolsa amniótica", desc: "Permitir que las membranas rompan de forma fisiológica; evitar la amniotomía artificial rutinaria.", checked: true },
-      { id: "d4", label: "Uso de Oxitocina sintética solo con justificación", desc: "No administrar goteo de oxitocina de rutina para acelerar el parto, salvo necesidad médica justificada.", checked: true },
-      { id: "d5", label: "Mínimo número de tactos vaginales", desc: "Realizar exploraciones vaginales únicamente cuando sea indispensable y avisando previamente con delicadeza.", checked: true }
-    ]
+      { id: "d1", label: "Alivio sin medicamentos primero", desc: "Masajes, respiración guiada, compresas y cambios de postura antes que otros métodos." },
+      { id: "d2", label: "Anestesia epidural cuando la pida", desc: "Que la epidural esté disponible y se aplique cuando yo la solicite." },
+      { id: "d3", label: "Rotura espontánea de la bolsa", desc: "Dejar que la bolsa se rompa sola y evitar romperla de rutina." },
+      { id: "d4", label: "Oxitocina solo si hace falta", desc: "No usar goteo de oxitocina de rutina para acelerar el parto, salvo indicación médica." },
+      { id: "d5", label: "Pocos tactos vaginales", desc: "Hacer exploraciones vaginales solo cuando sean necesarias y avisándome antes." },
+    ],
   },
   {
     id: 3,
     category: "Expulsivo",
-    title: "3. Periodo Expulsivo y Nacimiento",
-    subtitle: "Cómo deseas vivir el momento exacto en que nace tu bebé.",
+    title: "Expulsivo y nacimiento",
+    subtitle: "Cómo te gustaría vivir el momento en que nace tu bebé.",
     options: [
-      { id: "e1", label: "Libertad de postura para dar a luz", desc: "Poder parir en la postura más instintiva y cómoda (semisentada, cuclillas, lateral o cuatro apoyos), evitando litotomía forzada.", checked: true },
-      { id: "e2", label: "Pujos espontáneos y fisiológicos", desc: "Pujar al compás natural de mis contracciones corporales en vez de pujos dirigidos en apnea forzada.", checked: true },
-      { id: "e3", label: "Protección perineal (No episiotomía de rutina)", desc: "Aplicación de compresas tibias y masajes perineales; realizar episiotomía solo ante riesgo fetal inminente.", checked: true },
-      { id: "e4", label: "Corte del cordón por el padre / acompañante", desc: "Deseo que mi acompañante tenga la oportunidad de cortar el cordón umbilical guiado por la matrona.", checked: true },
-      { id: "e5", label: "Contacto visual o tocar la cabecita al coronar", desc: "Deseo poder ver con espejo o tocar suavemente a mi bebé cuando empiece a coronar.", checked: false }
-    ]
+      { id: "e1", label: "Elegir la postura para pujar", desc: "Parir en la postura más cómoda para mí (semisentada, en cuclillas, de lado o en cuatro apoyos)." },
+      { id: "e2", label: "Pujos espontáneos", desc: "Pujar cuando mi cuerpo lo pida, en lugar de pujos dirigidos." },
+      { id: "e3", label: "Episiotomía solo si es necesaria", desc: "Proteger el periné con compresas tibias y masaje; episiotomía solo si hay un motivo médico." },
+      { id: "e4", label: "Que mi acompañante corte el cordón", desc: "Que mi acompañante pueda cortar el cordón umbilical con la guía del equipo." },
+      { id: "e5", label: "Ver o tocar al bebé al coronar", desc: "Poder ver con un espejo o tocar la cabeza de mi bebé cuando empiece a asomar." },
+    ],
   },
   {
     id: 4,
-    category: "Recién Nacido",
-    title: "4. Cuidados Inmediatos del Recién Nacido (Hora Dorada)",
-    subtitle: "Apego temprano, corte de cordón y alimentación inicial.",
+    category: "Recién nacido",
+    title: "Primeros cuidados del recién nacido",
+    subtitle: "Apego, cordón y alimentación en la primera hora de vida.",
     options: [
-      { id: "n1", label: "Corte tardío del cordón umbilical", desc: "Esperar al menos 2 a 3 minutos o hasta que el cordón deje de pulsar para maximizar el aporte de hierro y células madre.", checked: true },
-      { id: "n2", label: "Contacto Piel con Piel inmediato e ininterrumpido", desc: "Colocar al bebé directamente sobre mi pecho desnudo al nacer durante la primera hora de vida (Hora Dorada).", checked: true },
-      { id: "n3", label: "Retrasar procedimientos de rutina no urgentes", desc: "Pesar, medir, bañar y administrar gotas/vitamina K solo después de la primera hora de apego sobre el pecho.", checked: true },
-      { id: "n4", label: "Inicio precoz de Lactancia Materna", desc: "Facilitar el primer agarre espontáneo al pecho durante los primeros 60 minutos de vida con apoyo de matrona.", checked: true },
-      { id: "n5", label: "No suministrar suero, fórmula ni chupetes", desc: "Alimentación exclusiva al pecho salvo prescripción médica estricta y previamente consensuada con los padres.", checked: true }
-    ]
+      { id: "n1", label: "Corte tardío del cordón", desc: "Esperar al menos 1 a 3 minutos, o hasta que el cordón deje de latir, antes de cortarlo." },
+      { id: "n2", label: "Contacto piel con piel inmediato", desc: "Poner a mi bebé sobre mi pecho al nacer durante la primera hora." },
+      { id: "n3", label: "Retrasar lo que no sea urgente", desc: "Pesar, medir y bañar a mi bebé después de la primera hora de contacto." },
+      { id: "n4", label: "Lactancia en la primera hora", desc: "Recibir apoyo para el primer agarre al pecho durante la primera hora." },
+      { id: "n5", label: "Sin fórmula ni chupete salvo indicación", desc: "Lactancia exclusiva salvo indicación médica, hablada antes con nosotros." },
+    ],
   },
   {
     id: 5,
-    category: "Cesárea y Notas",
-    title: "5. En caso de Cesárea y Cuidados Especiales",
-    subtitle: "Cesárea humanizada y notas médicas particulares.",
+    category: "Cesárea",
+    title: "Si hay cesárea",
+    subtitle: "Preferencias por si el parto termina en cesárea.",
     options: [
-      { id: "c1", label: "Acompañante presente en quirófano", desc: "Que mi pareja esté a mi lado en todo momento durante la cesárea y en la sala de recuperación postoperatoria.", checked: true },
-      { id: "c2", label: "Piel con piel inmediato en quirófano o con el padre", desc: "Si la madre no puede por la intervención, que el padre realice el contacto piel con piel sin separarse del bebé.", checked: true },
-      { id: "c3", label: "Bajar pantalla en el alumbramiento", desc: "Permitirnos ver el momento exacto en que sacan al bebé si las condiciones quirúrgicas lo permiten.", checked: true },
-      { id: "c4", label: "Co-alojamiento conjunto 24 horas en habitación", desc: "Que el recién nacido permanezca en todo momento en la habitación con la madre, sin traslados rutinarios a nido.", checked: true }
-    ]
-  }
+      { id: "c1", label: "Acompañante en el quirófano", desc: "Que mi pareja esté a mi lado durante la cesárea y en la recuperación." },
+      { id: "c2", label: "Piel con piel en el quirófano o con mi pareja", desc: "Si yo no puedo, que mi pareja haga el contacto piel con piel sin separarse del bebé." },
+      { id: "c3", label: "Bajar la pantalla al nacer", desc: "Poder ver el momento en que nace mi bebé si las condiciones lo permiten." },
+      { id: "c4", label: "Alojamiento conjunto", desc: "Que mi bebé se quede conmigo en la habitación, sin traslados de rutina a otra sala." },
+    ],
+  },
 ];
 
-export function PlanParto({ profile, showToast }: { profile?: UserProfile, showToast: any }) {
-  // Firestore sync for birth plan
-  useEffect(() => {
-    const pid = usePandaStore.getState().profile.pregnancyId;
-    if (pid) {
-      const unsub = listenToBirthPlan(pid, (data) => {
-        if (data.patient && Object.keys(data.patient).length > 0) setPatientData((prev: any) => ({ ...prev, ...data.patient }));
-        if (data.sections && data.sections.length > 0) setSections(data.sections);
-      });
-      return () => unsub();
-    }
-  }, []);
+const PLAN_OPTION_IDS = new Set(PLAN_SECTIONS.flatMap((s) => s.options.map((o) => o.id)));
+/** Opciones que la versión anterior marcaba solas (todas menos e5): sirven para reconocer un plan sin tocar. */
+const LEGACY_DEFAULT_CHECKED = new Set([...PLAN_OPTION_IDS].filter((id) => id !== "e5"));
+const LEGACY_HOSPITAL_PLACEHOLDER = "Hospital / Clínica de Maternidad";
+const LOCAL_PLAN_KEY = "pandajr_birth_plan_v2";
 
+function isPlanPref(v: unknown): v is PlanPref {
+  return v === "want" || v === "avoid" || v === "discuss";
+}
+
+function planOptionsOf(raw: unknown[]) {
+  return raw.flatMap((sec) => (isRecord(sec) ? asArray(sec.options) : [])).filter(isRecord);
+}
+
+/** Plan del formato antiguo ({ id, checked }) que la persona sí modificó respecto de lo premarcado. */
+function isTouchedLegacyPlan(raw: unknown[]): boolean {
+  const options = planOptionsOf(raw);
+  if (!options.some((o) => typeof o.checked === "boolean")) return false;
+  return !options.every((o) => Boolean(o.checked) === LEGACY_DEFAULT_CHECKED.has(String(o.id)));
+}
+
+/**
+ * Lee las preferencias guardadas. Formato nuevo: { id, pref? }. Formato antiguo: { id, checked }.
+ * Del formato antiguo solo cuenta lo que la persona eligió activamente (lo que difiere de lo que
+ * venía premarcado): las opciones que quedaron marcadas "de fábrica" nunca pasan al documento
+ * médico como "Lo deseo". La UI pide revisar el plan (isTouchedLegacyPlan).
+ */
+function parsePlanSections(raw: unknown[]): PlanPrefs {
+  const options = planOptionsOf(raw);
+  const prefs: PlanPrefs = {};
+  const legacy = options.some((o) => typeof o.checked === "boolean");
+  if (!legacy) {
+    for (const o of options) {
+      const id = String(o.id ?? "");
+      if (PLAN_OPTION_IDS.has(id) && isPlanPref(o.pref)) prefs[id] = o.pref;
+    }
+    return prefs;
+  }
+  for (const o of options) {
+    const id = String(o.id ?? "");
+    if (PLAN_OPTION_IDS.has(id) && o.checked === true && !LEGACY_DEFAULT_CHECKED.has(id)) prefs[id] = "want";
+  }
+  return prefs;
+}
+
+function toStoredSections(prefs: PlanPrefs) {
+  return PLAN_SECTIONS.map((s) => ({
+    id: s.id,
+    options: s.options.map((o) => (prefs[o.id] ? { id: o.id, pref: prefs[o.id] } : { id: o.id })),
+  }));
+}
+
+function parsePatient(raw: unknown, defaults: PlanPatient): PlanPatient {
+  if (!isRecord(raw) || Object.keys(raw).length === 0) return defaults;
+  const text = (v: unknown, max = 120) => (typeof v === "string" ? repairMojibake(v).slice(0, max) : "");
+  const hospital = text(raw.hospital);
+  return {
+    motherName: text(raw.motherName, 80),
+    partnerName: text(raw.partnerName, 80),
+    hospital: hospital.trim() === LEGACY_HOSPITAL_PLACEHOLDER ? "" : hospital,
+    doctor: text(raw.doctor, 80),
+    notes: text(raw.notes, 600),
+  };
+}
+
+type LoadedPlan = { prefs: PlanPrefs; patient: PlanPatient; savedAt: number | null; needsReview: boolean };
+
+/** Plan guardado en este teléfono (sin vínculo), con conversión única del formato antiguo. */
+function loadLocalPlan(defaults: PlanPatient): LoadedPlan {
+  const saved = readStored<unknown>(LOCAL_PLAN_KEY);
+  if (isRecord(saved)) {
+    return {
+      prefs: parsePlanSections(asArray(saved.sections)),
+      patient: parsePatient(saved.patient, defaults),
+      savedAt: finiteNum(saved.savedAt),
+      needsReview: isTouchedLegacyPlan(asArray(saved.sections)),
+    };
+  }
+  const legacySections = asArray(readStored<unknown>("pandajr_birth_plan_sections"));
+  const legacyPatient = readStored<unknown>("pandajr_birth_plan_patient");
+  return {
+    prefs: parsePlanSections(legacySections),
+    patient: parsePatient(legacyPatient, defaults),
+    savedAt: null,
+    needsReview: isTouchedLegacyPlan(legacySections),
+  };
+}
+
+/** ¿El plan local tiene algo que la persona escribió o eligió? (para no subir un plan vacío). */
+function planHasContent(plan: LoadedPlan, defaults: PlanPatient): boolean {
+  if (Object.keys(plan.prefs).length > 0) return true;
+  const p = plan.patient;
+  return (
+    !!p.notes.trim() ||
+    (!!p.doctor.trim() && p.doctor.trim() !== defaults.doctor.trim()) ||
+    (!!p.hospital.trim() && p.hospital.trim() !== defaults.hospital.trim())
+  );
+}
+
+function planCounts(prefs: PlanPrefs) {
+  const values = Object.values(prefs);
+  return {
+    marked: values.length,
+    want: values.filter((v) => v === "want").length,
+    avoid: values.filter((v) => v === "avoid").length,
+    discuss: values.filter((v) => v === "discuss").length,
+  };
+}
+
+type SaveStatus = "idle" | "pending" | "error";
+
+export function PlanParto({ profile, showToast }: { profile?: UserProfile; showToast: ShowToast }) {
+  const me = useMe();
+  const pid = me.pid;
+  const careTeam = usePandaStore((s) => s.careTeam);
+  const week = knownWeek(profile);
+  const baseId = React.useId();
+  const isClient = useIsClient();
+  const { retryState, fail, clearRetry } = useRetry();
+
+  const defaults: PlanPatient = {
+    motherName: profile?.role === "mama" ? profile.name : "",
+    partnerName: profile?.role === "papa" ? profile.name : "",
+    hospital: careTeam?.hospitalName?.trim() || "",
+    doctor: careTeam?.obName?.trim() || "",
+    notes: "",
+  };
+
+  // Sin vínculo se lee del teléfono al abrir; con vínculo se espera al primer snapshot.
+  const [initialLocal] = useState(() => (pid ? null : loadLocalPlan(defaults)));
+  // Plan antiguo que venía premarcado: pedimos revisarlo (solo se conservaron las elecciones activas).
+  const [needsReview, setNeedsReview] = useState(() => !!initialLocal?.needsReview);
+  const [prefs, setPrefs] = useState<PlanPrefs>(() => initialLocal?.prefs ?? {});
+  const [patient, setPatient] = useState<PlanPatient>(() => initialLocal?.patient ?? defaults);
+  const [readyPid, setReadyPid] = useState<string | null>(null);
+  const [errorPid, setErrorPid] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const [savedAt, setSavedAt] = useState<number | null>(() => initialLocal?.savedAt ?? null);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [step, setStep] = useState(1);
   const [viewMode, setViewMode] = useState<"wizard" | "document">("wizard");
 
-  // Datos del paciente editables y guardados
-  const [patientData, setPatientData] = useState(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("pandajr_birth_plan_patient");
-        if (saved) return JSON.parse(saved);
-      } catch (e) {}
-    }
-    return {
-      motherName: profile?.role === "mama" ? profile.name : "",
-      partnerName: profile?.role === "papa" ? profile.name : "",
-      hospital: profile?.location || "Hospital / Clínica de Maternidad",
-      week: profile?.week || 36,
-      doctor: "",
-      notes: profile?.notes || ""
-    };
-  });
+  const latestRef = useRef<{ prefs: PlanPrefs; patient: PlanPatient }>({ prefs, patient });
+  const dirtyRef = useRef(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const defaultsRef = useRef(defaults);
+  const now = useNow(60_000, savedAt !== null);
 
-  // Secciones y opciones guardadas en localStorage
-  const [sections, setSections] = useState<PlanSection[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("pandajr_birth_plan_sections");
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length === DEFAULT_PLAN_SECTIONS.length) return parsed;
-        }
-      } catch (e) {}
-    }
-    return DEFAULT_PLAN_SECTIONS;
-  });
-
-  // Guardar cambios en localStorage
   useEffect(() => {
-    try {
-      localStorage.setItem("pandajr_birth_plan_patient", JSON.stringify(patientData));
-      localStorage.setItem("pandajr_birth_plan_sections", JSON.stringify(sections));
-    } catch (e) {}
-  }, [patientData, sections]);
+    defaultsRef.current = defaults;
+  });
 
-  const toggleOption = (sectionId: number, optionId: string) => {
-    setSections(prev => prev.map(sec => {
-      if (sec.id !== sectionId) return sec;
-      return {
-        ...sec,
-        options: sec.options.map(opt => opt.id === optionId ? { ...opt, checked: !opt.checked } : opt)
-      };
-    }));
+  useEffect(() => {
+    if (!pid) return;
+    let localChecked = false;
+    return listenToBirthPlan(
+      pid,
+      (data, meta) => {
+        setErrorPid(null);
+        // Sin conexión y sin copia local no sabemos si ya hay un plan: no lo pisamos.
+        if (meta.fromCache && !meta.exists) return;
+        setReadyPid(pid);
+        if (meta.updatedAt) setSavedAt(meta.updatedAt.getTime());
+        // No pisar cambios locales que aún no se confirman (el eco de mi propia escritura llega igual).
+        if (dirtyRef.current) return;
+        let next = {
+          prefs: meta.exists ? parsePlanSections(data.sections) : {},
+          patient: meta.exists ? parsePatient(data.patient, defaultsRef.current) : defaultsRef.current,
+        };
+        let review = meta.exists && isTouchedLegacyPlan(asArray(data.sections));
+        // Traspaso único (tras el primer dato del servidor): la versión anterior guardaba el plan
+        // SOLO en el teléfono, aun con vínculo; y al vincular, lo hecho sin vínculo. Solo si el
+        // compartido no existe: nunca pisa un plan que ya esté en el embarazo.
+        if (!localChecked && !meta.fromCache) {
+          localChecked = true;
+          const flag = localToSharedFlag("birthplan", pid);
+          if (!readStored(flag)) {
+            const local = loadLocalPlan(defaultsRef.current);
+            if (!meta.exists && planHasContent(local, defaultsRef.current)) {
+              next = { prefs: local.prefs, patient: local.patient };
+              review = local.needsReview;
+              saveBirthPlan(pid, local.patient, toStoredSections(local.prefs)).then(
+                () => writeStored(flag, true),
+                () => {
+                  // Se intentará la próxima vez que se abra el plan.
+                }
+              );
+            } else {
+              writeStored(flag, true);
+            }
+          }
+        }
+        latestRef.current = next;
+        setPrefs(next.prefs);
+        setPatient(next.patient);
+        setNeedsReview(review);
+      },
+      () => setErrorPid(pid)
+    );
+  }, [pid, attempt]);
+
+  const flushRef = useRef<() => void>(() => {});
+  const flush = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    if (!pid || !dirtyRef.current) return;
+    const snapshot = latestRef.current;
+    setSaveStatus("pending");
+    saveBirthPlan(pid, snapshot.patient, toStoredSections(snapshot.prefs)).then(
+      () => {
+        if (latestRef.current !== snapshot) return; // hubo cambios nuevos: los guarda su propio envío
+        dirtyRef.current = false;
+        setSaveStatus("idle");
+        setSavedAt(nowMs());
+      },
+      () => {
+        setSaveStatus("error");
+        fail("No se guardó el plan de parto. Tus cambios siguen aquí.", () => {
+          dirtyRef.current = true;
+          flushRef.current();
+        });
+      }
+    );
   };
+  useEffect(() => {
+    flushRef.current = flush;
+  });
+
+  // Si se cierra la herramienta con un guardado en espera, se envía (continúa el manejador).
+  useEffect(() => () => flushRef.current(), []);
+
+  /** Guardado desde los manejadores: local al instante; compartido con espera de 800 ms. */
+  const commit = (next: { prefs: PlanPrefs; patient: PlanPatient }) => {
+    latestRef.current = next;
+    setPrefs(next.prefs);
+    setPatient(next.patient);
+    clearRetry();
+    if (!pid) {
+      const at = nowMs();
+      writeStored(LOCAL_PLAN_KEY, { sections: toStoredSections(next.prefs), patient: next.patient, savedAt: at });
+      setSavedAt(at);
+      return;
+    }
+    dirtyRef.current = true;
+    setSaveStatus("pending");
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => flushRef.current(), 800);
+  };
+
+  const setPref = (optionId: string, pref: PlanPref) => {
+    const nextPrefs = { ...latestRef.current.prefs };
+    if (nextPrefs[optionId] === pref) delete nextPrefs[optionId];
+    else nextPrefs[optionId] = pref;
+    commit({ prefs: nextPrefs, patient: latestRef.current.patient });
+  };
+
+  const setPatientField = (field: keyof PlanPatient, value: string) => {
+    commit({ prefs: latestRef.current.prefs, patient: { ...latestRef.current.patient, [field]: value } });
+  };
+
+  const clearAll = () => {
+    const previous = latestRef.current;
+    if (Object.keys(previous.prefs).length === 0) return;
+    commit({ prefs: {}, patient: previous.patient });
+    showToast("Quitamos todas las marcas del plan", () => commit({ prefs: previous.prefs, patient: latestRef.current.patient }));
+  };
+
+  const ready = !pid || readyPid === pid;
+  const counts = planCounts(prefs);
+  const currentSection = PLAN_SECTIONS.find((s) => s.id === step) ?? PLAN_SECTIONS[0];
 
   const handlePrint = () => {
-    showToast("Generando vista de impresión para PDF... 📄", () => {});
-    setTimeout(() => {
-      window.print();
-    }, 150);
+    flush();
+    window.print();
   };
 
-  const sharePlanWhatsApp = () => {
+  const sharePlan = async () => {
+    if (counts.marked === 0) {
+      showToast("Marca al menos una preferencia para compartir el plan");
+      return;
+    }
+    const lines: string[] = ["*Plan de parto*"];
+    if (patient.motherName.trim()) lines.push(`Madre: ${patient.motherName.trim()}`);
+    if (patient.partnerName.trim()) lines.push(`Acompañante: ${patient.partnerName.trim()}`);
+    if (typeof week === "number") lines.push(`Semana de gestación: ${week}`);
+    if (patient.hospital.trim()) lines.push(`Hospital o clínica: ${patient.hospital.trim()}`);
+    if (patient.doctor.trim()) lines.push(`Obstetra: ${patient.doctor.trim()}`);
+    for (const pref of ["want", "avoid", "discuss"] as const) {
+      const chosen = PLAN_SECTIONS.flatMap((s) => s.options.filter((o) => prefs[o.id] === pref).map((o) => `• ${o.label}`));
+      if (chosen.length) lines.push("", `*${PLAN_PRINT_GROUP[pref]}*`, ...chosen);
+    }
+    if (patient.notes.trim()) lines.push("", `Observaciones: ${patient.notes.trim()}`);
+    lines.push("", "Hecho con PandaJR");
+    const text = lines.join("\n");
     try {
-      const checkedOptions = sections.flatMap(sec => 
-        sec.options.filter(o => o.checked).map(o => `• [${sec.category}] ${o.label}`)
-      );
-
-      const text = [
-        `📋 *PLAN DE PARTO Y NACIMIENTO PANDAJR*`,
-        `🤰 *Madre:* ${patientData.motherName || "Gestante"}`,
-        `👨 *Acompañante:* ${patientData.partnerName || "Pareja"}`,
-        `🏥 *Centro Médico:* ${patientData.hospital}`,
-        `📅 *Semana de Gestación:* ${patientData.week}`,
-        patientData.doctor ? `🩺 *Especialista:* ${patientData.doctor}` : "",
-        "",
-        `âœ¨ *PREFERENCIAS Y CLÁUSULAS ACTIVAS (${checkedOptions.length}):*`,
-        ...checkedOptions,
-        "",
-        patientData.notes ? `📝 *Notas Especiales:* ${patientData.notes}\n` : "",
-        `👉 *Documento generado y coordinado con PandaJR*`
-      ].filter(Boolean).join("\n");
-
       if (navigator.share) {
-        navigator.share({
-          title: "Plan de Parto PandaJR",
-          text: text
-        }).catch(() => {});
+        await navigator.share({ title: "Plan de parto", text });
       } else {
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank", "noopener");
       }
-    } catch(err) {
-      console.error(err);
-      showToast("No se pudo abrir el compartidor", () => {});
+    } catch (err) {
+      if ((err as { name?: string })?.name !== "AbortError") showToast("No se pudo abrir el menú para compartir");
     }
   };
 
-  const resetToDefaults = () => {
-    setSections(DEFAULT_PLAN_SECTIONS);
-    showToast("Plan restablecido a los valores clínicos recomendados", () => {});
-  };
+  const statusText = !pid
+    ? savedAt
+      ? `Guardado en este teléfono · ${formatRelative(savedAt, new Date(now))}`
+      : ""
+    : saveStatus === "pending"
+      ? "Guardando…"
+      : saveStatus === "error"
+        ? "No se guardó"
+        : savedAt
+          ? `Guardado · ${formatRelative(savedAt, new Date(now))}`
+          : "";
 
-  const currentSection = sections.find(s => s.id === step);
-  const totalCheckedCount = sections.reduce((acc, s) => acc + s.options.filter(o => o.checked).length, 0);
+  const inputClass =
+    "w-full min-h-[44px] bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-base text-stone-800 dark:text-[#eae6e1] placeholder:text-stone-500 dark:placeholder:text-[#8f899c] focus:outline-none focus:ring-2 focus:ring-sage-ink/50";
 
-  return (
-    <div className="flex flex-col py-2 animate-in fade-in duration-300 w-full">
+  const printValue = (v: string) =>
+    v.trim() ? <span>{v.trim()}</span> : <span className="inline-block w-48 border-b border-stone-400 align-bottom" />;
 
-      {/* DOCUMENTO CLINICO IMPRESO (SOLO VISIBLE AL IMPRIMIR CON WINDOW.PRINT) */}
-      <div className="hidden print:block text-black bg-white p-8 max-w-4xl mx-auto space-y-6 text-sm">
-        <div className="border-b-2 border-sage pb-4 flex justify-between items-end">
-          <div>
-            <h1 className="text-2xl font-black tracking-tight text-sage">PLAN DE PARTO Y NACIMIENTO INFORMADO</h1>
-            <p className="text-xs text-stone-600 mt-0.5">Expresión de voluntades y preferencias clínicas para la atención del parto y recién nacido</p>
-          </div>
-          <div className="text-right text-xs text-stone-500 font-mono">
-            <p>PandaJR Copiloto Fetal</p>
-            <p>Fecha: {new Date().toLocaleDateString("es-ES")}</p>
-          </div>
+  // Documento para imprimir: se monta en <body> para que no lo recorte el contenedor con scroll.
+  const printDoc = (
+    <div className="pandajr-print-root hidden print:block text-black bg-white p-8 text-sm">
+      <style>{`@media print { body > *:not(.pandajr-print-root) { display: none !important; } .pandajr-print-root { display: block !important; } }`}</style>
+      {/* div y no <header>: globals.css oculta header/nav/button al imprimir */}
+      <div className="border-b-2 border-stone-800 pb-3 flex justify-between items-end gap-6">
+        <div>
+          <h1 className="text-2xl font-black tracking-tight">Plan de parto</h1>
+          <p className="text-xs text-stone-700 mt-0.5">Preferencias para la atención del parto y del recién nacido</p>
         </div>
-
-        {/* Ficha de Identificación de Pacientes */}
-        <div className="grid grid-cols-2 gap-4 bg-stone-50 border border-stone-200 p-4 rounded-xl text-xs">
-          <div>
-            <p><strong>Madre Gestante:</strong> {patientData.motherName || "Por definir"}</p>
-            <p className="mt-1"><strong>Acompañante / Pareja:</strong> {patientData.partnerName || "Por definir"}</p>
-            <p className="mt-1"><strong>Semana Gestacional:</strong> Semana {patientData.week}</p>
-          </div>
-          <div>
-            <p><strong>Hospital / Clínica:</strong> {patientData.hospital || "Centro de maternidad"}</p>
-            <p className="mt-1"><strong>Obstetra / Matrona:</strong> {patientData.doctor || "Equipo de guardia"}</p>
-            {patientData.notes && <p className="mt-1"><strong>Observaciones:</strong> {patientData.notes}</p>}
-          </div>
+        <div className="text-right text-xs text-stone-700 shrink-0">
+          <p>PandaJR · Copiloto prenatal</p>
+          <p>Fecha: {new Date(now).toLocaleDateString("es")}</p>
         </div>
+      </div>
 
-        {/* Cláusula Introductoria de Respeto Clínico */}
-        <blockquote className="bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-xl text-xs text-stone-700 italic flex items-start gap-2.5">
-          <span className="text-sage font-serif text-lg leading-none select-none shrink-0" aria-hidden="true">“</span>
-          <p className="flex-1">
-            A la atención del equipo obstétrico y pediátrico: Este plan expresa nuestros deseos y preferencias para el proceso de parto y postparto inmediato, entendiendo siempre que la salud y seguridad de la madre y del bebé priman ante cualquier eventualidad médica imprevista.
-          </p>
-          <span className="text-sage font-serif text-lg leading-none select-none shrink-0 self-end" aria-hidden="true">”</span>
-        </blockquote>
+      <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
+        <div><dt className="inline font-bold">Madre: </dt><dd className="inline">{printValue(patient.motherName)}</dd></div>
+        <div><dt className="inline font-bold">Acompañante: </dt><dd className="inline">{printValue(patient.partnerName)}</dd></div>
+        <div><dt className="inline font-bold">Semana de gestación: </dt><dd className="inline">{printValue(typeof week === "number" ? String(week) : "")}</dd></div>
+        <div><dt className="inline font-bold">Hospital o clínica: </dt><dd className="inline">{printValue(patient.hospital)}</dd></div>
+        <div><dt className="inline font-bold">Obstetra: </dt><dd className="inline">{printValue(patient.doctor)}</dd></div>
+        {patient.notes.trim() && (
+          <div className="col-span-2"><dt className="inline font-bold">Observaciones o alergias: </dt><dd className="inline whitespace-pre-wrap">{patient.notes.trim()}</dd></div>
+        )}
+      </dl>
 
-        {/* Secciones y Preferencias Seleccionadas */}
-        <div className="space-y-5">
-          {sections.map(sec => {
-            const activeOpts = sec.options.filter(o => o.checked);
-            if (activeOpts.length === 0) return null;
+      <p className="mt-4 border border-stone-300 rounded-lg px-4 py-3 text-xs text-stone-800 leading-relaxed break-inside-avoid">
+        Al equipo obstétrico y pediátrico: este plan expresa nuestras preferencias para el parto y el posparto inmediato.
+        Entendemos que la salud y la seguridad de la madre y del bebé están primero ante cualquier situación médica imprevista.
+      </p>
+
+      {counts.marked === 0 ? (
+        <p className="mt-6 text-xs italic">Aún no hay preferencias marcadas.</p>
+      ) : (
+        <div className="mt-5 space-y-5">
+          {PLAN_SECTIONS.map((sec) => {
+            const marked = sec.options.filter((o) => prefs[o.id]);
+            if (marked.length === 0) return null;
             return (
-              <div key={sec.id} className="space-y-1.5 break-inside-avoid">
-                <h3 className="font-bold text-teal-950 text-sm border-b border-stone-200 pb-1 tracking-tight">{sec.title}</h3>
-                <ul className="space-y-1 text-xs text-stone-800 pt-1">
-                  {activeOpts.map(opt => (
-                    <li key={opt.id} className="flex items-start gap-2">
-                      <span className="text-sage font-bold">â˜‘</span>
-                      <div>
-                        <strong>{opt.label}:</strong> <span className="text-stone-600">{opt.desc}</span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <section key={sec.id} className="break-inside-avoid">
+                <h2 className="font-bold text-sm border-b border-stone-300 pb-1">{sec.title}</h2>
+                {(["want", "avoid", "discuss"] as const).map((pref) => {
+                  const group = marked.filter((o) => prefs[o.id] === pref);
+                  if (group.length === 0) return null;
+                  return (
+                    <div key={pref} className="mt-2">
+                      <h3 className="text-xs font-bold">{PLAN_PRINT_GROUP[pref]}</h3>
+                      <ul className="mt-1 space-y-1 text-xs">
+                        {group.map((o) => (
+                          <li key={o.id} className="flex items-start gap-2 break-inside-avoid">
+                            {pref === "want" ? (
+                              <Check size={12} strokeWidth={3} className="mt-0.5 shrink-0" aria-hidden="true" />
+                            ) : (
+                              <Minus size={12} strokeWidth={3} className="mt-0.5 shrink-0" aria-hidden="true" />
+                            )}
+                            <span>
+                              <strong>{o.label}</strong>
+                              {pref === "want" && <span className="text-stone-700">. {o.desc}</span>}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })}
+              </section>
             );
           })}
         </div>
+      )}
 
-        {/* Sección de Firmas Formales */}
-        <div className="pt-8 mt-8 border-t border-stone-300 grid grid-cols-3 gap-6 text-center text-xs break-inside-avoid">
-          <div className="border-t border-stone-400 pt-2">
-            <p className="font-bold text-stone-800">{patientData.motherName || "Firma de la Madre"}</p>
-            <p className="text-xs text-stone-500">Madre Gestante</p>
-          </div>
-          <div className="border-t border-stone-400 pt-2">
-            <p className="font-bold text-stone-800">{patientData.partnerName || "Firma del Acompañante"}</p>
-            <p className="text-xs text-stone-500">Pareja / Acompañante</p>
-          </div>
-          <div className="border-t border-stone-400 pt-2">
-            <p className="font-bold text-stone-800">Recibido por Equipo Obstétrico</p>
-            <p className="text-xs text-stone-500">Firma y Sello del Profesional</p>
-          </div>
+      <div className="pt-8 mt-10 grid grid-cols-3 gap-6 text-center text-xs break-inside-avoid">
+        <div className="border-t border-stone-500 pt-2">
+          <p className="font-bold">{patient.motherName.trim() || " "}</p>
+          <p className="text-stone-700">Firma de la madre</p>
+        </div>
+        <div className="border-t border-stone-500 pt-2">
+          <p className="font-bold">{patient.partnerName.trim() || " "}</p>
+          <p className="text-stone-700">Firma del acompañante</p>
+        </div>
+        <div className="border-t border-stone-500 pt-2">
+          <p className="font-bold">{" "}</p>
+          <p className="text-stone-700">Recibido por el equipo de salud</p>
         </div>
       </div>
+    </div>
+  );
 
-      {/* HEADER DE CONTROL EN LA APLICACIÓN (NO-PRINT) */}
+  const segmented = (active: boolean) =>
+    `flex-1 min-h-[44px] px-2 text-sm font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5 ${sosFocusRing} ${
+      active ? "bg-white dark:bg-[#2d273a] text-stone-900 dark:text-[#eae6e1] shadow-sm" : "text-stone-600 dark:text-[#a6a1b2] hover:text-stone-900 dark:hover:text-[#eae6e1]"
+    }`;
+
+  const prefButton = (pref: PlanPref, active: boolean) => {
+    const on =
+      pref === "want"
+        ? "bg-sage-ink text-white border-transparent"
+        : pref === "avoid"
+          ? "bg-terracotta-ink text-white border-transparent"
+          : "bg-stone-800 text-white border-transparent dark:bg-[#eae6e1] dark:text-[#181520]";
+    return `min-h-[44px] rounded-xl border px-3 text-sm font-semibold transition-colors ${sosFocusRing} ${
+      active ? on : "border-stone-300 text-stone-700 hover:bg-stone-100 dark:border-white/15 dark:text-[#cfcad8] dark:hover:bg-white/5"
+    }`;
+  };
+
+  return (
+    <div className="flex flex-col py-2 animate-in fade-in duration-300 w-full">
+      {isClient && createPortal(printDoc, document.body)}
+
       <div className="no-print space-y-4">
-        <div className="flex justify-between items-start gap-3">
-          <div>
-            <div className="inline-flex items-center gap-1.5 bg-sage/10 dark:bg-[#1a1724] border border-sage/30/80 dark:border-sage/100/25 px-2.5 py-0.5 rounded-full text-xs font-bold text-sage dark:text-sage/80 mb-1">
-              <ClipboardList size={13} className="text-terracotta dark:text-sage" /> Plan de Parto Respetado
-            </div>
-            <h3 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1]">Tu Plan de Parto</h3>
-            <p className="text-xs text-stone-500 dark:text-[#a6a1b2]">
-              Personaliza tus preferencias para el hospital y expórtalas en un PDF oficial.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={handlePrint}
-              className="p-2.5 bg-stone-900 dark:bg-[#2d273a] hover:bg-stone-800 dark:hover:bg-[#383147] text-white rounded-xl shadow-xs transition-all flex items-center gap-1.5 text-xs font-bold active:scale-95 border border-transparent dark:border-white/10"
-              title="Guardar o imprimir en PDF"
-            >
-              <Printer size={16} />
-              <span className="hidden sm:inline">Imprimir PDF</span>
-            </button>
-            <button
-              type="button"
-              onClick={sharePlanWhatsApp}
-              className="p-2.5 bg-terracotta hover:bg-terracotta-hover text-white rounded-xl shadow-xs transition-all flex items-center gap-1.5 text-xs font-bold active:scale-95"
-              title="Compartir por WhatsApp"
-            >
-              <Share2 size={16} />
-            </button>
+        <div className="space-y-1.5">
+          <h3 className="text-2xl font-black text-stone-900 dark:text-[#eae6e1]">Tu plan de parto</h3>
+          <p className="text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
+            Para cada opción, elige si la deseas, si prefieres evitarla o si la hablarás con tu obstetra. Puedes dejar opciones sin marcar.
+          </p>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <SyncBadge waiting={!ready} />
+            {statusText && (
+              <span role="status" className={`text-[13px] leading-5 ${saveStatus === "error" ? "text-terracotta-ink font-semibold" : "text-stone-600 dark:text-[#a6a1b2]"}`}>
+                {statusText}
+              </span>
+            )}
           </div>
         </div>
 
-        {/* SELECTOR DE VISTA: WIZARD VS DOCUMENTO OFICIAL */}
-        <div className="flex bg-stone-100 dark:bg-[#221d2d] p-1 rounded-2xl border border-transparent dark:border-white/[0.08]">
-          <button
-            type="button"
-            onClick={() => setViewMode("wizard")}
-            className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
-              viewMode === "wizard" 
-                ? "bg-white dark:bg-[#2d273a] text-sage dark:text-sage/80 shadow-xs" 
-                : "text-stone-500 dark:text-[#a6a1b2] hover:text-stone-800 dark:hover:text-[#eae6e1]"
-            }`}
-          >
-            <Edit3 size={14} /> Asistente Paso a Paso ({step}/5)
+        <RetryNotice state={retryState} onDismiss={clearRetry} />
+        {pid && errorPid === pid && !ready && (
+          <LoadErrorNotice what="el plan de parto compartido" onRetry={() => setAttempt((a) => a + 1)} />
+        )}
+        {needsReview && (
+          <div role="note" className="flex items-start gap-2 rounded-2xl border border-amber-700/30 bg-amber-50 p-3 dark:border-amber-300/25 dark:bg-amber-300/[0.08]">
+            <Info size={18} className="mt-0.5 shrink-0 text-amber-800 dark:text-amber-300" aria-hidden="true" />
+            <p className="min-w-0 flex-1 text-sm leading-snug text-stone-800 dark:text-[#eae6e1]">
+              Tu plan anterior venía con casi todo marcado de antemano. Conservamos solo lo que cambiaste tú: revisa cada opción y marca lo que de verdad quieres.
+            </p>
+            <button
+              type="button"
+              onClick={() => setNeedsReview(false)}
+              aria-label="Cerrar aviso"
+              className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-stone-600 hover:bg-amber-100 dark:text-[#a6a1b2] dark:hover:bg-amber-300/10 ${sosFocusRing}`}
+            >
+              <X size={16} aria-hidden="true" />
+            </button>
+          </div>
+        )}
+
+        <div className="flex bg-stone-100 dark:bg-[#221d2d] p-1 rounded-2xl" role="group" aria-label="Vista del plan">
+          <button type="button" aria-pressed={viewMode === "wizard"} onClick={() => setViewMode("wizard")} className={segmented(viewMode === "wizard")}>
+            <Edit3 size={15} aria-hidden="true" /> Preferencias
           </button>
-          <button
-            type="button"
-            onClick={() => setViewMode("document")}
-            className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
-              viewMode === "document" 
-                ? "bg-white dark:bg-[#2d273a] text-sage dark:text-sage/80 shadow-xs" 
-                : "text-stone-500 dark:text-[#a6a1b2] hover:text-stone-800 dark:hover:text-[#eae6e1]"
-            }`}
-          >
-            <FileText size={14} /> Vista Previa Documento ({totalCheckedCount} seleccionadas)
+          <button type="button" aria-pressed={viewMode === "document"} onClick={() => setViewMode("document")} className={segmented(viewMode === "document")}>
+            <FileText size={15} aria-hidden="true" /> Documento
+            <span className="font-semibold text-stone-600 dark:text-[#a6a1b2]">· {counts.marked}</span>
           </button>
         </div>
       </div>
 
-      {/* VISTA 1: ASISTENTE PASO A PASO (WIZARD) */}
-      {viewMode === "wizard" && (
+      {!ready ? (
+        <p role="status" className="no-print mt-6 rounded-3xl border border-stone-200 bg-white p-6 text-center text-sm text-stone-600 dark:border-white/[0.08] dark:bg-[#221d2d] dark:text-[#a6a1b2]">
+          Cargando el plan de parto compartido…
+        </p>
+      ) : viewMode === "wizard" ? (
         <div className="no-print mt-4 space-y-5">
-          {/* Progress Bar Steps */}
-          <div className="flex items-center gap-1.5">
-            {sections.map(s => {
-              const isPast = s.id < step;
-              const isCurrent = s.id === step;
-              return (
+          <div className="flex items-center gap-3">
+            <div className="flex flex-1 items-center gap-1.5">
+              {PLAN_SECTIONS.map((s) => (
                 <button
                   key={s.id}
                   type="button"
                   onClick={() => setStep(s.id)}
                   aria-label={`Ir al paso ${s.id}: ${s.category}`}
-                  className="flex-1 py-2 min-h-[40px] flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-sage/100 rounded-full"
+                  aria-current={s.id === step ? "step" : undefined}
+                  className={`flex-1 min-h-[44px] flex items-center rounded-full ${sosFocusRing}`}
                 >
-                  <div className={`h-2 w-full rounded-full transition-all duration-300 ${
-                    isPast ? "bg-terracotta" : isCurrent ? "bg-terracotta ring-2 ring-sage/30 dark:ring-sage/100/30" : "bg-stone-200 dark:bg-[#2d273a]"
-                  }`} />
+                  <span className={`h-2 w-full rounded-full transition-colors ${s.id <= step ? "bg-sage-ink" : "bg-stone-200 dark:bg-[#2d273a]"}`} />
                 </button>
-              );
-            })}
+              ))}
+            </div>
+            <span className="shrink-0 text-sm font-semibold tabular-nums text-stone-600 dark:text-[#a6a1b2]">Paso {step} de {PLAN_SECTIONS.length}</span>
           </div>
 
-          {/* Current Section Card */}
-          {currentSection && (
-            <div className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-xs border border-stone-200/80 dark:border-white/[0.08] p-5 space-y-4 animate-in fade-in">
-              <div className="border-b border-stone-100 dark:border-white/[0.06] pb-3">
-                <span className="text-xs font-bold tracking-tight text-sage dark:text-sage/80 bg-sage/10 dark:bg-[#1a1724] px-2.5 py-0.5 rounded-full">
-                  Paso {step} de 5 · {currentSection.category}
-                </span>
-                <h4 className="text-lg font-black text-stone-800 dark:text-[#eae6e1] mt-1 leading-tight">{currentSection.title}</h4>
-                <p className="text-xs text-stone-500 dark:text-[#a6a1b2] mt-0.5">{currentSection.subtitle}</p>
-              </div>
-
-              {/* Opciones Interactivas con Switches */}
-              <div className="space-y-3">
-                {currentSection.options.map(opt => (
-                  <label
-                    key={opt.id}
-                    className={`flex items-start gap-3 p-3.5 rounded-2xl border transition-all cursor-pointer select-none ${
-                      opt.checked
-                        ? "bg-sage/10/60 dark:bg-[#2d273a] border-sage/30 dark:border-sage/100/30 shadow-xs"
-                        : "bg-white dark:bg-[#221d2d] border-stone-200/80 dark:border-white/[0.08] hover:border-stone-300 dark:hover:border-white/20 opacity-70"
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={opt.checked}
-                      onChange={() => toggleOption(currentSection.id, opt.id)}
-                      className="mt-1 w-4 h-4 text-terracotta rounded border-stone-300 dark:border-white/20 dark:bg-[#2d273a] focus:ring-sage/100"
-                    />
-                    <div className="flex-1">
-                      <span className={`text-xs font-bold block leading-snug ${opt.checked ? "text-teal-950 dark:text-sage/80" : "text-stone-700 dark:text-[#eae6e1]"}`}>
-                        {opt.label}
-                      </span>
-                      <span className="text-xs text-stone-500 dark:text-[#a6a1b2] block mt-0.5 leading-relaxed">
-                        {opt.desc}
-                      </span>
-                    </div>
-                  </label>
-                ))}
-              </div>
+          <section aria-labelledby={`${baseId}-seccion`} className="bg-white dark:bg-[#221d2d] rounded-3xl border border-stone-200/80 dark:border-white/[0.08]">
+            <div className="px-5 pt-5 pb-3">
+              <h4 id={`${baseId}-seccion`} className="text-lg font-black text-stone-900 dark:text-[#eae6e1] leading-tight">{currentSection.title}</h4>
+              <p className="text-sm text-stone-600 dark:text-[#a6a1b2] mt-1">{currentSection.subtitle}</p>
             </div>
-          )}
+            <ul className="divide-y divide-stone-100 dark:divide-white/[0.06]">
+              {currentSection.options.map((opt) => (
+                <li key={opt.id} className="px-5 py-4">
+                  <p id={`${baseId}-${opt.id}`} className="text-sm font-bold leading-snug text-stone-900 dark:text-[#eae6e1]">{opt.label}</p>
+                  <p className="mt-0.5 text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">{opt.desc}</p>
+                  <div role="group" aria-labelledby={`${baseId}-${opt.id}`} className="mt-3 flex flex-wrap gap-2">
+                    {PLAN_PREFS.map((p) => (
+                      <button key={p.id} type="button" aria-pressed={prefs[opt.id] === p.id} onClick={() => setPref(opt.id, p.id)} className={prefButton(p.id, prefs[opt.id] === p.id)}>
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
 
-          {/* Botones de Navegación del Wizard */}
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-2">
             {step > 1 && (
               <button
                 type="button"
-                onClick={() => setStep(s => Math.max(1, s - 1))}
-                aria-label="Paso anterior"
-                className="py-3 px-4 bg-stone-100 dark:bg-[#2d273a] text-stone-700 dark:text-[#eae6e1] rounded-2xl hover:bg-stone-200 dark:hover:bg-[#383147] transition-colors font-bold text-xs flex items-center gap-1 active:scale-95"
+                onClick={() => setStep((s) => Math.max(1, s - 1))}
+                className={`min-h-[48px] px-4 bg-stone-100 dark:bg-[#2d273a] text-stone-800 dark:text-[#eae6e1] rounded-2xl hover:bg-stone-200 dark:hover:bg-[#383147] transition-colors font-bold text-sm flex items-center gap-1.5 ${sosFocusRing}`}
               >
-                <ArrowLeft size={16} /> Anterior
+                <ArrowLeft size={16} aria-hidden="true" /> Anterior
               </button>
             )}
-
-            {step < 5 ? (
+            {step < PLAN_SECTIONS.length ? (
               <button
                 type="button"
-                onClick={() => setStep(s => Math.min(5, s + 1))}
-                className="flex-1 py-3 px-5 bg-terracotta hover:bg-terracotta-hover text-white rounded-2xl font-bold text-xs flex justify-center items-center gap-2 transition-all shadow-xs active:scale-95"
+                onClick={() => setStep((s) => Math.min(PLAN_SECTIONS.length, s + 1))}
+                className={`flex-1 min-h-[48px] px-5 bg-terracotta-ink hover:bg-terracotta-ink-hover text-white rounded-2xl font-bold text-sm flex justify-center items-center gap-2 transition-colors ${sosFocusRing}`}
               >
-                Siguiente Paso ({step + 1}/5) <ArrowRight size={16} />
+                Siguiente <ArrowRight size={16} aria-hidden="true" />
               </button>
             ) : (
               <button
                 type="button"
                 onClick={() => setViewMode("document")}
-                className="flex-1 py-3 px-5 bg-stone-900 dark:bg-[#2d273a] hover:bg-stone-800 dark:hover:bg-[#383147] text-white rounded-2xl font-bold text-xs flex justify-center items-center gap-2 transition-all shadow-md active:scale-95 border border-transparent dark:border-white/10"
+                className={`flex-1 min-h-[48px] px-5 bg-stone-900 dark:bg-[#eae6e1] text-white dark:text-[#181520] rounded-2xl font-bold text-sm flex justify-center items-center gap-2 transition-colors ${sosFocusRing}`}
               >
-                <FileText size={16} /> Ver Documento Final
+                <FileText size={16} aria-hidden="true" /> Ver el documento
               </button>
             )}
           </div>
         </div>
-      )}
-
-      {/* VISTA 2: VISTA PREVIA DEL DOCUMENTO COMPLETO (INTERACTIVA) */}
-      {viewMode === "document" && (
-        <div className="no-print mt-4 space-y-5 animate-in fade-in">
-          {/* Card de Datos del Paciente / Hospital */}
-          <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-5 shadow-xs border border-stone-100 dark:border-white/[0.08] space-y-3">
-            <div className="flex justify-between items-center border-b border-stone-100 dark:border-white/[0.06] pb-2">
-              <h4 className="text-xs font-bold text-stone-800 dark:text-[#eae6e1] tracking-tight flex items-center gap-1.5">
-                <Settings size={14} className="text-terracotta dark:text-sage" /> Datos de la Ficha Médica
-              </h4>
-              <span className="text-xs text-stone-500 dark:text-[#a6a1b2]">Se imprimirán en el encabezado</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div>
-                <label htmlFor="plan-mother-name" className="font-semibold text-stone-600 dark:text-[#eae6e1] block mb-1">Nombre de la Madre:</label>
-                <input
-                  id="plan-mother-name"
-                  type="text"
-                  value={patientData.motherName}
-                  onChange={e => setPatientData({ ...patientData, motherName: e.target.value })}
-                  placeholder="Ej. Sofía Martínez"
-                  className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-sage/100"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="plan-partner-name" className="font-semibold text-stone-600 dark:text-[#eae6e1] block mb-1">Acompañante / Pareja:</label>
-                <input
-                  id="plan-partner-name"
-                  type="text"
-                  value={patientData.partnerName}
-                  onChange={e => setPatientData({ ...patientData, partnerName: e.target.value })}
-                  placeholder="Ej. Carlos Pérez"
-                  className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-sage/100"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="plan-hospital" className="font-semibold text-stone-600 dark:text-[#eae6e1] block mb-1">Hospital / Clínica:</label>
-                <input
-                  id="plan-hospital"
-                  type="text"
-                  value={patientData.hospital}
-                  onChange={e => setPatientData({ ...patientData, hospital: e.target.value })}
-                  placeholder="Ej. Hospital Materno Infantil"
-                  className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-sage/100"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="plan-doctor" className="font-semibold text-stone-600 dark:text-[#eae6e1] block mb-1">Obstetra / Matrona:</label>
-                <input
-                  id="plan-doctor"
-                  type="text"
-                  value={patientData.doctor}
-                  onChange={e => setPatientData({ ...patientData, doctor: e.target.value })}
-                  placeholder="Ej. Dra. Gómez / Matrona de turno"
-                  className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-sage/100"
-                />
-              </div>
-            </div>
-
+      ) : (
+        <div className="no-print mt-4 space-y-5">
+          <section aria-labelledby={`${baseId}-datos`} className="bg-white dark:bg-[#221d2d] rounded-3xl p-5 border border-stone-200/80 dark:border-white/[0.08] space-y-3">
             <div>
-              <label htmlFor="plan-notes" className="font-semibold text-stone-600 dark:text-[#eae6e1] block mb-1 text-xs">Observaciones Especiales o Alergias:</label>
+              <h4 id={`${baseId}-datos`} className="text-base font-bold text-stone-900 dark:text-[#eae6e1]">Datos del documento</h4>
+              <p className="text-sm text-stone-600 dark:text-[#a6a1b2]">Lo que dejes vacío se imprime como una línea para completar a mano.</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {(
+                [
+                  ["motherName", "Nombre de la madre", "Ej. Sofía Martínez"],
+                  ["partnerName", "Acompañante", "Ej. Carlos Pérez"],
+                  ["hospital", "Hospital o clínica", "Ej. Hospital Materno Infantil"],
+                  ["doctor", "Obstetra", "Ej. Dra. Gómez"],
+                ] as const
+              ).map(([field, label, placeholder]) => (
+                <div key={field}>
+                  <label htmlFor={`${baseId}-${field}`} className="text-sm font-semibold text-stone-700 dark:text-[#eae6e1] block mb-1">{label}</label>
+                  <input
+                    id={`${baseId}-${field}`}
+                    type="text"
+                    value={patient[field]}
+                    maxLength={80}
+                    onChange={(e) => setPatientField(field, e.target.value)}
+                    onBlur={flush}
+                    placeholder={placeholder}
+                    className={inputClass}
+                  />
+                </div>
+              ))}
+            </div>
+            <div>
+              <label htmlFor={`${baseId}-notes`} className="text-sm font-semibold text-stone-700 dark:text-[#eae6e1] block mb-1">Observaciones o alergias</label>
               <textarea
-                id="plan-notes"
+                id={`${baseId}-notes`}
                 rows={2}
-                value={patientData.notes}
-                onChange={e => setPatientData({ ...patientData, notes: e.target.value })}
-                placeholder="Ej. Alergia a la penicilina, deseo donar sangre de cordón, etc."
-                className="w-full bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs text-stone-800 dark:text-[#eae6e1] placeholder-gray-400 dark:placeholder-[#a6a1b2]/50 focus:outline-none focus:ring-2 focus:ring-sage/100 resize-none"
+                maxLength={600}
+                value={patient.notes}
+                onChange={(e) => setPatientField("notes", e.target.value)}
+                onBlur={flush}
+                placeholder="Ej. Alergia a la penicilina, deseo donar sangre del cordón…"
+                className={`${inputClass} resize-none`}
               />
             </div>
-          </div>
+            <p className="text-sm text-stone-600 dark:text-[#a6a1b2]">
+              {typeof week === "number" ? `Semana de gestación: ${week} (se toma de tu perfil).` : "Tu semana no está confirmada: se imprimirá una línea para completarla."}
+            </p>
+          </section>
 
-          {/* Resumen Estructurado del Documento */}
-          <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-5 shadow-xs border border-stone-100 dark:border-white/[0.08] space-y-4">
-            <div className="flex justify-between items-center border-b border-stone-100 dark:border-white/[0.06] pb-2">
-              <h4 className="text-sm font-bold text-stone-800 dark:text-[#eae6e1] flex items-center gap-2">
-                <FileText size={16} className="text-terracotta dark:text-sage" /> Vista Previa del Documento
-              </h4>
-              <span className="text-xs font-bold text-sage dark:text-sage/80 bg-sage/10 dark:bg-[#1a1724] px-2.5 py-0.5 rounded-full">
-                {totalCheckedCount} deseos activos
-              </span>
-            </div>
-
-            <div className="space-y-4 text-xs">
-              {sections.map(sec => {
-                const active = sec.options.filter(o => o.checked);
+          <section aria-labelledby={`${baseId}-resumen`} className="bg-white dark:bg-[#221d2d] rounded-3xl p-5 border border-stone-200/80 dark:border-white/[0.08]">
+            <h4 id={`${baseId}-resumen`} className="text-base font-bold text-stone-900 dark:text-[#eae6e1]">Resumen</h4>
+            <p className="text-sm text-stone-600 dark:text-[#a6a1b2]">
+              {counts.marked === 0
+                ? "Aún no marcaste ninguna preferencia."
+                : `${counts.want} ${counts.want === 1 ? "deseo" : "deseos"} · ${counts.avoid} para evitar · ${counts.discuss} para hablar con tu obstetra`}
+            </p>
+            <div className="mt-3 divide-y divide-stone-100 dark:divide-white/[0.06]">
+              {PLAN_SECTIONS.map((sec) => {
+                const marked = sec.options.filter((o) => prefs[o.id]);
                 return (
-                  <div key={sec.id} className="bg-slate-50/70 dark:bg-[#2d273a]/50 p-3.5 rounded-2xl border border-slate-100 dark:border-white/[0.06] space-y-2">
-                    <h5 className="font-bold text-stone-900 dark:text-[#eae6e1] text-xs flex justify-between items-center">
+                  <div key={sec.id} className="py-3">
+                    <p className="flex justify-between gap-3 text-sm font-bold text-stone-900 dark:text-[#eae6e1]">
                       <span>{sec.title}</span>
-                      <span className="text-stone-500 dark:text-[#a6a1b2] font-normal">{active.length} de {sec.options.length}</span>
-                    </h5>
-                    {active.length === 0 ? (
-                      <p className="text-stone-400 dark:text-[#a6a1b2]/60 italic text-xs">Sin preferencias seleccionadas en este apartado.</p>
-                    ) : (
-                      <ul className="space-y-1.5">
-                        {active.map(opt => (
-                          <li key={opt.id} className="flex items-start gap-2 text-stone-700 dark:text-[#eae6e1]/90">
-                            <CheckCircle2 size={14} className="text-terracotta dark:text-sage shrink-0 mt-0.5" />
-                            <span><strong>{opt.label}:</strong> {opt.desc}</span>
+                      <span className="shrink-0 font-normal text-stone-600 dark:text-[#a6a1b2]">{marked.length} de {sec.options.length}</span>
+                    </p>
+                    {marked.length > 0 && (
+                      <ul className="mt-1.5 space-y-1">
+                        {marked.map((o) => (
+                          <li key={o.id} className="flex items-start justify-between gap-3 text-sm text-stone-700 dark:text-[#cfcad8]">
+                            <span>{o.label}</span>
+                            <span className={`shrink-0 text-xs font-bold ${prefs[o.id] === "want" ? "text-sage-ink" : prefs[o.id] === "avoid" ? "text-terracotta-ink" : "text-stone-600 dark:text-[#a6a1b2]"}`}>
+                              {PLAN_PREFS.find((p) => p.id === prefs[o.id])?.label}
+                            </span>
                           </li>
                         ))}
                       </ul>
@@ -2325,545 +4128,861 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile, showT
                 );
               })}
             </div>
-          </div>
+          </section>
 
-          {/* Barra de Acciones de Exportación */}
-          <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-sage dark:from-[#221d2d] dark:via-[#1c2027] dark:to-[#1a1724] border border-transparent dark:border-white/[0.08] text-white p-5 rounded-3xl shadow-lg space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="bg-white/10 p-2.5 rounded-2xl">
-                <Printer size={22} className="text-sage/80" />
-              </div>
-              <div>
-                <h4 className="font-bold text-sm">¿Todo listo para el día del parto?</h4>
-                <p className="text-xs text-stone-300">Imprime 2 copias (una para el historial y otra para la matrona) o guárdalo como PDF en tu teléfono.</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 pt-1">
+          <div className="space-y-2">
+            <p className="text-sm text-stone-600 dark:text-[#a6a1b2]">Imprime dos copias (una para tu historia clínica y otra para el equipo) o guárdalo como PDF.</p>
+            <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={handlePrint}
-                className="py-3 px-4 bg-terracotta hover:bg-sage text-teal-950 font-bold text-xs rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 active:scale-95"
+                className={`min-h-[48px] px-4 bg-stone-900 dark:bg-[#eae6e1] text-white dark:text-[#181520] font-bold text-sm rounded-2xl transition-colors flex items-center justify-center gap-2 ${sosFocusRing}`}
               >
-                <Printer size={15} /> Imprimir / PDF
+                <Printer size={16} aria-hidden="true" /> Imprimir o PDF
               </button>
               <button
                 type="button"
-                onClick={sharePlanWhatsApp}
-                className="py-3 px-4 bg-white/20 hover:bg-white/30 text-white font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95"
+                onClick={() => void sharePlan()}
+                className={`min-h-[48px] px-4 bg-terracotta-ink hover:bg-terracotta-ink-hover text-white font-bold text-sm rounded-2xl transition-colors flex items-center justify-center gap-2 ${sosFocusRing}`}
               >
-                <Share2 size={15} /> WhatsApp
+                <Share2 size={16} aria-hidden="true" /> Compartir
               </button>
             </div>
-
-            <div className="pt-2 text-center">
-              <button
-                type="button"
-                onClick={resetToDefaults}
-                className="text-xs text-stone-400 hover:text-white underline transition-colors"
-              >
-                Restablecer opciones predeterminadas
-              </button>
-            </div>
+            {counts.marked > 0 && (
+              <div className="pt-1 text-center">
+                <button
+                  type="button"
+                  onClick={clearAll}
+                  className={`min-h-[44px] px-3 rounded-xl text-sm font-semibold text-stone-600 dark:text-[#a6a1b2] underline-offset-4 hover:underline ${sosFocusRing}`}
+                >
+                  Quitar todas las marcas
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
-
     </div>
   );
 }
 
+// --- PRESUPUESTO DEL BEBÉ: tope y gastos compartidos (o solo en este teléfono) ---
 
+type BudgetItem = { id: string; name: string; amount: number; category: string; isPurchased: boolean } & Authored;
 
-// --- CALCULADORA DE PRESUPUESTO DEL BEBÉ ---
+const LOCAL_BUDGET_KEY = "pandajr_budget_expenses";
+const LOCAL_BUDGET_CAP_KEY = "pandajr_budget_cap";
+const BUDGET_CATEGORIES = ["Cuidado", "Habitación", "Transporte", "Médico", "Ropa", "Otros"];
+const BUDGET_IDEAS: { name: string; category: string }[] = [
+  { name: "Cuna", category: "Habitación" },
+  { name: "Cochecito", category: "Transporte" },
+  { name: "Pañales", category: "Cuidado" },
+  { name: "Silla de auto", category: "Transporte" },
+];
+const MAX_AMOUNT = 100_000_000;
 
+function sanitizeBudget(raw: unknown[]): BudgetItem[] {
+  const out: BudgetItem[] = [];
+  const seen = new Set<string>();
+  for (const r of raw) {
+    if (!isRecord(r)) continue;
+    const id = typeof r.id === "string" || typeof r.id === "number" ? String(r.id) : "";
+    const name = cleanStr(r.name, 80);
+    const amount = finiteNum(r.amount);
+    if (!id || seen.has(id) || !name || amount === null || amount < 0) continue;
+    seen.add(id);
+    out.push({ id, name, amount, category: cleanStr(r.category, 30) || "Otros", isPurchased: r.isPurchased === true, ...authoredFrom(r) });
+  }
+  return out;
+}
 
+const BUDGET_LIST: SharedListSpec<BudgetItem> = {
+  localKey: LOCAL_BUDGET_KEY,
+  listen: listenToBudget,
+  mutate: mutateBudgetItems,
+  sanitize: sanitizeBudget,
+  // Con vínculo la versión anterior ya guardaba el presupuesto en Firestore: solo se traspasa al vincular.
+  localMerge: { tool: "budget", upgrade: false },
+};
 
+/** "1500", "1500.50" o "1500,50" → número; vacío, negativo o absurdo → null. */
+function parseAmount(input: string): number | null {
+  const cleaned = input.replace(/\s/g, "").replace(",", ".");
+  if (!cleaned) return null;
+  const n = Number(cleaned);
+  if (!Number.isFinite(n) || n < 0 || n > MAX_AMOUNT) return null;
+  return Math.round(n * 100) / 100;
+}
 
-export function CalculadoraPresupuesto({ profile, onClose }: { profile?: any, onClose: () => void }) {
-  const [budget, setBudget] = useState(5000);
-  const [expenses, setExpenses] = useState<{ id: string, name: string, amount: number, category: string, isPurchased?: boolean }[]>([]);
+function readLocalCap(): number | null {
+  const v = readStored<unknown>(LOCAL_BUDGET_CAP_KEY);
+  return typeof v === "number" && Number.isFinite(v) && v > 0 ? v : null;
+}
+
+export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserProfile; onClose: () => void; showToast?: ShowToast }) {
+  const me = useMe();
+  const pid = me.pid;
+  const list = useSharedList(pid, BUDGET_LIST, authorStamp(me));
+  const { retryState, fail, clearRetry } = useRetry();
+  const isClient = useIsClient();
+  const baseId = React.useId();
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const amountRef = useRef<HTMLInputElement>(null);
+
+  // --- Tope ---
+  const [localCap, setLocalCap] = useState<number | null>(readLocalCap);
+  const [remoteCap, setRemoteCap] = useState<{ pid: string; cap: number | null } | null>(null);
+  const [capOverride, setCapOverride] = useState<{ pid: string; cap: number; confirmed?: boolean } | null>(null);
+  const [editingCap, setEditingCap] = useState(false);
+  const [capDraft, setCapDraft] = useState("");
+  const [capError, setCapError] = useState<string | null>(null);
+  const [capLoadErrorPid, setCapLoadErrorPid] = useState<string | null>(null);
+  const [capAttempt, setCapAttempt] = useState(0);
+
+  useEffect(() => {
+    if (!pid) return;
+    let checkedLocalCap = false;
+    return listenToBudgetCap(
+      pid,
+      (value, meta) => {
+        // Sin respuesta del servidor (solo caché vacía) no sabemos si hay tope: seguimos cargando.
+        // Si no, pediríamos un tope nuevo que podría pisar el que ya guardó la pareja.
+        if (meta?.fromCache && !meta.exists) return;
+        setRemoteCap({ pid, cap: value });
+        setCapLoadErrorPid(null);
+        // Mi tope optimista se retira cuando llega (o cuando ya se confirmó y hay un snapshot nuevo).
+        setCapOverride((o) => (o && o.pid === pid && (o.confirmed || o.cap === value) ? null : o));
+        // Traspaso único al vincular: el tope que había solo en este teléfono, si el compartido no tiene.
+        if (!checkedLocalCap && !meta?.fromCache) {
+          checkedLocalCap = true;
+          const flag = localToSharedFlag("budgetcap", pid);
+          const localValue = readLocalCap();
+          if (!readStored(flag)) {
+            if (value === null && localValue !== null && readStored(linkedFromLocalKey(pid))) {
+              saveBudgetCap(pid, localValue).then(() => writeStored(flag, true), () => {});
+            } else {
+              writeStored(flag, true);
+            }
+          }
+        }
+      },
+      // Sin leer el tope no pedimos uno nuevo (podría pisar el que ya guardó la pareja).
+      () => setCapLoadErrorPid(pid)
+    );
+  }, [pid, capAttempt]);
+
+  const cap = !pid
+    ? localCap
+    : capOverride?.pid === pid
+      ? capOverride.cap
+      : remoteCap?.pid === pid
+        ? remoteCap.cap
+        : null;
+  const capLoaded = !pid || remoteCap?.pid === pid;
+  const capLoadError = !!pid && capLoadErrorPid === pid && !capLoaded;
+
+  const saveCap = (value: number) => {
+    if (!pid) {
+      setLocalCap(value);
+      writeStored(LOCAL_BUDGET_CAP_KEY, value);
+      return;
+    }
+    const capPid = pid;
+    const isMine = (o: { pid: string; cap: number } | null) => !!o && o.pid === capPid && o.cap === value;
+    setCapOverride({ pid: capPid, cap: value });
+    saveBudgetCap(capPid, value).then(
+      () => setCapOverride((o) => (isMine(o) ? { pid: capPid, cap: value, confirmed: true } : o)),
+      () => {
+        setCapOverride((o) => (isMine(o) ? null : o));
+        fail("No se guardó el tope del presupuesto.", () => saveCap(value));
+      }
+    );
+  };
+
+  const submitCap = (e: React.FormEvent) => {
+    e.preventDefault();
+    const value = parseAmount(capDraft);
+    if (value === null || value < 1) {
+      setCapError("Escribe un monto mayor que 0.");
+      return;
+    }
+    setCapError(null);
+    setEditingCap(false);
+    setCapDraft("");
+    clearRetry();
+    saveCap(Math.round(value));
+  };
+
+  // --- Gastos ---
   const [newItem, setNewItem] = useState("");
   const [newAmount, setNewAmount] = useState("");
   const [newCategory, setNewCategory] = useState("Cuidado");
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (profile?.pregnancyId) {
-      const unsubscribe = listenToBudget(profile.pregnancyId, (items: any) => {
-        if (items && items.length > 0) {
-          setExpenses(items);
-        } else {
-          setExpenses([]);
-        }
-        setIsLoaded(true);
+  const commit = (fn: (items: BudgetItem[]) => BudgetItem[], failMessage: string) => {
+    function run() {
+      list.apply(fn).then((ok) => {
+        if (!ok) fail(failMessage, run);
       });
-      return () => unsubscribe();
-    } else {
-      setIsLoaded(true);
     }
-  }, [profile?.pregnancyId]);
-
-  const updateFirebase = async (newExpenses: any[]) => {
-    if (profile?.pregnancyId) {
-      await saveBudget(profile.pregnancyId, newExpenses);
-    } else {
-      localStorage.setItem("pandajr_budget_expenses", JSON.stringify(newExpenses));
-    }
+    run();
   };
-
-  const totalSpent = expenses.reduce((acc, curr) => acc + curr.amount, 0);
-  const totalPurchased = expenses.filter(e => e.isPurchased).reduce((acc, curr) => acc + curr.amount, 0);
-  const remaining = budget - totalSpent;
-  const progressPercent = Math.min((totalSpent / budget) * 100, 100);
-  const purchasePercent = Math.min((totalPurchased / budget) * 100, 100);
 
   const addExpense = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newItem.trim() || !newAmount) return;
-    const amountNum = parseFloat(newAmount);
-    if (isNaN(amountNum)) return;
-
-    const newList = [{
-      id: Date.now().toString(),
-      name: newItem,
-      amount: amountNum,
-      category: newCategory,
-      isPurchased: false
-    }, ...expenses];
-    setExpenses(newList);
-    updateFirebase(newList);
-    
+    const name = newItem.trim().replace(/\s+/g, " ").slice(0, 80);
+    const amount = parseAmount(newAmount);
+    if (!name) {
+      setFormError("Escribe qué quieres comprar.");
+      return;
+    }
+    if (amount === null || amount <= 0) {
+      setFormError("Escribe un monto mayor que 0.");
+      amountRef.current?.focus();
+      return;
+    }
+    setFormError(null);
+    const item: BudgetItem = { id: newId(), name, amount, category: newCategory, isPurchased: false, ...authorStamp(me) };
+    // Gasto nuevo: si no llega al servidor queda "Sin enviar" en este teléfono y se reenvía solo.
+    void list.add(item);
     setNewItem("");
     setNewAmount("");
   };
 
-  const togglePurchased = (id: string) => {
-    const newList = expenses.map(e => e.id === id ? { ...e, isPurchased: !e.isPurchased } : e);
-    setExpenses(newList);
-    updateFirebase(newList);
+  const togglePurchased = (item: BudgetItem) => {
+    commit(patchById<BudgetItem>(item.id, { isPurchased: !item.isPurchased }), `No se guardó el cambio en "${item.name}".`);
   };
 
-  const removeExpense = (id: string) => {
-    const newList = expenses.filter(e => e.id !== id);
-    setExpenses(newList);
-    updateFirebase(newList);
+  const removeExpense = (item: BudgetItem) => {
+    commit(removeById<BudgetItem>(item.id), `No se pudo quitar "${item.name}".`);
+    showToast?.(`Quitamos ${item.name}`, () => commit(restoreItems([item]), `No se pudo volver a agregar "${item.name}".`));
   };
 
-  const addQuickSuggestion = (name: string, amount: number, cat: string) => {
-    const newList = [{
-      id: Date.now().toString() + Math.random(),
-      name,
-      amount,
-      category: cat,
-      isPurchased: false
-    }, ...expenses];
-    setExpenses(newList);
-    updateFirebase(newList);
+  const pickIdea = (idea: { name: string; category: string }) => {
+    setNewItem(idea.name);
+    setNewCategory(idea.category);
+    setFormError(null);
+    amountRef.current?.focus();
   };
 
-  const categories = ["Cuidado", "Habitación", "Transporte", "Médico", "Ropa", "Otros"];
+  // Cerrar con Escape y llevar el foco al diálogo al abrir (una vez; onClose puede cambiar en cada render).
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+  useEffect(() => {
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCloseRef.current();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
-  const [mounted, setMounted] = React.useState(false);
-  React.useEffect(() => setMounted(true), []);
-  
-  if (!mounted) return null;
+  const items = list.items;
+  const totalPlanned = items.reduce((acc, i) => acc + i.amount, 0);
+  const totalPurchased = items.filter((i) => i.isPurchased).reduce((acc, i) => acc + i.amount, 0);
+  const remaining = cap !== null ? cap - totalPlanned : null;
+  const over = remaining !== null && remaining < 0;
+  const plannedPct = cap ? Math.min(100, (totalPlanned / cap) * 100) : 0;
+  const purchasedPct = cap ? Math.min(100, (totalPurchased / cap) * 100) : 0;
+  const plural = !!pid;
+
+  const fieldClass =
+    "min-h-[44px] rounded-xl border border-stone-200 bg-white text-base text-stone-900 placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-sage-ink/50 dark:border-white/10 dark:bg-[#221d2d] dark:text-[#eae6e1] dark:placeholder:text-[#8f899c]";
+
+  const capForm = (
+    <form onSubmit={submitCap} className="space-y-2" noValidate>
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base font-bold text-stone-600 dark:text-[#a6a1b2]" aria-hidden="true">$</span>
+          <input
+            id={`${baseId}-tope`}
+            type="number"
+            inputMode="decimal"
+            min={1}
+            step="any"
+            value={capDraft}
+            onChange={(e) => setCapDraft(e.target.value)}
+            placeholder="Ej. 5000"
+            aria-invalid={!!capError}
+            aria-describedby={capError ? `${baseId}-tope-error` : undefined}
+            className={`${fieldClass} w-full pl-7 pr-3 font-bold tabular-nums`}
+          />
+        </div>
+        <button
+          type="submit"
+          className={`min-h-[44px] shrink-0 rounded-xl bg-sage-ink px-4 text-sm font-bold text-white transition-colors hover:bg-sage-ink-hover ${sosFocusRing}`}
+        >
+          Guardar
+        </button>
+        {cap !== null && (
+          <button
+            type="button"
+            onClick={() => {
+              setEditingCap(false);
+              setCapError(null);
+            }}
+            className={`min-h-[44px] shrink-0 rounded-xl px-3 text-sm font-bold text-stone-700 hover:bg-stone-200 dark:text-[#eae6e1] dark:hover:bg-white/10 ${sosFocusRing}`}
+          >
+            Cancelar
+          </button>
+        )}
+      </div>
+      {capError && (
+        <p id={`${baseId}-tope-error`} role="alert" className="text-sm font-semibold text-terracotta-ink">{capError}</p>
+      )}
+    </form>
+  );
+
   const content = (
-    <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm z-[999] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-[#1a1625] w-full max-w-lg sm:rounded-3xl rounded-t-3xl h-[85vh] sm:h-auto max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-stone-200 dark:border-white/10 animate-in slide-in-from-bottom-8">
-        
-        <div className="bg-gradient-to-r from-sage to-[#547a66] p-5 shrink-0 flex items-center justify-between text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
-          <div>
-            <h2 className="text-xl font-black flex items-center gap-2 relative z-10">
-              <Wallet size={24} className="text-stone-100" />
-              Presupuesto Compartido
+    <div className="fixed inset-0 z-[999] flex items-end justify-center bg-black/60 p-0 animate-in fade-in duration-200 sm:items-center sm:p-4 dark:bg-black/80">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={`${baseId}-titulo`}
+        className="flex h-[88vh] max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl border border-stone-200 bg-[#fdfbf7] shadow-2xl animate-in slide-in-from-bottom-8 sm:h-auto sm:rounded-3xl dark:border-white/10 dark:bg-[#1a1625]"
+      >
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-stone-200 px-5 pb-3 pt-4 dark:border-white/10">
+          <div className="min-w-0">
+            <h2 id={`${baseId}-titulo`} className="flex items-center gap-2 text-xl font-black text-stone-900 dark:text-[#eae6e1]">
+              <Wallet size={22} className="shrink-0 text-sage-ink" aria-hidden="true" />
+              Presupuesto del bebé
             </h2>
-            <p className="text-stone-100/80 text-sm mt-1 relative z-10">Sincronizado entre mamá y papá</p>
+            <SyncBadge lastSyncedAt={list.meta?.updatedAt ?? null} waiting={!list.loaded} className="mt-1" />
           </div>
-          <button onClick={onClose} className="p-2 bg-black/10 hover:bg-black/20 rounded-full transition-colors relative z-10">
-            <X size={20} />
+          <button
+            ref={closeRef}
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar presupuesto"
+            className={`grid h-11 w-11 shrink-0 place-items-center rounded-full bg-stone-100 text-stone-700 transition-colors hover:bg-stone-200 dark:bg-white/5 dark:text-[#eae6e1] dark:hover:bg-white/10 ${sosFocusRing}`}
+          >
+            <X size={20} aria-hidden="true" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-5 space-y-6">
-          
-          <div className="bg-stone-50 dark:bg-[#221d2d] rounded-3xl p-5 border border-stone-100 dark:border-white/5 relative overflow-hidden">
-            <div className="flex justify-between items-end mb-4 relative z-10">
-              <div>
-                <p className="text-sm font-semibold text-stone-500 dark:text-stone-400">Restante del Total</p>
-                <p className={`text-3xl font-black tracking-tight ${remaining < 0 ? 'text-rose-500' : 'text-sage dark:text-sage-400'}`}>
-                  ${remaining.toLocaleString()}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs font-semibold text-stone-400 mb-1">Tu Presupuesto</p>
-                <div className="flex items-center gap-1 bg-white dark:bg-black/20 p-1.5 px-3 rounded-xl border border-stone-200 dark:border-white/10">
-                  <span className="text-sm font-bold text-stone-700 dark:text-stone-300">$</span>
-                  <input 
-                    type="number" 
-                    value={budget}
-                    onChange={(e) => setBudget(Number(e.target.value))}
-                    className="w-20 bg-transparent text-right font-bold text-stone-800 dark:text-white outline-none"
-                  />
-                </div>
-              </div>
-            </div>
+        <div className="flex-1 space-y-6 overflow-y-auto p-5">
+          <RetryNotice state={retryState} onDismiss={clearRetry} />
+          <UnsentNotice count={list.unsentIds.size} onRetry={list.retryUnsent} one="gasto" many="gastos" />
+          {list.loadError && <LoadErrorNotice what="el presupuesto compartido" onRetry={list.retryLoad} />}
 
-            <div className="w-full bg-stone-200 dark:bg-black/30 h-3 rounded-full overflow-hidden relative z-10">
-              <div 
-                className={`h-full absolute left-0 top-0 transition-all ${progressPercent > 100 ? 'bg-rose-500/30' : 'bg-sage/30'}`}
-                style={{ width: `${Math.min(progressPercent, 100)}%` }}
-              ></div>
-              <div 
-                className="h-full absolute left-0 top-0 bg-terracotta transition-all"
-                style={{ width: `${purchasePercent}%` }}
-              ></div>
-            </div>
-            <div className="flex justify-between text-[10px] font-bold text-stone-400 uppercase tracking-wider mt-2 relative z-10">
-              <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-terracotta"></div> Ya comprado (${totalPurchased.toLocaleString()})</span>
-              <span className="flex items-center gap-1">Planeado (${totalSpent.toLocaleString()}) <div className="w-2 h-2 rounded-full bg-sage/30"></div></span>
-            </div>
-          </div>
-
-          <form onSubmit={addExpense} className="flex gap-2">
-            <div className="flex-1 flex flex-col gap-2">
-              <input 
-                type="text" 
-                placeholder="Ej. Cuna, pañales..." 
-                value={newItem}
-                onChange={(e) => setNewItem(e.target.value)}
-                className="w-full bg-stone-50 dark:bg-[#221d2d] border border-stone-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-sage dark:text-white"
-              />
-              <div className="flex gap-2">
-                <select 
-                  value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                  className="bg-stone-50 dark:bg-[#221d2d] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-semibold text-stone-600 dark:text-stone-300 focus:outline-none focus:ring-2 focus:ring-sage"
+          {/* Resumen: cuánto queda o cuánto se pasaron */}
+          <section aria-label="Resumen del presupuesto" className="rounded-3xl bg-white p-5 shadow-[0_6px_20px_-12px_rgba(60,40,30,0.25)] dark:bg-[#221d2d]">
+            {capLoadError ? (
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm text-stone-700 dark:text-[#eae6e1]">No pudimos cargar el tope. Revisa tu conexión.</p>
+                <button
+                  type="button"
+                  onClick={() => setCapAttempt((a) => a + 1)}
+                  className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-3 text-sm font-bold text-terracotta-ink hover:bg-terracotta/10 ${sosFocusRing}`}
                 >
-                  {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-                <div className="flex-1 relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm font-bold">$</span>
-                  <input 
-                    type="number" 
-                    placeholder="0" 
-                    value={newAmount}
-                    onChange={(e) => setNewAmount(e.target.value)}
-                    className="w-full bg-stone-50 dark:bg-[#221d2d] border border-stone-200 dark:border-white/10 rounded-xl pl-7 pr-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-sage dark:text-white"
+                  <RefreshCw size={15} aria-hidden="true" /> Reintentar
+                </button>
+              </div>
+            ) : !capLoaded ? (
+              <SharedLoading what="el presupuesto compartido" />
+            ) : cap === null ? (
+              <div className="space-y-3">
+                <div>
+                  <label htmlFor={`${baseId}-tope`} className="block text-base font-bold text-stone-900 dark:text-[#eae6e1]">
+                    ¿Cuánto {plural ? "quieren" : "quieres"} destinar en total?
+                  </label>
+                  <p className="mt-0.5 text-sm text-stone-600 dark:text-[#a6a1b2]">
+                    Así {plural ? "sabrán" : "sabrás"} cuánto queda. Se puede cambiar cuando quieras.
+                    {totalPlanned > 0 && ` Planeado hasta ahora: ${formatMoney(totalPlanned)}.`}
+                  </p>
+                </div>
+                {capForm}
+              </div>
+            ) : (
+              <>
+                <div className="flex items-end justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-stone-600 dark:text-[#a6a1b2]">{over ? "Te pasaste por" : "Quedan"}</p>
+                    <p className={`text-3xl font-black tracking-tight tabular-nums ${over ? "text-terracotta-ink" : "text-sage-ink"}`}>
+                      {/* "Te pasaste por $500" (sin signo menos: la etiqueta ya dice que es de más). */}
+                      {formatMoney(over ? Math.abs(remaining ?? 0) : (remaining ?? 0))}
+                    </p>
+                  </div>
+                  {!editingCap && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCapDraft(String(cap));
+                        setEditingCap(true);
+                      }}
+                      aria-label={`Cambiar el tope, ahora ${formatMoney(cap)}`}
+                      className={`-mr-2 inline-flex min-h-[44px] shrink-0 flex-col items-end justify-center rounded-xl px-2 text-right hover:bg-stone-100 dark:hover:bg-white/5 ${sosFocusRing}`}
+                    >
+                      <span className="text-xs text-stone-600 dark:text-[#a6a1b2]">Tope</span>
+                      <span className="flex items-center gap-1 font-bold tabular-nums text-stone-900 dark:text-[#eae6e1]">
+                        {formatMoney(cap)} <Pencil size={13} aria-hidden="true" />
+                      </span>
+                    </button>
+                  )}
+                </div>
+
+                {editingCap && (
+                  <div className="mt-3">
+                    <label htmlFor={`${baseId}-tope`} className="mb-1 block text-sm font-semibold text-stone-700 dark:text-[#eae6e1]">Nuevo tope</label>
+                    {capForm}
+                  </div>
+                )}
+
+                <div
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={cap}
+                  aria-valuenow={Math.min(totalPlanned, cap)}
+                  aria-valuetext={`Planeado ${formatMoney(totalPlanned)} de ${formatMoney(cap)}${over ? ", por encima del tope" : ""}`}
+                  className="relative mt-4 h-3 w-full overflow-hidden rounded-full bg-stone-200 dark:bg-black/30"
+                >
+                  <div
+                    className={`absolute inset-y-0 left-0 rounded-full transition-[width] duration-300 ${over ? "bg-terracotta-ink" : "bg-sage/45"}`}
+                    style={{ width: `${plannedPct}%` }}
+                  />
+                  <div
+                    className={`absolute inset-y-0 left-0 rounded-full transition-[width] duration-300 ${over ? "bg-terracotta-ink-hover" : "bg-sage-ink"}`}
+                    style={{ width: `${purchasedPct}%` }}
                   />
                 </div>
+                <div className="mt-2 flex flex-wrap justify-between gap-x-4 gap-y-1 text-xs text-stone-600 dark:text-[#a6a1b2]">
+                  <span className="flex items-center gap-1.5">
+                    <span className={`h-2 w-2 rounded-full ${over ? "bg-terracotta-ink-hover" : "bg-sage-ink"}`} aria-hidden="true" />
+                    Comprado <span className="tabular-nums">{formatMoney(totalPurchased)}</span>
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className={`h-2 w-2 rounded-full ${over ? "bg-terracotta-ink" : "bg-sage/45"}`} aria-hidden="true" />
+                    Planeado <span className="tabular-nums">{formatMoney(totalPlanned)}</span>
+                  </span>
+                </div>
+              </>
+            )}
+          </section>
+
+          {/* Agregar gasto */}
+          <form onSubmit={addExpense} className="space-y-2" noValidate>
+            <label htmlFor={`${baseId}-item`} className="block text-sm font-bold text-stone-900 dark:text-[#eae6e1]">Agregar un gasto</label>
+            <input
+              id={`${baseId}-item`}
+              type="text"
+              placeholder="Ej. cuna, pañales…"
+              maxLength={80}
+              value={newItem}
+              onChange={(e) => setNewItem(e.target.value)}
+              className={`${fieldClass} w-full px-4`}
+            />
+            <div className="flex gap-2">
+              <label htmlFor={`${baseId}-categoria`} className="sr-only">Categoría</label>
+              <select
+                id={`${baseId}-categoria`}
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+                className={`${fieldClass} w-[8.5rem] shrink-0 px-3 text-sm font-semibold`}
+              >
+                {BUDGET_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              <div className="relative min-w-0 flex-1">
+                <label htmlFor={`${baseId}-monto`} className="sr-only">Monto</label>
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base font-bold text-stone-600 dark:text-[#a6a1b2]" aria-hidden="true">$</span>
+                <input
+                  ref={amountRef}
+                  id={`${baseId}-monto`}
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="any"
+                  placeholder="0"
+                  value={newAmount}
+                  onChange={(e) => setNewAmount(e.target.value)}
+                  className={`${fieldClass} w-full pl-7 pr-3 font-bold tabular-nums`}
+                />
               </div>
+              <button
+                type="submit"
+                aria-label="Agregar gasto"
+                className={`grid min-h-[44px] w-12 shrink-0 place-items-center rounded-xl bg-sage-ink text-white transition-colors hover:bg-sage-ink-hover ${sosFocusRing}`}
+              >
+                <Plus size={22} aria-hidden="true" />
+              </button>
             </div>
-            <button 
-              type="submit" 
-              disabled={!newItem.trim() || !newAmount}
-              className="bg-sage hover:bg-[#466856] disabled:opacity-50 text-white rounded-xl px-4 flex flex-col items-center justify-center transition-colors shadow-sm"
-            >
-              <Plus size={24} />
-            </button>
+            {formError && <p role="alert" className="text-sm font-semibold text-terracotta-ink">{formError}</p>}
           </form>
 
-          {expenses.length === 0 ? (
-            <div className="text-center py-6">
-              <p className="text-stone-500 dark:text-stone-400 text-sm mb-4">Aún no hay gastos en la lista. Puedes usar estas sugerencias rápidas:</p>
-              <div className="flex flex-wrap gap-2 justify-center">
-                <button onClick={() => addQuickSuggestion("Cuna", 250, "Habitación")} className="bg-stone-100 dark:bg-white/5 hover:bg-stone-200 text-stone-600 dark:text-stone-300 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors">+ Cuna ($250)</button>
-                <button onClick={() => addQuickSuggestion("Cochecito", 300, "Transporte")} className="bg-stone-100 dark:bg-white/5 hover:bg-stone-200 text-stone-600 dark:text-stone-300 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors">+ Cochecito ($300)</button>
-                <button onClick={() => addQuickSuggestion("Pañales", 50, "Cuidado")} className="bg-stone-100 dark:bg-white/5 hover:bg-stone-200 text-stone-600 dark:text-stone-300 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors">+ Pañales ($50)</button>
-                <button onClick={() => addQuickSuggestion("Silla", 150, "Transporte")} className="bg-stone-100 dark:bg-white/5 hover:bg-stone-200 text-stone-600 dark:text-stone-300 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors">+ Silla de coche ($150)</button>
+          {list.loadError ? null : !list.loaded && items.length === 0 ? (
+            <SharedLoading what="los gastos compartidos" />
+          ) : items.length === 0 ? (
+            <div className="py-4 text-center">
+              <p className="mb-3 text-sm text-stone-600 dark:text-[#a6a1b2]">
+                Aún no hay gastos. ¿Por dónde empezar? Toca una idea y escribe cuánto cuesta.
+              </p>
+              <div className="flex flex-wrap justify-center gap-2">
+                {BUDGET_IDEAS.map((idea) => (
+                  <button
+                    key={idea.name}
+                    type="button"
+                    onClick={() => pickIdea(idea)}
+                    className={`inline-flex min-h-[44px] items-center gap-1 rounded-full bg-stone-100 px-4 text-sm font-semibold text-stone-700 transition-colors hover:bg-stone-200 dark:bg-white/5 dark:text-[#eae6e1] dark:hover:bg-white/10 ${sosFocusRing}`}
+                  >
+                    <Plus size={14} aria-hidden="true" /> {idea.name}
+                  </button>
+                ))}
               </div>
             </div>
           ) : (
-            <div className="space-y-3">
-              {expenses.map((expense) => (
-                <div key={expense.id} className={`group flex items-center justify-between p-4 rounded-2xl border transition-all ${expense.isPurchased ? 'bg-stone-50 dark:bg-white/5 border-transparent opacity-60' : 'bg-white dark:bg-[#221d2d] border-stone-100 dark:border-white/5 shadow-sm hover:border-sage/30'}`}>
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    <button onClick={() => togglePurchased(expense.id)} className={`shrink-0 ${expense.isPurchased ? 'text-terracotta' : 'text-stone-300 hover:text-sage transition-colors'}`}>
-                      {expense.isPurchased ? <CheckCircle2 size={24} /> : <Circle size={24} />}
-                    </button>
-                    <div>
-                      <h4 className={`font-bold truncate max-w-[180px] ${expense.isPurchased ? 'text-stone-500 line-through decoration-terracotta/50' : 'text-stone-800 dark:text-stone-200'}`}>{expense.name}</h4>
-                      <p className="text-xs font-semibold text-stone-400 dark:text-stone-500 flex items-center gap-1">
-                        <Tag size={10} /> {expense.category}
-                      </p>
-                    </div>
+            <ul className="divide-y divide-stone-100 rounded-2xl border border-stone-200 bg-white dark:divide-white/[0.06] dark:border-white/[0.08] dark:bg-[#221d2d]">
+              {items.map((expense) => (
+                <li key={expense.id} className="flex items-center gap-2 py-1.5 pl-1.5 pr-1">
+                  <button
+                    type="button"
+                    onClick={() => togglePurchased(expense)}
+                    aria-pressed={expense.isPurchased}
+                    aria-label={`${expense.name}: ya comprado`}
+                    className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl hover:bg-stone-100 dark:hover:bg-white/5 ${sosFocusRing}`}
+                  >
+                    {expense.isPurchased ? (
+                      <CheckCircle2 size={22} className="text-sage-ink" aria-hidden="true" />
+                    ) : (
+                      <Circle size={22} className="text-stone-500 dark:text-[#a6a1b2]" aria-hidden="true" />
+                    )}
+                  </button>
+                  <div className="min-w-0 flex-1">
+                    <p className={`truncate font-bold ${expense.isPurchased ? "text-stone-500 line-through dark:text-[#8f899c]" : "text-stone-900 dark:text-[#eae6e1]"}`}>
+                      {expense.name}
+                    </p>
+                    <p className="flex items-center gap-1.5 text-xs text-stone-600 dark:text-[#a6a1b2]">
+                      <Tag size={11} aria-hidden="true" /> {expense.category}
+                      {list.linked && <ItemAuthor item={expense} members={me.members} />}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span className={`font-black ${expense.isPurchased ? 'text-stone-400' : 'text-stone-700 dark:text-stone-300'}`}>
-                      ${expense.amount.toLocaleString()}
-                    </span>
-                    <button 
-                      onClick={() => removeExpense(expense.id)}
-                      className="text-stone-300 hover:text-rose-500 transition-colors p-1"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </div>
+                  <span className={`shrink-0 font-black tabular-nums ${expense.isPurchased ? "text-stone-500 dark:text-[#8f899c]" : "text-stone-800 dark:text-[#eae6e1]"}`}>
+                    {formatMoney(expense.amount)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => removeExpense(expense)}
+                    aria-label={`Quitar ${expense.name}`}
+                    className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-stone-500 transition-colors hover:bg-terracotta/10 hover:text-terracotta-ink dark:text-[#a6a1b2] ${sosFocusRing}`}
+                  >
+                    <Trash2 size={17} aria-hidden="true" />
+                  </button>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
         </div>
       </div>
     </div>
   );
-  return typeof document !== "undefined" ? require("react-dom").createPortal(content, document.body) : null;
+
+  return isClient ? createPortal(content, document.body) : null;
 }
 
+// --- PANDA STORY: tarjeta 9:16 para compartir la semana ---
 
-export function PandaStoryGenerator({ profile, onClose }: { profile?: any, onClose: () => void }) {
-  const getMilestonePhrase = (w: number) => {
-    if (w <= 8) return "Su corazoncito ya late a mil por hora ❤️";
-    if (w <= 12) return "¡Ya tiene huellas dactilares únicas! 🖐️";
-    if (w <= 16) return "Comienza a escuchar los latidos de mamá 🎶";
-    if (w <= 20) return "¡Primeras pataditas en camino! 🦶";
-    if (w <= 24) return "Puede escuchar tu voz y la música 🎵";
-    if (w <= 28) return "Abre y cierra sus ojitos 👀";
-    if (w <= 32) return "Sus pulmones se preparan para respirar 🌬️";
-    if (w <= 36) return "Reconoce canciones y voces familiares 🧸";
-    return "¡Listo para conocer el mundo! 🌍";
-  };
+const STORY_HITOS: [number, string][] = [
+  [6, "Su corazón empieza a formarse"],
+  [9, "Su corazón ya late"],
+  [13, "Ya tiene deditos en manos y pies"],
+  [17, "Sus movimientos son cada vez más coordinados"],
+  [22, "Sus movimientos se sienten cada vez más"],
+  [26, "Ya puede oír sonidos y voces"],
+  [30, "Abre y cierra sus ojitos"],
+  [34, "Sus pulmones siguen madurando"],
+  [37, "Reconoce voces familiares"],
+];
 
-  const STORY_STYLES = [
-    { 
-      id: 'botanico', name: 'Botánico', 
-      container: 'bg-gradient-to-br from-sage/20 via-stone-50 to-terracotta/20 dark:from-sage/40 dark:via-[#1a1625] dark:to-terracotta/40', 
-      textPrimary: 'text-sage', textSecondary: 'text-terracotta', textBase: 'text-stone-800 dark:text-[#eae6e1]', 
-      cardBg: 'bg-white/90 dark:bg-black/40 border-sage/20', cardText: 'text-stone-600 dark:text-stone-300', cardTextBold: 'text-stone-800 dark:text-white'
-    },
-    { 
-      id: 'magico', name: 'Nocturno', 
-      container: 'bg-gradient-to-br from-indigo-950 via-slate-900 to-violet-950', 
-      textPrimary: 'text-indigo-300', textSecondary: 'text-violet-300', textBase: 'text-white', 
-      cardBg: 'bg-white/10 dark:bg-black/60 backdrop-blur-md border-white/20', cardText: 'text-white/80', cardTextBold: 'text-white'
-    },
-    { 
-      id: 'amanecer', name: 'Amanecer', 
-      container: 'bg-gradient-to-tr from-rose-100 via-amber-50 to-orange-100 dark:from-rose-950/50 dark:via-orange-950/30 dark:to-amber-900/40', 
-      textPrimary: 'text-rose-600 dark:text-rose-400', textSecondary: 'text-amber-600 dark:text-amber-400', textBase: 'text-stone-800 dark:text-[#eae6e1]', 
-      cardBg: 'bg-white/80 dark:bg-black/40 border-rose-200 dark:border-rose-900/50', cardText: 'text-stone-600 dark:text-stone-300', cardTextBold: 'text-stone-800 dark:text-white'
-    },
-    { 
-      id: 'limpio', name: 'Limpio', 
-      container: 'bg-stone-50 dark:bg-[#1a1625]', 
-      textPrimary: 'text-stone-900 dark:text-white', textSecondary: 'text-stone-500 dark:text-stone-400', textBase: 'text-stone-800 dark:text-[#eae6e1]', 
-      cardBg: 'bg-white dark:bg-[#221d2d] border-stone-200 dark:border-white/10 shadow-sm', cardText: 'text-stone-600 dark:text-[#a6a1b2]', cardTextBold: 'text-stone-800 dark:text-white'
-    }
-  ];
-  const [activeStyleId, setActiveStyleId] = useState('botanico');
-  const currentStyle = STORY_STYLES.find(s => s.id === activeStyleId) || STORY_STYLES[0];
+function storyMilestone(week: number): string {
+  for (const [limit, text] of STORY_HITOS) if (week <= limit) return text;
+  return "Casi listo para conocer el mundo";
+}
+
+// Emoji al final del texto de tamaño ("Mazorca de maíz 🌽"): se separa para ilustrar la tarjeta.
+const TRAILING_EMOJI = new RegExp("^(.*?)\\s*((?:\\p{Extended_Pictographic}|\\uFE0F|\\u200D)+)\\s*$", "u");
+
+function splitSize(size: string): { label: string; emoji: string } {
+  const m = size.match(TRAILING_EMOJI);
+  return m ? { label: m[1].trim(), emoji: m[2] } : { label: size.trim(), emoji: "" };
+}
+
+const STORY_STYLES = [
+  {
+    id: "botanico",
+    name: "Botánico",
+    container: "bg-gradient-to-br from-[#e8efe9] via-[#faf9f5] to-[#f6e4dc]",
+    primary: "text-[#44695a]",
+    secondary: "text-[#a54833]",
+    card: "bg-white/85 border-[#44695a]/15",
+    cardText: "text-stone-700",
+    cardStrong: "text-stone-900",
+  },
+  {
+    id: "nocturno",
+    name: "Nocturno",
+    container: "bg-gradient-to-br from-[#181520] via-[#221d2d] to-[#2d2338]",
+    primary: "text-[#eae6e1]",
+    secondary: "text-[#eb9279]",
+    card: "bg-white/10 border-white/15",
+    cardText: "text-[#cfcad8]",
+    cardStrong: "text-white",
+  },
+  {
+    id: "amanecer",
+    name: "Amanecer",
+    container: "bg-gradient-to-tr from-[#f8e1d7] via-[#fbf1e6] to-[#f3d9c9]",
+    primary: "text-[#8f3c2a]",
+    secondary: "text-[#44695a]",
+    card: "bg-white/80 border-[#a54833]/15",
+    cardText: "text-stone-700",
+    cardStrong: "text-stone-900",
+  },
+  {
+    id: "limpio",
+    name: "Limpio",
+    container: "bg-[#faf9f5]",
+    primary: "text-stone-900",
+    secondary: "text-stone-600",
+    card: "bg-white border-stone-200",
+    cardText: "text-stone-600",
+    cardStrong: "text-stone-900",
+  },
+] as const;
+
+export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfile; onClose: () => void }) {
+  const isClient = useIsClient();
+  const week = knownWeek(profile);
+  const [activeStyleId, setActiveStyleId] = useState<(typeof STORY_STYLES)[number]["id"]>("botanico");
+  const style = STORY_STYLES.find((s) => s.id === activeStyleId) ?? STORY_STYLES[0];
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [customImage, setCustomImage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const storyRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  const week = profile?.week || 14;
-  
-  const weekData = (window as any).getWeekData ? (window as any).getWeekData(week, profile?.theme || "frutas") : { size: "Limón 🍋", weight: "45g" }; 
-  const sizeText = weekData.size || "Limón 🍋";
-  const emojiMatch = sizeText.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]|\p{Emoji_Presentation}/gu);
-  const emoji = emojiMatch ? emojiMatch[emojiMatch.length - 1] : '🍋';
-  const fruit = sizeText.replace(emoji, '').trim();
+  const objectUrlRef = useRef<string | null>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
+  useEffect(() => {
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCloseRef.current();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    };
+  }, []);
+
+  const weekData = typeof week === "number" ? getWeekData(week, profile?.comparisonTheme ?? "frutas") : null;
+  const size = weekData ? splitSize(weekData.size) : null;
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const url = URL.createObjectURL(e.target.files[0]);
-      setCustomImage(url);
-    }
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    const url = URL.createObjectURL(file);
+    objectUrlRef.current = url;
+    setCustomImage(url);
+    setImageUrl(null);
   };
 
   const generateStory = async () => {
     if (!storyRef.current) return;
     setIsGenerating(true);
+    setError(null);
     try {
-      await new Promise(r => setTimeout(r, 300));
-      const dataUrl = await toPng(storyRef.current, { 
-        quality: 1, 
-        pixelRatio: 3,
-        cacheBust: true,
-        style: { transform: 'scale(1)', transformOrigin: 'top left' } 
-      });
+      const dataUrl = await toPng(storyRef.current, { pixelRatio: 3, cacheBust: true });
       setImageUrl(dataUrl);
-    } catch (error) {
-      console.error("Error generating story:", error);
-      alert("Hubo un error al generar la imagen. Intenta de nuevo.");
+    } catch (err) {
+      console.error("Error generating story:", err);
+      setError("No se pudo crear la imagen. Inténtalo de nuevo.");
     } finally {
       setIsGenerating(false);
     }
   };
 
   const shareStory = async () => {
-    if (!imageUrl) return;
-
+    if (!imageUrl || typeof week !== "number") return;
+    const fileName = `pandajr-semana-${week}.png`;
     const triggerDownload = () => {
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = imageUrl;
-      a.download = `pandajr-semana-${week}.png`;
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
     };
-
     if (!navigator.share || !navigator.canShare) {
       triggerDownload();
       return;
     }
-
     try {
-      const res = await fetch(imageUrl);
-      const blob = await res.blob();
-      const file = new File([blob], `pandajr-semana-${week}.png`, { type: 'image/png' });
-
+      const blob = await (await fetch(imageUrl)).blob();
+      const file = new File([blob], fileName, { type: "image/png" });
       if (navigator.canShare({ files: [file] })) {
         await navigator.share({
           title: `¡Estamos en la semana ${week}!`,
-          text: `Nuestro bebé es del tamaño de un ${fruit}. Sigue nuestro embarazo con PandaJR.`,
-          files: [file]
+          text: size ? `¡Estamos en la semana ${week}! Nuestro bebé ya tiene el tamaño de: ${size.label.toLocaleLowerCase("es")}.` : `¡Estamos en la semana ${week}!`,
+          files: [file],
         });
       } else {
         triggerDownload();
       }
-    } catch (e: any) {
-      console.log("Error sharing:", e);
-      if (e.name !== 'AbortError') {
-        triggerDownload();
-      }
+    } catch (err) {
+      if ((err as { name?: string })?.name !== "AbortError") triggerDownload();
     }
   };
 
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  
-  if (!mounted) return null;
+  const iconButton = `grid h-11 w-11 shrink-0 place-items-center rounded-full bg-stone-100 text-stone-700 transition-colors hover:bg-stone-200 dark:bg-white/5 dark:text-[#eae6e1] dark:hover:bg-white/10 ${sosFocusRing}`;
+
   const content = (
-    <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm z-[999] flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-stone-50 dark:bg-[#1a1625] w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-        <div className="p-4 flex justify-between items-center bg-white dark:bg-[#221d2d] border-b border-stone-100 dark:border-white/10 shrink-0">
-          <h2 className="font-bold flex items-center gap-2 text-stone-800 dark:text-stone-200">
-            <Camera size={20} className="text-terracotta" /> PandaJR Story
+    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 p-4 animate-in fade-in duration-200 dark:bg-black/80">
+      <div role="dialog" aria-modal="true" aria-labelledby="panda-story-titulo" className="flex max-h-[92vh] w-full max-w-sm flex-col overflow-hidden rounded-3xl bg-[#fdfbf7] shadow-2xl dark:bg-[#1a1625]">
+        <div className="flex shrink-0 items-center justify-between border-b border-stone-200 bg-white px-4 py-3 dark:border-white/10 dark:bg-[#221d2d]">
+          <h2 id="panda-story-titulo" className="flex items-center gap-2 font-bold text-stone-900 dark:text-[#eae6e1]">
+            <Camera size={20} className="text-terracotta-ink" aria-hidden="true" /> Tarjeta de la semana
           </h2>
-          <button onClick={onClose} className="p-2 bg-stone-100 dark:bg-white/5 hover:bg-stone-200 dark:hover:bg-white/10 rounded-full transition-colors">
-            <X size={18} />
+          <button ref={closeRef} type="button" onClick={onClose} aria-label="Cerrar" className={iconButton}>
+            <X size={18} aria-hidden="true" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center gap-6">
-          <div className="relative shadow-xl rounded-[2rem] overflow-hidden border-4 border-white dark:border-[#2d273a] w-[260px] sm:w-[320px] shrink-0 aspect-[9/16]">
-            
-            <div ref={storyRef} className={`absolute inset-0 w-full h-full flex flex-col items-center justify-center p-8 text-center ${currentStyle.container}`}>
-              <div className="absolute top-6 left-1/2 -translate-x-1/2 opacity-20 flex items-center gap-2">
-                 <span className={`font-black text-xl tracking-tighter ${currentStyle.textPrimary}`}>PandaJR.</span>
-              </div>
-              
-              <div className="mt-8 space-y-1 relative z-10 pt-4">
-                <p className={`text-sm font-bold tracking-widest uppercase ${currentStyle.textSecondary}`}>
-                  ¡ESTAMOS EN LA!
-                </p>
-                <h3 className={`text-5xl font-black tracking-tighter leading-tight ${currentStyle.textPrimary}`} >
-                  Semana {week}
-                </h3>
-              </div>
+        {typeof week !== "number" || !weekData || !size ? (
+          <div className="space-y-2 p-6 text-center">
+            <p className="font-bold text-stone-900 dark:text-[#eae6e1]">Primero confirma tu semana</p>
+            <p className="text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
+              La tarjeta muestra la semana de embarazo y el tamaño del bebé. Confírmala en tu perfil para crearla.
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-1 flex-col items-center gap-5 overflow-y-auto p-5">
+            {/* Tamaños en unidades del contenedor: la tarjeta se ve igual a 260 o 320 px y al exportarla. */}
+            <div className="@container relative aspect-[9/16] w-[260px] shrink-0 overflow-hidden rounded-[2rem] border-4 border-white shadow-xl sm:w-[300px] dark:border-[#2d273a]">
+              <div ref={storyRef} className={`absolute inset-0 flex flex-col items-center p-[7cqw] text-center ${style.container}`}>
+                <p className={`text-[4.5cqw] font-black tracking-tight opacity-60 ${style.primary}`}>PandaJR</p>
 
-              <div className="flex-1 flex items-center justify-center relative w-full my-6">
-                {customImage ? (
-                  <div className="relative z-10 animate-in zoom-in duration-500 w-40 h-40 rounded-full border-4 border-white shadow-xl overflow-hidden mt-4">
-                    <img src={customImage} alt="Baby" className="w-full h-full object-cover" crossOrigin="anonymous" />
-                  </div>
-                ) : (
-                  <div className="text-[8rem] leading-none relative z-10 animate-in zoom-in duration-500" >
-                    {emoji}
-                  </div>
-                )}
-              </div>
-
-              <div className={`rounded-2xl p-4 w-full relative z-10 shadow-sm border ${currentStyle.cardBg}`} >
-                <p className={`text-sm font-semibold ${currentStyle.cardText}`} >
-                  Nuestro bebé es del tamaño de:
-                </p>
-                <p className={`text-xl font-black mt-1 capitalize ${currentStyle.cardTextBold}`} >
-                  {fruit}
-                </p>
-                <div className="flex justify-between items-center mt-2 border-t border-stone-200/50 pt-2">
-                  <p className={`text-xs font-bold ${currentStyle.cardText}`} >
-                    {weekData.size} • {weekData.weight}
-                  </p>
+                <div className="mt-[4cqw] w-full">
+                  <p className={`text-[5cqw] font-bold uppercase tracking-[0.12em] ${style.secondary}`}>¡Estamos en la</p>
+                  <p className={`whitespace-nowrap text-[14cqw] font-black leading-[1.05] tracking-tight ${style.primary}`}>semana {week}!</p>
                 </div>
-                <div className={`mt-3 p-3 rounded-xl shadow-sm border border-transparent ${currentStyle.cardBg}`}>
-                  <p className={`text-xs font-bold text-center ${currentStyle.textPrimary}`}>
-                    {getMilestonePhrase(week)}
+
+                <div className="flex min-h-0 w-full flex-1 items-center justify-center py-[3cqw]">
+                  {customImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- imagen local del usuario (blob:) para exportar
+                    <img src={customImage} alt="Foto elegida para la tarjeta" className="aspect-square w-[52cqw] rounded-full border-[1.5cqw] border-white object-cover shadow-lg" />
+                  ) : size.emoji ? (
+                    <span className="text-[34cqw] leading-none" role="img" aria-label={size.label}>{size.emoji}</span>
+                  ) : (
+                    <Baby className={`h-[34cqw] w-[34cqw] ${style.primary}`} aria-hidden="true" />
+                  )}
+                </div>
+
+                <div className={`w-full rounded-[5cqw] border px-[5cqw] py-[4cqw] ${style.card}`}>
+                  <p className={`text-[4cqw] font-semibold ${style.cardText}`}>Nuestro bebé es del tamaño de</p>
+                  <p className={`mt-[1cqw] line-clamp-2 text-[7cqw] font-black leading-tight ${style.cardStrong}`}>{size.label}</p>
+                  <p className={`mt-[1.5cqw] text-[3.8cqw] font-bold tabular-nums ${style.cardText}`}>
+                    {weekData.length} · {weekData.weight}
+                  </p>
+                  <p className={`mt-[3cqw] border-t border-current/15 pt-[3cqw] text-[4cqw] font-bold leading-snug ${style.primary}`}>
+                    {storyMilestone(week)}
                   </p>
                 </div>
               </div>
+
+              {imageUrl && (
+                // eslint-disable-next-line @next/next/no-img-element -- vista previa de la imagen generada (data:)
+                <img src={imageUrl} alt={`Tarjeta de la semana ${week}`} className="absolute inset-0 z-20 h-full w-full object-cover" />
+              )}
             </div>
-            
-            {imageUrl && (
-              <img src={imageUrl} alt="PandaJR Story" className="absolute inset-0 w-full h-full object-cover z-20" />
-            )}
-          </div>
 
-          <div className="w-full flex flex-col gap-3">
-            {!imageUrl ? (
-              <>
-                <div className="flex flex-wrap gap-2 justify-center w-full mb-1">
-                  {STORY_STYLES.map(style => (
-                    <button
-                      key={style.id}
-                      onClick={() => setActiveStyleId(style.id)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${activeStyleId === style.id ? 'border-terracotta text-terracotta bg-terracotta/10 dark:bg-terracotta/20 shadow-sm' : 'border-stone-200 dark:border-white/10 text-stone-500 dark:text-[#a6a1b2] hover:bg-stone-100 dark:hover:bg-white/5'}`}
-                    >
-                      {style.name}
-                    </button>
-                  ))}
-                </div>
-                <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
-                <button 
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full bg-white dark:bg-white/10 hover:bg-stone-50 text-stone-700 dark:text-stone-300 font-bold py-3.5 rounded-2xl shadow-sm border border-stone-200 dark:border-white/10 transition-transform active:scale-95 flex justify-center items-center gap-2 mb-1"
-                >
-                  <Camera size={20} className="text-stone-500" />
-                  {customImage ? "Cambiar foto" : "Subir Ecografía / Foto"}
-                </button>
-                <button 
-                  onClick={generateStory}
-                  disabled={isGenerating}
-                  className="w-full bg-terracotta hover:bg-[#c46548] text-white font-bold py-4 rounded-2xl shadow-lg transition-transform active:scale-95 flex justify-center items-center gap-2"
-                >
-                  {isGenerating ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Wand2 size={20} />}
-                  {isGenerating ? "Creando magia..." : "Generar Tarjeta"}
-                </button>
-              </>
-            ) : (
-              <div className="flex gap-2">
-                <button 
-                  onClick={shareStory}
-                  className="flex-1 bg-sage hover:bg-[#466856] text-white font-bold py-4 rounded-2xl shadow-lg transition-transform active:scale-95 flex justify-center items-center gap-2"
-                >
-                  <Share2 size={20} /> Compartir
-                </button>
-                <button 
-                  onClick={() => setImageUrl(null)}
-                  className="flex-1 bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold py-4 rounded-2xl shadow-lg transition-transform active:scale-95 flex justify-center items-center gap-2"
-                >
-                  Nueva
-                </button>
-              </div>
+            {error && (
+              <p role="alert" className="w-full text-center text-sm font-semibold text-terracotta-ink">{error}</p>
             )}
+
+            <div className="flex w-full flex-col gap-3">
+              {!imageUrl ? (
+                <>
+                  <div className="flex w-full flex-wrap justify-center gap-2" role="group" aria-label="Estilo de la tarjeta">
+                    {STORY_STYLES.map((s) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        aria-pressed={activeStyleId === s.id}
+                        onClick={() => setActiveStyleId(s.id)}
+                        className={`min-h-[44px] rounded-xl border px-3 text-sm font-bold transition-colors ${sosFocusRing} ${
+                          activeStyleId === s.id
+                            ? "border-terracotta-ink bg-terracotta/10 text-terracotta-ink"
+                            : "border-stone-200 text-stone-600 hover:bg-stone-100 dark:border-white/10 dark:text-[#a6a1b2] dark:hover:bg-white/5"
+                        }`}
+                      >
+                        {s.name}
+                      </button>
+                    ))}
+                  </div>
+                  <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl border border-stone-200 bg-white font-bold text-stone-800 transition-colors hover:bg-stone-50 dark:border-white/10 dark:bg-white/10 dark:text-[#eae6e1] ${sosFocusRing}`}
+                  >
+                    <ImagePlus size={20} className="text-stone-600 dark:text-[#a6a1b2]" aria-hidden="true" />
+                    {customImage ? "Cambiar la foto" : "Agregar foto o ecografía"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void generateStory()}
+                    disabled={isGenerating}
+                    className={`flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-terracotta-ink font-bold text-white transition-colors hover:bg-terracotta-ink-hover disabled:opacity-70 ${sosFocusRing}`}
+                  >
+                    {isGenerating ? (
+                      <LoaderCircle size={20} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
+                    ) : (
+                      <Wand2 size={20} aria-hidden="true" />
+                    )}
+                    {isGenerating ? "Creando la tarjeta…" : "Crear tarjeta"}
+                  </button>
+                </>
+              ) : (
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void shareStory()}
+                    className={`flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-2xl bg-sage-ink font-bold text-white transition-colors hover:bg-sage-ink-hover ${sosFocusRing}`}
+                  >
+                    <Share2 size={20} aria-hidden="true" /> Compartir
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setImageUrl(null)}
+                    className={`flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-2xl bg-stone-200 font-bold text-stone-800 transition-colors hover:bg-stone-300 dark:bg-white/10 dark:text-[#eae6e1] ${sosFocusRing}`}
+                  >
+                    Editar
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
-  return typeof document !== "undefined" ? require("react-dom").createPortal(content, document.body) : null;
+  return isClient ? createPortal(content, document.body) : null;
 }
 
-
 export function ReproductorView({ onClose }: { onClose: () => void }) {
+  const isClient = useIsClient();
   const [activeTab, setActiveTab] = useState<"dormir" | "estimulacion" | "latidos">("dormir");
   const [isPlaying, setIsPlaying] = useState(false);
-  
+
   const audioCtxRef = useRef<AudioContext | null>(null);
   const sourceRef = useRef<AudioBufferSourceNode | null>(null);
 
@@ -2880,24 +4999,24 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
       }
       setIsPlaying(false);
     } else {
-      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioCtor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (!audioCtxRef.current) {
-        audioCtxRef.current = new AudioContext();
+        audioCtxRef.current = new AudioCtor();
       }
       const ctx = audioCtxRef.current;
-      
+
       if (ctx.state === 'suspended') ctx.resume();
 
       const bufferSize = ctx.sampleRate * 2;
       const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
       const data = buffer.getChannelData(0);
-      
+
       let lastOut = 0;
       for (let i = 0; i < bufferSize; i++) {
-        let white = Math.random() * 2 - 1;
+        const white = Math.random() * 2 - 1;
         data[i] = (lastOut + (0.02 * white)) / 1.02;
         lastOut = data[i];
-        data[i] *= 3.5; 
+        data[i] *= 3.5;
       }
 
       const filter = ctx.createBiquadFilter();
@@ -2923,56 +5042,48 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
     };
   }, []);
 
-  const [mounted, setMounted] = React.useState(false);
-  React.useEffect(() => setMounted(true), []);
-  
-  if (!mounted) return null;
+  const tabs = [
+    { id: "dormir" as const, label: "Dormir", icon: <Moon size={14} aria-hidden="true" />, active: "text-sage-ink" },
+    { id: "estimulacion" as const, label: "Estimulación", icon: <Music size={14} aria-hidden="true" />, active: "text-terracotta-ink" },
+    { id: "latidos" as const, label: "Útero", icon: <Waves size={14} aria-hidden="true" />, active: "text-stone-800 dark:text-stone-200" },
+  ];
+
   const content = (
     <div className="fixed inset-0 bg-black/70 dark:bg-black/90 backdrop-blur-md z-[999] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-[#15131a] w-full max-w-md sm:rounded-[2.5rem] rounded-t-[2.5rem] h-[85vh] sm:h-auto max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-white/20 dark:border-white/5 animate-in slide-in-from-bottom-8">
-        
+      <div role="dialog" aria-modal="true" aria-labelledby="panda-audio-titulo" className="bg-white dark:bg-[#15131a] w-full max-w-md sm:rounded-[2.5rem] rounded-t-[2.5rem] h-[85vh] sm:h-auto max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-white/20 dark:border-white/5 animate-in slide-in-from-bottom-8">
+
         <div className="bg-gradient-to-br from-[#2a2631] to-[#15131a] border-b border-white/5 p-6 shrink-0 relative overflow-hidden text-white">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-white/20 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-stone-800/40 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none"></div>
-          
           <div className="relative z-10 flex justify-between items-start">
             <div>
-              <div className="bg-white/20 backdrop-blur-md w-10 h-10 rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-white/20">
-                <Music size={20} className="text-white" />
+              <div className="bg-white/20 w-10 h-10 rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-white/20">
+                <Music size={20} className="text-white" aria-hidden="true" />
               </div>
-              <h2 className="text-2xl font-black tracking-tight leading-none mb-1">
+              <h2 id="panda-audio-titulo" className="text-2xl font-black tracking-tight leading-none mb-1">
                 Panda Audio
               </h2>
               <p className="text-stone-300 text-sm font-medium">Estimulación y relajación</p>
             </div>
-            <button onClick={onClose} className="p-2 bg-black/10 hover:bg-black/20 backdrop-blur-md rounded-full transition-colors">
-              <X size={20} />
+            <button type="button" onClick={onClose} aria-label="Cerrar Panda Audio" className="grid h-11 w-11 place-items-center bg-black/10 hover:bg-black/20 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+              <X size={20} aria-hidden="true" />
             </button>
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto bg-stone-50 dark:bg-[#15131a] flex flex-col">
-          
+
           <div className="px-4 pt-6 pb-2">
-            <div className="flex bg-stone-200/50 dark:bg-[#221d2d] p-1.5 rounded-2xl">
-              <button 
-                onClick={() => setActiveTab("dormir")}
-                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === "dormir" ? "bg-white dark:bg-[#383147] text-sage shadow-sm" : "text-stone-500 dark:text-[#a6a1b2]"}`}
-              >
-                💤 Dormir
-              </button>
-              <button 
-                onClick={() => setActiveTab("estimulacion")}
-                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === "estimulacion" ? "bg-white dark:bg-[#383147] text-terracotta shadow-sm" : "text-stone-500 dark:text-[#a6a1b2]"}`}
-              >
-                🎶 Estimulación
-              </button>
-              <button 
-                onClick={() => setActiveTab("latidos")}
-                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === "latidos" ? "bg-white dark:bg-[#383147] text-stone-800 dark:text-stone-200 shadow-sm" : "text-stone-500 dark:text-[#a6a1b2]"}`}
-              >
-                🌬️ Útero
-              </button>
+            <div className="flex bg-stone-200/50 dark:bg-[#221d2d] p-1.5 rounded-2xl" role="group" aria-label="Tipo de audio">
+              {tabs.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  aria-pressed={activeTab === t.id}
+                  onClick={() => setActiveTab(t.id)}
+                  className={`flex-1 min-h-[44px] inline-flex items-center justify-center gap-1.5 text-xs font-bold rounded-xl transition-colors ${sosFocusRing} ${activeTab === t.id ? `bg-white dark:bg-[#383147] shadow-sm ${t.active}` : "text-stone-600 dark:text-[#a6a1b2]"}`}
+                >
+                  {t.icon} {t.label}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -2980,48 +5091,55 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
             <div className="mb-4 px-2">
               <h3 className="text-lg font-black text-stone-800 dark:text-stone-200">
                 {activeTab === "dormir" && "Listas para arrullar"}
-                {activeTab === "estimulacion" && "Mozart & Desarrollo"}
-                {activeTab === "latidos" && "Simulador de Útero Offline"}
+                {activeTab === "estimulacion" && "Música clásica"}
+                {activeTab === "latidos" && "Sonido del útero"}
               </h3>
-              <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
-                {activeTab === "dormir" && "Música seleccionada en Spotify para calmar la ansiedad de los papás y al bebé."}
-                {activeTab === "estimulacion" && "Música clásica seleccionada para el desarrollo neurológico fetal."}
-                {activeTab === "latidos" && "Un generador de ruido marrón infinito que imita el sonido del flujo sanguíneo materno que el bebé escucha."}
+              <p className="text-xs text-stone-600 dark:text-stone-400 mt-1">
+                {activeTab === "dormir" && "Música en Spotify para relajarse antes de dormir."}
+                {activeTab === "estimulacion" && "Música clásica en Spotify para escuchar juntos."}
+                {activeTab === "latidos" && "Ruido marrón continuo, parecido al sonido del flujo sanguíneo que el bebé escucha."}
               </p>
             </div>
 
             {activeTab !== "latidos" ? (
               <div className="flex-1 min-h-[350px] bg-stone-200/50 dark:bg-[#221d2d] rounded-3xl overflow-hidden shadow-inner p-2 border border-stone-200/80 dark:border-white/[0.04]">
-                <iframe 
-                  style={{ borderRadius: '20px' }} 
-                  src={activeTab === "dormir" ? playlists.dormir : playlists.estimulacion} 
-                  width="100%" 
-                  height="100%" 
-                  frameBorder="0" 
-                  allowFullScreen 
-                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                <iframe
+                  title={activeTab === "dormir" ? "Lista de Spotify para dormir" : "Lista de Spotify de música clásica"}
+                  style={{ borderRadius: '20px' }}
+                  src={activeTab === "dormir" ? playlists.dormir : playlists.estimulacion}
+                  width="100%"
+                  height="100%"
+                  frameBorder="0"
+                  allowFullScreen
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                   loading="lazy"
                 ></iframe>
               </div>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center p-6 bg-gradient-to-br from-sage/10 to-transparent dark:from-sage/5 rounded-3xl border border-sage/20">
                  <div className="relative w-40 h-40 mb-8 flex items-center justify-center">
-                    {isPlaying && <div className="absolute inset-0 bg-sage/20 rounded-full animate-ping"></div>}
-                    {isPlaying && <div className="absolute inset-4 bg-sage/30 rounded-full animate-pulse"></div>}
-                    <div className="w-32 h-32 bg-sage text-white rounded-full flex items-center justify-center shadow-xl relative z-10 transition-transform hover:scale-105 cursor-pointer" onClick={toggleNoise}>
-                      {isPlaying ? <Square size={40} className="fill-current" /> : <Play size={40} className="fill-current ml-2" />}
-                    </div>
+                    {isPlaying && <div className="absolute inset-0 bg-sage/20 rounded-full animate-ping motion-reduce:animate-none" aria-hidden="true"></div>}
+                    {isPlaying && <div className="absolute inset-4 bg-sage/30 rounded-full animate-pulse motion-reduce:animate-none" aria-hidden="true"></div>}
+                    <button
+                      type="button"
+                      onClick={toggleNoise}
+                      aria-label={isPlaying ? "Detener el sonido" : "Reproducir el sonido"}
+                      aria-pressed={isPlaying}
+                      className={`w-32 h-32 bg-sage-ink text-white rounded-full flex items-center justify-center shadow-xl relative z-10 transition-transform hover:scale-105 motion-reduce:hover:scale-100 ${sosFocusRing}`}
+                    >
+                      {isPlaying ? <Square size={40} className="fill-current" aria-hidden="true" /> : <Play size={40} className="fill-current ml-2" aria-hidden="true" />}
+                    </button>
                  </div>
-                 
-                 <h4 className="font-black text-xl text-stone-800 dark:text-stone-200 mb-2">Ruido Blanco Materno</h4>
-                 <p className="text-sm text-stone-500 text-center mb-6">Generador offline sin anuncios. Funciona con la pantalla apagada.</p>
+
+                 <h4 className="font-black text-xl text-stone-800 dark:text-stone-200 mb-2">Ruido marrón</h4>
+                 <p className="text-sm text-stone-600 dark:text-[#a6a1b2] text-center mb-6">Se genera en el teléfono, sin anuncios ni conexión.</p>
               </div>
             )}
-            
+
           </div>
         </div>
       </div>
     </div>
   );
-  return typeof document !== "undefined" ? require("react-dom").createPortal(content, document.body) : null;
+  return isClient ? createPortal(content, document.body) : null;
 }
