@@ -267,16 +267,16 @@ const PREP_GUIDES: Record<GuideId, AppointmentPrepInfo> = {
     tip: "Si te mareas con las extracciones, avísalo antes: pueden hacerla contigo recostada.",
   },
   lab_glucosa: {
-    category: "Prueba de glucosa (O'Sullivan o curva)",
+    category: "Prueba de glucosa (prueba corta o curva)",
     badge: "Diabetes gestacional",
     whatToBring: [
-      "Confirma si tu prueba requiere ayuno: el O'Sullivan (50 g) normalmente no; la curva de tolerancia (75 o 100 g) sí, de 8 a 10 horas",
+      "Confirma si tu prueba requiere ayuno: la prueba corta de 1 hora (50 g) normalmente no; la curva de tolerancia (75 o 100 g) sí, de 8 a 10 horas",
       "Agua natural (pregunta si puedes beber durante la prueba)",
-      "Un libro o audífonos: el O'Sullivan dura cerca de 1 hora y la curva, de 2 a 3 horas",
+      "Un libro o audífonos: la prueba corta dura cerca de 1 hora y la curva, de 2 a 3 horas",
       "Algo nutritivo para comer apenas termine la última extracción",
     ],
     whatToAsk: [
-      "¿Qué prueba me toca: O'Sullivan o curva de tolerancia?",
+      "¿Qué prueba me toca: la prueba corta de 1 hora o la curva de tolerancia?",
       "¿Cuándo estarán los resultados y quién me los explica?",
       "Si me mareo o tengo náuseas durante la espera, ¿a quién aviso?",
       "¿Tomo mis vitaminas antes o después de la prueba?",
@@ -1324,9 +1324,9 @@ const SUGGESTIONS: SuggestionDef[] = [
     showFrom: 23,
     showTo: 28,
     type: "laboratorio",
-    title: "Prueba de glucosa (O'Sullivan)",
+    title: "Prueba de glucosa (diabetes gestacional)",
     detail: "Detecta la diabetes gestacional. Se hace entre las semanas 24 y 28.",
-    eventTitle: "Prueba de glucosa (O'Sullivan)",
+    eventTitle: "Prueba de glucosa (diabetes gestacional)",
     covers: coveredByWeek("laboratorio", 23, 29, RX.glucosa, RX.sgb),
   },
   {

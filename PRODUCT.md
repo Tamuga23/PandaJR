@@ -1,57 +1,165 @@
-# PandaJR - Product & Architecture Documentation
+# Product
 
-## 1. Visión General del Producto
-PandaJR es una PWA (Progressive Web App) diseñada como un "Copiloto Prenatal" para padres primerizos. A diferencia de las apps tradicionales enfocadas exclusivamente en la madre, PandaJR integra activamente al padre (o copiloto), asignándole misiones, recordatorios y protocolos de logística para reducir la carga mental de la madre y fomentar una crianza compartida desde la concepción.
+<!-- impeccable:product-schema 1 -->
 
-## 2. Arquitectura de Sincronización (Firebase Realtime)
+## Platform
 
-Todo el estado crítico de la aplicación vive en Firestore y se sincroniza en tiempo real a través de *Listeners* (`onSnapshot`). La estructura de la base de datos se basa en "Embarazos Compartidos" (`pregnancies/{pregnancyId}`), permitiendo que la mamá y el papá vean la misma información instantáneamente en sus respectivos dispositivos.
+web
 
-### Prevención de Bucles Infinitos (Sync Loops)
-Al utilizar Zustand para el estado local y Firestore para el estado remoto, se debe seguir este patrón estricto para evitar *infinite render loops*:
-1. **Escucha Autónoma:** Los \`useEffect\` de escucha llaman a \`listenTo...()\` y actualizan el estado local de React sin disparar un guardado.
-2. **Mutación Deliberada:** Cualquier guardado hacia Firebase (`addJournalEntry`, `toggleCustomTask`) se hace a través de manejadores de eventos explícitos (`onClick`, `onBlur`) y **nunca** como un efecto secundario de que cambie el estado escuchado.
-3. **Optimistic UI:** La UI se actualiza inmediatamente para dar feedback al usuario, y la suscripción de Firebase confirma el estado milisegundos después.
+PWA instalable a pantalla completa (móvil primero, con safe areas de iOS). En escritorio se muestra como columna móvil.
 
-### Módulos Sincronizados
-- **Diario (Timeline):** \`listenToJournal\` / \`addJournalEntry\` / \`deleteJournalEntry\`
-- **Checklists (Misiones):** \`listenToChecklistProgress\` / \`saveChecklistProgress\`
-- **Citas (Agenda):** \`listenToEvents\` / \`saveEvents\`
-- **Contador de Patadas:** \`listenToKickSessions\` / \`saveKickSessions\`
-- **Contracciones:** \`listenToContractions\` / \`saveContractions\`
-- **Votador de Nombres:** \`listenToBabyNames\` / \`saveBabyNames\`
-- **Presupuesto (Baby Budget):** \`listenToExpenses\` / \`saveExpenses\`
+## Users
 
-## 3. Protocolos Clínicos y Estándares ACOG
-PandaJR no es solo una app de estilo de vida; está programada con rigor clínico basado en los lineamientos del Colegio Americano de Obstetras y Ginecólogos (ACOG).
+- **La mamá primeriza embarazada.** Sigue su embarazo semana a semana: síntomas, citas con su obstetra, movimientos del bebé y contracciones. Muchas veces la usa con ansiedad, de noche, con poca luz y con una sola mano.
+- **El papá, como copiloto activo.** El enfoque explícito en el padre es una decisión de producto confirmada, no una suposición del copy. Recibe misiones, logística y guías concretas (por ejemplo, qué hacer entre contracciones) para quitarle carga mental a la mamá y participar desde el principio.
+- **Mercado:** familias hispanohablantes de Latinoamérica y de Estados Unidos. Español neutro, con tuteo.
 
-### 3.1. Precisión Gestacional (Semanas 1-40)
-La base de datos de hitos (\`getWeekData\`) respeta la biología real del desarrollo. Las Semanas 1 y 2 no describen un feto, sino la preparación del cuerpo y la ovulación. Los hitos críticos (organogénesis, maduración pulmonar) aparecen exactamente en la ventana clínica correcta.
+## Product Purpose
 
-### 3.2. Módulo SOS Síntomas (Red Flags)
-Las alertas están categorizadas clínicamente para no causar pánico innecesario, pero son tajantes ante verdaderas emergencias:
-- **Preeclampsia:** Dolor de cabeza severo, moscas volantes, dolor en hipocondrio derecho.
-- **Movimientos Fetales:** Regla estricta de "menos de 10 patadas en 2 horas" a partir de la semana 28.
-- **Hiperémesis Gravídica:** Se instruye sobre deshidratación y cuándo solicitar medicación (Ej: Diclegis / B6).
+Acompañar a la pareja durante el embarazo con una sola verdad compartida: qué toca esta semana, quién hace qué y qué hacer si algo es urgente. El éxito se mide así:
+- La mamá tiene menos carga mental.
+- El papá participa de verdad.
+- En un momento de alarma, la app lleva en un toque a quien hay que llamar.
 
-### 3.3. Tareas Clínicas por Trimestre (Checklists)
-Las misiones de los padres no son triviales, están estructuradas médicamente:
-- **T1 (Primer Trimestre):** Ácido Fólico (400 mcg), evitación de listeria/toxoplasmosis (quesos no pasteurizados, cajas de arena).
-- **T2 (Segundo Trimestre):** Test de O'Sullivan (Glucosa), Ecografía Morfológica (Semanas 20-24), Suplementación DHA/Hierro.
-- **T3 (Tercer Trimestre):** Vacuna Tdap (Estrategia Capullo), Cultivo de Estreptococo del Grupo B (SGB), Regla de parto 5-1-1.
+## Positioning
 
-## 4. PandaIA: El Agente Inteligente (Gemini 2.5 Flash)
-PandaIA actúa como un copiloto contextual. Conoce el nombre del usuario, su rol (Mamá/Papá) y la semana exacta de gestación.
+A diferencia de las apps centradas solo en la madre, PandaJR está hecha para la pareja, con el papá como copiloto:
+- Misiones semanales por rol.
+- Estado compartido en tiempo real entre dos teléfonos vinculados.
+- Guía para el acompañante durante el trabajo de parto.
+- Herramientas que se usan en pareja: nombres, maleta, plan de parto y presupuesto.
 
-### Límites de Seguridad (Safety Boundaries)
-El prompt del sistema (`systemInstruction` en `api/chat/route.ts`) tiene candados (guardrails) de nivel médico:
-1. **Regla Anti-Diagnóstico:** Tiene estrictamente prohibido diagnosticar o recetar. Todo suplemento requiere el sufijo "valídalo con tu obstetra".
-2. **Trigger de Alerta Roja:** Si el usuario menciona sangrado, dolor intenso, fiebre o disminución de movimientos, la IA *abandona su tono conversacional* y emite una instrucción directiva de ir a Urgencias.
-3. **Llamadas a la Acción Integradas:** PandaIA puede agendar eventos directamente en la Agenda local retornando un JSON estructurado junto con su respuesta.
+Todo esto se apoya en contenido clínico alineado con guías públicas (ACOG, señales de alarma del CDC) y en un asistente con IA que tiene límites de seguridad.
 
-## 5. Herramientas Integradas (Tooling)
-- **Contador de Patadas:** Implementa el *Método Cardiff* (Medir el tiempo hasta lograr 10 patadas). Incluye notas contextuales (ej. "Tras comer dulce").
-- **Contador de Contracciones:** Usa la regla 5-1-1. Mide frecuencia y duración. Indica claramente cuándo el falso trabajo de parto (Braxton Hicks) pasa a ser trabajo de parto activo.
-- **Diario (Timeline):** Sistema de registro cronológico con avatares, tags clínicos/emocionales y selector de estados de ánimo (Moods).
-- **Votador de Nombres:** Interfaz colaborativa estilo Tinder. El papá y la mamá votan (❤️ / ❌); si ambos dan like, ocurre un "Match".
-- **Baby Budget:** Hoja de cálculo colaborativa para llevar el progreso financiero de las compras prenatales.
+## Operating Context
+
+- **Vinculación:** dos teléfonos se vinculan con un código de invitación que la mamá comparte (normalmente por WhatsApp). Sin vínculo, todo funciona solo en ese teléfono y la app lo dice.
+- **Uso típico:**
+  - Consulta semanal de la Guía.
+  - Preparación de citas con el obstetra: qué llevar y qué preguntar, exportable a calendario.
+  - Conteo de movimientos en casa (método Cardiff, desde la semana 28).
+  - Cronometraje de contracciones.
+  - Maleta del hospital.
+  - Plan de parto que se imprime o se comparte con el hospital.
+- **Momentos críticos:** síntomas de alarma, a menudo de madrugada. Se llama al número de emergencias del país, al obstetra de la pareja o se va al hospital elegido.
+- **PandaIA:** asistente conversacional que conoce el rol, el nombre y la semana. Puede fallar o quedarse sin conexión.
+
+## Capabilities and Constraints
+
+- **Módulos:**
+  - Guía semanal: tamaño, hito y misiones por rol.
+  - Checklists por trimestre.
+  - Estado de ánimo de la mamá y abrazos para la pareja.
+  - Agenda médica con sugerencias según la semana y preparación de cita compartida.
+  - SOS de síntomas.
+  - Contador de patadas y contador de contracciones.
+  - Diario, votador de nombres, maleta, plan de parto, presupuesto, lecturas, audios y PandaStory compartible.
+  - PandaIA.
+- **Alcance gestacional: semanas 1–42.** Decisión confirmada el 2026-09-26: se amplía de 1–40 para incluir el postérmino (41–42). Implementación pendiente.
+- **Capa de urgencia determinista:**
+  - La lista única de señales de alarma vive en `src/lib/urgency.ts` y alimenta SOS, contadores, chat y servidor.
+  - El chat usa un detector local que actúa antes y aunque falle la IA.
+  - `CallActions` agrupa las llamadas: emergencias del país, obstetra y hospital.
+  - El número de emergencias se detecta por país, siempre se muestra y el usuario puede editarlo.
+  - El equipo de salud es compartido entre la pareja.
+  - La seguridad nunca depende de Gemini ni de la red.
+- **Reglas clínicas:**
+  - Aviso de parto pretérmino antes de la semana 37: 4 o más contracciones en 1 hora.
+  - Regla 5-1-1 sobre una ventana móvil de 60 minutos.
+  - Conteo Cardiff desde la semana 28.
+  - Una semana no confirmada se trata como desconocida (`weekUnknown`): no se le aplican reglas clínicas.
+- **Contadores:** pueden indicar "posible trabajo de parto activo", tal como exige el producto, pero sin lenguaje diagnóstico.
+- **PandaIA:**
+  - Tiene prohibido diagnosticar o recetar.
+  - Ante señales de alarma da una instrucción directiva de ir a urgencias.
+  - Puede agendar citas directamente, solo con una fecha que haya dicho el usuario y con un deshacer real. Si falta la fecha, pregunta.
+- **Verdad compartida:**
+  - Las escrituras a Firebase ocurren solo en manejadores de eventos, nunca en efectos que reaccionen al estado escuchado.
+  - Los arrays compartidos se actualizan con transacciones y nada se escribe antes del primer snapshot del servidor.
+  - La UI es optimista, con reversión y "Reintentar".
+  - Las migraciones son de una sola vez y marcadas.
+  - Nada se muestra como del usuario si no lo creó él, ningún control promete lo que no hace, y ninguna afirmación de sincronización o de match es falsa.
+- **Código de pareja:**
+  - Formato `PANDA-XXXX-XXXX`, único, caduca a los 14 días y es de un solo uso.
+  - Antes de unirse, el papá ve una confirmación "¿Te unes al embarazo de…?".
+  - La mamá ve las personas con acceso y puede revocarlas.
+  - Los códigos antiguos de 4 caracteres se migran.
+- **Pendiente de producto:**
+  - Desplegar `firestore.rules`, que hoy es un borrador sin desplegar y es lo que hace cumplir la privacidad en el servidor. Antes hay que desplegar la migración de miembros.
+  - Moneda local del presupuesto: hoy es un "$" genérico.
+  - Completar el mapa de números de emergencia para todos los países de LatAm (por ejemplo, Guatemala). Mientras un país no esté en el mapa, la app pide confirmar el número.
+- **Stack:** Next.js 16 (App Router) con React 19, Tailwind v4, Zustand, Firebase (Auth anónimo y Firestore) y Gemini vía `src/app/api/chat/route.ts`.
+
+## Brand Commitments
+
+- Nombre **PandaJR**, con la mascota panda (mamá con su bebé). Assets: `public/logo.png`, `public/app-icon.jpg`, `public/panda-icon.jpg`.
+- Voz en español neutro latinoamericano, con tuteo. Serena y cercana en el día a día, tajante y directiva en una emergencia.
+- El foco explícito en el papá como copiloto forma parte de la marca.
+
+## Evidence on Hand
+
+- **Etapa:** beta con parejas reales.
+- **Sin revisión clínica formal:** ningún obstetra ni profesional de salud ha validado el contenido. La UI y el marketing nunca deben decir ni insinuar "validado por médicos", "revisado por obstetras" o similar. Lo verdadero es "alineado con guías públicas (ACOG, CDC)" y "no reemplaza la valoración de tu obstetra".
+- **No hay** testimonios, métricas de uso publicables, prensa ni casos de estudio. No se inventan.
+
+## Product Principles
+
+1. **La seguridad no depende de la IA ni de la red.** En cualquier pantalla con riesgo, la acción de llamar está a un toque y funciona sin conexión.
+2. **La app solo dice lo que es verdad.** Sin datos inventados, sin actividad de pareja simulada, sin deshacer falsos y sin sincronización fingida. Si algo solo vive en este teléfono, se dice.
+3. **La pareja es real y se ve.** Cada acción compartida lleva autor, y el papá tiene tareas y voz propias.
+4. **La semana manda.** El producto cambia con la semana gestacional, y lo cercano al parto (36+) pesa más.
+5. **Sereno y directivo.** Tranquiliza sin alarmar en lo cotidiano y no duda en una emergencia.
+
+## Accessibility & Inclusion
+
+- WCAG 2.1 AA como mínimo:
+  - Texto ≥4.5:1.
+  - Zoom permitido.
+  - Foco visible.
+  - Anuncios para lectores de pantalla, sobre todo en urgencias.
+- Uso nocturno con poco brillo, con una mano y bajo estrés. Objetivos táctiles ≥44 px, y ≥56 px en los botones de llamada.
+- Modo oscuro que respeta el tema del sistema.
+
+---
+
+## Referencia técnica
+
+### Sincronización (Firebase)
+
+- Cada "embarazo compartido" vive en `pregnancies/{pid}`, con `members: { [uid]: { role, name, joinedAt } }`.
+- Los datos compartidos están en `pregnancies/{pid}/shared_data/*`:
+  - `events`, `kick_sessions`, `contractions` y `budget` (`items`, más el `cap` del presupuesto).
+  - `checklist_progress` (`items` y `meta` con autor).
+  - `prep_{eventId}` y `care_team`.
+- Subcolecciones: `baby_names/{n-slug}` (votos por uid), `nudges`, `journal` y `status_logs`.
+- Invitaciones en `invite_codes/{code}`.
+- Toda la API está en `src/lib/firebase/pairing.ts`:
+  - Escritura por transacción con `mutateSharedArray` y sus atajos.
+  - Escritura por ítem con `setChecklistItem`, `setAppointmentPrepItem` y `voteBabyName`.
+  - Listeners que entregan `meta` (`exists`, `fromCache`, `hasPendingWrites`, `updatedAt`).
+
+**Patrón anti sync-loop (obligatorio):**
+1. Los listeners solo actualizan el estado local.
+2. Las escrituras ocurren solo en manejadores de eventos explícitos.
+3. La UI es optimista, con reversión si la escritura falla.
+
+### Contenido clínico
+
+- **Guía por semana:** los hitos de `getWeekData` respetan la biología: las semanas 1–2 describen preparación y ovulación, no un feto.
+- **Checklists por trimestre:**
+  - T1: ácido fólico 400 mcg, prevención de listeria y toxoplasmosis.
+  - T2: prueba de glucosa para diabetes gestacional (24–28), morfológica (18–22), vacuna de la influenza en temporada, omega-3 con pescado bajo en mercurio y hierro.
+  - T3: Tdap (27–36), protección contra el VSR (vacuna materna 32–36 o anticuerpo al bebé, según el país), cultivo de SGB (36–37, ACOG 2020), regla 5-1-1.
+- **Señales de alarma** (`URGENT_SIGNS`, CDC "Hear Her" y ACOG pretérmino):
+  - Sangrado o salida de líquido.
+  - Signos de preeclampsia.
+  - Dolor abdominal fuerte.
+  - Menos movimientos.
+  - Fiebre ≥38 °C.
+  - Contracciones antes de la semana 37.
+  - Dificultad para respirar o dolor de pecho.
+  - Desmayo o convulsiones.
+  - Pensamientos de hacerse daño.
+  - Signos de trombo.
+  - Vómitos que impiden retener líquidos.
+- **"Llama hoy a tu obstetra"** (`CALL_TODAY_SIGNS`): señales que no son de emergencia pero requieren atención el mismo día.

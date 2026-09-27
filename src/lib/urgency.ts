@@ -482,11 +482,36 @@ export function isPreterm(week?: number): boolean {
  * - menor de 4: es un valor de relleno (el registro omitido guardaba 1); antes de la
  *   semana 4 no se suele saber del embarazo.
  * Con undefined, el detector aplica todas las señales y los contadores muestran las dos reglas.
+ * Si hay fecha probable de parto (`dueDate`, "aaaa-mm-dd") la semana sale de ella (del día de
+ * hoy), no de `week`, que podría haberse quedado atrás.
  */
-export function clinicalWeek(profile?: { week?: number | null; weekUnknown?: boolean } | null): number | undefined {
+export function clinicalWeek(
+  profile?: { week?: number | null; weekUnknown?: boolean; dueDate?: string | null } | null,
+  today: Date = new Date()
+): number | undefined {
   if (!profile || profile.weekUnknown) return undefined;
-  const w = profile.week;
+  const fromDueDate = weekFromDueDate(profile.dueDate, today);
+  const w = fromDueDate ?? profile.week;
   return typeof w === "number" && Number.isFinite(w) && w >= 4 && w <= 45 ? Math.floor(w) : undefined;
+}
+
+/**
+ * Semanas completas según la FPP (EG = 280 − días de calendario hasta la FPP), sin acotar; null si
+ * no hay FPP válida. Es la misma cuenta que gestationalAgeFromDueDate (src/lib/pregnancy.ts),
+ * repetida aquí para que este módulo siga sin dependencias (lo usan el servidor y sus pruebas).
+ */
+function weekFromDueDate(dueDate: unknown, today: Date): number | null {
+  if (typeof dueDate !== "string" || Number.isNaN(today.getTime())) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dueDate.trim());
+  if (!m) return null;
+  const y = Number(m[1]);
+  const mo = Number(m[2]) - 1;
+  const d = Number(m[3]);
+  const due = new Date(Date.UTC(y, mo, d));
+  if (due.getUTCFullYear() !== y || due.getUTCMonth() !== mo || due.getUTCDate() !== d) return null;
+  const todayUtc = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  const totalDays = 280 - Math.round((due.getTime() - todayUtc) / 86_400_000);
+  return Math.floor(totalDays / 7);
 }
 
 // ---------------------------------------------------------------------------

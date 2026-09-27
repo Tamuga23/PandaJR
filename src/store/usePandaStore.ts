@@ -1,16 +1,25 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { sanitizeCareTeam, type CareTeam } from '@/lib/urgency';
+import type { DueDateSource } from '@/lib/pregnancy';
 
 export interface UserProfile {
   role: "mama" | "papa";
   name: string;
+  /**
+   * Semana completa. Con `dueDate` es un valor DERIVADO (useGestationalAge lo mantiene al día en
+   * este store local); se conserva por compatibilidad con el código que aún lo lee.
+   */
   week: number;
   /**
    * true si la semana no está confirmada (se omitió el registro o la pareja se unió sin semana).
    * Las reglas clínicas que dependen de la semana deben tratarla como desconocida.
    */
   weekUnknown?: boolean;
+  /** Fecha probable de parto, día local "aaaa-mm-dd". Si existe, manda sobre `week`. */
+  dueDate?: string;
+  /** De dónde salió la FPP: ecografía, fecha de la última regla o estimada por la semana elegida a mano. */
+  dueDateSource?: DueDateSource;
   location?: string;
   notes?: string;
   pregnancyId?: string;

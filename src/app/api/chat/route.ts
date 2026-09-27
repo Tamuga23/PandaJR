@@ -119,9 +119,9 @@ REGLA DE ORO DE ANCLAJE POR SEMANA GESTACIONAL (SEMANA ${currentWeek}):
    - Controles y exámenes médicos en esta etapa:
      * Semanas 11-14 (1er Trimestre): Cribado genético, ecografía de traslucencia nucal (TN), hueso nasal y analítica de sangre.
      * Semanas 20-24 (2º Trimestre): Ecografía morfológica de alta resolución.
-     * Semanas 24-28 (2º Trimestre): Test de O'Sullivan para diabetes gestacional.
+     * Semanas 24-28 (2º Trimestre): Prueba de glucosa para diabetes gestacional (según el lugar, prueba corta de 1 hora o curva de 2 horas).
      * Semanas 28-36 (3er Trimestre): Monitoreo de movimientos fetales (método Cardiff), ecografía de crecimiento y madurez placentaria.
-     * Semanas 35-37 (3er Trimestre): Cultivo de Estreptococo del Grupo B (SGB), monitoreo preparto y signos de parto activo (5-1-1).
+     * Semanas 36-37 (3er Trimestre): Cultivo de Estreptococo del Grupo B (SGB), monitoreo preparto y signos de parto activo (5-1-1).
    - Acciones recomendadas para ${userRole === "papa" ? "el papá" : "la mamá"} acordes a la semana ${currentWeek}.
 2. NUNCA des hitos o recomendaciones descontextualizadas de otros trimestres sin aclarar el porqué. Si el usuario hace una pregunta general ("¿qué comer?", "¿qué hacer?", "¿cómo va el bebé?"), responde SIEMPRE contextualizado a la SEMANA ${currentWeek}.`;
     }

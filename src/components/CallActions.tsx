@@ -5,6 +5,7 @@ import { MapPin, Pencil, Phone, PhoneCall, Siren, UserPen } from "lucide-react";
 import { useCareTeam } from "@/lib/useCareTeam";
 import { hospitalMapsUrl, telHref } from "@/lib/urgency";
 import { CareTeamSheet } from "@/components/CareTeamForm";
+import { usePandaStore } from "@/store/usePandaStore";
 
 type CallContext = "sos" | "contracciones" | "pretermino" | "patadas" | "chat";
 type ActionKey = "emergency" | "ob" | "hospital" | "addOb";
@@ -90,6 +91,8 @@ export function CallActions({
 }) {
   const { careTeam, emergency } = useCareTeam();
   const [sheetOpen, setSheetOpen] = useState(false);
+  // El papá también llama: "su obstetra" (el de la mamá), no "tu obstetra".
+  const whose = usePandaStore((s) => s.profile.role) === "papa" ? "su" : "tu";
 
   const compact = context === "chat";
   const obPhone = careTeam.obPhone?.trim();
@@ -140,7 +143,7 @@ export function CallActions({
             </span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-base font-bold leading-tight">
-                {obName ? `Llamar a ${obName}` : "Llamar a tu obstetra"}
+                {obName ? `Llamar a ${obName}` : `Llamar a ${whose} obstetra`}
               </span>
               <span className={`${subText} tabular-nums`}>{obPhone}</span>
             </span>
@@ -185,7 +188,7 @@ export function CallActions({
               <UserPen size={iconSize} aria-hidden="true" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-base font-bold leading-tight">Añadir el teléfono de tu obstetra</span>
+              <span className="block text-base font-bold leading-tight">Añadir el teléfono de {whose} obstetra</span>
               {!compact && <span className={subText}>Para llamarle con un toque</span>}
             </span>
           </button>

@@ -16,10 +16,12 @@ import {
   listenToPregnancy,
   listenToMomStatus,
   updatePregnancyWeek,
+  saveDueDate,
   saveMomStatus,
   listenToEvents,
   mutateEvents,
   setChecklistItem,
+  setTaskOwner,
   listenToChecklistProgress,
   sendNudge,
   listenToNudges,
@@ -35,10 +37,64 @@ import { AuthorChip } from "@/components/AuthorChip";
 import { formatDateShort, formatRelative, repairMojibake } from "@/lib/format";
 import { isLegacySeedEvent, linkedFromLocalKey, localToSharedFlag } from "@/lib/seeds";
 import Image from "next/image";
-import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, ChevronRight, ChevronLeft, HeartPulse, Baby, Utensils, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Users, ClipboardList, Trophy, AlertTriangle, AlertCircle, FileText, Settings, Paperclip, Share2, Bell, RotateCcw, RotateCw, Stethoscope, PhoneCall, Check, Copy, Edit3, Sun, Moon, RefreshCw, UserMinus, Lightbulb, CalendarCheck, CalendarClock, CalendarX, Smartphone, MessageCircle } from "lucide-react";
+import { Compass, Calendar, Bot, Send, CheckCircle2, ChevronRight, ChevronLeft, HeartPulse, Baby, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Users, AlertTriangle, AlertCircle, FileText, Settings, Paperclip, Share2, Bell, RotateCcw, RotateCw, Stethoscope, PhoneCall, Check, Copy, Edit3, Sun, Moon, RefreshCw, UserMinus, Lightbulb, CalendarCheck, CalendarClock, CalendarX, Smartphone, MessageCircle } from "lucide-react";
 import { CallActions, EmergencyCallLink } from "@/components/CallActions";
 import { CareTeamSheet } from "@/components/CareTeamForm";
 import { clinicalWeek, detectAlarm, type AlarmSign } from "@/lib/urgency";
+import {
+  datingFromPregnancyDoc,
+  dueDateSummary,
+  estimatedDueDateForWeek,
+  gestationalAgeFromDueDate,
+  isDueDateSource,
+  profilePatchForManualWeek,
+  parseISODate,
+  remoteDatingPatch,
+  resolveGestationalAge,
+  toISODate,
+  useGestationalAge,
+  validateDueDate,
+  type DueDateSource,
+  type GestationalAgeState,
+} from "@/lib/pregnancy";
+import {
+  ALL_TASKS,
+  TASK_CATEGORIES,
+  TRIMESTER_WEEKS,
+  effectiveOwner,
+  isTaskDone,
+  ownersMissingRemotely,
+  readLocalTaskOwners,
+  tasksForWeek,
+  writeLocalTaskOwner,
+  type TaskOwner,
+  type TaskOwnerMap,
+} from "@/lib/tasks";
+import {
+  DatingPicker,
+  choiceFromDraft,
+  choiceFromProfile,
+  datingPatch,
+  draftFromProfile,
+  formatDateLong,
+  sameDating,
+  type DatingChoice,
+  type DatingDraft,
+} from "@/components/DatingPicker";
+import {
+  FetalCard,
+  LaborReadyBlock,
+  TodayBlock,
+  TrimesterChecklists,
+  WeekHeader,
+  taskWindowNote,
+  type GuiaTool,
+  type OwnerLabels,
+  type SinceLastVisit,
+  type TaskRowModel,
+  type TodayGroup,
+  type TrimesterModel,
+} from "@/components/GuiaBlocks";
 
 type Tab = "planificacion" | "agenda" | "herramientas" | "pandaia";
 
@@ -52,7 +108,10 @@ export interface UserProfile {
   notes?: string;
   pregnancyId?: string;
   inviteCode?: string;
-    comparisonTheme?: "frutas" | "geek";
+  comparisonTheme?: "frutas" | "geek";
+  /** Fecha probable de parto "aaaa-mm-dd" (manda sobre `week`; ver src/lib/pregnancy.ts). */
+  dueDate?: string;
+  dueDateSource?: DueDateSource;
 }
 
 // =====================================================================================
@@ -455,14 +514,17 @@ function AccessSection({
 
   if (!pid) {
     const last = profile.role === "mama" ? readStored<LastPregnancy | null>(LS_LAST_PREGNANCY, null) : null;
+    const guest = profile.name === "Invitado";
     return (
       <div className="bg-stone-50 dark:bg-[#1a1724] border border-stone-200 dark:border-white/[0.06] rounded-2xl p-4">
         <p className="flex items-center gap-2 text-sm font-bold text-stone-800 dark:text-[#eae6e1]">
           <Smartphone size={16} className="shrink-0 text-stone-600 dark:text-[#a6a1b2]" aria-hidden="true" />
-          Solo en este teléfono
+          {guest ? "Estás explorando como invitado" : "Solo en este teléfono"}
         </p>
         <p className="mt-1 text-xs leading-snug text-stone-600 dark:text-[#a6a1b2]">
-          Nadie más ve lo que registras. Al vincularte, lo que ya anotaste aquí (citas, tareas, patadas, contracciones, presupuesto, nombres, diario y plan de parto) pasa a compartirse con tu pareja.
+          {guest
+            ? "Elige tu rol y crea tu embarazo, o únete al de tu pareja con su código. Lo que anotes mientras tanto queda en este teléfono y se comparte al vincularte."
+            : "Nadie más ve lo que registras. Al vincularte, lo que ya anotaste aquí (citas, tareas, patadas, contracciones, presupuesto, nombres, diario y plan de parto) pasa a compartirse con tu pareja."}
         </p>
         {last?.pid && (
           <button
@@ -482,7 +544,7 @@ function AccessSection({
           onClick={onStartLink}
           className="mt-3 w-full min-h-[44px] rounded-xl bg-sage-ink hover:bg-sage-ink-hover text-white text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
         >
-          Vincular con mi pareja
+          {guest ? "Crear o unirme a un embarazo" : "Vincular con mi pareja"}
         </button>
       </div>
     );
@@ -596,22 +658,50 @@ function ProfileModal({
   profile,
   onSave,
   onClose,
+  focusDating = false,
   isDark,
   toggleTheme,
   partner,
   showToast,
   onStartLink,
+  dueDateNeedsReview = false,
 }: {
   profile: UserProfile;
-  onSave: (p: UserProfile) => void;
+  /** `dating` solo llega si la persona editó la fecha (si no, la fecha compartida no se toca). */
+  onSave: (p: UserProfile, dating?: DatingChoice) => void;
   onClose: () => void;
+  /** Abrir con el editor de fecha desplegado y a la vista ("Confirmar mi fecha"). */
+  focusDating?: boolean;
   isDark: boolean;
   toggleTheme: () => void;
   partner: PartnerInfo;
   showToast: ShowToast;
   onStartLink: () => void;
+  /** La FPP compartida está fuera de rango: por eso la semana está sin confirmar. */
+  dueDateNeedsReview?: boolean;
 }) {
   const [form, setForm] = useState(profile);
+  // Fecha: el editor solo se abre a propósito; cerrado, "Guardar" no envía nada de la fecha.
+  const [datingOpen, setDatingOpen] = useState(focusDating);
+  const [datingDraft, setDatingDraft] = useState<DatingDraft>(() => draftFromProfile(profile));
+  const datingRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (focusDating) datingRef.current?.scrollIntoView({ block: "center" });
+  }, [focusDating]);
+  const currentGa = resolveGestationalAge(profile);
+  const datingEval = datingOpen ? choiceFromDraft(datingDraft) : null;
+  const pendingDating = datingEval?.choice && !sameDating(datingEval.choice, profile) ? datingEval.choice : undefined;
+  // Editor abierto con una opción elegida pero sin completar: no se puede guardar a medias.
+  const datingBlocked = datingOpen && datingDraft.mode !== null && !datingEval?.choice;
+  const currentDue = currentGa.dueDate;
+  const datingSourceText =
+    currentGa.source === "dueDate"
+      ? dueDateSummary(currentGa.dueDateSource, profile.role, currentDue ? formatDateLong(currentDue) : undefined)
+      : currentGa.source === "manual"
+        ? "Semana elegida a mano: agrega la fecha probable para que avance sola"
+        : dueDateNeedsReview
+          ? "La fecha probable guardada no es válida (serían menos de 2 o más de 42 semanas): elígela otra vez"
+          : "Aún no hay fecha ni semana confirmadas";
   const [confirmUnlink, setConfirmUnlink] = useState(false);
   const [unlinking, setUnlinking] = useState(false);
   const cancelUnlinkRef = useRef<HTMLButtonElement>(null);
@@ -828,17 +918,44 @@ function ProfileModal({
               <ChevronRight size={18} className="shrink-0 text-stone-500 dark:text-[#a6a1b2]" aria-hidden="true" />
             </button>
 
-            <div>
-              <div className="flex justify-between items-center mb-1">
-                <label htmlFor="settings-week" className="text-sm font-bold text-stone-700 dark:text-[#eae6e1]">{form.weekUnknown ? "Semana sin confirmar" : `Semana ${form.week}`}</label>
-                <span className="text-xs text-stone-600 dark:text-[#a6a1b2]">{profile.pregnancyId ? "Se comparte con tu pareja" : "Solo en este teléfono"}</span>
+            <div ref={datingRef} className="scroll-mt-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-stone-800 dark:text-[#eae6e1]">{currentGa.label}</p>
+                  <p className="mt-0.5 text-xs leading-snug text-stone-600 dark:text-[#a6a1b2]">{datingSourceText}</p>
+                  <p className="mt-0.5 text-xs text-stone-600 dark:text-[#a6a1b2]">
+                    {profile.pregnancyId ? `Se comparte con ${partner.partnerName || "tu pareja"}` : "Solo en este teléfono"}
+                  </p>
+                </div>
+                {!datingOpen && (
+                  <button
+                    type="button"
+                    onClick={() => { setDatingDraft(draftFromProfile(profile)); setDatingOpen(true); }}
+                    className="shrink-0 min-h-[44px] rounded-xl border border-stone-300 dark:border-white/15 bg-white dark:bg-[#2d273a] px-3 text-xs font-bold text-stone-800 dark:text-[#eae6e1] hover:bg-stone-100 dark:hover:bg-[#352e44] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+                  >
+                    {currentGa.source === "unknown" ? "Confirmar fecha" : "Cambiar fecha"}
+                  </button>
+                )}
               </div>
-              <input
-                id="settings-week"
-                type="range" min="1" max="40"
-                value={form.week} onChange={(e) => setForm({...form, week: parseInt(e.target.value), weekUnknown: false})}
-                className="w-full accent-terracotta"
-              />
+              {datingOpen && (
+                <div className="mt-4">
+                  <DatingPicker
+                    draft={datingDraft}
+                    onDraftChange={setDatingDraft}
+                    allowUnknown={currentGa.source === "unknown"}
+                    reader={profile.role}
+                    partnerName={partner.partnerName}
+                    idPrefix="settings-dating"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => { setDatingOpen(false); setDatingDraft(draftFromProfile(profile)); }}
+                    className="mt-2 -ml-1 min-h-[44px] rounded-lg px-1 text-sm font-bold text-stone-700 dark:text-[#d9d4de] underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+                  >
+                    Dejar la fecha como estaba
+                  </button>
+                </div>
+              )}
             </div>
 
             <div>
@@ -892,12 +1009,18 @@ function ProfileModal({
 
         {/* Footer */}
         <div className="p-4 border-t border-stone-100 dark:border-white/[0.04] bg-white dark:bg-[#221d2d]">
+          {datingBlocked && (
+            <p className="mb-2 text-xs leading-snug text-stone-700 dark:text-[#d9d4de]" aria-live="polite">
+              Completa la fecha o toca «Dejar la fecha como estaba» para guardar.
+            </p>
+          )}
           <button
             type="button"
-            onClick={() => onSave(form)}
-            className="w-full min-h-[44px] bg-stone-900 hover:bg-stone-800 dark:bg-[#eae6e1] dark:hover:bg-white dark:text-stone-900 text-white rounded-xl py-3 text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-2"
+            onClick={() => onSave(form, pendingDating)}
+            disabled={datingBlocked}
+            className="w-full min-h-[44px] bg-stone-900 hover:bg-stone-800 dark:bg-[#eae6e1] dark:hover:bg-white dark:text-stone-900 text-white rounded-xl py-3 text-sm font-bold shadow-sm transition-colors flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-500 disabled:shadow-none dark:disabled:bg-white/[0.06] dark:disabled:text-[#a6a1b2]"
           >
-            Guardar Cambios
+            Guardar cambios
           </button>
         </div>
       </div>
@@ -923,6 +1046,69 @@ function inviteShareText(code: string): string {
   return `Hola, te invito a acompañarme en PandaJR${origin ? ` (${origin})` : ""}. Abre la app, elige "Soy el copiloto (pareja)" y escribe este código: ${code}. Vale por 14 días y solo sirve para una persona.`;
 }
 
+type OnbStep = "role" | "name" | "date" | "share" | "code" | "confirm";
+
+/** Pasos tras elegir rol. Mamá: nombre → fecha → código. Copiloto: nombre → código → confirmación. */
+const ONB_STEPS: Record<"mama" | "papa", OnbStep[]> = {
+  mama: ["name", "date", "share"],
+  papa: ["name", "code", "confirm"],
+};
+
+const ONB_CTA =
+  "w-full min-h-[48px] rounded-xl py-3.5 font-bold transition-colors flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-500 disabled:shadow-none dark:disabled:bg-white/[0.06] dark:disabled:text-[#a6a1b2]";
+const ONB_CTA_MAMA = `${ONB_CTA} bg-terracotta-ink hover:bg-terracotta-ink-hover text-white focus-visible:outline-terracotta-ink`;
+const ONB_CTA_PAPA = `${ONB_CTA} bg-sage-ink hover:bg-sage-ink-hover text-white focus-visible:outline-sage-ink`;
+const ONB_CTA_NEUTRAL = `${ONB_CTA} bg-stone-900 hover:bg-stone-800 dark:bg-[#eae6e1] dark:hover:bg-white dark:text-stone-900 text-white focus-visible:outline-stone-900`;
+const ONB_INPUT =
+  "w-full min-h-[48px] px-4 py-3 rounded-xl border border-stone-300 dark:border-white/15 bg-white dark:bg-[#1a1724] text-stone-900 dark:text-[#eae6e1] text-base focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-terracotta-ink";
+
+/** Perfil local de la datación que eligió la mamá (la desconocida conserva un número de relleno). */
+/**
+ * Semana elegida a mano → FPP estimada con origen "manual", para que la semana avance sola
+ * (decisión de producto). En la semana 1 no hay FPP válida y se guarda como semana fija.
+ */
+function manualDatingOpts(week: number): { dueDate: string; dueDateSource: "manual" } | { week: number } {
+  const estimated = estimatedDueDateForWeek(week);
+  return estimated ? { dueDate: estimated, dueDateSource: "manual" } : { week };
+}
+
+function saveManualWeek(pregnancyId: string, week: number, by?: { uid: string; name?: string }): Promise<void> {
+  const estimated = estimatedDueDateForWeek(week);
+  return estimated ? saveDueDate(pregnancyId, estimated, "manual", by) : updatePregnancyWeek(pregnancyId, week, by);
+}
+
+function datingProfileFields(c: DatingChoice, fallbackWeek: number): Pick<UserProfile, "week" | "weekUnknown" | "dueDate" | "dueDateSource"> {
+  const p = datingPatch(c);
+  return { week: p.week ?? fallbackWeek, weekUnknown: p.weekUnknown, dueDate: p.dueDate, dueDateSource: p.dueDateSource };
+}
+
+/** Datación que trae el embarazo al que se une el copiloto (FPP si la hay; si no, la semana). */
+function joinedDatingFields(res: { week: number; dueDate?: string; dueDateSource?: DueDateSource }): Pick<UserProfile, "week" | "weekUnknown" | "dueDate" | "dueDateSource"> {
+  const unconfirmed = { week: 14, weekUnknown: true, dueDate: undefined, dueDateSource: undefined };
+  try {
+    const due = parseISODate(res.dueDate);
+    if (due) {
+      // Dato remoto fuera de rango (p. ej. un año mal escrito): semana sin confirmar. La semana del
+      // código salió de esa misma fecha, así que tampoco se usa.
+      if (!validateDueDate(due).ok) return unconfirmed;
+      // Sin origen guardado no se inventa uno: "manual" diría "la semana que indicaste".
+      const source = isDueDateSource(res.dueDateSource) ? res.dueDateSource : undefined;
+      return { dueDate: toISODate(due), dueDateSource: source, week: gestationalAgeFromDueDate(due).weeks, weekUnknown: false };
+    }
+    if (res.week) return profilePatchForManualWeek(res.week);
+  } catch {
+    /* dato remoto inválido: se trata como semana sin confirmar */
+  }
+  return unconfirmed;
+}
+
+/** Semana que ve el copiloto antes de unirse (con una FPP fuera de rango no se calcula nada). */
+function previewWeekLabel(p: { dueDate?: string; week?: number }): string {
+  const due = parseISODate(p.dueDate);
+  if (due) return validateDueDate(due).ok ? resolveGestationalAge({ dueDate: p.dueDate }).label : "Sin confirmar: hay que revisar la fecha";
+  return p.week ? `Semana ${p.week}` : "Sin confirmar";
+}
+
 function OnboardingModal({
   onComplete,
   onSkip,
@@ -930,17 +1116,16 @@ function OnboardingModal({
   initial,
 }: {
   onComplete: (profile: UserProfile) => void;
-  onSkip?: () => void;
-  /** Si llega, el paso 1 ofrece "Ahora no" (vuelve sin tocar el perfil) en lugar de "Explorar como invitado". */
+  /** "Explorar como invitado" con el rol elegido (o ninguno). */
+  onSkip?: (role: "mama" | "papa" | null) => void;
+  /** Si llega, la primera pantalla ofrece "Ahora no" (vuelve sin tocar el perfil) en lugar de "Explorar como invitado". */
   onCancel?: () => void;
   initial?: Partial<UserProfile>;
 }) {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState<OnbStep>("role");
   const [role, setRole] = useState<"mama" | "papa" | null>(null);
   const [name, setName] = useState(initial?.name && initial.name !== "Invitado" ? initial.name : "");
-  const [week, setWeek] = useState(initial?.week && !initial.weekUnknown ? initial.week : 14);
-  // "Aún no sé mi semana": no se inventa una (ni se comparte como confirmada).
-  const [weekUnknown, setWeekUnknown] = useState(!!initial?.weekUnknown);
+  const [draft, setDraft] = useState<DatingDraft>(() => draftFromProfile(initial));
   const [code, setCode] = useState("");
   const [generatedCode, setGeneratedCode] = useState("");
   const [codeCopied, setCodeCopied] = useState(false);
@@ -949,64 +1134,117 @@ function OnboardingModal({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [tempPregnancyId, setTempPregnancyId] = useState("");
+  /** Datación con la que quedó guardado el embarazo compartido (para no reescribirla sin cambios). */
+  const [savedChoice, setSavedChoice] = useState<DatingChoice | null>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
 
   const normalizedCode = normalizeInviteCode(code);
   const partnerLabel = preview ? (preview.momName || (preview.legacy ? preview.babyName : "") || "tu pareja") : "tu pareja";
+  const { choice } = choiceFromDraft(draft);
+  // Si el embarazo ya se guardó con una fecha, "aún no sé" no podría borrarla del otro teléfono.
+  const allowUnknown = !(tempPregnancyId && savedChoice && savedChoice.kind !== "unknown");
+  const steps = role ? ONB_STEPS[role] : [];
+  const stepIndex = steps.indexOf(step);
+  const fallbackWeek = initial?.week && !initial.weekUnknown ? initial.week : 14;
 
-  const handleNext = async () => {
+  // Al cambiar de paso, el foco va al título (lector de pantalla y teclado siguen el flujo).
+  useEffect(() => {
+    if (step !== "role") headingRef.current?.focus({ preventScroll: true });
+  }, [step]);
+
+  const back = () => {
+    if (isLoading) return;
     setErrorMsg("");
-    if (step === 1 && role) {
-      setStep(2);
-    } else if (step === 2) {
-      if (role === "mama" && name.trim()) {
-        setIsLoading(true);
-        try {
-          const uid = await ensureAuth().catch(() => undefined);
-          if (!uid) { setErrorMsg(CONNECT_FAILED); return; }
-          const { inviteCode, pregnancyId } = await createPregnancyForMom(uid, "", name.trim(), weekUnknown ? {} : { week });
-          setGeneratedCode(inviteCode);
-          setTempPregnancyId(pregnancyId);
-          setStep(3); // Show code
-        } catch (e) {
-          setErrorMsg(humanError(e, PAIRING_MESSAGES.createFailed));
-        } finally {
-          setIsLoading(false);
-        }
-      } else if (role === "papa" && name.trim()) {
-        if (!normalizedCode) { setErrorMsg(PAIRING_MESSAGES.notFound); return; }
-        setIsLoading(true);
-        try {
-          // Sesión antes de la vista previa: así sabemos si el código es de este mismo teléfono.
-          const uid = await ensureAuth().catch(() => undefined);
-          if (!uid) { setErrorMsg(CONNECT_FAILED); return; }
-          const p = await previewInvite(normalizedCode.code);
-          if (p.isOwnCode) setErrorMsg(PAIRING_MESSAGES.own);
-          else if (p.status === "not_found") setErrorMsg(PAIRING_MESSAGES.notFound);
-          else if (p.status === "expired") setErrorMsg(PAIRING_MESSAGES.expired);
-          else if (p.status === "used") setErrorMsg(PAIRING_MESSAGES.used);
-          else { setPreview(p); setStep(3); }
-        } catch (e) {
-          setErrorMsg(humanError(e, PAIRING_MESSAGES.joinFailed));
-        } finally {
-          setIsLoading(false);
-        }
-      }
-    } else if (step === 3 && role === "papa") {
-      if (!normalizedCode) return;
-      setIsLoading(true);
-      try {
-        const uid = await ensureAuth().catch(() => undefined);
-        if (!uid) { setErrorMsg(CONNECT_FAILED); return; }
-        const res = await joinPregnancyAsDad(uid, normalizedCode.code, name.trim());
-        onComplete({ role: "papa", name: name.trim(), week: res.week || 14, weekUnknown: !res.week, location: "", notes: "", pregnancyId: res.pregnancyId });
-      } catch (e) {
-        setErrorMsg(humanError(e, PAIRING_MESSAGES.joinFailed));
-      } finally {
-        setIsLoading(false);
-      }
-    } else if (step === 3) {
-      onComplete({ role: "mama", name: name.trim(), week, weekUnknown, location: "", notes: "", pregnancyId: tempPregnancyId, inviteCode: generatedCode });
+    if (step === "name") setStep("role");
+    else if (step === "date") setStep("name");
+    else if (step === "share") setStep("date");
+    else if (step === "code") setStep("name");
+    else if (step === "confirm") { setPreview(null); setStep("code"); }
+  };
+
+  const submitName = () => {
+    if (!name.trim() || !role) return;
+    setErrorMsg("");
+    setStep(role === "mama" ? "date" : "code");
+  };
+
+  /** Mamá: crea el embarazo compartido con su fecha (o actualiza la fecha si volvió atrás). */
+  const submitDate = async () => {
+    if (!choice || isLoading) return;
+    setErrorMsg("");
+    if (tempPregnancyId && savedChoice && JSON.stringify(savedChoice) === JSON.stringify(choice)) {
+      setStep("share");
+      return;
     }
+    setIsLoading(true);
+    try {
+      const uid = await ensureAuth().catch(() => undefined);
+      if (!uid) { setErrorMsg(CONNECT_FAILED); return; }
+      if (!tempPregnancyId) {
+        const opts = choice.kind === "dueDate"
+          ? { dueDate: choice.dueDate, dueDateSource: choice.source }
+          : choice.kind === "manual" ? manualDatingOpts(choice.week) : {};
+        const { inviteCode, pregnancyId } = await createPregnancyForMom(uid, "", name.trim(), opts);
+        setGeneratedCode(inviteCode);
+        setTempPregnancyId(pregnancyId);
+      } else {
+        if (isOffline()) { setErrorMsg(PAIRING_MESSAGES.offline); return; }
+        const by = { uid, name: name.trim() || undefined };
+        if (choice.kind === "dueDate") await saveDueDate(tempPregnancyId, choice.dueDate, choice.source, by);
+        else if (choice.kind === "manual") await saveManualWeek(tempPregnancyId, choice.week, by);
+      }
+      setSavedChoice(choice);
+      setStep("share");
+    } catch (e) {
+      setErrorMsg(humanError(e, tempPregnancyId ? "No pudimos guardar la fecha. Revisa tu conexión e inténtalo de nuevo." : PAIRING_MESSAGES.createFailed));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /** Copiloto: vista previa del código antes de unirse (no escribe nada). */
+  const submitCode = async () => {
+    if (isLoading) return;
+    setErrorMsg("");
+    if (!normalizedCode) { setErrorMsg(PAIRING_MESSAGES.notFound); return; }
+    setIsLoading(true);
+    try {
+      // Sesión antes de la vista previa: así sabemos si el código es de este mismo teléfono.
+      const uid = await ensureAuth().catch(() => undefined);
+      if (!uid) { setErrorMsg(CONNECT_FAILED); return; }
+      const p = await previewInvite(normalizedCode.code);
+      if (p.isOwnCode) setErrorMsg(PAIRING_MESSAGES.own);
+      else if (p.status === "not_found") setErrorMsg(PAIRING_MESSAGES.notFound);
+      else if (p.status === "expired") setErrorMsg(PAIRING_MESSAGES.expired);
+      else if (p.status === "used") setErrorMsg(PAIRING_MESSAGES.used);
+      else { setPreview(p); setStep("confirm"); }
+    } catch (e) {
+      setErrorMsg(humanError(e, PAIRING_MESSAGES.joinFailed));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /** Copiloto: se une y toma la fecha (o la semana) del embarazo. */
+  const confirmJoin = async () => {
+    if (!normalizedCode || isLoading) return;
+    setErrorMsg("");
+    setIsLoading(true);
+    try {
+      const uid = await ensureAuth().catch(() => undefined);
+      if (!uid) { setErrorMsg(CONNECT_FAILED); return; }
+      const res = await joinPregnancyAsDad(uid, normalizedCode.code, name.trim());
+      onComplete({ role: "papa", name: name.trim(), ...joinedDatingFields(res), location: "", notes: "", pregnancyId: res.pregnancyId });
+    } catch (e) {
+      setErrorMsg(humanError(e, PAIRING_MESSAGES.joinFailed));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const finishMama = () => {
+    const dating = datingProfileFields(savedChoice ?? { kind: "unknown" }, fallbackWeek);
+    onComplete({ role: "mama", name: name.trim(), ...dating, location: "", notes: "", pregnancyId: tempPregnancyId, inviteCode: generatedCode });
   };
 
   const copyGenerated = async () => {
@@ -1015,178 +1253,210 @@ function OnboardingModal({
     if (!ok) setErrorMsg("No pudimos copiarlo: mantén presionado el código para copiarlo a mano.");
   };
 
+  const accent = role === "papa" ? "bg-sage-ink" : "bg-terracotta-ink";
+  const cta = role === "papa" ? ONB_CTA_PAPA : ONB_CTA_MAMA;
+  const spinner = <span aria-hidden="true" className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin motion-reduce:animate-none" />;
+  const headingClass = "text-2xl font-black text-stone-900 dark:text-[#eae6e1] text-balance outline-none";
+  const subClass = "mt-1 text-sm leading-snug text-stone-600 dark:text-[#a6a1b2]";
+  const errorBox = errorMsg ? (
+    <div role="alert" className="mt-4 text-sm leading-snug text-terracotta-ink bg-terracotta/10 p-3 rounded-xl border border-terracotta-ink/25">{errorMsg}</div>
+  ) : null;
+
   return (
     <div className="fixed inset-0 bg-stone-50 dark:bg-[#181520] z-[55] flex items-center justify-center p-4 animate-in fade-in duration-300">
-      <div className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-xl w-full max-w-sm overflow-y-auto max-h-full animate-in zoom-in-95 duration-500 border border-stone-200/80 dark:border-white/[0.08] p-6 text-center">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="onb-title"
+        className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-xl w-full max-w-sm overflow-y-auto max-h-full animate-in zoom-in-95 duration-500 border border-stone-200/80 dark:border-white/[0.08] p-6"
+      >
+        {step !== "role" && role && (
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={back}
+              aria-disabled={isLoading || undefined}
+              className="-ml-2 inline-flex min-h-[44px] items-center gap-1 rounded-xl px-2 text-sm font-bold text-stone-700 dark:text-[#d9d4de] hover:bg-stone-100 dark:hover:bg-[#2d273a] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+            >
+              <ChevronLeft size={18} aria-hidden="true" />
+              Atrás
+            </button>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-stone-600 dark:text-[#a6a1b2]">Paso {stepIndex + 1} de {steps.length}</span>
+              <span aria-hidden="true" className="flex gap-1">
+                {steps.map((s, i) => (
+                  <span key={s} className={`h-1.5 w-5 rounded-full ${i <= stepIndex ? accent : "bg-stone-200 dark:bg-white/10"}`} />
+                ))}
+              </span>
+            </div>
+          </div>
+        )}
 
-        {step === 1 && (
-          <div className="space-y-6">
-            <div className="w-24 h-24 rounded-3xl overflow-hidden mx-auto mb-4 border border-stone-200 dark:border-white/[0.08] shadow-sm">
-                <Image src="/panda-icon.jpg" alt="PandaJR Icon" width={96} height={96} className="w-full h-full object-cover" priority />
-              </div>
-            <h2 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1]">Bienvenido a PandaJR</h2>
-            <p className="text-sm text-stone-500 dark:text-[#a6a1b2]">¿Quién eres en esta hermosa aventura?</p>
+        {step === "role" && (
+          <div className="text-center">
+            <div className="w-24 h-24 rounded-3xl overflow-hidden mx-auto mb-5 border border-stone-200 dark:border-white/[0.08] shadow-sm">
+              <Image src="/panda-icon.jpg" alt="PandaJR Icon" width={96} height={96} className="w-full h-full object-cover" priority />
+            </div>
+            <h2 id="onb-title" className="text-2xl font-black text-stone-900 dark:text-[#eae6e1] text-balance">Te damos la bienvenida a PandaJR</h2>
+            <p className={subClass}>Cuéntanos quién eres para acompañarte mejor.</p>
 
-            <div className="space-y-3 mt-4">
+            <div className="space-y-3 mt-6">
               <button
+                type="button"
+                aria-pressed={role === "mama"}
                 onClick={() => setRole("mama")}
-                className={`w-full p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${role === "mama" ? "border-terracotta bg-terracotta/5" : "border-stone-100 dark:border-white/[0.06] hover:border-stone-300 dark:hover:border-white/[0.12]"}`}
+                className={`w-full min-h-[64px] p-4 rounded-2xl border-2 transition-colors flex flex-col items-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink ${role === "mama" ? "border-terracotta bg-terracotta/5" : "border-stone-200 dark:border-white/[0.08] hover:border-stone-300 dark:hover:border-white/[0.14]"}`}
               >
                 <Baby size={28} aria-hidden="true" className={role === "mama" ? "text-terracotta-ink" : "text-stone-500 dark:text-[#a6a1b2]"} />
-                <span className={`font-bold ${role === "mama" ? "text-terracotta-ink" : "text-stone-600 dark:text-[#a6a1b2]"}`}>Soy la futura mamá</span>
+                <span className={`font-bold ${role === "mama" ? "text-terracotta-ink" : "text-stone-700 dark:text-[#d9d4de]"}`}>Soy la futura mamá</span>
               </button>
               <button
+                type="button"
+                aria-pressed={role === "papa"}
                 onClick={() => setRole("papa")}
-                className={`w-full p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${role === "papa" ? "border-sage bg-sage/5" : "border-stone-100 dark:border-white/[0.06] hover:border-stone-300 dark:hover:border-white/[0.12]"}`}
+                className={`w-full min-h-[64px] p-4 rounded-2xl border-2 transition-colors flex flex-col items-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink ${role === "papa" ? "border-sage bg-sage/5" : "border-stone-200 dark:border-white/[0.08] hover:border-stone-300 dark:hover:border-white/[0.14]"}`}
               >
                 <Users size={28} aria-hidden="true" className={role === "papa" ? "text-sage-ink" : "text-stone-500 dark:text-[#a6a1b2]"} />
-                <span className={`font-bold ${role === "papa" ? "text-sage-ink" : "text-stone-600 dark:text-[#a6a1b2]"}`}>Soy el copiloto (pareja)</span>
+                <span className={`font-bold ${role === "papa" ? "text-sage-ink" : "text-stone-700 dark:text-[#d9d4de]"}`}>Soy el copiloto (pareja)</span>
               </button>
             </div>
 
-          {/* Botón de Skip (P0) */}
-          {onCancel ? (
-            <button
-              onClick={onCancel}
-              className="w-full mt-4 py-3 min-h-[44px] text-sm font-bold text-stone-600 hover:text-stone-800 dark:text-[#a6a1b2] dark:hover:text-white transition-colors"
-            >
-              Ahora no
+            <button type="button" onClick={() => role && setStep("name")} disabled={!role} className={`${ONB_CTA_NEUTRAL} mt-6`}>
+              Continuar
             </button>
-          ) : (
-            <button
-              onClick={() => onSkip && onSkip()}
-              className="w-full mt-4 py-3 min-h-[44px] text-sm font-bold text-stone-600 hover:text-stone-800 dark:text-[#a6a1b2] dark:hover:text-white transition-colors"
-            >
-              Explorar como invitado por ahora
-            </button>
-          )}
-            <button
-              onClick={handleNext}
-              disabled={!role}
-              className="w-full bg-stone-900 hover:bg-stone-800 dark:bg-[#eae6e1] dark:hover:bg-white dark:text-stone-900 text-white rounded-xl py-3.5 font-bold disabled:opacity-50 transition-all mt-4"
-            >
-              {isLoading ? "Conectando..." : "Continuar"}
-              </button>
-          </div>
-        )}
-
-        {step === 2 && role === "mama" && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1]">Tu perfil</h2>
-            <p className="text-sm text-stone-500 dark:text-[#a6a1b2]">Configura tu embarazo para personalizar la experiencia.</p>
-
-            {errorMsg && <div role="alert" className="text-sm text-terracotta-ink bg-terracotta/10 p-3 rounded-xl border border-terracotta-ink/25">{errorMsg}</div>}
-              <div className="space-y-4 text-left">
-              <div>
-                <label htmlFor="onb-mama-name" className="text-xs font-bold text-stone-600 dark:text-[#a6a1b2] mb-1 block">Tu nombre</label>
-                <input
-                  id="onb-mama-name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Ej. Elena"
-                  autoComplete="given-name"
-                  className="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-white/[0.1] bg-stone-50 dark:bg-[#1a1724] dark:text-[#eae6e1] text-base"
-                />
-              </div>
-              <div>
-                <label htmlFor="onb-mama-week" className="text-xs font-bold text-stone-600 dark:text-[#a6a1b2] mb-1 block">
-                  {weekUnknown ? "Semana de embarazo: sin confirmar" : `Semana de embarazo (${week})`}
-                </label>
-                <input
-                  id="onb-mama-week"
-                  type="range" min="1" max="40"
-                  value={week} onChange={(e) => setWeek(parseInt(e.target.value))}
-                  disabled={weekUnknown}
-                  className="w-full accent-terracotta disabled:opacity-40"
-                />
-                <button
-                  type="button"
-                  role="checkbox"
-                  aria-checked={weekUnknown}
-                  onClick={() => setWeekUnknown((v) => !v)}
-                  className="mt-1 -ml-1 inline-flex min-h-[44px] items-center gap-2 rounded-lg px-1 text-sm font-semibold text-stone-700 dark:text-[#d9d4de] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
-                >
-                  {weekUnknown ? <CheckCircle2 size={18} className="text-sage-ink" aria-hidden="true" /> : <Circle size={18} className="text-stone-500 dark:text-[#a6a1b2]" aria-hidden="true" />}
-                  Aún no sé mi semana
-                </button>
-                {weekUnknown && (
-                  <p className="text-xs leading-snug text-stone-600 dark:text-[#a6a1b2]">
-                    Puedes confirmarla después en Ajustes. Mientras tanto no calcularemos nada con una semana inventada.
-                  </p>
-                )}
-              </div>
-            </div>
-            <button
-              onClick={handleNext}
-              disabled={!name.trim() || isLoading}
-                className="w-full min-h-[44px] bg-terracotta-ink hover:bg-terracotta-ink-hover text-white rounded-xl py-3.5 font-bold disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+            {onCancel ? (
+              <button
+                type="button"
+                onClick={onCancel}
+                className="w-full mt-2 min-h-[44px] rounded-xl text-sm font-bold text-stone-600 hover:text-stone-900 dark:text-[#a6a1b2] dark:hover:text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
               >
-                {isLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                {isLoading ? "Generando..." : "Generar mi código"}
+                Ahora no
               </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onSkip?.(role)}
+                className="w-full mt-2 min-h-[44px] rounded-xl text-sm font-bold text-stone-600 underline-offset-4 hover:underline hover:text-stone-900 dark:text-[#a6a1b2] dark:hover:text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+              >
+                Explorar como invitado
+              </button>
+            )}
           </div>
         )}
 
-        {step === 2 && role === "papa" && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1]">Vincular Cuenta</h2>
-            <p className="text-sm text-stone-500 dark:text-[#a6a1b2]">Pídele a tu pareja el código que aparece en su PandaJR.</p>
-            {errorMsg && <div role="alert" className="text-sm text-terracotta-ink bg-terracotta/10 p-3 rounded-xl border border-terracotta-ink/25 mt-4">{errorMsg}</div>}
-
-            <div className="pt-2 space-y-4 text-left">
-              <div>
-                <label htmlFor="onb-papa-name" className="text-xs font-bold text-stone-600 dark:text-[#a6a1b2] mb-1 block">Tu nombre</label>
-                <input
-                  id="onb-papa-name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Así te verá tu pareja"
-                  autoComplete="given-name"
-                  className="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-white/[0.1] bg-stone-50 dark:bg-[#1a1724] dark:text-[#eae6e1] text-base"
-                />
-              </div>
-              <div>
-                <label htmlFor="onb-papa-code" className="text-xs font-bold text-stone-600 dark:text-[#a6a1b2] mb-1 block">Código de invitación</label>
-                <input
-                  id="onb-papa-code"
-                  type="text"
-                  value={code}
-                  onChange={(e) => { setCode(e.target.value.toUpperCase()); setErrorMsg(""); }}
-                  onKeyDown={(e) => { if (e.key === "Enter" && normalizedCode && name.trim() && !isLoading) void handleNext(); }}
-                  placeholder="PANDA-XXXX-XXXX"
-                  autoCapitalize="characters"
-                  autoComplete="off"
-                  autoCorrect="off"
-                  spellCheck={false}
-                  aria-describedby="onb-code-hint"
-                  className="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-white/[0.1] bg-stone-50 dark:bg-[#1a1724] dark:text-[#eae6e1] text-center font-mono font-bold tracking-widest text-lg uppercase"
-                />
-                <p id="onb-code-hint" className="mt-1.5 text-xs text-stone-600 dark:text-[#a6a1b2] text-center">
-                  {code.trim() && !normalizedCode ? "Revisa el código: se ve así, PANDA-XXXX-XXXX." : "Puedes escribirlo con o sin guiones."}
-                </p>
-              </div>
+        {step === "name" && role && (
+          <div>
+            <h2 id="onb-title" ref={headingRef} tabIndex={-1} className={headingClass}>¿Cómo te llamas?</h2>
+            <p className={subClass}>Así te verá tu pareja en PandaJR.</p>
+            {errorBox}
+            <div className="mt-5">
+              <label htmlFor={role === "mama" ? "onb-mama-name" : "onb-papa-name"} className="text-xs font-bold text-stone-700 dark:text-[#d9d4de] mb-1 block">Tu nombre</label>
+              <input
+                id={role === "mama" ? "onb-mama-name" : "onb-papa-name"}
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") submitName(); }}
+                placeholder={role === "mama" ? "Ej. Elena" : "Ej. Luis"}
+                autoComplete="given-name"
+                className={ONB_INPUT}
+              />
             </div>
+            <button type="button" onClick={submitName} disabled={!name.trim()} className={`${cta} mt-6`}>
+              Continuar
+            </button>
+          </div>
+        )}
+
+        {step === "date" && role === "mama" && (
+          <div>
+            <h2 id="onb-title" ref={headingRef} tabIndex={-1} className={headingClass}>Tu fecha probable de parto</h2>
+            <p className={subClass}>Con ella calculamos tu semana cada día. Si no la sabes, puedes usar la fecha de tu última regla o elegir la semana a mano.</p>
+            {errorBox}
+            <div className="mt-5">
+              <DatingPicker draft={draft} onDraftChange={setDraft} allowUnknown={allowUnknown} reader="mama" idPrefix="onb-dating" />
+            </div>
+            <button type="button" onClick={() => { void submitDate(); }} disabled={!choice} aria-disabled={isLoading || undefined} className={`${cta} mt-6`}>
+              {isLoading && spinner}
+              {isLoading ? (tempPregnancyId ? "Guardando…" : "Creando tu espacio…") : "Continuar"}
+            </button>
+          </div>
+        )}
+
+        {step === "share" && role === "mama" && (
+          <div>
+            <div className="bg-sage/10 dark:bg-sage/20 w-14 h-14 rounded-full flex items-center justify-center mb-3">
+              <CheckCircle2 className="text-sage-ink" size={28} aria-hidden="true" />
+            </div>
+            <h2 id="onb-title" ref={headingRef} tabIndex={-1} className={headingClass}>Tu espacio está listo</h2>
+            <p className={subClass}>Comparte este código con tu pareja para que se vincule a tu embarazo. Vale por 14 días y sirve para una sola persona.</p>
+
+            <div className="mt-5 bg-stone-50 dark:bg-[#1a1724] p-4 rounded-2xl border border-stone-200 dark:border-white/[0.1] text-center">
+              <p className="font-mono text-xl font-black tracking-wider text-terracotta-ink break-all">{generatedCode}</p>
+              <button
+                type="button"
+                onClick={copyGenerated}
+                className="mt-2 inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-3 text-sm font-bold text-stone-700 dark:text-[#d9d4de] hover:bg-stone-100 dark:hover:bg-[#2d273a] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+              >
+                {codeCopied ? <Check size={16} className="text-sage-ink" aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
+                <span aria-live="polite">{codeCopied ? "Copiado" : "Copiar código"}</span>
+              </button>
+            </div>
+            {errorMsg && <p role="alert" className="mt-2 text-xs text-terracotta-ink">{errorMsg}</p>}
+
             <button
-                onClick={handleNext}
-                disabled={!normalizedCode || !name.trim() || isLoading}
-                className="w-full min-h-[44px] bg-sage-ink hover:bg-sage-ink-hover text-white rounded-xl py-3.5 font-bold disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-                >
-                  {isLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                  {isLoading ? "Buscando…" : "Continuar"}
-                </button>
+              type="button"
+              onClick={() => {
+                window.open(`https://wa.me/?text=${encodeURIComponent(inviteShareText(generatedCode))}`, "_blank", "noopener,noreferrer");
+              }}
+              className={`${ONB_CTA_PAPA} mt-5 shadow-sm`}
+            >
+              <Share2 size={20} aria-hidden="true" />
+              Compartir por WhatsApp
+            </button>
+            <button type="button" onClick={finishMama} className={`${ONB_CTA_NEUTRAL} mt-3`}>
+              Entrar a PandaJR
+            </button>
           </div>
         )}
 
-        {step === 3 && role === "papa" && preview && (
-          <div className="space-y-6">
-            <div className="bg-sage/15 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-2">
-              <Users className="text-sage-ink" size={30} aria-hidden="true" />
+        {step === "code" && role === "papa" && (
+          <div>
+            <h2 id="onb-title" ref={headingRef} tabIndex={-1} className={headingClass}>El código de tu pareja</h2>
+            <p className={subClass}>Pídele el código que aparece en su PandaJR, en Ajustes.</p>
+            {errorBox}
+            <div className="mt-5">
+              <label htmlFor="onb-papa-code" className="text-xs font-bold text-stone-700 dark:text-[#d9d4de] mb-1 block">Código de invitación</label>
+              <input
+                id="onb-papa-code"
+                type="text"
+                value={code}
+                onChange={(e) => { setCode(e.target.value.toUpperCase()); setErrorMsg(""); }}
+                onKeyDown={(e) => { if (e.key === "Enter" && normalizedCode) void submitCode(); }}
+                placeholder="PANDA-XXXX-XXXX"
+                autoCapitalize="characters"
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck={false}
+                aria-describedby="onb-code-hint"
+                className={`${ONB_INPUT} text-center font-mono font-bold tracking-widest text-lg uppercase`}
+              />
+              <p id="onb-code-hint" className="mt-1.5 text-xs text-stone-600 dark:text-[#a6a1b2] text-center">
+                {code.trim() && !normalizedCode ? "Revisa el código: se ve así, PANDA-XXXX-XXXX." : "Puedes escribirlo con o sin guiones."}
+              </p>
             </div>
-            <h2 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1] text-balance">¿Te unes al embarazo de {partnerLabel}?</h2>
-            {errorMsg && <div role="alert" className="text-sm text-terracotta-ink bg-terracotta/10 p-3 rounded-xl border border-terracotta-ink/25">{errorMsg}</div>}
-            <dl className="text-sm text-left border-y border-stone-200 dark:border-white/[0.08] divide-y divide-stone-200 dark:divide-white/[0.06]">
+            <button type="button" onClick={() => { void submitCode(); }} disabled={!normalizedCode} aria-disabled={isLoading || undefined} className={`${cta} mt-6`}>
+              {isLoading && spinner}
+              {isLoading ? "Buscando…" : "Continuar"}
+            </button>
+          </div>
+        )}
+
+        {step === "confirm" && role === "papa" && preview && (
+          <div>
+            <h2 id="onb-title" ref={headingRef} tabIndex={-1} className={headingClass}>¿Te unes al embarazo de {partnerLabel}?</h2>
+            {errorBox}
+            <dl className="mt-4 text-sm border-y border-stone-200 dark:border-white/[0.08] divide-y divide-stone-200 dark:divide-white/[0.06]">
               {!preview.legacy && preview.babyName && (
                 <div className="flex justify-between gap-3 px-1 py-2.5">
                   <dt className="text-stone-600 dark:text-[#a6a1b2]">Bebé</dt>
@@ -1195,71 +1465,35 @@ function OnboardingModal({
               )}
               <div className="flex justify-between gap-3 px-1 py-2.5">
                 <dt className="text-stone-600 dark:text-[#a6a1b2]">Semana</dt>
-                <dd className="font-bold text-stone-800 dark:text-[#eae6e1] text-right">{preview.week ? `Semana ${preview.week}` : "Sin confirmar"}</dd>
+                <dd className="font-bold text-stone-800 dark:text-[#eae6e1] text-right">
+                  {previewWeekLabel(preview)}
+                </dd>
               </div>
+              {preview.dueDate && (
+                <div className="flex justify-between gap-3 px-1 py-2.5">
+                  <dt className="text-stone-600 dark:text-[#a6a1b2]">Fecha probable</dt>
+                  <dd className="font-bold text-stone-800 dark:text-[#eae6e1] text-right">{formatDateLong(parseISODate(preview.dueDate) ?? new Date())}</dd>
+                </div>
+              )}
               <div className="flex justify-between gap-3 px-1 py-2.5">
                 <dt className="text-stone-600 dark:text-[#a6a1b2]">Código</dt>
                 <dd className="font-mono font-bold text-stone-800 dark:text-[#eae6e1] text-right">{normalizedCode?.code}</dd>
               </div>
             </dl>
-            <p className="text-sm text-stone-600 dark:text-[#a6a1b2]">Verán y editarán juntos la agenda, las tareas y el estado de ánimo.</p>
-            <div className="space-y-3">
-              <button
-                onClick={handleNext}
-                disabled={isLoading}
-                className="w-full min-h-[44px] bg-sage-ink hover:bg-sage-ink-hover text-white rounded-xl py-3.5 font-bold disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-              >
-                {isLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+            <p className="mt-4 text-sm text-stone-600 dark:text-[#a6a1b2]">Verán y editarán juntos la agenda, las tareas y el estado de ánimo. La semana se toma de su embarazo.</p>
+            <div className="mt-5 space-y-3">
+              <button type="button" onClick={() => { void confirmJoin(); }} aria-disabled={isLoading || undefined} className={ONB_CTA_PAPA}>
+                {isLoading && spinner}
                 {isLoading ? "Uniéndote…" : "Sí, unirme"}
               </button>
               <button
-                onClick={() => { setPreview(null); setCode(""); setErrorMsg(""); setStep(2); }}
-                disabled={isLoading}
-                className="w-full min-h-[44px] rounded-xl py-3 font-bold text-stone-700 dark:text-[#d9d4de] border border-stone-300 dark:border-white/15 hover:bg-stone-50 dark:hover:bg-[#2d273a] transition-colors disabled:opacity-50"
+                type="button"
+                onClick={() => { if (isLoading) return; setPreview(null); setCode(""); setErrorMsg(""); setStep("code"); }}
+                className="w-full min-h-[44px] rounded-xl py-3 font-bold text-stone-700 dark:text-[#d9d4de] border border-stone-300 dark:border-white/15 hover:bg-stone-50 dark:hover:bg-[#2d273a] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
               >
                 No es este
               </button>
             </div>
-          </div>
-        )}
-
-        {step === 3 && role === "mama" && (
-          <div className="space-y-6">
-            <div className="bg-sage/10 dark:bg-sage/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-2">
-              <CheckCircle2 className="text-sage-ink" size={32} />
-            </div>
-            <h2 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1]">¡Todo listo!</h2>
-            <p className="text-sm text-stone-600 dark:text-[#a6a1b2]">Comparte este código con tu pareja para que se vincule a tu embarazo. Vale por 14 días y sirve para una sola persona.</p>
-
-            <div className="bg-stone-50 dark:bg-[#1a1724] p-4 rounded-2xl border border-stone-200 dark:border-white/[0.1]">
-              <p className="font-mono text-xl font-black tracking-wider text-terracotta-ink break-all">{generatedCode}</p>
-              <button
-                type="button"
-                onClick={copyGenerated}
-                className="mt-2 inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-3 text-sm font-bold text-stone-700 dark:text-[#d9d4de] hover:bg-stone-100 dark:hover:bg-[#2d273a] transition-colors"
-              >
-                {codeCopied ? <Check size={16} className="text-sage-ink" aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
-                <span aria-live="polite">{codeCopied ? "Copiado" : "Copiar código"}</span>
-              </button>
-            </div>
-            {errorMsg && <p role="alert" className="text-xs text-terracotta-ink">{errorMsg}</p>}
-
-            <button
-                onClick={() => {
-                  window.open(`https://wa.me/?text=${encodeURIComponent(inviteShareText(generatedCode))}`, '_blank', 'noopener,noreferrer');
-                }}
-                className="w-full min-h-[44px] bg-sage-ink hover:bg-sage-ink-hover text-white rounded-xl py-3.5 font-bold transition-all flex items-center justify-center gap-2 shadow-sm mb-3"
-              >
-                <Share2 size={20} aria-hidden="true" />
-                Compartir por WhatsApp
-              </button>
-
-              <button
-                onClick={handleNext}
-                className="w-full bg-stone-900 hover:bg-stone-800 dark:bg-[#eae6e1] dark:hover:bg-white dark:text-stone-900 text-white rounded-xl py-3.5 font-bold transition-all"
-              >
-                Entrar a PandaJR
-              </button>
           </div>
         )}
       </div>
@@ -1331,6 +1565,8 @@ export default function PandaJRApp() {
   const isDark = usePandaStore(state => state.isDark);
   const toggleThemeStore = usePandaStore(state => state.toggleTheme);
   const hasHydrated = usePandaStore(state => state.hasHydrated);
+  // Semana vigente: con fecha probable se recalcula cada día y mantiene profile.week (solo local).
+  const ga = useGestationalAge();
   const pid = profile.pregnancyId || "";
   // Miembros del embarazo (un solo listener para toda la página).
   const partner = usePartner();
@@ -1353,13 +1589,20 @@ export default function PandaJRApp() {
   };
 
   // --- Firebase Real-time Sync ---
-  // Semana compartida → perfil local (solo estado local, nunca escribe).
+  // FPP compartida fuera de rango (dato remoto dudoso): la semana queda sin confirmar y la Guía y
+  // Ajustes avisan "Revisa la fecha en Ajustes". Estado de interfaz, derivado del último snapshot.
+  const [remoteDueReviewPid, setRemoteDueReviewPid] = useState<string | null>(null);
+  const dueDateNeedsReview = !!pid && remoteDueReviewPid === pid && ga.source === "unknown";
+  // Semana y fecha probable compartidas → perfil local (solo estado local, nunca escribe).
   useEffect(() => {
     if (!pid) return;
     return listenToPregnancy(pid, (data) => {
-      const w = typeof data?.week === "number" && data.week >= 1 && data.week <= 42 ? data.week : undefined;
       const cur = usePandaStore.getState().profile;
-      if (w && (w !== cur.week || cur.weekUnknown)) setProfile({ week: w, weekUnknown: false });
+      // La FPP compartida manda; si se quitó en el otro teléfono se quita aquí; si no hay, la semana.
+      // Si está fuera de rango, la semana pasa a "sin confirmar" (sin reglas clínicas).
+      const dating = remoteDatingPatch(data, cur);
+      if (dating) setProfile(dating);
+      setRemoteDueReviewPid(datingFromPregnancyDoc(data).dueDateOutOfRange ? pid : null);
       // Código vigente de la mamá (p. ej. el nuevo que emite ensureMembership en lugar del antiguo).
       const code = typeof data?.inviteCode === "string" ? data.inviteCode : undefined;
       if (cur.role === "mama" && code && code !== cur.inviteCode) setProfile({ inviteCode: code });
@@ -1483,10 +1726,22 @@ export default function PandaJRApp() {
   // Pide a Herramientas que abra una herramienta concreta (ej. 'sos'); el nonce permite repetir la petición.
   const [toolOpenRequest, setToolOpenRequest] = useState<{ tool: string; nonce: number } | undefined>(undefined);
 
-  const openSymptoms = () => {
+  /** Abre una herramienta concreta (SOS, Contracciones, Maleta…) desde cualquier pestaña. */
+  const openTool = (tool: string) => {
     setActiveTab("herramientas");
-    setToolOpenRequest({ tool: "sos", nonce: Date.now() });
+    setToolOpenRequest({ tool, nonce: Date.now() });
     window.scrollTo({ top: 0 });
+  };
+  const openSymptoms = () => openTool("sos");
+  // Ajustes abiertos directamente en "Fecha" (desde "Confirmar mi fecha" de la Guía).
+  const [settingsFocusDating, setSettingsFocusDating] = useState(false);
+  const openDateSettings = () => {
+    setSettingsFocusDating(true);
+    setIsProfileModalOpen(true);
+  };
+  const closeSettings = () => {
+    setIsProfileModalOpen(false);
+    setSettingsFocusDating(false);
   };
 
   const startLinkFlow = () => {
@@ -1516,63 +1771,95 @@ export default function PandaJRApp() {
     }
   }, [hasHydrated, profile.name]);
 
-  /** Cambia la semana para ti (y para tu pareja si hay vínculo). Revierte y ofrece "Reintentar" si falla. */
-  const shareWeek = (targetPid: string, week: number, previous: { week: number; weekUnknown?: boolean }) => {
-    updatePregnancyWeek(targetPid, week).catch(() => {
-      if (usePandaStore.getState().profile.pregnancyId !== targetPid) return;
-      setProfile({ week: previous.week, weekUnknown: previous.weekUnknown });
-      showToast("No pudimos guardar la semana para tu pareja.", () => {
-        setProfile({ week, weekUnknown: false });
-        shareWeek(targetPid, week, previous);
-      }, "Reintentar");
+  /**
+   * Guarda una datación ELEGIDA A PROPÓSITO (FPP, semana a mano o "sin confirmar"): al instante en
+   * este teléfono y, con vínculo, en el embarazo compartido (saveDueDate o updatePregnancyWeek, que
+   * borra la FPP: solo si se eligió semana a mano). Si el servidor la rechaza, revierte y ofrece
+   * "Reintentar". Devuelve true si se envió a la pareja. Solo desde manejadores de eventos.
+   */
+  const applyDating = (choice: DatingChoice): boolean => {
+    const prev = usePandaStore.getState().profile;
+    const targetPid = prev.pregnancyId;
+    setProfile(datingPatch(choice));
+    // "Sin confirmar" no se comparte: no hay forma honesta de borrar la fecha del otro teléfono.
+    if (!targetPid || choice.kind === "unknown") return false;
+    const uid = partner.myUid ?? currentUid();
+    const by = uid ? { uid, name: prev.name || undefined } : undefined;
+    const write = choice.kind === "dueDate"
+      ? saveDueDate(targetPid, choice.dueDate, choice.source, by)
+      : saveManualWeek(targetPid, choice.week, by);
+    write.catch(() => {
+      const cur = usePandaStore.getState().profile;
+      // Si cambió de embarazo o ya eligió otra fecha, no hay nada que revertir.
+      if (cur.pregnancyId !== targetPid || !sameDating(choice, cur)) return;
+      setProfile({ week: prev.week, weekUnknown: prev.weekUnknown, dueDate: prev.dueDate, dueDateSource: prev.dueDateSource });
+      showToast(
+        choice.kind === "dueDate" ? "No pudimos guardar la fecha para tu pareja." : "No pudimos guardar la semana para tu pareja.",
+        () => { applyDating(choice); },
+        "Reintentar"
+      );
     });
+    return true;
   };
 
+  /** Cambios LOCALES del perfil (ciudad, notas, tema). La fecha y la semana van por applyDating. */
   const updateProfile = (updates: Partial<UserProfile>) => {
-    const prev = usePandaStore.getState().profile;
-    setProfile(updates);
-    const targetPid = updates.pregnancyId ?? prev.pregnancyId;
-    if (targetPid && typeof updates.week === "number" && !updates.weekUnknown && (updates.week !== prev.week || prev.weekUnknown)) {
-      shareWeek(targetPid, updates.week, { week: prev.week, weekUnknown: prev.weekUnknown });
-    }
+    const rest: Partial<UserProfile> = { ...updates };
+    delete rest.week;
+    delete rest.weekUnknown;
+    delete rest.dueDate;
+    delete rest.dueDateSource;
+    setProfile(rest);
   };
 
-  /** "Guardar Cambios" de Ajustes: dice el alcance real y ofrece deshacer. */
-  const saveSettings = (next: UserProfile) => {
+  /**
+   * "Guardar cambios" de Ajustes. La fecha solo se escribe si se editó (`dating`): guardar la
+   * ciudad o las notas nunca toca la FPP compartida. Dice el alcance real y ofrece deshacer.
+   */
+  const saveSettings = (next: UserProfile, dating?: DatingChoice) => {
     const prev = usePandaStore.getState().profile;
-    const weekChanged = next.week !== prev.week || (!!prev.weekUnknown && !next.weekUnknown);
+    const datingChanged = !!dating && !sameDating(dating, prev);
     const localChanged =
       (next.location || "") !== (prev.location || "") ||
       (next.notes || "") !== (prev.notes || "") ||
       (next.comparisonTheme || "frutas") !== (prev.comparisonTheme || "frutas");
-    setIsProfileModalOpen(false);
-    if (!weekChanged && !localChanged) return;
+    closeSettings();
+    if (!datingChanged && !localChanged) return;
 
-    const { week, weekUnknown, location, notes, comparisonTheme } = next;
-    updateProfile({ week, weekUnknown, location, notes, comparisonTheme });
+    if (localChanged) updateProfile({ location: next.location, notes: next.notes, comparisonTheme: next.comparisonTheme });
+    const shared = datingChanged && dating ? applyDating(dating) : false;
 
-    const shared = weekChanged && !!prev.pregnancyId;
     const partnerLabel = partner.partnerName || "tu pareja";
-    const message = weekChanged
-      ? shared
-        ? `Semana ${week} actualizada para ti y ${partnerLabel}${localChanged ? ". El resto, solo en este teléfono" : ""}`
-        : `Semana ${week} actualizada en este teléfono`
-      : "Ajustes guardados en este teléfono";
+    const what = dating?.kind === "manual"
+      ? `Semana ${dating.week} actualizada`
+      : dating?.kind === "unknown"
+        ? "Semana marcada como sin confirmar"
+        : "Fecha actualizada";
+    let message = "Ajustes guardados en este teléfono";
+    if (datingChanged) {
+      message = shared
+        ? isOffline()
+          ? `${what}. Se compartirá con ${partnerLabel} al volver la señal (no cierres la app)`
+          : `${what} para ti y ${partnerLabel}`
+        : `${what} en este teléfono`;
+      if (localChanged) message += ". El resto, solo en este teléfono";
+    }
 
-    // Sin semana previa confirmada no hay a qué volver en la cuenta compartida.
-    const canUndo = !(shared && prev.weekUnknown);
+    // Sin fecha ni semana previas no hay a qué volver en la cuenta compartida.
+    const prevChoice = choiceFromProfile(prev);
+    const canUndo = !(datingChanged && shared && prevChoice.kind === "unknown");
     const undo = () => {
-      const restore: Partial<UserProfile> = {
-        location: prev.location,
-        notes: prev.notes,
-        comparisonTheme: prev.comparisonTheme,
-      };
-      if (weekChanged) {
-        restore.week = prev.week;
-        restore.weekUnknown = prev.weekUnknown;
-      }
-      updateProfile(restore);
-      showToast(weekChanged ? (prev.weekUnknown ? "Volviste a semana sin confirmar" : `Volviste a la semana ${prev.week}`) : "Cambios deshechos");
+      if (localChanged) updateProfile({ location: prev.location, notes: prev.notes, comparisonTheme: prev.comparisonTheme });
+      if (datingChanged) applyDating(prevChoice);
+      showToast(
+        !datingChanged
+          ? "Cambios deshechos"
+          : prevChoice.kind === "dueDate"
+            ? "Volviste a la fecha anterior"
+            : prevChoice.kind === "manual"
+              ? `Volviste a la semana ${prevChoice.week}`
+              : "Volviste a semana sin confirmar"
+      );
     };
     showToast(message, canUndo ? undo : undefined);
   };
@@ -1841,7 +2128,7 @@ export default function PandaJRApp() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (isProfileModalOpen) setIsProfileModalOpen(false);
+        if (isProfileModalOpen) { setIsProfileModalOpen(false); setSettingsFocusDating(false); }
         if (selectedPrepEvent) setSelectedPrepEvent(null);
       }
     };
@@ -1930,11 +2217,18 @@ export default function PandaJRApp() {
           <GuiaPapaView
             showToast={showToast}
             profile={profile}
+            ga={ga}
             remoteMomStatus={remoteMomStatus}
             momStatusLoaded={momStatusLoaded}
             partner={partner}
             onRequestLink={startLinkFlow}
-            onConfirmWeek={() => setIsProfileModalOpen(true)}
+            onConfirmDate={openDateSettings}
+            dueDateNeedsReview={dueDateNeedsReview}
+            events={events}
+            eventsLoading={eventsLoading}
+            onOpenPrep={(ev) => setSelectedPrepEvent(ev)}
+            onOpenTool={openTool}
+            onGoToAgenda={() => { setActiveTab("agenda"); window.scrollTo({ top: 0 }); }}
           />
         </div>
         <div className={activeTab === "agenda" ? "block w-full h-full" : "hidden"}>
@@ -1987,8 +2281,9 @@ export default function PandaJRApp() {
             setShowOnboarding(false);
             setLinkFlowOpen(false);
           }}
-          onSkip={() => {
-            setProfile({ name: 'Invitado', role: 'papa', week: 1, weekUnknown: true });
+          onSkip={(role) => {
+            // Invitado con el rol que eligió (si no eligió, copiloto). Puede crear o unirse después desde Ajustes.
+            setProfile({ name: "Invitado", role: role ?? "papa", week: 1, weekUnknown: true, dueDate: undefined, dueDateSource: undefined });
             setShowOnboarding(false);
           }}
           onCancel={linkFlowOpen && !showOnboarding ? () => setLinkFlowOpen(false) : undefined}
@@ -2000,12 +2295,14 @@ export default function PandaJRApp() {
         <ProfileModal
           profile={profile}
           onSave={saveSettings}
-          onClose={() => setIsProfileModalOpen(false)}
+          onClose={closeSettings}
+          focusDating={settingsFocusDating}
           isDark={isDark}
           toggleTheme={toggleTheme}
           partner={partner}
           showToast={showToast}
           onStartLink={startLinkFlow}
+          dueDateNeedsReview={dueDateNeedsReview}
         />
       )}
 
@@ -2093,26 +2390,6 @@ function NavItem({ icon, label, isActive, onClick }: { icon: React.ReactNode, la
       {icon}
       <span className="text-xs font-medium">{label}</span>
     </button>
-  );
-}
-
-function PregnancyProgressBar({ week }: { week: number }) {
-  const percent = Math.min(100, Math.max(0, (week / 40) * 100));
-  
-  return (
-    <div className="w-full">
-      <div className="flex justify-between items-end mb-2 px-1">
-        <span className="text-[11px] font-medium text-stone-500 dark:text-[#a6a1b2]">Inicio dulce</span>
-        <span className="text-sm font-bold text-stone-800 dark:text-[#eae6e1]">Semana {week} ({Math.round(percent)}%)</span>
-        <span className="text-[11px] font-medium text-stone-500 dark:text-[#a6a1b2]">Llegada soñada</span>
-      </div>
-      <div className="h-2 w-full bg-stone-100 dark:bg-[#2d273a] rounded-full overflow-hidden">
-        <div 
-          className="h-full bg-sage rounded-full transition-all duration-500 ease-out" 
-          style={{ width: `${percent}%` }}
-        ></div>
-      </div>
-    </div>
   );
 }
 
@@ -2352,221 +2629,134 @@ function MomStatusCard({
   );
 }
 
-    // --- VISTA 1: GUÍA DEL PAPÁ ---
-const masterCategories = [
-  // TRIMESTRE 1 (Semanas 1-13)
-  {
-    id: "t1_nutricion", trimester: 1, defaultExpanded: true,
-    title: "Neuro-Nutrición & Clínico",
-    icon: <Utensils className="text-terracotta/100" size={20} />, color: "bg-terracotta/10",
-    tasks: [
-      { id: 110, text: "Garantizar Ácido Fólico (mín 400 mcg/día)", detail: "Previene defectos del tubo neural (espina bífida) en esta fase crítica." },
-      { id: 111, text: "Eliminar embutidos crudos, sushi y quesos no pasteurizados", detail: "Prevención estricta de Listeriosis y Toxoplasmosis." },
-      { id: 112, text: "Agendar primer control y ecografía precoz (Semanas 6-8)", detail: "Para confirmar viabilidad, ubicación uterina y latido fetal." }
-    ]
-  },
-  {
-    id: "t1_entorno", trimester: 1, defaultExpanded: true,
-    title: "Escudo Ambiental & Soporte",
-    icon: <AlertTriangle className="text-terracotta/100" size={20} />, color: "bg-terracotta/10",
-    tasks: [
-      { id: 113, text: "Asumir la limpieza de cajas de arena (Gatos)", detail: "Riesgo alto de Toxoplasmosis para la madre; el copiloto debe hacerlo." },
-      { id: 114, text: "Mitigar náuseas matutinas (Hiperémesis)", detail: "Tener siempre galletas saladas en su buró antes de que se levante." },
-      { id: 115, text: "Revisar productos de limpieza", detail: "Alejar parabenos, ftalatos y evitar limpiar con lejía/amoniaco en espacios cerrados." }
-    ]
-  },
-  
-  // TRIMESTRE 2 (Semanas 14-27)
-  {
-    id: "t2_nutricion", trimester: 2, defaultExpanded: true,
-    title: "Desarrollo Fetal & Clínico",
-    icon: <HeartPulse className="text-sage" size={20} />, color: "bg-sage/10",
-    tasks: [
-      { id: 210, text: "Incrementar ingesta de Hierro y Vitamina C", detail: "El volumen de sangre materna aumenta 50%, el hierro previene la anemia." },
-      { id: 211, text: "Suplementación con DHA (Omega-3)", detail: "Fundamental para la explosión sináptica del cerebro fetal y la retina." },
-      { id: 212, text: "Agendar Ecografía Morfológica (Semanas 20-22)", detail: "El ultrasonido más detallado para descartar anomalías anatómicas." },
-      { id: 213, text: "Test de O'Sullivan (Semanas 24-28)", detail: "Curva de tolerancia a la glucosa para descartar diabetes gestacional." }
-    ]
-  },
-  {
-    id: "t2_preparacion", trimester: 2, defaultExpanded: true,
-    title: "Preparación al Parto",
-    icon: <Baby className="text-sage" size={20} />, color: "bg-sage/10",
-    tasks: [
-      { id: 214, text: "Acondicionar ergonomía para el descanso", detail: "Conseguir almohada de embarazo (forma de U/C) para aliviar la ciática pélvica." },
-      { id: 215, text: "Inscribirse en clases de psicoprofilaxis perinatal", detail: "Aprender juntos técnicas de respiración, masaje y posiciones de parto." },
-      { id: 216, text: "Pintar y ventilar la habitación del bebé", detail: "Hacerlo ahora para asegurar que los gases tóxicos (COVs) se disipen a tiempo." }
-    ]
-  },
+// --- VISTA 1: GUÍA ---
+// «¿Es la hora?» (36+) → semana → «Hoy» (qué toca y quién) → estado de mamá → ficha fetal → checklists.
+// Catálogo de tareas: src/lib/tasks.ts. Bloques visuales: src/components/GuiaBlocks.tsx.
 
-  // TRIMESTRE 3 (Semanas 28-40)
-  {
-    id: "t3_clinico", trimester: 3, defaultExpanded: true,
-    title: "Recta Final & Clínica",
-    icon: <Activity className="text-amber-500" size={20} />, color: "bg-amber-100/50 dark:bg-amber-500/10",
-    tasks: [
-      { id: 310, text: "Aplicar vacuna Tdap materno (Semanas 27-36)", detail: "Traspasa anticuerpos al bebé contra tos ferina, tétanos y difteria." },
-      { id: 311, text: "Agendar Cultivo de Estreptococo Grupo B (SGB)", detail: "Semana 35-37. Previene infecciones neonatales graves durante el parto vaginal." },
-      { id: 312, text: "Conocer Regla 5-1-1 y Signos de Alarma", detail: "Practica con la app para saber exactamente cuándo ir a urgencias (sangrado, baja de movimientos)." }
-    ]
-  },
-  {
-    id: "t3_logistica", trimester: 3, defaultExpanded: true,
-    title: "Logística y Supervivencia",
-    icon: <ClipboardList className="text-amber-500" size={20} />, color: "bg-amber-100/50 dark:bg-amber-500/10",
-    tasks: [
-      { id: 313, text: "Vacunar al círculo íntimo (Estrategia Capullo)", detail: "El papá y abuelos cuidadores deben tener la vacuna Tdap e Influenza al día." },
-      { id: 314, text: "Instalar y certificar la silla de auto (Car Seat)", detail: "El hospital no les dará el alta si el bebé no está asegurado correctamente en el auto." },
-      { id: 315, text: "Armar maleta del hospital y simular ruta", detail: "Hacer simulacro nocturno de manejo para medir tiempos y saber por qué puerta entrar de madrugada." }
-    ]
-  }
-];;
-
-function getWeekData(week: number, theme: "frutas"|"geek" = "frutas") {
-  const weeklyDetails = [
-    { w: 1, s: { f: "Preparación", g: "Loading..." }, l: "0 cm", wg: "0 g", m: "Preparación del cuerpo", dm: "Planifica una dieta sana y comiencen a tomar vitaminas prenatales.", mm: "Tu cuerpo se prepara para la ovulación. Es un buen momento para iniciar el ácido fólico." },
-    { w: 2, s: { f: "Óvulo liberado", g: "Start!" }, l: "0 cm", wg: "0 g", m: "Semana de ovulación", dm: "Días clave. Mantén un ambiente relajado y romántico.", mm: "El cuerpo libera el óvulo. Relájate y mantén un estilo de vida saludable." },
-    { w: 3, s: { f: "Semilla de vainilla", g: "Píxel" }, l: "0.01 cm", wg: "0 g", m: "Fecundación", dm: "Apoya a tu pareja; es un proceso invisible pero biológicamente intenso.", mm: "El óvulo fecundado viaja al útero. Puedes sentir leves calambres." },
-    { w: 4, s: { f: "Semilla de amapola", g: "Dado D20 miniatura" }, l: "0.1 cm", wg: "1 g", m: "Implantación en el útero", dm: "Eviten el alcohol y el tabaco en casa. Cocina rico y sano.", mm: "El embrión se implanta. Inicia la formación del tubo neural." },
-    { w: 5, s: { f: "Grano de pimienta", g: "Tecla de teclado" }, l: "0.3 cm", wg: "1 g", m: "El corazón empieza a latir", dm: "Es normal que sienta mucho cansancio. Ofrécete a hacer las tareas pesadas.", mm: "Tu volumen de sangre aumenta. Descansa siempre que lo necesites." },
-    { w: 6, s: { f: "Semilla de granada", g: "Microchip" }, l: "0.6 cm", wg: "1 g", m: "Formación de rostro y extremidades", dm: "Las náuseas pueden aparecer. Ten galletas saladas junto a la cama.", mm: "Las hormonas suben. Come pequeñas porciones y mantente hidratada." },
-    { w: 7, s: { f: "Arándano", g: "Dado D6 estándar" }, l: "1.0 cm", wg: "1 g", m: "Desarrollo del cerebro a gran velocidad", dm: "El cerebro fetal genera 100 neuronas por minuto. Prepara cenas ricas en DHA (salmón).", mm: "Sentirás más ganas de ir al baño. No reduzcas tu consumo de agua." },
-    { w: 8, s: { f: "Frambuesa", g: "Ficha de LEGO de 1x1" }, l: "1.6 cm", wg: "1 g", m: "Se forman los deditos", dm: "Acompáñala a la primera ecografía si es posible. ¡Escucharán el corazón!", mm: "El cordón umbilical ya funciona por completo." },
-    { w: 9, s: { f: "Cereza", g: "Moneda de arcade" }, l: "2.3 cm", wg: "2 g", m: "Desarrollo de articulaciones", dm: "La sensibilidad a los olores es alta. Evita perfumes fuertes o cocinar cosas intensas.", mm: "Los pechos pueden sentirse muy sensibles; usa un sostén cómodo." },
-    { w: 10, s: { f: "Fresa", g: "Tamagotchi" }, l: "3.1 cm", wg: "4 g", m: "Fin de la organogénesis crítica", dm: "Los órganos vitales ya están formados. Celebra este primer gran hito con ella.", mm: "¡Termina el periodo embrionario! El riesgo de malformaciones baja drásticamente." },
-    { w: 12, s: { f: "Ciruela", g: "Mouse de computadora pequeño" }, l: "5.4 cm", wg: "14 g", m: "Reflejos incipientes", dm: "Fin del primer trimestre. Es un gran momento para planear dar la noticia.", mm: "Las náuseas suelen empezar a ceder. Tu útero crece por encima de la pelvis." },
-    { w: 14, s: { f: "Limón", g: "Goma de borrar" }, l: "8.7 cm", wg: "43 g", m: "Comienza el segundo trimestre", dm: "Su energía regresará. Planeen alguna salida especial o una 'babymoon'.", mm: "Empieza la etapa más cómoda. ¡Disfruta el retorno de tu energía!" },
-    { w: 16, s: { f: "Aguacate", g: "Control de Switch (Joy-Con)" }, l: "11.6 cm", wg: "100 g", m: "Glándula tiroides funcional", dm: "El bebé ya escucha. Empieza a hablarle a la barriga o léele cuentos.", mm: "Puedes empezar a sentir un 'aleteo'. Es el bebé moviéndose." },
-    { w: 20, s: { f: "Plátano", g: "Nintendo Game Boy" }, l: "25.6 cm", wg: "300 g", m: "Ecografía morfológica", dm: "Cita médica crucial. Se revisa toda la anatomía del bebé.", mm: "La barriga ya es evidente. Duerme de lado (preferiblemente izquierdo)." },
-    { w: 24, s: { f: "Mazorca de maíz", g: "Sable de luz (mango)" }, l: "30.0 cm", wg: "600 g", m: "Viabilidad fetal", dm: "El bebé ya podría sobrevivir fuera del útero. Hora de armar el presupuesto.", mm: "Prueba de glucosa a la vista. Mantén una dieta equilibrada." },
-    { w: 27, s: { f: "Coliflor", g: "iPad Mini" }, l: "36.6 cm", wg: "875 g", m: "Abre los ojos", dm: "Tercer trimestre a la vuelta. Empiecen a cotizar sillas para el auto.", mm: "Puedes sentir hipo fetal (pequeños saltitos rítmicos)." },
-    { w: 30, s: { f: "Repollo", g: "Casco de realidad virtual" }, l: "39.9 cm", wg: "1319 g", m: "Desarrollo de corteza cerebral", dm: "Ensambla la cuna. Deja la logística lista en casa.", mm: "El cansancio vuelve. Descansa con las piernas en alto para evitar hinchazón." },
-    { w: 34, s: { f: "Melón cantalupo", g: "Consola Steam Deck" }, l: "45.0 cm", wg: "2146 g", m: "Maduración pulmonar", dm: "Revisen la ruta al hospital. Prepara tu maleta también.", mm: "El espacio es reducido, las patadas pueden sentirse más como estiramientos." },
-    { w: 38, s: { f: "Calabaza", g: "Consola Retro grande" }, l: "49.8 cm", wg: "3083 g", m: "Embarazo a término", dm: "Ten el tanque del auto lleno y el teléfono cargado siempre.", mm: "Atenta a las contracciones regulares. Descansa todo lo que puedas." },
-    { w: 40, s: { f: "Sandía pequeña", g: "PlayStation 5" }, l: "51.2 cm", wg: "3462 g", m: "¡Llegada inminente!", dm: "El gran día. Mantén la calma, respira y sé su pilar de apoyo.", mm: "Confía en tu cuerpo, está diseñado para esto. ¡Ya casi conoces a tu bebé!" },
-  ];
-
-  let closest = weeklyDetails[0];
-  for (const d of weeklyDetails) {
-    if (d.w <= week) closest = d;
-  }
-  
-  return {
-    size: theme === "geek" ? closest.s.g : closest.s.f,
-    length: closest.l,
-    weight: closest.wg,
-    milestone: closest.m,
-    momMission: closest.mm,
-    dadMission: closest.dm
-  };
-}
+/** Marca local de la última vez que se abrió la Guía en este teléfono (para "desde tu última visita"). */
+const guiaVisitKey = (pid: string) => `pandajr_guia_visit_${pid}`;
 
 function GuiaPapaView({
   showToast,
   profile,
+  ga,
   remoteMomStatus,
   momStatusLoaded,
   partner,
   onRequestLink,
-  onConfirmWeek,
+  onConfirmDate,
+  dueDateNeedsReview = false,
+  events,
+  eventsLoading,
+  onOpenPrep,
+  onOpenTool,
+  onGoToAgenda,
 }: {
   showToast: ShowToast;
   profile: UserProfile;
+  ga: GestationalAgeState;
   remoteMomStatus: MomStatus | null;
   momStatusLoaded: boolean;
   partner: PartnerInfo;
   onRequestLink: () => void;
-  onConfirmWeek: () => void;
+  onConfirmDate: () => void;
+  /** La FPP compartida está fuera de rango (la semana está sin confirmar por eso). */
+  dueDateNeedsReview?: boolean;
+  events: AgendaEvent[];
+  eventsLoading: boolean;
+  onOpenPrep: (ev: AgendaEvent) => void;
+  onOpenTool: (tool: GuiaTool) => void;
+  onGoToAgenda: () => void;
 }) {
-  // Semana sin confirmar: se puede explorar, pero nada se presenta como "tu semana".
-  const weekUnknown = !!profile.weekUnknown;
-  const [week, setWeek] = useState(profile.week || 14);
-  useEffect(() => {
-    if (profile.week) setWeek(profile.week);
-  }, [profile.week]);
-  const weekData = getWeekData(week, profile.comparisonTheme || "frutas");
-
-  // Checklist state
-    const currentTrimester = React.useMemo(() => week <= 13 ? 1 : week <= 27 ? 2 : 3, [week]);
-
+  const reader: "mama" | "papa" = profile.role === "papa" ? "papa" : "mama";
+  const otherRole: "mama" | "papa" = reader === "mama" ? "papa" : "mama";
+  // Semana REAL (sin confirmar = undefined: no hay "toca hoy" ni "ya pasó").
+  const realWeek = ga.source !== "unknown" ? ga.weeks : undefined;
   const pid = profile.pregnancyId || "";
+  const partnerName = partner.partnerName?.trim() || undefined;
+  const partnerLabel = partnerName || (reader === "mama" ? "tu copiloto" : "tu pareja");
+
   // Con vínculo: lo que dice Firestore (la caché local ya refleja al instante lo que marcas).
   const [remoteChecklist, setRemoteChecklist] = React.useState<{
     pid: string;
     status: Record<string, ChecklistStatusValue>;
     meta: ChecklistMeta;
+    owners: TaskOwnerMap;
+    ownersMeta: ChecklistMeta;
     /** false = solo caché vacía (sin respuesta del servidor): aún no se sabe qué está marcado. */
     fromServer: boolean;
   } | null>(null);
-  // Sin vínculo: progreso en este teléfono (no vuelve a 0 al recargar).
+  // Sin vínculo: progreso y dueños en este teléfono (no vuelven a 0 al recargar).
   const [localChecklist, setLocalChecklist] = React.useState<Record<string, ChecklistStatusValue>>(
     () => readStored<Record<string, ChecklistStatusValue>>(LS_CHECKLIST, {})
   );
+  const [localOwners, setLocalOwners] = React.useState<TaskOwnerMap>(() => readLocalTaskOwners());
 
-  // Solo escucha: nunca escribe desde aquí.
+  // Solo escucha; las únicas escrituras son los traspasos únicos tras el primer dato del servidor.
   useEffect(() => {
     if (!pid) return;
     let localChecked = false;
-    return listenToChecklistProgress(pid, (progress, meta, docMeta) => {
+    return listenToChecklistProgress(pid, (progress, meta, docMeta, ownersInfo) => {
       const status: Record<string, ChecklistStatusValue> = {};
       for (const [k, v] of Object.entries(progress)) {
         if (v === "dismissed") status[k] = "dismissed";
         else if (v) status[k] = "completed"; // `true` = formato antiguo
       }
+      const owners = ownersInfo?.owners ?? {};
       const fromServer = !(docMeta?.fromCache && !docMeta.exists);
-      setRemoteChecklist({ pid, status, meta: meta ?? {}, fromServer });
-      // Traspaso único al vincular (tras el primer dato del servidor): lo marcado "Solo en este
-      // teléfono" se suma a lo compartido sin desmarcar nada de la pareja.
-      if (!localChecked && docMeta && !docMeta.fromCache) {
-        localChecked = true;
-        const flag = localToSharedFlag("checklist", pid);
-        if (readFlag(flag)) return;
+      setRemoteChecklist({ pid, status, meta: meta ?? {}, owners, ownersMeta: ownersInfo?.ownersMeta ?? {}, fromServer });
+      if (localChecked || !docMeta || docMeta.fromCache) return;
+      localChecked = true;
+      // Traspaso único al vincular: lo anotado "Solo en este teléfono" se suma a lo compartido
+      // sin desmarcar ni reasignar nada que la pareja ya decidió.
+      const linkedFromLocal = readFlag(linkedFromLocalKey(pid));
+      const uid = currentUid();
+      const by = uid ? { uid, name: usePandaStore.getState().profile.name || undefined } : undefined;
+
+      const flag = localToSharedFlag("checklist", pid);
+      if (!readFlag(flag)) {
         const local = readStored<Record<string, ChecklistStatusValue>>(LS_CHECKLIST, {});
         const missing = Object.entries(local).filter(([k, v]) => (v === "completed" || v === "dismissed") && !(k in progress));
-        if (!readFlag(linkedFromLocalKey(pid)) || missing.length === 0) {
-          setFlag(flag);
-          return;
-        }
-        const uid = currentUid();
-        const by = uid ? { uid, name: usePandaStore.getState().profile.name || undefined } : undefined;
-        Promise.all(missing.map(([k, v]) => setChecklistItem(pid, k, v, by))).then(() => setFlag(flag), () => { /* próxima apertura */ });
+        if (!linkedFromLocal || missing.length === 0) setFlag(flag);
+        else Promise.all(missing.map(([k, v]) => setChecklistItem(pid, k, v, by))).then(() => setFlag(flag), () => { /* próxima apertura */ });
+      }
+
+      const ownersFlag = localToSharedFlag("task_owners", pid);
+      if (!readFlag(ownersFlag)) {
+        const missingOwners = ownersMissingRemotely(readLocalTaskOwners(), owners);
+        if (!linkedFromLocal || missingOwners.length === 0) setFlag(ownersFlag);
+        else Promise.all(missingOwners.map(([k, v]) => setTaskOwner(pid, k, v, by))).then(() => setFlag(ownersFlag), () => { /* próxima apertura */ });
       }
     });
   }, [pid]);
 
   // Hasta el primer dato del servidor del embarazo actual no se puede marcar (no hay estado que respetar).
   const checklistLoaded = !pid || (remoteChecklist?.pid === pid && remoteChecklist.fromServer);
+  const remote = pid && remoteChecklist?.pid === pid ? remoteChecklist : null;
   const taskStatus = React.useMemo<Record<string, ChecklistStatusValue>>(
-    () => (pid ? (remoteChecklist?.pid === pid ? remoteChecklist.status : {}) : localChecklist),
-    [pid, remoteChecklist, localChecklist]
+    () => (pid ? (remote ? remote.status : {}) : localChecklist),
+    [pid, remote, localChecklist]
   );
-  const taskMeta = React.useMemo<ChecklistMeta>(
-    () => (pid && remoteChecklist?.pid === pid ? remoteChecklist.meta : {}),
-    [pid, remoteChecklist]
-  );
+  const taskMeta = React.useMemo<ChecklistMeta>(() => remote?.meta ?? {}, [remote]);
+  const taskOwners = React.useMemo<TaskOwnerMap>(() => (pid ? remote?.owners ?? {} : localOwners), [pid, remote, localOwners]);
+  const ownersMeta = React.useMemo<ChecklistMeta>(() => remote?.ownersMeta ?? {}, [remote]);
   const lastChecklistChange = React.useMemo(() => {
     let last: Date | null = null;
-    for (const m of Object.values(taskMeta)) if (m.at && (!last || m.at > last)) last = m.at;
+    for (const m of [...Object.values(taskMeta), ...Object.values(ownersMeta)]) if (m.at && (!last || m.at > last)) last = m.at;
     return last;
-  }, [taskMeta]);
+  }, [taskMeta, ownersMeta]);
 
-  const [expandedCats, setExpandedCats] = React.useState<Record<string, boolean>>({});
+  // Persistencia local del progreso sin vínculo (localStorage, no Firestore).
+  useEffect(() => {
+    if (!pid) writeStored(LS_CHECKLIST, localChecklist);
+  }, [pid, localChecklist]);
 
-  const categories = React.useMemo(() => {
-    return masterCategories
-      .filter(cat => cat.trimester === currentTrimester)
-      .map(cat => ({
-        ...cat,
-        expanded: expandedCats[cat.id] !== undefined ? expandedCats[cat.id] : cat.defaultExpanded,
-        tasks: cat.tasks
-          .filter(t => taskStatus[t.id] !== "dismissed")
-          .map(t => ({ ...t, completed: taskStatus[t.id] === "completed" }))
-      }));
-  }, [currentTrimester, taskStatus, expandedCats]);
-
-  const toggleExpand = (id: string) => {
-    setExpandedCats(prev => ({ ...prev, [id]: categories.find(c => c.id === id)?.expanded ? false : true }));
-  };
+  // --- Última visita (marca local por embarazo): se lee al abrir y se renueva después ---
+  const [visit, setVisit] = useState(() => ({ pid, since: pid ? readStored<number | null>(guiaVisitKey(pid), null) : null }));
+  if (visit.pid !== pid) setVisit({ pid, since: pid ? readStored<number | null>(guiaVisitKey(pid), null) : null });
+  useEffect(() => {
+    if (pid) writeStored(guiaVisitKey(pid), Date.now());
+  }, [pid]);
 
   /**
    * Marca/desmarca una tarea. Con vínculo: escritura por ítem con autor (Firestore la refleja al
@@ -2589,221 +2779,235 @@ function GuiaPapaView({
     });
   };
 
-  // Persistencia local del progreso sin vínculo (localStorage, no Firestore).
-  useEffect(() => {
-    if (!pid) writeStored(LS_CHECKLIST, localChecklist);
-  }, [pid, localChecklist]);
-
-  const toggleTask = (taskId: number, label: string) => {
+  const toggleTask = (row: TaskRowModel) => {
     if (!checklistLoaded) return;
-    const key = String(taskId);
-    writeTask(key, taskStatus[key] === "completed" ? null : "completed", label);
+    writeTask(String(row.task.id), row.completed ? null : "completed", row.task.text);
+  };
+
+  const myLabel = "Tú";
+  const partnerOwnerLabel = partnerName || (otherRole === "mama" ? "Mamá" : "Copiloto");
+  const ownerLabels: OwnerLabels = {
+    mama: reader === "mama" ? myLabel : partnerOwnerLabel,
+    papa: reader === "papa" ? myLabel : partnerOwnerLabel,
+    ambos: "Los dos",
+  };
+  // "ahora te toca a ti", "ahora les toca a los dos", "ahora le toca a Luis" / "a tu copiloto".
+  const nowOwnedBy = (o: TaskOwner) =>
+    o === "ambos"
+      ? "ahora les toca a los dos"
+      : o === reader
+        ? "ahora te toca a ti"
+        : `ahora le toca a ${partnerName || (otherRole === "mama" ? "mamá" : "tu copiloto")}`;
+
+  /** Reasigna una tarea (volver al dueño de catálogo borra la reasignación). Con "Deshacer" real. */
+  const assignTask = (row: TaskRowModel, owner: TaskOwner, announce = true) => {
+    if (!checklistLoaded || owner === row.owner) return;
+    const key = String(row.task.id);
+    const previous = row.owner;
+    const value = owner === row.task.defaultOwner ? null : owner;
+    const undo = announce ? () => assignTask({ ...row, owner }, previous, false) : undefined;
+    if (!pid) {
+      setLocalOwners(writeLocalTaskOwner(key, value));
+      if (announce) showToast(`«${row.task.text}» ${nowOwnedBy(owner)} (solo en este teléfono)`, undo);
+      return;
+    }
+    const uid = partner.myUid ?? currentUid();
+    setTaskOwner(pid, key, value, uid ? { uid, name: profile.name || undefined } : undefined).catch(() => {
+      showToast(`No pudimos reasignar «${row.task.text}».`, () => assignTask(row, owner, announce), "Reintentar");
+    });
+    if (announce) showToast(`«${row.task.text}» ${nowOwnedBy(owner)}`, undo);
+  };
+
+  const whoFromMeta = (m: { by?: string; byName?: string } | undefined) => {
+    if (!m || (!m.by && !m.byName)) return null;
+    const member = m.by ? partner.members.find(x => x.uid === m.by) : undefined;
+    const isMe = !!m.by && m.by === partner.myUid;
+    return { isMe, role: member?.role ?? (isMe ? profile.role : undefined), name: m.byName || member?.name || (isMe ? profile.name : undefined) };
   };
 
   /** Quién marcó la tarea (solo con vínculo y si el dato existe). */
   const taskAuthor = (taskId: number) => {
     if (!pid) return null;
     const meta = taskMeta[String(taskId)];
-    if (!meta || (!meta.by && !meta.byName)) return null;
-    const member = meta.by ? partner.members.find(m => m.uid === meta.by) : undefined;
-    const isMe = !!meta.by && meta.by === partner.myUid;
-    const role = member?.role ?? (isMe ? profile.role : undefined);
-    const name = meta.byName || member?.name || (isMe ? profile.name : undefined);
-    const when = meta.at ? formatRelative(meta.at) : "";
-    return { name, role, title: `Marcado por ${name || (role ? ROLE_LABEL[role] : "tu pareja")}${when ? ` ${when}` : ""}` };
+    const who = whoFromMeta(meta);
+    if (!who) return null;
+    const when = meta?.at ? formatRelative(meta.at) : "";
+    return { name: who.name, role: who.role, title: `Marcado por ${who.name || (who.role ? ROLE_LABEL[who.role] : "tu pareja")}${when ? ` ${when}` : ""}` };
   };
 
-  const totalTasks = categories.reduce((acc, cat) => acc + cat.tasks.length, 0);
-  const completedTasks = categories.reduce((acc, cat) => acc + cat.tasks.filter(t => t.completed).length, 0);
-  const progressPercent = Math.round((completedTasks / totalTasks) * 100) || 0;
+  const ownerNote = (key: string) => {
+    if (!pid) return null;
+    const m = ownersMeta[key];
+    const who = whoFromMeta(m);
+    if (!who) return null;
+    const when = m?.at ? ` ${formatRelative(m.at)}` : "";
+    return who.isMe ? `La reasignaste tú${when}` : `La reasignó ${who.name || partnerLabel}${when}`;
+  };
+
+  const buildRow = (task: (typeof ALL_TASKS)[number]): TaskRowModel => {
+    const key = String(task.id);
+    const completed = isTaskDone(taskStatus[key]);
+    const owner = effectiveOwner(task, taskOwners);
+    return {
+      task,
+      completed,
+      owner,
+      windowNote: taskWindowNote(task, realWeek, completed, owner, reader),
+      author: completed ? taskAuthor(task.id) : null,
+      ownerNote: ownerNote(key),
+    };
+  };
+
+  // --- «Hoy»: ventana activa (pendientes primero) + ventanas pasadas sin hacer, por dueño ---
+  const forWeek = tasksForWeek(realWeek, taskStatus);
+  const todayRows = [
+    ...forWeek.now.filter(t => !t.completed),
+    // Solo las de ventana clínica propia que cerraron en las últimas 4 semanas: los hábitos de un
+    // trimestre pasado no "vencen" hoy y un muro de pendientes viejos no ayuda (siguen en los checklists).
+    ...forWeek.overdue.filter(t => (t.weekFrom !== undefined || t.weekTo !== undefined) && (forWeek.week ?? 0) - t.window.to <= 4),
+    ...forWeek.now.filter(t => t.completed),
+  ].map(t => buildRow(t));
+  const todayGroups: TodayGroup[] = [
+    { id: "mine", title: "Tus tareas", rows: todayRows.filter(r => r.owner === reader) },
+    { id: "partner", title: `Las de ${partnerName || (otherRole === "mama" ? "mamá" : "tu copiloto")}`, rows: todayRows.filter(r => r.owner === otherRole) },
+    { id: "both", title: "De los dos", rows: todayRows.filter(r => r.owner === "ambos") },
+  ];
+
+  // --- Próxima cita (solo futura; las de "todo el día" cuentan hasta que termina el día) ---
+  const now = useNow(60_000);
+  const nextEvent = React.useMemo(() => {
+    const startOfToday = new Date(now);
+    startOfToday.setHours(0, 0, 0, 0);
+    let best: { ev: AgendaEvent; at: Date } | null = null;
+    for (const ev of events) {
+      const at = parseEventDate(ev);
+      if (!at) continue;
+      const future = hasClockTime(ev.time) ? at.getTime() >= now.getTime() : at.getTime() >= startOfToday.getTime();
+      if (future && (!best || at.getTime() < best.at.getTime())) best = { ev, at };
+    }
+    return best;
+  }, [events, now]);
+  const nextEventInfo = nextEvent
+    ? {
+        title: nextEvent.ev.title,
+        when: `${nextEvent.ev.date}${hasClockTime(nextEvent.ev.time) ? ` · ${nextEvent.ev.time}` : ""}`,
+        relative: !hasClockTime(nextEvent.ev.time) && nextEvent.at.toDateString() === now.toDateString() ? "hoy" : formatRelative(nextEvent.at, now),
+        byName: pid && nextEvent.ev.createdBy && nextEvent.ev.createdBy !== partner.myUid ? nextEvent.ev.createdByName : undefined,
+      }
+    : null;
+
+  // --- "Desde tu última visita": lo que marcó o reasignó la pareja (solo con dato del servidor) ---
+  const visitSince = visit.pid === pid ? visit.since : null;
+  const sinceLastVisit: SinceLastVisit = (() => {
+    if (!pid || !checklistLoaded || !visitSince || !partner.myUid) return null;
+    const fromPartner = (m: { by?: string; at?: Date }) => !!m.at && m.at.getTime() > visitSince && !!m.by && m.by !== partner.myUid;
+    const marked = Object.entries(taskMeta).filter(([k, m]) => taskStatus[k] === "completed" && fromPartner(m));
+    const reassigned = Object.entries(ownersMeta).filter(([, m]) => fromPartner(m));
+    if (marked.length === 0 && reassigned.length === 0) return null;
+    const who = whoFromMeta((marked[0] ?? reassigned[0])[1]);
+    const name = who?.name || partnerName;
+    const parts: string[] = [];
+    const tareas = (n: number) => (n === 1 ? "1 tarea" : `${n} tareas`);
+    if (marked.length > 0) parts.push(`marcó ${tareas(marked.length)}`);
+    if (reassigned.length > 0) parts.push(`reasignó ${marked.length > 0 ? reassigned.length : tareas(reassigned.length)}`);
+    return {
+      name,
+      role: who?.role ?? partner.partnerRole,
+      text: `Desde tu última visita, ${name || "tu pareja"} ${parts.join(" y ")}`,
+      titles: marked.slice(0, 3).map(([k]) => ALL_TASKS.find(t => String(t.id) === k)?.text).filter((t): t is string => !!t),
+    };
+  })();
+
+  // --- Checklists completos por trimestre ---
+  const trimesters: TrimesterModel[] = ([1, 2, 3] as const).map(t => ({
+    trimester: t,
+    range: `Semanas ${TRIMESTER_WEEKS[t].from}–${TRIMESTER_WEEKS[t].to}`,
+    categories: TASK_CATEGORIES.filter(c => c.trimester === t).map(c => ({
+      id: c.id,
+      title: c.title,
+      rows: ALL_TASKS.filter(x => x.categoryId === c.id && taskStatus[String(x.id)] !== "dismissed").map(buildRow),
+    })),
+  }));
+  const allRows = trimesters.flatMap(t => t.categories.flatMap(c => c.rows));
+  const doneCount = allRows.filter(r => r.completed).length;
+  const loadingText = isOffline() ? "Sin conexión: no podemos mostrar el progreso compartido ahora." : "Cargando el progreso compartido…";
+  const laborReady = ga.source !== "unknown" && typeof ga.weeks === "number" && ga.weeks >= 36;
 
   return (
-    <div className="p-5 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-      
-      {/* 1. Week Selector & Info */}
-      <div className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-sm border border-stone-200/80 dark:border-white/[0.08] overflow-hidden transition-colors">
-        {/* Selector */}
-        <div className="bg-sage-ink dark:bg-[#1a1724] dark:border-b dark:border-white/[0.08] p-4 text-white dark:text-[#eae6e1] flex items-center justify-between transition-colors">
-          <button aria-label="Semana anterior"
-            onClick={() => setWeek(w => Math.max(1, w - 1))}
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-white/20 dark:hover:bg-white/10 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-          >
-            <ChevronLeft size={24} />
-          </button>
-          <div className="text-center">
-            <p className="text-white/90 dark:text-[#a6a1b2] text-xs font-semibold tracking-tight mb-1">
-              {weekUnknown ? "Explorar semana" : "Semana de Gestación"}
-            </p>
-            <h2 className="text-3xl font-black">{week}</h2>
-          </div>
-          <button aria-label="Semana siguiente"
-            onClick={() => setWeek(w => Math.min(40, w + 1))}
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-white/20 dark:hover:bg-white/10 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-          >
-            <ChevronRight size={24} />
-          </button>
-        </div>
-
-        {weekUnknown && (
-          <div className="px-5 pt-4">
-            <div className="flex items-start gap-2 rounded-2xl border border-amber-700/30 bg-amber-50 dark:border-amber-300/25 dark:bg-amber-300/[0.08] p-3">
-              <Info size={18} className="mt-0.5 shrink-0 text-amber-800 dark:text-amber-300" aria-hidden="true" />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-stone-900 dark:text-[#eae6e1]">Semana sin confirmar</p>
-                <p className="mt-0.5 text-xs leading-snug text-stone-700 dark:text-[#d9d4de]">
-                  Esto es lo típico de la semana {week}, no de tu embarazo. Confirma la semana para ver lo tuyo.
-                </p>
-                <button
-                  type="button"
-                  onClick={onConfirmWeek}
-                  className="mt-1 -ml-1 inline-flex min-h-[44px] items-center gap-1 rounded-lg px-1 text-sm font-bold text-terracotta-ink underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
-                >
-                  Confirmar mi semana
-                  <ChevronRight size={16} aria-hidden="true" />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Fetal Size Info */}
-        <div className="p-5">
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <p className="text-stone-500 dark:text-[#a6a1b2] text-xs uppercase font-bold mb-1">Tamaño comparativo</p>
-              <p className="text-2xl font-black tracking-tight text-stone-800 dark:text-[#eae6e1]">{weekData.size}</p>
-            </div>
-            <div className="bg-sage/10 dark:bg-[#1a1724] p-3 rounded-2xl">
-              <Baby size={32} className="text-terracotta dark:text-sage" />
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="bg-stone-50 dark:bg-[#2d273a] rounded-2xl p-3 border border-stone-200/80 dark:border-white/[0.06]">
-              <p className="text-stone-500 dark:text-[#a6a1b2] text-xs font-bold mb-1">Longitud</p>
-              <p className="font-bold text-stone-800 dark:text-[#eae6e1]">{weekData.length}</p>
-            </div>
-            <div className="bg-stone-50 dark:bg-[#2d273a] rounded-2xl p-3 border border-stone-200/80 dark:border-white/[0.06]">
-              <p className="text-stone-500 dark:text-[#a6a1b2] text-xs font-bold mb-1">Peso est.</p>
-              <p className="font-bold text-stone-800 dark:text-[#eae6e1]">{weekData.weight}</p>
-            </div>
-          </div>
-
-          <div className="bg-terracotta/10 dark:bg-terracotta/10 border border-terracotta/25 dark:border-terracotta/20 rounded-2xl p-4 flex gap-3">
-            <Sparkles size={24} className="text-terracotta-ink shrink-0" aria-hidden="true" />
-            <div>
-              <p className="text-terracotta-ink text-xs font-bold uppercase mb-1">Hito de la semana</p>
-              <p className="text-stone-800 dark:text-[#eae6e1] text-sm font-medium">{weekData.milestone}</p>
-            </div>
-          </div>
-        </div>
-
-          {!weekUnknown && (
-            <div className="border-t border-stone-100 dark:border-white/[0.06] pt-5 mt-5 pb-5">
-              <PregnancyProgressBar week={week} />
-            </div>
-          )}
-        {/* Misión */}
-        <div className="bg-sage/10 dark:bg-[#1a1724] border-t border-sage/20 dark:border-white/[0.08] p-5">
-          <div className="flex items-center gap-2 mb-2">
-            <Trophy size={18} className="text-sage-ink" aria-hidden="true" />
-            <h3 className="font-bold text-sage-ink text-sm">
-              {profile.role === "papa" ? "Misión del Copiloto" : "Tu Misión"}
-            </h3>
-          </div>
-          <p className="text-stone-700 dark:text-[#eae6e1] text-sm leading-relaxed">
-            {profile.role === "papa" ? weekData.dadMission : weekData.momMission}
-          </p>
-        </div>
-      </div>
-
-      {/* 1.5 Mom Status (New Pareja Module) */}
-      <div className="pt-2">
-        <MomStatusCard
-          profile={profile}
-          remoteMomStatus={remoteMomStatus}
-          remoteLoaded={momStatusLoaded}
-          partner={partner}
-          showToast={showToast}
-          onRequestLink={onRequestLink}
+    <div className="p-5 space-y-9 animate-in fade-in slide-in-from-bottom-4 duration-300">
+      {laborReady && (
+        <LaborReadyBlock
+          weeks={ga.weeks!}
+          totalDays={ga.totalDays}
+          reader={reader}
+          partnerName={partnerName}
+          onOpenTool={onOpenTool}
+          onReviewDate={onConfirmDate}
         />
-      </div>
+      )}
 
-      {/* 2. Checklist Module */}
-      <div>
-        <div className="flex justify-between items-baseline gap-3">
-          <h2 className="text-2xl font-black tracking-tight text-stone-800 dark:text-[#eae6e1]">
-            {profile.role === "papa" ? "Checklists del Copiloto" : "Mis Checklists"}
+      <WeekHeader ga={ga} reader={reader} onConfirmDate={onConfirmDate} needsReview={dueDateNeedsReview} />
+
+      <TodayBlock
+        weekKnown={realWeek !== undefined}
+        reader={reader}
+        groups={todayGroups}
+        ownerLabels={ownerLabels}
+        loading={!checklistLoaded}
+        loadingText={loadingText}
+        disabled={!checklistLoaded}
+        onToggleDone={toggleTask}
+        onAssign={(row, o) => assignTask(row, o)}
+        nextEvent={nextEventInfo}
+        eventsLoading={eventsLoading}
+        onOpenPrep={() => { if (nextEvent) onOpenPrep(nextEvent.ev); }}
+        onGoToAgenda={onGoToAgenda}
+        sinceLastVisit={sinceLastVisit}
+      />
+
+      <MomStatusCard
+        profile={profile}
+        remoteMomStatus={remoteMomStatus}
+        remoteLoaded={momStatusLoaded}
+        partner={partner}
+        showToast={showToast}
+        onRequestLink={onRequestLink}
+      />
+
+      <FetalCard
+        realWeek={realWeek}
+        fallbackWeek={12}
+        theme={profile.comparisonTheme || "frutas"}
+        reader={reader}
+        partnerName={partnerName}
+      />
+
+      <section aria-labelledby="guia-check-title">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 id="guia-check-title" className="text-2xl font-black tracking-tight text-stone-900 dark:text-[#eae6e1]">
+            Checklists por trimestre
           </h2>
-          <span className="shrink-0 text-terracotta-ink font-bold text-sm">{checklistLoaded ? `${progressPercent}% completado` : "—"}</span>
+          <span className="shrink-0 text-sm font-bold text-stone-600 dark:text-[#a6a1b2] tabular-nums">
+            {checklistLoaded ? `${doneCount} de ${allRows.length}` : "—"}
+          </span>
         </div>
         {/* Dónde vive este progreso: solo aquí o compartido con la pareja. */}
-        <SyncBadge partnerName={partner.partnerName} lastSyncedAt={lastChecklistChange} waiting={!checklistLoaded} className="mt-1 mb-4" />
+        <SyncBadge partnerName={partner.partnerName} lastSyncedAt={lastChecklistChange} waiting={!checklistLoaded} className="mt-1" />
         {!checklistLoaded && (
-          <p className="-mt-2 mb-4 text-xs text-stone-600 dark:text-[#a6a1b2]" aria-live="polite">
-            {isOffline() ? "Sin conexión: no podemos mostrar el progreso compartido ahora." : "Cargando el progreso compartido…"}
-          </p>
+          <p className="mt-1 text-xs text-stone-600 dark:text-[#a6a1b2]" aria-live="polite">{loadingText}</p>
         )}
-
-        {/* Progress bar */}
-        <div className="w-full bg-stone-200 dark:bg-[#2d273a] rounded-full h-2.5 mb-5 overflow-hidden">
-          <div className="bg-terracotta h-2.5 rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
-        </div>
-
-        <div className="flex flex-col gap-5">
-          {categories.map((cat) => (
-            <div key={cat.id} className="bg-white dark:bg-[#221d2d] rounded-2xl shadow-sm border border-stone-200/80 dark:border-white/[0.08] overflow-hidden transition-colors">
-              <button 
-                onClick={() => toggleExpand(cat.id)}
-                className="w-full p-4 flex items-center justify-between bg-white dark:bg-[#221d2d] hover:bg-stone-50 dark:hover:bg-[#2d273a]/60 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`${cat.color} dark:bg-opacity-20 p-2 rounded-xl`}>
-                    {cat.icon}
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-stone-800 dark:text-[#eae6e1] text-left">{cat.title}</h3>
-                    <p className="text-xs text-stone-500 dark:text-[#a6a1b2] text-left">
-                      {cat.tasks.filter(t => t.completed).length} de {cat.tasks.length} completadas
-                    </p>
-                  </div>
-                </div>
-                {cat.expanded ? <ChevronUp size={20} className="text-stone-500 dark:text-[#a6a1b2]" /> : <ChevronDown size={20} className="text-stone-500 dark:text-[#a6a1b2]" />}
-              </button>
-              
-              {cat.expanded && (
-                <div className="p-4 pt-0 border-t border-stone-100 dark:border-white/[0.06] bg-sage/5 dark:bg-[#181520]/60">
-                  <div className="flex flex-col gap-2.5 mt-4">
-                    {cat.tasks.map(task => {
-                      const author = task.completed ? taskAuthor(task.id) : null;
-                      return (
-                      <button
-                        key={task.id}
-                        type="button"
-                        onClick={() => toggleTask(task.id, task.text)}
-                        disabled={!checklistLoaded}
-                        aria-checked={task.completed}
-                        role="switch"
-                        className="w-full min-h-[44px] text-left flex items-start gap-3 p-3 bg-white dark:bg-[#2d273a] rounded-xl border border-stone-200/80 dark:border-white/[0.06] cursor-pointer hover:border-sage/30 dark:hover:border-sage transition-colors group focus:outline-none focus:ring-2 focus:ring-sage/100 disabled:cursor-wait disabled:opacity-60"
-                      >
-                        <div className={`mt-0.5 shrink-0 transition-all duration-300 ${task.completed ? "text-sage-ink scale-110" : "text-stone-400 dark:text-[#a6a1b2] group-hover:text-sage group-hover:scale-110"}`}>
-                          {task.completed ? <CheckCircle2 size={18} /> : <Circle size={18} />}
-                        </div>
-                        <span className={`flex-1 min-w-0 text-sm leading-snug ${task.completed ? "text-stone-500 dark:text-[#a6a1b2] line-through" : "text-stone-700 dark:text-[#eae6e1]"}`}>
-                          {task.text}
-                        </span>
-                        {author && <AuthorChip size="xs" name={author.name} role={author.role} title={author.title} />}
-                      </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
+        <p className="mt-2 mb-3 text-sm leading-snug text-stone-600 dark:text-[#a6a1b2]">
+          Toca una tarea para ver por qué importa y a quién le toca.
+        </p>
+        <TrimesterChecklists
+          trimesters={trimesters}
+          currentTrimester={realWeek !== undefined ? ga.trimester : undefined}
+          ownerLabels={ownerLabels}
+          disabled={!checklistLoaded}
+          onToggleDone={toggleTask}
+          onAssign={(row, o) => assignTask(row, o)}
+        />
+      </section>
     </div>
   );
 }

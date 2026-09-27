@@ -212,6 +212,17 @@ function useMe() {
 
 type Me = ReturnType<typeof useMe>;
 
+/**
+ * Textos de los contadores según quién los lee: la mamá ("recuéstate") o el copiloto, que
+ * acompaña ("pídele a Ana que se recueste"). `her` es el nombre de la pareja o "tu pareja".
+ */
+function companionVoice(me: Me) {
+  const isPapa = me.role === "papa";
+  const her = me.partner.partnerName?.trim() || "tu pareja";
+  const Her = her.charAt(0).toLocaleUpperCase("es") + her.slice(1);
+  return { isPapa, her, Her };
+}
+
 /** Firma para lo que registra este teléfono (solo con vínculo: sin pareja no hay a quién mostrarlo). */
 function authorStamp(me: Me): Authored {
   if (!me.pid) return {};
@@ -1514,6 +1525,15 @@ export function HerramientasView({ showToast, profile, openRequest }: { showToas
     { id: "lecturas", label: "Lecturas", icon: <BookOpen size={24} />, desc: "Próximamente", color: "bg-stone-100 text-stone-600 dark:bg-white/5 dark:text-[#a6a1b2]", border: "border-stone-200 dark:border-white/10" },
   ];
 
+  // Orden según la semana (la semana manda): desde la 36, Contracciones y Maleta primero; de la 28
+  // a la 35, Patadas. SOS sigue siempre arriba y a lo ancho.
+  const hubWeek = knownWeek(profile);
+  const priority: string[] = hubWeek === undefined ? [] : hubWeek >= 36 ? ["contracciones", "maleta"] : hubWeek >= 28 ? ["patadas"] : [];
+  const orderedTools = [
+    ...priority.map((id) => tools.find((t) => t.id === id)).filter((t): t is (typeof tools)[number] => !!t),
+    ...tools.filter((t) => !priority.includes(t.id)),
+  ];
+
   if (activeTool) {
     const tool = tools.find(t => t.id === activeTool);
     return (
@@ -1556,7 +1576,9 @@ export function HerramientasView({ showToast, profile, openRequest }: { showToas
         <h1 className="text-2xl font-black text-stone-800 dark:text-white tracking-tight leading-none mb-1">
           Herramientas
         </h1>
-        <p className="text-sm text-stone-500 dark:text-[#a6a1b2]">Todo lo que necesitas a un toque de distancia.</p>
+        <p className="text-sm text-stone-600 dark:text-[#a6a1b2]">
+          {priority.length > 0 ? `Semana ${hubWeek}: primero lo que más vas a usar.` : "Todo lo que necesitas a un toque de distancia."}
+        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-4 pb-24">
@@ -1579,7 +1601,7 @@ export function HerramientasView({ showToast, profile, openRequest }: { showToas
         </button>
 
         {/* Other tools */}
-        {tools.filter(t => t.id !== 'sos').map(tool => (
+        {orderedTools.filter(t => t.id !== 'sos').map(tool => (
           <button 
             key={tool.id}
             onClick={() => setActiveTool(tool.id)}
@@ -1667,6 +1689,7 @@ const KICK_LIST: SharedListSpec<KickSessionItem> = {
 export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, profile?: UserProfile }) {
   const week = knownWeek(profile);
   const me = useMe();
+  const { isPapa, her, Her } = companionVoice(me);
   const callPanelId = React.useId();
   // Sesión en curso restaurada: abrir Síntomas u otra herramienta no la pierde.
   const [restored] = useState(loadActiveKickSession);
@@ -1862,6 +1885,21 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
     ? Math.round(validSessions.reduce((acc, s) => acc + (s.durationSeconds / 60), 0) / validSessions.length)
     : null;
 
+  // Sesión recién terminada frente a lo habitual de ESTE bebé (su promedio sin contarla a ella).
+  // "Lenta": más de 60 minutos, o más del doble del promedio (desde 10 minutos, para no avisar
+  // por diferencias de segundos).
+  const priorSessions = completedSession ? validSessions.filter(s => s.id !== completedSession.id) : [];
+  const priorAvgRaw = priorSessions.length > 0
+    ? priorSessions.reduce((acc, s) => acc + (s.durationSeconds / 60), 0) / priorSessions.length
+    : null;
+  const completedMinutes = completedSession ? completedSession.durationSeconds / 60 : 0;
+  const slowSession = !!completedSession && (
+    completedMinutes > 60 || (priorAvgRaw !== null && completedMinutes >= 10 && completedMinutes > 2 * priorAvgRaw)
+  );
+  const slowLead = priorAvgRaw !== null && completedMinutes > priorAvgRaw
+    ? `Hoy tardó más que ${isPapa ? "su" : "tu"} promedio (~${Math.max(1, Math.round(priorAvgRaw))} min).`
+    : "Hoy tardó más de 1 hora.";
+
   // Alerta de más de 90 min (Cardiff timeout warning) y, a las 2 horas, indicación de llamar.
   const isOvertime = startTime !== null && elapsedSeconds >= 5400 && count < 10;
   const isTwoHours = isOvertime && elapsedSeconds >= 7200;
@@ -1873,45 +1911,47 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
       <div className="text-center">
         <h3 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1]">Cuenta sus movimientos</h3>
         <p className="text-sm text-stone-600 dark:text-[#a6a1b2] max-w-xs mx-auto mt-1 leading-relaxed">
-          Método Cardiff: registra 10 movimientos. Lo habitual es llegar a 10 en menos de 2 horas.
+          {isPapa
+            ? `Método Cardiff: cada vez que ${her} sienta un movimiento, regístralo aquí. Lo habitual es llegar a 10 en menos de 2 horas.`
+            : "Método Cardiff: registra 10 movimientos. Lo habitual es llegar a 10 en menos de 2 horas."}
         </p>
         {typeof week === "number" && week < 28 && (
           <p className="mt-2 mx-auto max-w-xs inline-flex items-start gap-1.5 text-left text-sm leading-snug text-stone-600 dark:text-[#a6a1b2]">
             <Info size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
-            <span>El conteo de movimientos se recomienda desde la semana 28. Estás en la semana {week}.</span>
+            <span>El conteo de movimientos suele empezar en la semana 28. {isPapa ? `${Her} está en la semana ${week}.` : `Estás en la semana ${week}.`}</span>
           </p>
         )}
 
-        {/* Botón para desplegar guía médica */}
+        {/* Botón para desplegar la guía */}
         <button
           type="button"
           onClick={() => setShowGuide(!showGuide)}
           className="mt-3 min-h-[44px] text-xs font-bold text-sage-ink hover:underline underline-offset-4 inline-flex items-center gap-1 bg-sage/10 dark:bg-[#1a1724] hover:bg-sage/20 dark:hover:bg-[#19322c] px-3 py-1.5 rounded-xl border border-sage/30 dark:border-sage/25 transition-colors"
         >
           <Info size={14} className="text-sage-ink" />
-          <span>{showGuide ? "Ocultar guía clínica" : "¿Cómo y cuándo contar patadas?"}</span>
+          <span>{showGuide ? "Ocultar la guía" : "¿Cómo y cuándo contar patadas?"}</span>
           {showGuide ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </button>
       </div>
 
-      {/* GUÍA MÉDICA DESPLEGABLE */}
+      {/* GUÍA DESPLEGABLE (alineada con guías públicas; no sustituye al obstetra) */}
       {showGuide && (
         <div className="bg-gradient-to-br from-sage/10 to-emerald-50/70 dark:from-[#221d2d] dark:to-[#1a1724] border border-sage/30 dark:border-sage/25 rounded-3xl p-5 text-left text-xs text-stone-700 dark:text-[#eae6e1]/90 space-y-3 shadow-xs animate-in fade-in slide-in-from-top-2">
           <h4 className="font-bold text-sage-ink text-sm flex items-center gap-2">
-            <ClipboardList size={16} className="text-sage-ink" aria-hidden="true" /> Guía Obstétrica: Protocolo Cardiff
+            <ClipboardList size={16} className="text-sage-ink" aria-hidden="true" /> Cómo contar movimientos (método Cardiff)
           </h4>
           <ul className="space-y-2 leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
             <li className="flex items-start gap-2">
               <span className="text-terracotta-ink font-bold">1.</span>
-              <span><strong>¿Cuándo iniciar?</strong> Recomendado a partir de la semana 28 (o semana 24 si tu médico lo indicó).</span>
+              <span><strong>¿Cuándo empezar?</strong> Lo habitual es desde la semana 28, o antes si {isPapa ? "su obstetra" : "tu obstetra"} lo indica.</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-terracotta-ink font-bold">2.</span>
-              <span><strong>Mejor momento:</strong> 30 a 60 minutos después de comer o por la noche, cuando el feto recibe más glucosa y la madre está en reposo.</span>
+              <span><strong>Mejor momento:</strong> 30 a 60 minutos después de comer o por la noche, cuando el bebé recibe más glucosa y {isPapa ? `${her} está` : "estás"} en reposo.</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-terracotta-ink font-bold">3.</span>
-              <span><strong>Postura recomendada:</strong> Recuéstate sobre tu costado izquierdo para maximizar la oxigenación placentaria.</span>
+              <span><strong>Postura recomendada:</strong> {isPapa ? `Pídele a ${her} que se recueste de lado (izquierdo o derecho) y que evite estar boca arriba.` : "Recuéstate de lado (izquierdo o derecho) y evita estar boca arriba."}</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-terracotta-ink font-bold">4.</span>
@@ -1919,7 +1959,7 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
             </li>
             <li className="flex items-start gap-2">
               <span className="text-terracotta-ink font-bold">5.</span>
-              <span><strong>Meta normal:</strong> Sentir 10 movimientos. La gran mayoría de bebés lo logra en menos de 30 a 45 minutos.</span>
+              <span><strong>Meta:</strong> {isPapa ? `que ${her} sienta 10 movimientos en menos de 2 horas.` : "sentir 10 movimientos en menos de 2 horas."} Lo importante es notar si tarda mucho más de lo habitual para {isPapa ? "su" : "tu"} bebé.</span>
             </li>
           </ul>
         </div>
@@ -1939,11 +1979,17 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
               </h4>
               <p className="mt-1 text-sm leading-relaxed text-stone-800 dark:text-[#eae6e1]">
                 {isTwoHours
-                  ? "Llama ahora a tu obstetra o ve a urgencias para que revisen al bebé."
-                  : "Recuéstate de lado y sigue contando con calma. Si a las 2 horas no llegas a 10 movimientos, llama a tu obstetra o ve a urgencias."}
+                  ? isPapa
+                    ? "Llama ahora a su obstetra o vayan a urgencias para que revisen al bebé."
+                    : "Llama ahora a tu obstetra o ve a urgencias para que revisen al bebé."
+                  : isPapa
+                    ? `Pídele a ${her} que se recueste de lado y sigan contando con calma. Si a las 2 horas no llegan a 10 movimientos, llama a su obstetra o vayan a urgencias.`
+                    : "Recuéstate de lado y sigue contando con calma. Si a las 2 horas no llegas a 10 movimientos, llama a tu obstetra o ve a urgencias."}
               </p>
               <p className="mt-2 text-sm font-semibold leading-relaxed text-stone-900 dark:text-[#eae6e1]">
-                Si notas que se mueve menos de lo habitual, no esperes a completar el conteo: llama.
+                {isPapa
+                  ? `Si ${her} nota que se mueve menos de lo habitual, no esperen a completar el conteo: llama.`
+                  : "Si notas que se mueve menos de lo habitual, no esperes a completar el conteo: llama."}
               </p>
             </div>
           </div>
@@ -2004,7 +2050,7 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
             <>
               <span className="text-8xl font-black tracking-tighter leading-none">{count}</span>
               <span className="text-sm font-bold mt-2 bg-black/20 px-3 py-1 rounded-full text-white">
-                {count === 0 && !startTime ? "Toca en cada movimiento" : "Registrar movimiento"}
+                {count === 0 && !startTime ? (isPapa ? "Toca cuando lo sienta" : "Toca en cada movimiento") : "Registrar movimiento"}
               </span>
               <span className="text-xs text-white mt-1 font-medium">
                 {count === 0 ? (startTime ? "El tiempo ya corre" : "El primero inicia el tiempo") : `Faltan ${10 - count} para la meta`}
@@ -2013,8 +2059,8 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
           ) : (
             <>
               <CheckCircle2 size={40} className="mb-1" aria-hidden="true" />
-              <span className="text-4xl font-black tracking-tight leading-tight">¡Meta 10!</span>
-              <span className="text-xs font-bold tracking-tight text-white mt-1">Completada con éxito</span>
+              <span className="text-4xl font-black tracking-tight leading-tight tabular-nums">10 de 10</span>
+              <span className="text-xs font-bold tracking-tight text-white mt-1">Conteo completo</span>
             </>
           )}
         </button>
@@ -2038,7 +2084,7 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
             className="mt-4 inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-stone-300 dark:border-white/15 bg-white dark:bg-[#2d273a] px-4 text-sm font-bold text-stone-800 dark:text-[#eae6e1] hover:bg-stone-50 dark:hover:bg-[#352e44] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
           >
             <Clock size={16} aria-hidden="true" />
-            Aún no lo siento: iniciar el tiempo
+            {isPapa ? "Aún no lo siente: iniciar el tiempo" : "Aún no lo siento: iniciar el tiempo"}
           </button>
         )}
 
@@ -2057,7 +2103,11 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
       {!isOvertime && (
         <QuickCallBlock context="patadas">
           <p className="text-sm leading-relaxed text-stone-700 dark:text-[#eae6e1]">
-            <strong className="font-bold text-stone-900 dark:text-[#eae6e1]">Si notas que se mueve menos de lo habitual,</strong> no esperes a completar el conteo: llama.
+            {isPapa ? (
+              <><strong className="font-bold text-stone-900 dark:text-[#eae6e1]">Si {her} nota que se mueve menos de lo habitual,</strong> no esperen a completar el conteo: llama.</>
+            ) : (
+              <><strong className="font-bold text-stone-900 dark:text-[#eae6e1]">Si notas que se mueve menos de lo habitual,</strong> no esperes a completar el conteo: llama.</>
+            )}
           </p>
         </QuickCallBlock>
       )}
@@ -2126,7 +2176,7 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
                 <CheckCircle2 size={24} aria-hidden="true" />
               </div>
               <div>
-                <h4 className="text-lg font-black leading-tight">¡Sesión Exitosa Registrada!</h4>
+                <h4 className="text-lg font-black leading-tight">Sesión guardada</h4>
                 <p className="text-xs text-white mt-0.5">10 movimientos completados en {completedSession.durationFormatted}</p>
               </div>
             </div>
@@ -2140,9 +2190,18 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
             </button>
           </div>
 
-          <p className="text-xs text-white leading-relaxed bg-black/15 p-3 rounded-2xl">
-            Sesión guardada en el historial. Si otro día notas que tarda mucho más de lo habitual o se mueve menos, llama a tu obstetra.
+          <p className={`text-xs text-white leading-relaxed bg-black/15 p-3 rounded-2xl${slowSession ? " font-semibold" : ""}`}>
+            {slowSession
+              ? isPapa
+                ? `${slowLead} Si ${her} siente que se mueve menos de lo habitual, llama hoy a su obstetra.`
+                : `${slowLead} Si sientes que se mueve menos de lo habitual, llama hoy a tu obstetra.`
+              : isPapa
+                ? `Si algún día ${her} nota que tarda mucho más de lo habitual o se mueve menos, llama a su obstetra ese mismo día.`
+                : "Si algún día notas que tarda mucho más de lo habitual o se mueve menos, llama a tu obstetra ese mismo día."}
           </p>
+
+          {/* El aviso dice "llama hoy": la llamada tiene que estar aquí mismo, a un toque. */}
+          {slowSession && <CallActions context="patadas" />}
 
           <div>
             <p className="text-xs font-bold tracking-tight text-white mb-2">Añadir contexto a la sesión:</p>
@@ -2190,7 +2249,7 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
               <Trophy size={20} aria-hidden="true" />
             </div>
             <div>
-              <p className="text-xs font-bold text-stone-800 dark:text-[#eae6e1]">Tu promedio para llegar a 10</p>
+              <p className="text-xs font-bold text-stone-800 dark:text-[#eae6e1]">{isPapa ? "Su promedio para llegar a 10" : "Tu promedio para llegar a 10"}</p>
               <p className="text-lg font-black text-sage-ink tabular-nums">~{avgDurationMinutes} minutos</p>
             </div>
           </div>
@@ -2362,6 +2421,7 @@ function loadActiveContraction(): number | null {
 export function ContadorContracciones({ showToast, profile }: { showToast: ShowToast, profile?: UserProfile }) {
   const week = knownWeek(profile);
   const me = useMe();
+  const { isPapa, her, Her } = companionVoice(me);
   const alertId = React.useId();
   // Contracción en curso restaurada: abrir Síntomas u otra herramienta no la pierde.
   const [restoredStart] = useState(loadActiveContraction);
@@ -2502,15 +2562,19 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
               </h4>
               {weekKnown ? (
                 <p className="mt-1 text-sm leading-relaxed text-stone-800 dark:text-[#eae6e1]">
-                  Registraste {recentCount} contracciones en la última hora y estás en la semana {week}.{" "}
-                  <strong className="font-bold text-stone-900 dark:text-white">Llama ya a tu obstetra o a emergencias.</strong>{" "}
-                  No esperes a que se detengan.
+                  {isPapa
+                    ? `Registraron ${recentCount} contracciones en la última hora y ${her} está en la semana ${week}.`
+                    : `Registraste ${recentCount} contracciones en la última hora y estás en la semana ${week}.`}{" "}
+                  <strong className="font-bold text-stone-900 dark:text-white">{isPapa ? "Llama ya a su obstetra o a emergencias." : "Llama ya a tu obstetra o a emergencias."}</strong>{" "}
+                  {isPapa ? "No esperen a que se detengan." : "No esperes a que se detengan."}
                 </p>
               ) : (
                 <p className="mt-1 text-sm leading-relaxed text-stone-800 dark:text-[#eae6e1]">
-                  Registraste {recentCount} contracciones en la última hora.{" "}
-                  <strong className="font-bold text-stone-900 dark:text-white">Si estás antes de la semana 37, llama ya a tu obstetra o a emergencias:</strong>{" "}
-                  puede ser parto pretérmino. Indica tu semana en Ajustes para que el aviso sea exacto.
+                  {isPapa ? `Registraron ${recentCount} contracciones en la última hora.` : `Registraste ${recentCount} contracciones en la última hora.`}{" "}
+                  <strong className="font-bold text-stone-900 dark:text-white">
+                    {isPapa ? `Si ${her} está antes de la semana 37, llama ya a su obstetra o a emergencias:` : "Si estás antes de la semana 37, llama ya a tu obstetra o a emergencias:"}
+                  </strong>{" "}
+                  puede ser parto pretérmino. {isPapa ? "Indiquen la semana en Ajustes para que el aviso sea exacto." : "Indica tu semana en Ajustes para que el aviso sea exacto."}
                 </p>
               )}
             </div>
@@ -2534,8 +2598,8 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
                 Posible trabajo de parto activo
               </h4>
               <p className="mt-1 text-sm leading-relaxed text-stone-800 dark:text-[#eae6e1]">
-                En la última hora tus contracciones llegaron cada {formatTime(avgInterval)} en promedio y duraron unos {formatTime(avgDuration)}.{" "}
-                <strong className="font-bold text-stone-900 dark:text-white">Es momento de llamar a tu obstetra o ir al hospital.</strong>
+                En la última hora {isPapa ? "sus" : "tus"} contracciones llegaron cada {formatTime(avgInterval)} en promedio y duraron unos {formatTime(avgDuration)}.{" "}
+                <strong className="font-bold text-stone-900 dark:text-white">{isPapa ? "Es momento de llamar a su obstetra o ir al hospital." : "Es momento de llamar a tu obstetra o ir al hospital."}</strong>
               </p>
             </div>
           </div>
@@ -2575,7 +2639,9 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
           </span>
         </div>
         <span className="text-xs font-medium">
-          {isRecording ? "Toca o presiona Espacio al terminar" : "Toca o presiona Espacio al sentir que inicia"}
+          {isRecording
+            ? isPapa ? `Toca cuando ${her} te diga que terminó` : "Toca o presiona Espacio al terminar"
+            : isPapa ? `Toca cuando ${her} te diga que empieza` : "Toca o presiona Espacio al sentir que inicia"}
         </span>
       </button>
 
@@ -2586,17 +2652,21 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
             <Info size={20} className="mt-0.5 shrink-0 text-terracotta-ink" aria-hidden="true" />
             {preterm ? (
               <p className="text-sm leading-relaxed text-stone-700 dark:text-[#eae6e1]">
-                Estás en la semana {week}. Antes de la semana 37, <strong className="font-bold text-stone-900 dark:text-white">4 o más contracciones en 1 hora</strong>, presión en la pelvis o dolor lumbar que va y viene son motivo para llamar ya.
-                {recentCount > 0 && ` En la última hora llevas ${recentCount} ${recentCount === 1 ? "contracción" : "contracciones"}.`}
+                {isPapa ? `${Her} está en la semana ${week}.` : `Estás en la semana ${week}.`} Antes de la semana 37, <strong className="font-bold text-stone-900 dark:text-white">4 o más contracciones en 1 hora</strong>, presión en la pelvis o dolor lumbar que va y viene son motivo para llamar ya.
+                {recentCount > 0 && ` En la última hora ${isPapa ? "llevan" : "llevas"} ${recentCount} ${recentCount === 1 ? "contracción" : "contracciones"}.`}
               </p>
             ) : !weekKnown ? (
               <p className="text-sm leading-relaxed text-stone-700 dark:text-[#eae6e1]">
-                No tenemos confirmada tu semana, así que vigilamos las dos reglas. <strong className="font-bold text-stone-900 dark:text-white">Antes de la semana 37:</strong> 4 o más contracciones en 1 hora son motivo para llamar ya. <strong className="font-bold text-stone-900 dark:text-white">Desde la semana 37:</strong> cada 5 minutos o menos, de 1 minuto, durante 1 hora (5-1-1).
-                {recentCount > 0 && ` En la última hora llevas ${recentCount} ${recentCount === 1 ? "contracción" : "contracciones"}.`}
+                {isPapa ? "No tenemos confirmada la semana" : "No tenemos confirmada tu semana"}, así que vigilamos las dos reglas. <strong className="font-bold text-stone-900 dark:text-white">Antes de la semana 37:</strong> 4 o más contracciones en 1 hora son motivo para llamar ya. <strong className="font-bold text-stone-900 dark:text-white">Desde la semana 37:</strong> cada 5 minutos o menos, de 1 minuto, durante 1 hora (5-1-1).
+                {recentCount > 0 && ` En la última hora ${isPapa ? "llevan" : "llevas"} ${recentCount} ${recentCount === 1 ? "contracción" : "contracciones"}.`}
               </p>
             ) : (
               <p className="text-sm leading-relaxed text-stone-700 dark:text-[#eae6e1]">
-                <strong className="font-bold text-stone-900 dark:text-white">Si se rompe la fuente, tienes sangrado o el bebé se mueve menos,</strong> no esperes a la regla 5-1-1: llama.
+                {isPapa ? (
+                  <><strong className="font-bold text-stone-900 dark:text-white">Si se rompe la fuente, {her} tiene sangrado o el bebé se mueve menos,</strong> no esperen a la regla 5-1-1: llama.</>
+                ) : (
+                  <><strong className="font-bold text-stone-900 dark:text-white">Si se rompe la fuente, tienes sangrado o el bebé se mueve menos,</strong> no esperes a la regla 5-1-1: llama.</>
+                )}
               </p>
             )}
           </div>
@@ -2621,9 +2691,11 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-sage/20 to-emerald-400/30 border-2 border-sage flex items-center justify-center animate-pulse motion-reduce:animate-none">
               <HeartPulse size={32} className="text-sage-ink" aria-hidden="true" />
             </div>
-            <p className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm mt-3">Inhala lento en 4 s… exhala suave en 6 s</p>
+            <p className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm mt-3">
+              {isPapa ? "Respiren juntos: inhalen lento en 4 s… exhalen suave en 6 s" : "Inhala lento en 4 s… exhala suave en 6 s"}
+            </p>
             <p className="text-xs text-stone-600 dark:text-[#a6a1b2] max-w-xs mt-0.5">
-              Suelta mandíbula y hombros para relajar la musculatura del suelo pélvico.
+              {isPapa ? `Recuérdale a ${her} soltar la mandíbula y los hombros: la ayuda a relajarse entre contracciones.` : "Suelta la mandíbula y los hombros: ayuda a relajarte entre contracciones."}
             </p>
           </div>
 
@@ -2631,7 +2703,7 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
           <div className="border-t border-sage/20 dark:border-white/[0.08] pt-4 text-sm space-y-1.5">
             <p className="font-bold text-sage-ink flex items-center gap-1.5">
               <HeartHandshake size={14} className="shrink-0" aria-hidden="true" />
-              <span>Si eres su acompañante:</span>
+              <span>{isPapa ? "Tú, entre contracciones:" : "Para tu acompañante:"}</span>
             </p>
             <ul className="list-disc space-y-1 pl-5 text-stone-600 dark:text-[#a6a1b2] leading-relaxed marker:text-sage-ink">
               <li>Ofrece un sorbo pequeño de agua fresca o bálsamo labial.</li>
@@ -2660,9 +2732,13 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
           </div>
           <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm mb-1">Sin contracciones registradas</h4>
           <p className="text-sm text-stone-600 dark:text-[#a6a1b2] max-w-xs mx-auto leading-relaxed">
-            {preterm || !weekKnown
-              ? "Cuando sientas que tu vientre se endurece, toca el botón grande al empezar y otra vez al terminar. Te avisamos si registras 4 o más contracciones en 1 hora (antes de la semana 37) o si se cumple la regla 5-1-1."
-              : "Cuando sientas que tu vientre se endurece, toca el botón grande al empezar y otra vez al terminar. Medimos la última hora y te avisamos cuando se cumpla la regla 5-1-1: cada 5 minutos o menos, de 1 minuto o más, durante 1 hora."}
+            {isPapa
+              ? preterm || !weekKnown
+                ? `Cuando ${her} sienta que su vientre se endurece, toca el botón grande al empezar y otra vez al terminar. Les avisamos si registran 4 o más contracciones en 1 hora (antes de la semana 37) o si se cumple la regla 5-1-1.`
+                : `Cuando ${her} sienta que su vientre se endurece, toca el botón grande al empezar y otra vez al terminar. Medimos la última hora y les avisamos cuando se cumpla la regla 5-1-1: cada 5 minutos o menos, de 1 minuto o más, durante 1 hora.`
+              : preterm || !weekKnown
+                ? "Cuando sientas que tu vientre se endurece, toca el botón grande al empezar y otra vez al terminar. Te avisamos si registras 4 o más contracciones en 1 hora (antes de la semana 37) o si se cumple la regla 5-1-1."
+                : "Cuando sientas que tu vientre se endurece, toca el botón grande al empezar y otra vez al terminar. Medimos la última hora y te avisamos cuando se cumpla la regla 5-1-1: cada 5 minutos o menos, de 1 minuto o más, durante 1 hora."}
           </p>
           {!preterm && (
             <p className="mt-2 text-sm text-stone-600 dark:text-[#a6a1b2] max-w-xs mx-auto leading-relaxed">

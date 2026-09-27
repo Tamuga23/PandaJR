@@ -23,6 +23,8 @@ import {
 import { signInAnonymously, onAuthStateChanged } from "firebase/auth";
 import { sanitizeCareTeam, type CareTeam } from "../urgency";
 import { repairMojibake } from "../format";
+import { datingFromPregnancyDoc, isDueDateSource, parseISODate, toISODate, weekFromDueDateISO, type DueDateSource, type PregnancyDating } from "../pregnancy";
+import { isTaskOwner, sanitizeTaskOwners, type TaskOwner, type TaskOwnerMap } from "../tasks";
 
 // =====================================================================================
 // Tipos compartidos
@@ -55,6 +57,8 @@ export type LegacyData = any;
 export type ChecklistStatus = "completed" | "dismissed";
 export type ChecklistProgress = Record<string, boolean | ChecklistStatus>;
 export type ChecklistMeta = Record<string, { by?: string; byName?: string; at?: Date }>;
+/** 4º argumento de listenToChecklistProgress: dueños reasignados (owners.{taskId}) y quién los cambió. */
+export type ChecklistOwners = { owners: TaskOwnerMap; ownersMeta: ChecklistMeta };
 
 export type BabyName = {
   id: string;
@@ -82,7 +86,10 @@ export type InvitePreview = {
   pregnancyId: string;
   babyName: string;
   momName?: string;
+  /** Semana vigente (calculada desde la FPP si el código la trae). */
   week?: number;
+  /** FPP "aaaa-mm-dd" si el embarazo la tenía al generar el código. */
+  dueDate?: string;
   status: "ok" | "expired" | "used" | "not_found";
   /** Caducidad del código (solo códigos nuevos). */
   expiresAt?: Date;
@@ -235,6 +242,18 @@ function validWeek(w: unknown): number | undefined {
   return Number.isInteger(n) && n >= 1 && n <= 42 ? n : undefined;
 }
 
+/** FPP válida normalizada a "aaaa-mm-dd" (o undefined). */
+function validDueDate(v: unknown): string | undefined {
+  const d = parseISODate(v);
+  return d ? toISODate(d) : undefined;
+}
+
+/** Semana vigente de un documento (embarazo o código): desde la FPP si la hay; si no, `week`. */
+function weekFromDoc(d: DocumentData | undefined): number | undefined {
+  const due = validDueDate(d?.dueDate);
+  return due ? weekFromDueDateISO(due) : validWeek(d?.week);
+}
+
 function warnListener(label: string): ErrorCallback {
   return (error) => {
     if (process.env.NODE_ENV !== "production") console.warn(`[pairing] listener ${label}:`, error?.message);
@@ -381,6 +400,8 @@ async function createInviteTx(p: {
   babyName?: string;
   momName?: string;
   week?: number;
+  /** FPP del embarazo: la vista previa calcula con ella la semana del día en que se usa el código. */
+  dueDate?: string;
   oldCode?: unknown;
   /** Solo si el embarazo sigue con este código (evita emitir dos códigos desde dos teléfonos). */
   onlyIfCurrent?: string;
@@ -418,6 +439,7 @@ async function createInviteTx(p: {
             babyName: p.babyName || undefined,
             momName: p.momName || undefined,
             week: p.week,
+            dueDate: p.dueDate,
           })
         );
         tx.update(pregRef, { inviteCode: code, inviteExpiresAt: expiresAt, inviteCodeUpdatedAt: serverTimestamp() });
@@ -439,17 +461,20 @@ async function createInviteTx(p: {
  * Crea el embarazo compartido con la mamá como primer miembro y su código de invitación.
  * `momName` se guarda como nombre de la mamá (en datos antiguos `babyName` guardaba el nombre de la mamá).
  * `opts.week` guarda la semana confirmada; si no llega no se inventa ninguna.
+ * `opts.dueDate` ("aaaa-mm-dd") guarda la fecha probable de parto: si llega, manda sobre
+ * `opts.week` (la semana guardada se calcula de ella para las versiones que solo leen `week`).
  */
 export async function createPregnancyForMom(
   userId: string,
   babyName: string,
   momName?: string,
-  opts?: { week?: number }
+  opts?: { week?: number; dueDate?: string; dueDateSource?: DueDateSource }
 ) {
   assertOnline();
   const cleanBaby = cleanText(babyName, 60) ?? "";
   const cleanMom = cleanText(momName, 60);
-  const week = validWeek(opts?.week);
+  const dueDate = validDueDate(opts?.dueDate);
+  const week = dueDate ? weekFromDueDateISO(dueDate) : validWeek(opts?.week);
   const pregRef = doc(collection(db, "pregnancies"));
   try {
     await setDoc(
@@ -458,6 +483,15 @@ export async function createPregnancyForMom(
         babyName: cleanBaby,
         momName: cleanMom,
         week,
+        ...(dueDate
+          ? {
+              dueDate,
+              dueDateSource: isDueDateSource(opts?.dueDateSource) ? opts.dueDateSource : "manual",
+              dueDateUpdatedAt: serverTimestamp(),
+              dueDateUpdatedBy: userId,
+              dueDateUpdatedByName: cleanMom,
+            }
+          : {}),
         createdAt: serverTimestamp(),
         createdBy: userId,
         status: "active",
@@ -470,6 +504,7 @@ export async function createPregnancyForMom(
       babyName: cleanBaby,
       momName: cleanMom,
       week,
+      dueDate,
     });
     await setDoc(doc(db, "users", userId), { role: "mama", pregnancyId: pregRef.id, updatedAt: serverTimestamp() }, { merge: true });
     return { success: true as const, inviteCode, pregnancyId: pregRef.id };
@@ -495,7 +530,8 @@ export async function previewInvite(code: string): Promise<InvitePreview> {
         pregnancyId: d.pregnancyId,
         babyName: typeof d.babyName === "string" ? d.babyName : "",
         momName: typeof d.momName === "string" ? d.momName : undefined,
-        week: validWeek(d.week),
+        week: weekFromDoc(d),
+        dueDate: validDueDate(d.dueDate),
         status: inviteStatus(d, uid, Date.now()),
         expiresAt: toDate(d.expiresAt) ?? undefined,
         isOwnCode: !!uid && d.createdBy === uid,
@@ -518,7 +554,8 @@ export async function previewInvite(code: string): Promise<InvitePreview> {
       pregnancyId: pdoc.id,
       babyName: typeof data.babyName === "string" ? data.babyName : "",
       momName: typeof data.momName === "string" ? data.momName : undefined,
-      week: validWeek(data.week),
+      week: weekFromDoc(data),
+      dueDate: validDueDate(data.dueDate),
       status,
       isOwnCode: !!uid && members.some((m) => m.uid === uid && m.role === "mama"),
       legacy: true,
@@ -531,13 +568,22 @@ export async function previewInvite(code: string): Promise<InvitePreview> {
 /**
  * Une al copiloto con un código. Valida en transacción (existe, no caducó, no lo usó otra persona),
  * marca el código como usado, se añade a members y guarda users/{uid}.
- * `week` es 0 si el embarazo no tiene semana confirmada (úsalo como weekUnknown).
+ * `week` es 0 si el embarazo no tiene semana confirmada (úsalo como weekUnknown). Si el embarazo
+ * tiene fecha probable de parto, llegan `dueDate`/`dueDateSource` y `week` se calcula de ella.
  */
 export async function joinPregnancyAsDad(
   userId: string,
   code: string,
   name?: string
-): Promise<{ success: true; pregnancyId: string; babyName: string; week: number; momName?: string }> {
+): Promise<{
+  success: true;
+  pregnancyId: string;
+  babyName: string;
+  week: number;
+  momName?: string;
+  dueDate?: string;
+  dueDateSource?: DueDateSource;
+}> {
   const norm = normalizeInviteCode(code);
   if (!norm) throw new PairingError(PAIRING_MESSAGES.notFound);
   assertOnline();
@@ -569,7 +615,9 @@ export async function joinPregnancyAsDad(
         pregnancyId: d.pregnancyId as string,
         babyName: typeof d.babyName === "string" ? d.babyName : "",
         momName: typeof d.momName === "string" ? d.momName : undefined,
-        week: validWeek(d.week),
+        week: weekFromDoc(d),
+        dueDate: validDueDate(d.dueDate),
+        dueDateSource: undefined as DueDateSource | undefined,
       };
     });
 
@@ -597,20 +645,27 @@ export async function joinPregnancyAsDad(
         pregnancyId: pdoc.id,
         babyName: typeof data.babyName === "string" ? data.babyName : "",
         momName: typeof data.momName === "string" ? data.momName : undefined,
-        week: validWeek(data.week),
+        week: weekFromDoc(data),
+        dueDate: validDueDate(data.dueDate),
+        dueDateSource: isDueDateSource(data.dueDateSource) ? data.dueDateSource : undefined,
       };
     }
 
-    // Ya es miembro: lee los datos vigentes (semana actual). Si falla, se queda con la copia del código.
+    // Ya es miembro: lee los datos vigentes (semana y FPP actuales). Si falla, se queda con la copia del código.
     try {
       const fresh = await getDoc(doc(db, "pregnancies", joined.pregnancyId));
       if (fresh.exists()) {
         const f = fresh.data();
+        const dating = datingFromPregnancyDoc(f);
         joined = {
           ...joined,
           babyName: typeof f.babyName === "string" ? f.babyName : joined.babyName,
           momName: typeof f.momName === "string" ? f.momName : joined.momName,
-          week: validWeek(f.week) ?? joined.week,
+          // FPP fuera de rango: semana sin confirmar (la copia del código salió de esa misma fecha).
+          week: dating.dueDateOutOfRange ? undefined : dating.week ?? joined.week,
+          // El documento del embarazo es la verdad: si allí no hay FPP, no se usa la copia del código.
+          dueDate: dating.dueDate,
+          dueDateSource: dating.dueDateSource,
         };
       }
     } catch {
@@ -623,6 +678,8 @@ export async function joinPregnancyAsDad(
       babyName: joined.babyName,
       momName: joined.momName,
       week: joined.week ?? 0,
+      dueDate: joined.dueDate,
+      dueDateSource: joined.dueDate ? joined.dueDateSource : undefined,
     });
   } catch (e) {
     throw humanize(e, PAIRING_MESSAGES.joinFailed);
@@ -645,7 +702,8 @@ export async function regenerateInviteCode(pregnancyId: string, userId: string):
       createdBy: userId,
       babyName: typeof d.babyName === "string" ? d.babyName : undefined,
       momName: typeof d.momName === "string" ? d.momName : me?.name,
-      week: validWeek(d.week),
+      week: weekFromDoc(d),
+      dueDate: validDueDate(d.dueDate),
       oldCode: d.inviteCode,
     });
   } catch (e) {
@@ -743,7 +801,8 @@ export async function ensureMembership(
       createdBy: me.uid,
       babyName: typeof data.babyName === "string" && data.babyName ? data.babyName : undefined,
       momName: typeof data.momName === "string" && data.momName ? data.momName : name,
-      week: validWeek(data.week),
+      week: weekFromDoc(data),
+      dueDate: validDueDate(data.dueDate),
       oldCode: data.inviteCode,
       onlyIfCurrent: data.inviteCode as string,
     });
@@ -757,9 +816,50 @@ export async function ensureMembership(
 // Datos compartidos del embarazo
 // =====================================================================================
 
-export async function updatePregnancyWeek(pregnancyId: string, week: number) {
+/**
+ * Semana elegida A MANO para los dos teléfonos. Quita la fecha probable de parto si la había
+ * (si no, la FPP volvería a mandar en el otro teléfono) y deja la marca dueDateUpdatedAt para
+ * que el listener sepa que se quitó a propósito. En local usa profilePatchForManualWeek.
+ */
+export async function updatePregnancyWeek(pregnancyId: string, week: number, by?: { uid: string; name?: string }) {
   const ref = doc(db, "pregnancies", pregnancyId);
-  await updateDoc(ref, { week });
+  await updateDoc(ref, {
+    week,
+    dueDate: deleteField(),
+    dueDateSource: deleteField(),
+    dueDateUpdatedAt: serverTimestamp(),
+    dueDateUpdatedBy: by?.uid ?? deleteField(),
+    dueDateUpdatedByName: cleanText(by?.name, 60) ?? deleteField(),
+  });
+}
+
+/**
+ * Fecha probable de parto compartida (pregnancies/{id}: dueDate, dueDateSource,
+ * dueDateUpdatedAt/By/ByName). Actualiza también `week` (calculada hoy) para las versiones que
+ * solo leen la semana. Valida el formato "aaaa-mm-dd"; el rango (2 a 42+6 semanas) lo valida la
+ * UI con validateDueDate. Llamar solo desde manejadores de eventos. Firestore la encola sin red.
+ */
+export async function saveDueDate(
+  pregnancyId: string,
+  dueDate: string,
+  source: DueDateSource,
+  by?: { uid: string; name?: string }
+): Promise<void> {
+  const iso = validDueDate(dueDate);
+  if (!iso) throw new TypeError("dueDate debe ser una fecha válida con formato aaaa-mm-dd");
+  if (!isDueDateSource(source)) throw new TypeError("source debe ser 'eco', 'fum' o 'manual'");
+  const week = weekFromDueDateISO(iso);
+  await updateDoc(
+    doc(db, "pregnancies", pregnancyId),
+    stripUndefined({
+      dueDate: iso,
+      dueDateSource: source,
+      dueDateUpdatedAt: serverTimestamp(),
+      dueDateUpdatedBy: by?.uid ?? deleteField(),
+      dueDateUpdatedByName: cleanText(by?.name, 60) ?? deleteField(),
+      week,
+    })
+  );
 }
 
 export async function saveMomStatus(pregnancyId: string, statusText: string, emoji: string) {
@@ -773,13 +873,23 @@ export async function saveMomStatus(pregnancyId: string, statusText: string, emo
 }
 
 // REALTIME LISTENERS
-export function listenToPregnancy(pregnancyId: string, callback: (data: LegacyData) => void, onError?: ErrorCallback) {
+/**
+ * Documento del embarazo (solo si existe). `data` llega tal cual (incluye dueDate/dueDateSource);
+ * `dating` es su datación ya validada: FPP, si se quitó a propósito y la semana vigente.
+ * Para volcarlo al perfil local usa remoteDatingPatch (src/lib/pregnancy.ts).
+ */
+export function listenToPregnancy(
+  pregnancyId: string,
+  callback: (data: LegacyData, dating: PregnancyDating) => void,
+  onError?: ErrorCallback
+) {
   const ref = doc(db, "pregnancies", pregnancyId);
   return onSnapshot(
     ref,
     (docSnap) => {
       if (docSnap.exists()) {
-        callback(docSnap.data());
+        const data = docSnap.data();
+        callback(data, datingFromPregnancyDoc(data));
       }
     },
     onError ?? warnListener("pregnancy")
@@ -1062,7 +1172,9 @@ export function listenToBirthPlan(
 // =====================================================================================
 // Checklist por ítem
 // Ruta: shared_data/checklist_progress → { items: { [taskId]: 'completed'|'dismissed' (o true antiguo) },
-//                                          meta: { [taskId]: { by, byName, at } }, updatedAt }
+//                                          meta: { [taskId]: { by, byName, at } },
+//                                          owners: { [taskId]: 'mama'|'papa'|'ambos' },
+//                                          ownersMeta: { [taskId]: { by, byName, at } }, updatedAt }
 // =====================================================================================
 
 /** @deprecated Reemplaza todo el progreso: usa setChecklistItem. */
@@ -1093,10 +1205,52 @@ export async function setChecklistItem(
   );
 }
 
-/** Llama siempre (sin documento → {}). `true` (formato antiguo) equivale a 'completed'. */
+/**
+ * Dueño reasignado de una tarea (owners.{taskId}) sin tocar las demás ni el progreso. `null`
+ * vuelve al dueño de catálogo. Guarda quién lo cambió (ownersMeta.{taskId}). Firestore la encola
+ * si no hay red. Solo desde manejadores de eventos. Sin vínculo: writeLocalTaskOwner (tasks.ts).
+ */
+export async function setTaskOwner(
+  pregnancyId: string,
+  taskId: string | number,
+  owner: TaskOwner | null,
+  by?: { uid: string; name?: string }
+): Promise<void> {
+  const k = String(taskId);
+  if (!k) throw new TypeError("taskId vacío");
+  if (owner !== null && !isTaskOwner(owner)) throw new TypeError("owner debe ser 'mama', 'papa' o 'ambos'");
+  await setDoc(
+    sharedRef(pregnancyId, "checklist_progress"),
+    {
+      owners: { [k]: owner ?? deleteField() },
+      ownersMeta: { [k]: owner ? stripUndefined({ by: by?.uid, byName: cleanText(by?.name, 60), at: serverTimestamp() }) : deleteField() },
+      updatedAt: serverTimestamp(),
+    },
+    { mergeFields: [new FieldPath("owners", k), new FieldPath("ownersMeta", k), "updatedAt"] }
+  );
+}
+
+function metaMap(raw: unknown, keep?: (k: string) => boolean): ChecklistMeta {
+  const out: ChecklistMeta = {};
+  if (!isPlainObject(raw)) return out;
+  for (const [k, v] of Object.entries(raw)) {
+    if (!isPlainObject(v) || (keep && !keep(k))) continue;
+    out[k] = stripUndefined({
+      by: typeof v.by === "string" ? v.by : undefined,
+      byName: typeof v.byName === "string" ? v.byName : undefined,
+      at: toDate(v.at) ?? undefined,
+    });
+  }
+  return out;
+}
+
+/**
+ * Llama siempre (sin documento → {}). `true` (formato antiguo) equivale a 'completed'.
+ * 4º argumento: dueños reasignados (owners) y quién los cambió (ownersMeta).
+ */
 export function listenToChecklistProgress(
   pregnancyId: string,
-  callback: (progress: ChecklistProgress, meta?: ChecklistMeta, docMeta?: SharedDocMeta) => void,
+  callback: (progress: ChecklistProgress, meta: ChecklistMeta, docMeta: SharedDocMeta, owners: ChecklistOwners) => void,
   onError?: ErrorCallback
 ) {
   return listenSharedDoc(
@@ -1110,19 +1264,10 @@ export function listenToChecklistProgress(
           if (v === true || v === "completed" || v === "dismissed") progress[k] = v;
         }
       }
-      const meta: ChecklistMeta = {};
-      const rawMeta = data?.meta;
-      if (isPlainObject(rawMeta)) {
-        for (const [k, v] of Object.entries(rawMeta)) {
-          if (!isPlainObject(v) || !(k in progress)) continue;
-          meta[k] = stripUndefined({
-            by: typeof v.by === "string" ? v.by : undefined,
-            byName: typeof v.byName === "string" ? v.byName : undefined,
-            at: toDate(v.at) ?? undefined,
-          });
-        }
-      }
-      callback(progress, meta, docMeta);
+      const meta = metaMap(data?.meta, (k) => k in progress);
+      const owners = sanitizeTaskOwners(data?.owners);
+      const ownersMeta = metaMap(data?.ownersMeta, (k) => k in owners);
+      callback(progress, meta, docMeta, { owners, ownersMeta });
     },
     onError
   );
