@@ -470,6 +470,8 @@ export function TodayBlock({
             <button
               type="button"
               onClick={onOpenPrep}
+              aria-label={`Preparar la cita: ${nextEvent.title}`}
+              aria-haspopup="dialog"
               className={`shrink-0 min-h-[44px] rounded-xl border border-sage-ink/40 px-3 text-sm font-bold text-sage-ink hover:bg-sage/10 transition-colors ${FOCUS}`}
             >
               Preparar

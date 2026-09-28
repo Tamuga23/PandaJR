@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { createPortal } from "react-dom";
 import {
   Bot,
   Calendar,
@@ -37,6 +36,9 @@ import { formatDateShort, repairMojibake } from "@/lib/format";
 import { localToSharedFlag } from "@/lib/seeds";
 import { AuthorChip } from "@/components/AuthorChip";
 import { SyncBadge, usePartner } from "@/components/SyncBadge";
+import { ModalPortal } from "@/components/ModalPortal";
+import { useModalDialog } from "@/lib/useModalDialog";
+import { Z_CLASS } from "@/lib/layers";
 
 export type { UserProfile };
 
@@ -785,11 +787,9 @@ function isOnline(): boolean {
 }
 
 // =====================================================================================
-// Hoja modal (portal, foco atrapado, Escape, sin scroll de fondo)
+// Hoja modal: useModalDialog (Escape, foco atrapado, foco de retorno, fondo inerte, sin scroll
+// de fondo) + ModalPortal (fuera de los contextos de apilamiento de la app) + capa Z_CLASS.sheet.
 // =====================================================================================
-
-const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 function Sheet({
   open,
@@ -803,79 +803,47 @@ function Sheet({
   onClose: () => void;
   labelledBy: string;
   describedBy?: string;
+  /** Sin él, el foco va al panel (el lector anuncia el título y la descripción antes que los controles). */
   initialFocusRef?: React.RefObject<HTMLElement | null>;
   children: React.ReactNode;
 }) {
-  const panelRef = useRef<HTMLDivElement>(null);
-  const onCloseRef = useRef(onClose);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const { dialogProps } = useModalDialog({
+    open,
+    onClose,
+    labelledBy,
+    describedBy,
+    initialFocusRef: initialFocusRef ?? panelRef,
+  });
+  const { ref: dialogRef, ...dialogRest } = dialogProps;
+  const setPanel = useCallback(
+    (el: HTMLDivElement | null) => {
+      panelRef.current = el;
+      dialogRef(el);
+    },
+    [dialogRef]
+  );
 
-  useEffect(() => {
-    onCloseRef.current = onClose;
-  }, [onClose]);
+  if (!open) return null;
 
-  useEffect(() => {
-    if (!open) return;
-    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const raf = requestAnimationFrame(() => (initialFocusRef?.current ?? panelRef.current)?.focus());
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        e.stopPropagation();
-        onCloseRef.current();
-        return;
-      }
-      if (e.key !== "Tab" || !panelRef.current) return;
-      const focusables = Array.from(panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE));
-      if (focusables.length === 0) {
-        e.preventDefault();
-        return;
-      }
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
-      const active = document.activeElement;
-      if (e.shiftKey && (active === first || active === panelRef.current)) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && active === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.addEventListener("keydown", onKeyDown, true);
-    return () => {
-      cancelAnimationFrame(raf);
-      document.removeEventListener("keydown", onKeyDown, true);
-      document.body.style.overflow = prevOverflow;
-      if (trigger && trigger.isConnected) trigger.focus();
-    };
-  }, [open, initialFocusRef]);
-
-  if (!open || typeof document === "undefined") return null;
-
-  return createPortal(
-    <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center sm:p-4">
-      <div
-        className="absolute inset-0 bg-black/50 dark:bg-black/70 animate-in fade-in duration-200 motion-reduce:animate-none"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      <div
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={labelledBy}
-        aria-describedby={describedBy}
-        tabIndex={-1}
-        className="relative w-full max-w-md max-h-[92dvh] flex flex-col bg-[#fdfbf7] dark:bg-[#221d2d] text-stone-900 dark:text-[#eae6e1] rounded-t-3xl sm:rounded-3xl border border-stone-200/80 dark:border-white/[0.08] shadow-[0_-8px_32px_-8px_rgba(24,21,32,0.28)] outline-none animate-in slide-in-from-bottom-4 duration-300 motion-reduce:animate-none"
-      >
-        {children}
+  return (
+    <ModalPortal>
+      <div className={`fixed inset-0 ${Z_CLASS.sheet} flex items-end sm:items-center justify-center sm:p-4`}>
+        {/* Tocar fuera cierra (el teclado cierra con Escape desde useModalDialog). */}
+        <div
+          className="absolute inset-0 bg-black/50 dark:bg-black/70 animate-in fade-in duration-200 motion-reduce:animate-none"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+        <div
+          ref={setPanel}
+          {...dialogRest}
+          className="relative w-full max-w-md max-h-[92dvh] flex flex-col bg-[#fdfbf7] dark:bg-[#221d2d] text-stone-900 dark:text-[#eae6e1] rounded-t-3xl sm:rounded-3xl border border-stone-200/80 dark:border-white/[0.08] shadow-[0_-8px_32px_-8px_rgba(24,21,32,0.28)] outline-none animate-in slide-in-from-bottom-4 duration-300 motion-reduce:animate-none"
+        >
+          {children}
+        </div>
       </div>
-    </div>,
-    document.body
+    </ModalPortal>
   );
 }
 
@@ -1384,8 +1352,12 @@ const EMPTY_FORM: FormState = { title: "", date: "", time: "", doctor: "", typeT
 
 const inputClass =
   "w-full min-h-[48px] rounded-xl border bg-white dark:bg-[#181520] px-4 py-2.5 text-base text-stone-900 dark:text-[#eae6e1] " +
-  "placeholder:text-stone-500 dark:placeholder:text-[#948fa1] border-stone-400/70 dark:border-white/20 " +
-  "outline-none transition-colors focus:border-terracotta-ink focus:ring-2 focus:ring-terracotta-ink/25 " +
+  // Borde ≥3:1 con el fondo de la hoja (1.4.11): stone-500 4.63:1 sobre #fdfbf7 · white/40 3.73:1 sobre #221d2d.
+  "placeholder:text-stone-500 dark:placeholder:text-[#948fa1] border-stone-500 dark:border-white/40 " +
+  // Foco: anillo de tinta de 2px con separación (visible también en modo de alto contraste).
+  // :focus (no :focus-visible): en fecha y hora Chrome no aplica :focus-visible cuando el foco está en
+  // los segmentos internos o en el icono del calendario, y el campo se quedaba sin contorno.
+  "transition-colors focus:border-terracotta-ink focus:outline-2 focus:outline-offset-2 focus:outline-terracotta-ink " +
   "aria-[invalid=true]:border-terracotta-ink disabled:opacity-60";
 const labelClass = "block text-sm font-semibold text-stone-800 dark:text-[#eae6e1] mb-1.5";
 const helpClass = "mt-1.5 text-sm leading-snug text-stone-600 dark:text-[#a6a1b2]";
@@ -1645,7 +1617,25 @@ export function AgendaView({
   };
 
   // --- Borrar con deshacer real ---
-  const handleDelete = (ev: AgendaEvent) => {
+  // Al borrar con teclado o lector de pantalla, la fila (y su botón enfocado) desaparece y el foco
+  // caería al inicio de la página: se lleva al encabezado de la lista (o a "Pasadas").
+  const upcomingHeadingRef = useRef<HTMLHeadingElement>(null);
+  const pastToggleRef = useRef<HTMLButtonElement>(null);
+  const refocusAfterDelete = useRef<"upcoming" | "past" | null>(null);
+  useEffect(() => {
+    // Primer cambio de la lista tras borrar (local: al instante; compartida: el eco del servidor).
+    const where = refocusAfterDelete.current;
+    if (!where) return;
+    refocusAfterDelete.current = null;
+    const active = document.activeElement;
+    if (active && active !== document.body && active.isConnected) return; // el foco sigue en su sitio
+    const past = where === "past" && pastToggleRef.current?.isConnected ? pastToggleRef.current : null;
+    (past ?? upcomingHeadingRef.current)?.focus();
+  }, [events]);
+
+  const handleDelete = (ev: AgendaEvent, fromList?: "upcoming" | "past") => {
+    const active = typeof document !== "undefined" ? document.activeElement : null;
+    refocusAfterDelete.current = active && active !== document.body && fromList ? fromList : null;
     let deletion: Promise<AgendaEvent | undefined>;
     try {
       deletion = onDeleteEvent(ev.id);
@@ -1687,12 +1677,13 @@ export function AgendaView({
         {/* Próximas citas: la primera se destaca (sin banner que duplique la lista) */}
         <section aria-labelledby={ids.upcoming}>
           <div className="flex items-center justify-between gap-3 mb-3">
-            <h3 id={ids.upcoming} className="text-lg font-bold text-stone-900 dark:text-[#eae6e1]">
+            <h3 id={ids.upcoming} ref={upcomingHeadingRef} tabIndex={-1} className="text-lg font-bold text-stone-900 dark:text-[#eae6e1] rounded-md">
               Próximas citas
             </h3>
             <button
               type="button"
               onClick={() => openNew()}
+              aria-haspopup="dialog"
               className={`min-h-[44px] px-3.5 rounded-xl bg-terracotta-ink hover:bg-terracotta-ink-hover text-white text-sm font-bold inline-flex items-center gap-1.5 transition-colors active:scale-[0.98] ${focusRing}`}
             >
               <Plus size={17} aria-hidden="true" /> Nueva cita
@@ -1740,7 +1731,7 @@ export function AgendaView({
                   showAuthor={!!pregnancyId}
                   onOpenPrep={onOpenPrep}
                   onEdit={openEdit}
-                  onDelete={handleDelete}
+                  onDelete={(ev) => handleDelete(ev, "upcoming")}
                 />
               ))}
             </ol>
@@ -1777,6 +1768,7 @@ export function AgendaView({
                         <button
                           type="button"
                           onClick={() => openNew({ title: s.eventTitle, type: s.type })}
+                          aria-haspopup="dialog"
                           className={`mt-1 -ml-2 min-h-[44px] px-2 rounded-lg inline-flex items-center gap-1.5 text-sm font-bold text-terracotta-ink hover:bg-terracotta/10 transition-colors ${focusRing}`}
                         >
                           <CalendarPlus size={16} aria-hidden="true" /> Agendar
@@ -1803,6 +1795,7 @@ export function AgendaView({
           <section aria-labelledby={ids.past}>
             <h3 id={ids.past}>
               <button
+                ref={pastToggleRef}
                 type="button"
                 aria-expanded={showPast}
                 aria-controls={ids.pastList}
@@ -1831,7 +1824,7 @@ export function AgendaView({
                     showAuthor={!!pregnancyId}
                     onOpenPrep={onOpenPrep}
                     onEdit={openEdit}
-                    onDelete={handleDelete}
+                    onDelete={(ev) => handleDelete(ev, "past")}
                   />
                 ))}
               </ol>
@@ -2130,6 +2123,9 @@ function EventRow({
           <button
             type="button"
             onClick={() => onOpenPrep(ev)}
+            // Nombre único por fila (hay uno por cita); empieza por el texto visible (2.5.3).
+            aria-label={`Qué llevar y preguntar: ${title}`}
+            aria-haspopup="dialog"
             className={`min-h-[44px] px-3.5 rounded-xl text-sm font-bold inline-flex items-center gap-1.5 transition-colors active:scale-[0.98] ${focusRing} ${
               featured
                 ? "bg-terracotta-ink hover:bg-terracotta-ink-hover text-white"
@@ -2140,7 +2136,7 @@ function EventRow({
           </button>
         )}
         <div className="ml-auto -mr-2 flex items-center">
-          <button type="button" onClick={() => onEdit(ev)} aria-label={`Editar cita: ${title}`} className={iconButton}>
+          <button type="button" onClick={() => onEdit(ev)} aria-label={`Editar cita: ${title}`} aria-haspopup="dialog" className={iconButton}>
             <Pencil size={17} aria-hidden="true" />
           </button>
           <button type="button" onClick={() => onDelete(ev)} aria-label={`Eliminar cita: ${title}`} className={iconButton}>

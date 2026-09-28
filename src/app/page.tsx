@@ -3,7 +3,10 @@
 import { AgendaView, AppointmentPrepModal, parseEventDate } from "@/components/AgendaModule";
 import { HerramientasView } from "@/components/HerramientasModule";
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { usePandaStore } from "@/store/usePandaStore";
+import { usePandaStore, type ThemePreference } from "@/store/usePandaStore";
+import { ModalPortal } from "@/components/ModalPortal";
+import { focusIntoTopDialog, useModalDialog, useModalOpenerTracking } from "@/lib/useModalDialog";
+import { Z_CLASS } from "@/lib/layers";
 import {
   ensureAuth,
   ensureMembership,
@@ -37,7 +40,7 @@ import { AuthorChip } from "@/components/AuthorChip";
 import { formatDateShort, formatRelative, repairMojibake } from "@/lib/format";
 import { isLegacySeedEvent, linkedFromLocalKey, localToSharedFlag } from "@/lib/seeds";
 import Image from "next/image";
-import { Compass, Calendar, Bot, Send, CheckCircle2, ChevronRight, ChevronLeft, HeartPulse, Baby, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Users, AlertTriangle, AlertCircle, FileText, Settings, Paperclip, Share2, Bell, RotateCcw, RotateCw, Stethoscope, PhoneCall, Check, Copy, Edit3, Sun, Moon, RefreshCw, UserMinus, Lightbulb, CalendarCheck, CalendarClock, CalendarX, Smartphone, MessageCircle } from "lucide-react";
+import { Compass, Calendar, Bot, Send, CheckCircle2, ChevronRight, ChevronLeft, HeartPulse, Baby, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Users, AlertTriangle, AlertCircle, FileText, Settings, Paperclip, Share2, Bell, RotateCcw, RotateCw, Stethoscope, PhoneCall, Check, Copy, Edit3, Sun, Moon, SunMoon, RefreshCw, UserMinus, Lightbulb, CalendarCheck, CalendarClock, CalendarX, Smartphone, MessageCircle } from "lucide-react";
 import { CallActions, EmergencyCallLink } from "@/components/CallActions";
 import { CareTeamSheet } from "@/components/CareTeamForm";
 import { clinicalWeek, detectAlarm, type AlarmSign } from "@/lib/urgency";
@@ -373,6 +376,86 @@ async function copyText(text: string): Promise<boolean> {
 
 const ROLE_LABEL: Record<"mama" | "papa", string> = { mama: "Mamá", papa: "Copiloto" };
 
+/**
+ * Confirmación destructiva modal (alertdialog) que se abre sobre Ajustes: el foco va a la opción
+ * segura ("Cancelar"), Escape o tocar fuera cancelan y el resto de la app queda inerte. Mientras
+ * se aplica (`busy`) no se puede cerrar a medias.
+ */
+function ConfirmDialog({
+  titleId,
+  descId,
+  title,
+  children,
+  error,
+  busy,
+  confirmLabel,
+  busyLabel,
+  onCancel,
+  onConfirm,
+  returnFocusRef,
+}: {
+  titleId: string;
+  descId: string;
+  title: React.ReactNode;
+  children: React.ReactNode;
+  error?: string;
+  busy: boolean;
+  confirmLabel: string;
+  busyLabel: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+  /** Destino del foco al cerrar si no debe volver a quien abrió (vacío = quien abrió). */
+  returnFocusRef?: React.RefObject<HTMLElement | null>;
+}) {
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  const cancel = () => { if (!busy) onCancel(); };
+  const { dialogProps } = useModalDialog({
+    open: true,
+    onClose: cancel,
+    role: "alertdialog",
+    labelledBy: titleId,
+    describedBy: descId,
+    initialFocusRef: cancelRef,
+    returnFocusRef,
+  });
+  return (
+    <ModalPortal>
+      <div
+        className={`fixed inset-0 ${Z_CLASS.careTeam} flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-150`}
+        onClick={(e) => { if (e.target === e.currentTarget) cancel(); }}
+      >
+        <div
+          {...dialogProps}
+          className="w-full max-w-sm rounded-3xl border border-terracotta-ink/30 bg-white dark:bg-[#221d2d] p-5 shadow-xl outline-none animate-in zoom-in-95 duration-200"
+        >
+          <h2 id={titleId} className="text-base font-bold leading-snug text-stone-900 dark:text-[#eae6e1] text-balance">{title}</h2>
+          <div id={descId} className="mt-1.5 space-y-1.5 text-sm leading-snug text-stone-700 dark:text-[#d9d4de]">{children}</div>
+          {error && <p role="alert" className="mt-2 text-sm font-semibold leading-snug text-terracotta-ink">{error}</p>}
+          <div className="mt-4 flex gap-2">
+            <button
+              ref={cancelRef}
+              type="button"
+              onClick={cancel}
+              disabled={busy}
+              className="flex-1 min-h-[44px] rounded-xl border border-stone-300 dark:border-white/15 bg-white dark:bg-[#2d273a] text-sm font-bold text-stone-800 dark:text-[#eae6e1] hover:bg-stone-50 dark:hover:bg-[#352e44] transition-colors disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={onConfirm}
+              disabled={busy}
+              className="flex-1 min-h-[44px] rounded-xl bg-terracotta-ink hover:bg-terracotta-ink-hover text-white text-sm font-bold transition-colors disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+            >
+              {busy ? busyLabel : confirmLabel}
+            </button>
+          </div>
+        </div>
+      </div>
+    </ModalPortal>
+  );
+}
+
 /** Estado del código de la mamá: vigencia, uso y generación de uno nuevo. */
 function InviteCodePanel({
   pregnancyId,
@@ -502,15 +585,6 @@ function AccessSection({
   const myUid = partner.myUid;
   const me = partner.members.find((m) => m.uid === myUid);
   const iAmMama = me ? me.role === "mama" : profile.role === "mama";
-  // Al pedir confirmación, el foco va a la opción segura ("Cancelar") y la pregunta queda a la vista.
-  const cancelRemoveRef = useRef<HTMLButtonElement>(null);
-  const confirmingUid = confirming?.uid;
-  useEffect(() => {
-    if (!confirmingUid) return;
-    const btn = cancelRemoveRef.current;
-    btn?.focus({ preventScroll: true });
-    btn?.scrollIntoView({ block: "nearest" });
-  }, [confirmingUid]);
 
   if (!pid) {
     const last = profile.role === "mama" ? readStored<LastPregnancy | null>(LS_LAST_PREGNANCY, null) : null;
@@ -599,6 +673,7 @@ function AccessSection({
                 <button
                   type="button"
                   onClick={() => { setRemoveError(""); setConfirming(m); }}
+                  aria-haspopup="dialog"
                   className="shrink-0 min-h-[44px] px-3 inline-flex items-center gap-1.5 rounded-xl text-xs font-bold text-terracotta-ink hover:bg-terracotta/10 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
                 >
                   <UserMinus size={16} aria-hidden="true" />
@@ -616,40 +691,108 @@ function AccessSection({
       </ul>
 
       {confirming && (
-        <div
-          role="alertdialog"
-          aria-labelledby="remove-access-title"
-          aria-describedby="remove-access-desc"
-          className="rounded-2xl border border-terracotta-ink/30 bg-terracotta/10 dark:bg-terracotta/15 p-4"
+        <ConfirmDialog
+          titleId="remove-access-title"
+          descId="remove-access-desc"
+          title={`¿Quitar el acceso de ${confirming.name || ROLE_LABEL[confirming.role]}?`}
+          error={removeError}
+          busy={removing}
+          confirmLabel="Sí, quitar acceso"
+          busyLabel="Quitando…"
+          onCancel={() => setConfirming(null)}
+          onConfirm={() => { void confirmRemove(); }}
         >
-          <p id="remove-access-title" className="text-sm font-bold text-stone-900 dark:text-[#eae6e1]">
-            ¿Quitar el acceso de {confirming.name || ROLE_LABEL[confirming.role]}?
-          </p>
-          <p id="remove-access-desc" className="mt-1 text-xs leading-snug text-stone-700 dark:text-[#d9d4de]">
-            Dejará de ver y editar la agenda, las tareas y los demás datos compartidos. Para volver necesitará un código nuevo.
-          </p>
-          {removeError && <p role="alert" className="mt-2 text-xs font-semibold text-terracotta-ink">{removeError}</p>}
-          <div className="mt-3 flex gap-2">
-            <button
-              ref={cancelRemoveRef}
-              type="button"
-              onClick={() => setConfirming(null)}
-              disabled={removing}
-              className="flex-1 min-h-[44px] rounded-xl border border-stone-300 dark:border-white/15 bg-white dark:bg-[#2d273a] text-sm font-bold text-stone-800 dark:text-[#eae6e1] transition-colors disabled:opacity-60"
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={confirmRemove}
-              disabled={removing}
-              className="flex-1 min-h-[44px] rounded-xl bg-terracotta-ink hover:bg-terracotta-ink-hover text-white text-sm font-bold transition-colors disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
-            >
-              {removing ? "Quitando…" : "Sí, quitar acceso"}
-            </button>
-          </div>
-        </div>
+          <p>Dejará de ver y editar la agenda, las tareas y los demás datos compartidos. Para volver necesitará un código nuevo.</p>
+        </ConfirmDialog>
       )}
+    </div>
+  );
+}
+
+/** Campos de Ajustes: borde ≥3:1 con el fondo (claro y oscuro) y foco con la tinta. */
+const SETTINGS_INPUT =
+  "w-full px-4 py-3 rounded-xl border border-stone-500 dark:border-white/40 bg-stone-50 dark:bg-[#1a1724] text-stone-900 dark:text-[#eae6e1] text-base sm:text-sm focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-terracotta-ink";
+
+const THEME_OPTIONS: { value: ThemePreference; label: string; Icon: typeof Sun }[] = [
+  { value: "system", label: "Sistema", Icon: SunMoon },
+  { value: "light", label: "Claro", Icon: Sun },
+  { value: "dark", label: "Oscuro", Icon: Moon },
+];
+
+/**
+ * Tema en tres estados: Sistema (sigue al teléfono en vivo) · Claro · Oscuro. Grupo de radios con
+ * tabulación itinerante: Tab entra en la opción elegida y las flechas cambian de opción.
+ * Solo elige la preferencia; ThemeSync aplica la clase y el color de la barra del sistema.
+ */
+function ThemeChoice({
+  preference,
+  resolved,
+  onChange,
+}: {
+  preference: ThemePreference;
+  resolved: "light" | "dark";
+  onChange: (preference: ThemePreference) => void;
+}) {
+  const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const index = Math.max(0, THEME_OPTIONS.findIndex((o) => o.value === preference));
+  const select = (i: number) => {
+    const next = (i + THEME_OPTIONS.length) % THEME_OPTIONS.length;
+    onChange(THEME_OPTIONS[next].value);
+    refs.current[next]?.focus();
+  };
+  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") { e.preventDefault(); select(index + 1); }
+    else if (e.key === "ArrowLeft" || e.key === "ArrowUp") { e.preventDefault(); select(index - 1); }
+    else if (e.key === "Home") { e.preventDefault(); select(0); }
+    else if (e.key === "End") { e.preventDefault(); select(THEME_OPTIONS.length - 1); }
+  };
+  const hint = preference === "system"
+    ? `Sigue el modo de tu teléfono (ahora, ${resolved === "dark" ? "oscuro" : "claro"}).`
+    : "El modo oscuro es más cómodo de noche.";
+  return (
+    <div className="p-4 bg-stone-50 dark:bg-[#1a1724] rounded-2xl border border-stone-200/80 dark:border-white/[0.04]">
+      <div className="flex items-center gap-3">
+        <div className="bg-stone-200 dark:bg-[#2d273a] p-2 rounded-xl text-stone-600 dark:text-[#a6a1b2]" aria-hidden="true">
+          {resolved === "dark" ? <Moon size={18} /> : <Sun size={18} />}
+        </div>
+        <div className="min-w-0 text-left">
+          <p id="theme-choice-label" className="text-sm font-bold text-stone-800 dark:text-[#eae6e1]">Apariencia</p>
+          <p id="theme-choice-hint" className="text-xs text-stone-600 dark:text-[#a6a1b2]">{hint}</p>
+        </div>
+      </div>
+      <div
+        role="radiogroup"
+        aria-labelledby="theme-choice-label"
+        aria-describedby="theme-choice-hint"
+        onKeyDown={onKeyDown}
+        className="mt-3 flex flex-wrap gap-1 rounded-xl bg-stone-200/80 dark:bg-[#2d273a] p-1"
+      >
+        {/* flex-1 sin min-w-0: las tres opciones comparten la fila mientras quepan sus etiquetas (por
+            debajo de 380px sin el icono decorativo, para que quepan en 320-360px); con zoom o texto
+            grande pasan a una por fila en vez de montarse unas sobre otras (1.4.10). */}
+        {THEME_OPTIONS.map((o, i) => {
+          const checked = i === index;
+          return (
+            <button
+              key={o.value}
+              ref={(el) => { refs.current[i] = el; }}
+              type="button"
+              role="radio"
+              aria-checked={checked}
+              tabIndex={checked ? 0 : -1}
+              onClick={() => onChange(o.value)}
+              className={`flex-1 min-h-[44px] rounded-lg px-1.5 flex items-center justify-center gap-1 whitespace-nowrap text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink ${
+                checked
+                  ? "bg-terracotta-ink text-white dark:bg-[var(--terracotta-ink)] dark:text-stone-900 shadow-sm"
+                  : "text-stone-700 dark:text-[#d9d4de] hover:bg-white/70 dark:hover:bg-white/[0.06]"
+              }`}
+            >
+              <o.Icon size={16} className="shrink-0 max-[380px]:hidden" aria-hidden="true" />
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -659,12 +802,11 @@ function ProfileModal({
   onSave,
   onClose,
   focusDating = false,
-  isDark,
-  toggleTheme,
   partner,
   showToast,
   onStartLink,
   dueDateNeedsReview = false,
+  afterUnlinkFocusRef,
 }: {
   profile: UserProfile;
   /** `dating` solo llega si la persona editó la fecha (si no, la fecha compartida no se toca). */
@@ -672,14 +814,18 @@ function ProfileModal({
   onClose: () => void;
   /** Abrir con el editor de fecha desplegado y a la vista ("Confirmar mi fecha"). */
   focusDating?: boolean;
-  isDark: boolean;
-  toggleTheme: () => void;
   partner: PartnerInfo;
   showToast: ShowToast;
   onStartLink: () => void;
   /** La FPP compartida está fuera de rango: por eso la semana está sin confirmar. */
   dueDateNeedsReview?: boolean;
+  /** A dónde vuelve el foco tras desvincular (Ajustes se cierra entero): el botón de Ajustes de la cabecera. */
+  afterUnlinkFocusRef?: React.RefObject<HTMLElement | null>;
 }) {
+  const { dialogProps } = useModalDialog({ open: true, onClose, labelledBy: "profile-modal-title" });
+  const themePreference = usePandaStore(state => state.themePreference);
+  const resolvedTheme = usePandaStore(state => state.resolvedTheme);
+  const setThemePreference = usePandaStore(state => state.setThemePreference);
   const [form, setForm] = useState(profile);
   // Fecha: el editor solo se abre a propósito; cerrado, "Guardar" no envía nada de la fecha.
   const [datingOpen, setDatingOpen] = useState(focusDating);
@@ -704,25 +850,14 @@ function ProfileModal({
           : "Aún no hay fecha ni semana confirmadas";
   const [confirmUnlink, setConfirmUnlink] = useState(false);
   const [unlinking, setUnlinking] = useState(false);
-  const cancelUnlinkRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    if (!confirmUnlink) return;
-    cancelUnlinkRef.current?.focus({ preventScroll: true });
-    cancelUnlinkRef.current?.scrollIntoView({ block: "nearest" });
-  }, [confirmUnlink]);
+  // Al cancelar, el foco vuelve a "Desvincular" (null = quien abrió); al desvincular se cierra
+  // Ajustes entero y el foco va al botón de Ajustes de la cabecera.
+  const unlinkReturnRef = useRef<HTMLElement | null>(null);
   const [careTeamOpen, setCareTeamOpen] = useState(false);
   const careTeam = usePandaStore(state => state.careTeam);
   const careTeamSummary = careTeam.obName || careTeam.obPhone || careTeam.hospitalName
     ? [careTeam.obName || (careTeam.obPhone ? "Obstetra" : ""), careTeam.hospitalName].filter(Boolean).join(" · ")
     : "Obstetra, hospital y emergencias";
-
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
-  }, [onClose]);
 
   /**
    * Desvincular ESTE teléfono. Se conservan nombre y rol (no vuelve a pedir el registro).
@@ -742,6 +877,7 @@ function ProfileModal({
     if (pid && profile.role === "mama") writeStored(LS_LAST_PREGNANCY, { pid, inviteCode } satisfies LastPregnancy);
     usePandaStore.getState().setProfile({ pregnancyId: "", inviteCode: "" });
     setUnlinking(false);
+    unlinkReturnRef.current = afterUnlinkFocusRef?.current ?? null;
     onClose();
     if (!pid) return;
     if (profile.role === "mama") {
@@ -758,26 +894,25 @@ function ProfileModal({
   const partnerLabelForUnlink = partner.partnerName || (profile.role === "mama" ? "tu copiloto" : "tu pareja");
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="profile-modal-title"
-      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[55] flex items-center justify-center p-4 animate-in fade-in"
-    >
-      <div className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200 border border-stone-200/80 dark:border-white/[0.08] flex flex-col max-h-[85vh]">
+    <ModalPortal>
+    <div className={`fixed inset-0 bg-black/40 backdrop-blur-sm ${Z_CLASS.dialog} flex items-center justify-center p-4 animate-in fade-in`}>
+      <div
+        {...dialogProps}
+        className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200 border border-stone-200/80 dark:border-white/[0.08] flex flex-col max-h-[85dvh] outline-none"
+      >
 
         {/* Header */}
         <div className="bg-stone-50 dark:bg-[#1a1724] p-4 flex justify-between items-center border-b border-stone-100 dark:border-white/[0.04]">
-          <h3 id="profile-modal-title" className="font-bold text-stone-800 dark:text-[#eae6e1] flex items-center gap-2">
-            <Settings size={18} className="text-stone-500" /> Ajustes
-          </h3>
+          <h2 id="profile-modal-title" className="font-bold text-stone-800 dark:text-[#eae6e1] flex items-center gap-2">
+            <Settings size={18} className="text-stone-600 dark:text-[#a6a1b2]" aria-hidden="true" /> Ajustes
+          </h2>
           <button
             type="button"
             onClick={onClose}
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-xl text-stone-400 hover:text-stone-800 dark:hover:text-[#eae6e1] bg-white dark:bg-[#2d273a] shadow-sm transition-colors"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-xl text-stone-600 dark:text-[#a6a1b2] hover:text-stone-900 dark:hover:text-[#eae6e1] bg-white dark:bg-[#2d273a] shadow-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
             aria-label="Cerrar ventana de ajustes"
           >
-            <X size={20} />
+            <X size={20} aria-hidden="true" />
           </button>
         </div>
 
@@ -786,10 +921,10 @@ function ProfileModal({
 
           {/* Vínculo Familiar */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold text-stone-500 dark:text-[#a6a1b2] uppercase tracking-wider">Familia</h4>
+            <h3 className="text-xs font-bold text-stone-500 dark:text-[#a6a1b2] uppercase tracking-wider">Familia</h3>
             <div className="bg-stone-50 dark:bg-[#1a1724] border border-stone-200 dark:border-white/[0.04] rounded-2xl p-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
-                <div className={`p-2 rounded-xl shrink-0 ${form.role === 'mama' ? 'bg-terracotta/10 text-terracotta-ink' : 'bg-sage/10 text-sage-ink'}`}>
+                <div className={`p-2 rounded-xl shrink-0 ${form.role === 'mama' ? 'bg-terracotta/10 text-terracotta-ink' : 'bg-sage/10 text-sage-ink'}`} aria-hidden="true">
                   {form.role === 'mama' ? <Baby size={20} /> : <Users size={20} />}
                 </div>
                 <div className="min-w-0">
@@ -799,11 +934,12 @@ function ProfileModal({
                   <p className="text-xs text-stone-600 dark:text-[#a6a1b2] truncate">{form.name}</p>
                 </div>
               </div>
-              {profile.pregnancyId && !confirmUnlink && (
+              {profile.pregnancyId && (
                 <button
                   type="button"
                   onClick={() => setConfirmUnlink(true)}
-                  className="shrink-0 text-xs font-bold min-h-[44px] min-w-[44px] px-4 rounded-lg shadow-sm transition-colors text-stone-600 dark:text-[#a6a1b2] bg-white dark:bg-[#2d273a] border border-stone-200 dark:border-white/[0.06]"
+                  aria-haspopup="dialog"
+                  className="shrink-0 text-xs font-bold min-h-[44px] min-w-[44px] px-4 rounded-lg shadow-sm transition-colors text-stone-600 dark:text-[#a6a1b2] hover:text-stone-900 dark:hover:text-[#eae6e1] bg-white dark:bg-[#2d273a] border border-stone-200 dark:border-white/[0.06] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
                 >
                   Desvincular
                 </button>
@@ -811,54 +947,37 @@ function ProfileModal({
             </div>
 
             {confirmUnlink && profile.pregnancyId && (
-              <div
-                role="alertdialog"
-                aria-labelledby="unlink-title"
-                aria-describedby="unlink-desc"
-                className="rounded-2xl border border-terracotta-ink/30 bg-terracotta/10 dark:bg-terracotta/15 p-4"
+              <ConfirmDialog
+                titleId="unlink-title"
+                descId="unlink-desc"
+                title="¿Desvincular este teléfono?"
+                busy={unlinking}
+                confirmLabel="Sí, desvincular"
+                busyLabel="Desvinculando…"
+                onCancel={() => setConfirmUnlink(false)}
+                onConfirm={() => { void unlink(); }}
+                returnFocusRef={unlinkReturnRef}
               >
-                <p id="unlink-title" className="text-sm font-bold text-stone-900 dark:text-[#eae6e1]">¿Desvincular este teléfono?</p>
-                <div id="unlink-desc" className="mt-1 space-y-1.5 text-xs leading-snug text-stone-700 dark:text-[#d9d4de]">
-                  {profile.role === "mama" ? (
-                    <>
-                      <p>Este teléfono dejará de ver la agenda, el diario, los nombres y lo demás que comparten. {partnerLabelForUnlink.charAt(0).toLocaleUpperCase("es") + partnerLabelForUnlink.slice(1)} lo seguirá viendo.</p>
-                      <p>Nada se borra: podrás volver desde Ajustes. Si lo que quieres es que tu pareja deje de ver tus datos, usa «Quitar acceso» en «Personas con acceso».</p>
-                    </>
-                  ) : (
-                    <p>Dejarás de ver lo que comparten. Para volver, {partnerLabelForUnlink} tendrá que darte un código nuevo.</p>
-                  )}
-                </div>
-                <div className="mt-3 flex gap-2">
-                  <button
-                    ref={cancelUnlinkRef}
-                    type="button"
-                    onClick={() => setConfirmUnlink(false)}
-                    disabled={unlinking}
-                    className="flex-1 min-h-[44px] rounded-xl border border-stone-300 dark:border-white/15 bg-white dark:bg-[#2d273a] text-sm font-bold text-stone-800 dark:text-[#eae6e1] transition-colors disabled:opacity-60"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { void unlink(); }}
-                    disabled={unlinking}
-                    className="flex-1 min-h-[44px] rounded-xl bg-terracotta-ink hover:bg-terracotta-ink-hover text-white text-sm font-bold transition-colors disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
-                  >
-                    {unlinking ? "Desvinculando…" : "Sí, desvincular"}
-                  </button>
-                </div>
-              </div>
+                {profile.role === "mama" ? (
+                  <>
+                    <p>Este teléfono dejará de ver la agenda, el diario, los nombres y lo demás que comparten. {partnerLabelForUnlink.charAt(0).toLocaleUpperCase("es") + partnerLabelForUnlink.slice(1)} lo seguirá viendo.</p>
+                    <p>Nada se borra: podrás volver desde Ajustes. Si lo que quieres es que tu pareja deje de ver tus datos, usa «Quitar acceso» en «Personas con acceso».</p>
+                  </>
+                ) : (
+                  <p>Dejarás de ver lo que comparten. Para volver, {partnerLabelForUnlink} tendrá que darte un código nuevo.</p>
+                )}
+              </ConfirmDialog>
             )}
 
             {form.role === 'papa' && (
               <div className="bg-stone-50 dark:bg-white/[0.02] p-4 rounded-2xl flex items-center justify-between border border-stone-100 dark:border-white/[0.05]">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-sage/20 dark:bg-sage/10 flex items-center justify-center text-sage-ink">
+                  <div className="w-8 h-8 rounded-full bg-sage/20 dark:bg-sage/10 flex items-center justify-center text-sage-ink" aria-hidden="true">
                     <Sparkles size={16} />
                   </div>
                   <div>
                     <p className="text-sm font-bold text-stone-800 dark:text-white mb-0.5">Tema de Comparación</p>
-                    <p className="text-xs text-stone-500 dark:text-[#a6a1b2]">Frutas o estilo Geek</p>
+                    <p className="text-xs text-stone-600 dark:text-[#a6a1b2]">Frutas o estilo Geek</p>
                   </div>
                 </div>
                 <button
@@ -867,9 +986,9 @@ function ProfileModal({
                   aria-checked={form.comparisonTheme === 'geek'}
                   aria-label="Comparar con objetos geek en lugar de frutas"
                   onClick={() => setForm({...form, comparisonTheme: form.comparisonTheme === 'geek' ? 'frutas' : 'geek'})}
-                  className="min-w-[44px] min-h-[44px] flex items-center justify-center"
+                  className="shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
                 >
-                  <span className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.comparisonTheme === 'geek' ? 'bg-sage-ink' : 'bg-stone-300 dark:bg-stone-700'}`}>
+                  <span aria-hidden="true" className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.comparisonTheme === 'geek' ? 'bg-sage-ink' : 'bg-stone-500 dark:bg-[#756e86]'}`}>
                     <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${form.comparisonTheme === 'geek' ? 'translate-x-6' : 'translate-x-1'}`} />
                   </span>
                 </button>
@@ -893,13 +1012,13 @@ function ProfileModal({
 
           {/* Personas con acceso a los datos compartidos */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold text-stone-500 dark:text-[#a6a1b2] uppercase tracking-wider">Personas con acceso</h4>
+            <h3 className="text-xs font-bold text-stone-500 dark:text-[#a6a1b2] uppercase tracking-wider">Personas con acceso</h3>
             <AccessSection profile={profile} partner={partner} showToast={showToast} onStartLink={onStartLink} />
           </div>
 
           {/* Preferencias Médicas */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold text-stone-500 dark:text-[#a6a1b2] uppercase tracking-wider">Gestación & Detalles</h4>
+            <h3 className="text-xs font-bold text-stone-500 dark:text-[#a6a1b2] uppercase tracking-wider">Gestación & Detalles</h3>
 
             {/* Equipo de salud: a quién llamar y a dónde ir (compartido con la pareja) */}
             <button
@@ -959,52 +1078,40 @@ function ProfileModal({
             </div>
 
             <div>
-              <label className="text-sm font-bold text-stone-700 dark:text-[#eae6e1] block mb-1">Ciudad o País</label>
+              <label htmlFor="settings-location" className="text-sm font-bold text-stone-700 dark:text-[#eae6e1] block mb-1">Ciudad o País</label>
               <input
+                id="settings-location"
                 type="text"
                 value={form.location || ""}
                 onChange={(e) => setForm({...form, location: e.target.value})}
                 placeholder="Para recomendaciones locales"
-                className="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-white/[0.1] bg-stone-50 dark:bg-[#1a1724] dark:text-[#eae6e1] text-base sm:text-sm"
+                className={SETTINGS_INPUT}
               />
             </div>
 
             <div>
-              <label className="text-sm font-bold text-stone-700 dark:text-[#eae6e1] block mb-1">Notas de rutina</label>
+              <label htmlFor="settings-notes" className="text-sm font-bold text-stone-700 dark:text-[#eae6e1] block mb-1">Notas de rutina</label>
               <textarea
+                id="settings-notes"
                 value={form.notes || ""}
                 onChange={(e) => setForm({...form, notes: e.target.value})}
                 placeholder="Ej. Trabajo en turnos, parto programado..."
                 rows={2}
-                className="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-white/[0.1] bg-stone-50 dark:bg-[#1a1724] dark:text-[#eae6e1] text-base sm:text-sm resize-none"
+                className={`${SETTINGS_INPUT} resize-none`}
               />
             </div>
           </div>
 
-          {/* Modo Oscuro Toggle */}
-          <div className="flex items-center justify-between p-4 bg-stone-50 dark:bg-[#1a1724] rounded-2xl border border-stone-200/80 dark:border-white/[0.04]">
-            <div className="flex items-center gap-3">
-              <div className="bg-stone-200 dark:bg-[#2d273a] p-2 rounded-xl text-stone-600 dark:text-[#a6a1b2]">
-                {isDark ? <Moon size={18} /> : <Sun size={18} />}
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-bold text-stone-800 dark:text-[#eae6e1]">Modo Oscuro</p>
-                <p className="text-xs text-stone-500 dark:text-[#a6a1b2]">Ideal para la noche</p>
-              </div>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={isDark}
-              aria-label="Modo oscuro"
-              onClick={toggleTheme}
-              className="shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
-            >
-              <span aria-hidden="true" className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isDark ? "bg-terracotta-ink" : "bg-stone-300"}`}>
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isDark ? "translate-x-6" : "translate-x-1"}`} />
-              </span>
-            </button>
-          </div>
+          {/* Tema: sistema (sigue al teléfono), claro u oscuro */}
+          <ThemeChoice
+            preference={themePreference}
+            resolved={resolvedTheme}
+            onChange={(p) => {
+              if (p === themePreference) return;
+              setThemePreference(p);
+              try { navigator.vibrate?.(25); } catch { /* sin vibración */ }
+            }}
+          />
         </div>
 
         {/* Footer */}
@@ -1018,15 +1125,16 @@ function ProfileModal({
             type="button"
             onClick={() => onSave(form, pendingDating)}
             disabled={datingBlocked}
-            className="w-full min-h-[44px] bg-stone-900 hover:bg-stone-800 dark:bg-[#eae6e1] dark:hover:bg-white dark:text-stone-900 text-white rounded-xl py-3 text-sm font-bold shadow-sm transition-colors flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-500 disabled:shadow-none dark:disabled:bg-white/[0.06] dark:disabled:text-[#a6a1b2]"
+            className="w-full min-h-[44px] bg-stone-900 hover:bg-stone-800 dark:bg-[#eae6e1] dark:hover:bg-white dark:text-stone-900 text-white rounded-xl py-3 text-sm font-bold shadow-sm transition-colors flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-500 disabled:shadow-none dark:disabled:bg-white/[0.06] dark:disabled:text-[#a6a1b2]"
           >
             Guardar cambios
           </button>
         </div>
       </div>
 
-      <CareTeamSheet open={careTeamOpen} onClose={() => setCareTeamOpen(false)} />
+      <CareTeamSheet open={careTeamOpen} onClose={() => setCareTeamOpen(false)} onSaved={() => showToast("Equipo de salud guardado")} />
     </div>
+    </ModalPortal>
   );
 }
 
@@ -1058,9 +1166,10 @@ const ONB_CTA =
   "w-full min-h-[48px] rounded-xl py-3.5 font-bold transition-colors flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-500 disabled:shadow-none dark:disabled:bg-white/[0.06] dark:disabled:text-[#a6a1b2]";
 const ONB_CTA_MAMA = `${ONB_CTA} bg-terracotta-ink hover:bg-terracotta-ink-hover text-white focus-visible:outline-terracotta-ink`;
 const ONB_CTA_PAPA = `${ONB_CTA} bg-sage-ink hover:bg-sage-ink-hover text-white focus-visible:outline-sage-ink`;
-const ONB_CTA_NEUTRAL = `${ONB_CTA} bg-stone-900 hover:bg-stone-800 dark:bg-[#eae6e1] dark:hover:bg-white dark:text-stone-900 text-white focus-visible:outline-stone-900`;
+// Anillo en tinta terracota: stone-900 desaparecía sobre el panel oscuro (1.07:1).
+const ONB_CTA_NEUTRAL = `${ONB_CTA} bg-stone-900 hover:bg-stone-800 dark:bg-[#eae6e1] dark:hover:bg-white dark:text-stone-900 text-white focus-visible:outline-terracotta-ink`;
 const ONB_INPUT =
-  "w-full min-h-[48px] px-4 py-3 rounded-xl border border-stone-300 dark:border-white/15 bg-white dark:bg-[#1a1724] text-stone-900 dark:text-[#eae6e1] text-base focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-terracotta-ink";
+  "w-full min-h-[48px] px-4 py-3 rounded-xl border border-stone-500 dark:border-white/40 bg-white dark:bg-[#1a1724] text-stone-900 dark:text-[#eae6e1] text-base focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-terracotta-ink";
 
 /** Perfil local de la datación que eligió la mamá (la desconocida conserva un número de relleno). */
 /**
@@ -1147,9 +1256,22 @@ function OnboardingModal({
   const stepIndex = steps.indexOf(step);
   const fallbackWeek = initial?.week && !initial.weekUnknown ? initial.week : 14;
 
-  // Al cambiar de paso, el foco va al título (lector de pantalla y teclado siguen el flujo).
+  // Diálogo modal: al abrir y al cambiar de paso el foco va al título (lector de pantalla y teclado
+  // siguen el flujo). Obligatorio la primera vez; en "Vincular" Escape equivale a "Ahora no" (solo
+  // en la primera pantalla, donde está ese botón: más adelante podría dejar a medias lo creado).
+  const { dialogProps } = useModalDialog({
+    open: true,
+    onClose: () => { if (onCancel && step === "role" && !isLoading) onCancel(); },
+    labelledBy: "onb-title",
+    initialFocusRef: headingRef,
+  });
+  // Solo en un cambio real de paso: el foco inicial lo pone el diálogo (si se enfocara aquí al montar,
+  // el diálogo no sabría quién lo abrió y no podría devolverle el foco al cerrar).
+  const shownStepRef = useRef(step);
   useEffect(() => {
-    if (step !== "role") headingRef.current?.focus({ preventScroll: true });
+    if (shownStepRef.current === step) return;
+    shownStepRef.current = step;
+    headingRef.current?.focus({ preventScroll: true });
   }, [step]);
 
   const back = () => {
@@ -1263,12 +1385,11 @@ function OnboardingModal({
   ) : null;
 
   return (
-    <div className="fixed inset-0 bg-stone-50 dark:bg-[#181520] z-[55] flex items-center justify-center p-4 animate-in fade-in duration-300">
+    <ModalPortal>
+    <div className={`fixed inset-0 bg-stone-50 dark:bg-[#181520] ${Z_CLASS.dialog} flex items-center justify-center p-4 animate-in fade-in duration-300`}>
       <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="onb-title"
-        className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-xl w-full max-w-sm overflow-y-auto max-h-full animate-in zoom-in-95 duration-500 border border-stone-200/80 dark:border-white/[0.08] p-6"
+        {...dialogProps}
+        className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-xl w-full max-w-sm overflow-y-auto max-h-full animate-in zoom-in-95 duration-500 border border-stone-200/80 dark:border-white/[0.08] p-6 outline-none"
       >
         {step !== "role" && role && (
           <div className="mb-5 flex items-center justify-between gap-3">
@@ -1297,7 +1418,7 @@ function OnboardingModal({
             <div className="w-24 h-24 rounded-3xl overflow-hidden mx-auto mb-5 border border-stone-200 dark:border-white/[0.08] shadow-sm">
               <Image src="/panda-icon.jpg" alt="PandaJR Icon" width={96} height={96} className="w-full h-full object-cover" priority />
             </div>
-            <h2 id="onb-title" className="text-2xl font-black text-stone-900 dark:text-[#eae6e1] text-balance">Te damos la bienvenida a PandaJR</h2>
+            <h2 id="onb-title" ref={headingRef} tabIndex={-1} className={headingClass}>Te damos la bienvenida a PandaJR</h2>
             <p className={subClass}>Cuéntanos quién eres para acompañarte mejor.</p>
 
             <div className="space-y-3 mt-6">
@@ -1498,6 +1619,7 @@ function OnboardingModal({
         )}
       </div>
     </div>
+    </ModalPortal>
   );
 }
 
@@ -1557,13 +1679,13 @@ function HeaderBell({ events, onOpen }: { events: AgendaEvent[]; onOpen: (ev: Ag
 
 export default function PandaJRApp() {
   const [activeTab, setActiveTab] = useState<Tab>("planificacion");
+  // Diálogos: si un toque no dio el foco al botón (iOS), el foco vuelve igualmente a él al cerrar.
+  useModalOpenerTracking();
 
   // Perfil global de usuario (compartido en toda la app)
   // Zustand Global Store
   const profile = usePandaStore(state => state.profile);
   const setProfile = usePandaStore(state => state.setProfile);
-  const isDark = usePandaStore(state => state.isDark);
-  const toggleThemeStore = usePandaStore(state => state.toggleTheme);
   const hasHydrated = usePandaStore(state => state.hasHydrated);
   // Semana vigente: con fecha probable se recalcula cada día y mantiene profile.week (solo local).
   const ga = useGestationalAge();
@@ -1575,18 +1697,23 @@ export default function PandaJRApp() {
   // --- Toast global: "Deshacer"/"Reintentar" solo si hay una acción real ---
   const [toast, setToast] = useState<ToastState | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const toastRegionRef = useRef<HTMLDivElement>(null);
+  // Si el foco estaba en el toast cuando desaparece ("Deshacer" usado o tiempo agotado) y hay un
+  // diálogo abierto, el foco vuelve al diálogo en vez de caer a body.
+  const dismissToast = useCallback(() => {
+    const hadFocus = !!toastRegionRef.current?.contains(document.activeElement);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToast(null);
+    if (hadFocus) requestAnimationFrame(() => { focusIntoTopDialog(); });
+  }, []);
   const showToast = useCallback<ShowToast>((message, onAction, labelOrOpts) => {
     const opts: ToastOptions = typeof labelOrOpts === "string" ? { actionLabel: labelOrOpts } : (labelOrOpts ?? {});
     const action = typeof onAction === "function" ? onAction : undefined;
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToast({ id: Date.now(), message, onAction: action, actionLabel: action ? (opts.actionLabel || "Deshacer") : undefined });
-    toastTimerRef.current = setTimeout(() => setToast(null), opts.duration ?? (action ? 6500 : 4000));
-  }, []);
+    toastTimerRef.current = setTimeout(dismissToast, opts.duration ?? (action ? 6500 : 4000));
+  }, [dismissToast]);
   useEffect(() => () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); }, []);
-  const dismissToast = () => {
-    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
-    setToast(null);
-  };
 
   // --- Firebase Real-time Sync ---
   // FPP compartida fuera de rango (dato remoto dudoso): la semana queda sin confirmar y la Guía y
@@ -1749,20 +1876,8 @@ export default function PandaJRApp() {
     setLinkFlowOpen(true);
   };
 
-  const toggleTheme = () => {
-    const nextDark = !isDark;
-    toggleThemeStore();
-    if (nextDark) {
-      document.documentElement.classList.add("dark");
-      try { localStorage.setItem("pandajr_theme", "dark"); } catch {}
-    } else {
-      document.documentElement.classList.remove("dark");
-      try { localStorage.setItem("pandajr_theme", "light"); } catch {}
-    }
-    if (typeof navigator !== "undefined" && navigator.vibrate) {
-      try { navigator.vibrate(25); } catch {}
-    }
-  };
+  // Botón de Ajustes de la cabecera: destino del foco si Ajustes se cierra entero (p. ej. al desvincular).
+  const settingsButtonRef = useRef<HTMLButtonElement>(null);
 
   // Detectar si el usuario necesita Onboarding
   useEffect(() => {
@@ -2124,25 +2239,15 @@ export default function PandaJRApp() {
     attempt();
   };
 
-  // Atajo de teclado: tecla Escape para cerrar modales abiertos
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        if (isProfileModalOpen) { setIsProfileModalOpen(false); setSettingsFocusDating(false); }
-        if (selectedPrepEvent) setSelectedPrepEvent(null);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isProfileModalOpen, selectedPrepEvent]);
+  // Escape de Ajustes y de la preparación de cita: lo gestiona cada diálogo (solo cierra el de arriba).
 
   if (!hasHydrated) return null;
 
   return (
     // overflow-x-clip (no hidden): hidden crea un contenedor de scroll y anula el sticky del header.
-    <div className={`flex flex-col ${activeTab === "pandaia" ? "h-dvh overflow-hidden" : "min-h-screen pb-[calc(3.5rem+var(--safe-bottom))]"} w-full max-w-md mx-auto bg-[#faf9f5] dark:bg-[#181520] text-stone-900 dark:text-[#eae6e1] font-sans relative shadow-2xl overflow-x-clip transition-colors duration-200 border-x border-stone-200/60 dark:border-white/[0.08]`}>
+    <div className={`flex flex-col ${activeTab === "pandaia" ? "h-dvh overflow-hidden" : "min-h-dvh pb-[calc(3.5rem+var(--safe-bottom))]"} w-full max-w-md mx-auto bg-[#faf9f5] dark:bg-[#181520] text-stone-900 dark:text-[#eae6e1] font-sans relative shadow-2xl overflow-x-clip transition-colors duration-200 border-x border-stone-200/60 dark:border-white/[0.08]`}>
       {/* Header con Logo, Switch Modo Oscuro, Alerta de Cita y Selector Global de Perfil */}
-      <header className="bg-white/95 dark:bg-[#181520]/95 backdrop-blur-md px-3 sm:px-4 pt-[var(--safe-top)] pb-2.5 shadow-xs border-b border-stone-200/70 dark:border-white/[0.08] sticky top-0 z-40 w-full flex items-center justify-between shrink-0 transition-colors">
+      <header className={`bg-white/95 dark:bg-[#181520]/95 backdrop-blur-md px-3 sm:px-4 pt-[var(--safe-top)] pb-2.5 shadow-xs border-b border-stone-200/70 dark:border-white/[0.08] sticky top-0 [@media(max-height:500px)]:static ${Z_CLASS.header} w-full flex items-center justify-between shrink-0 transition-colors`}>
         <div className="flex items-center min-w-0 shrink">
           <h1 className="sr-only">PandaJR</h1>
           <Image
@@ -2172,6 +2277,7 @@ export default function PandaJRApp() {
           {/* Botón Global de Perfil / Switcher */}
           {/* Solo icono: con el acceso a Síntomas, nombre y emoji ya no caben en un teléfono de 360-430px */}
           <button
+            ref={settingsButtonRef}
             type="button"
             onClick={() => setIsProfileModalOpen(true)}
             aria-haspopup="dialog"
@@ -2297,12 +2403,11 @@ export default function PandaJRApp() {
           onSave={saveSettings}
           onClose={closeSettings}
           focusDating={settingsFocusDating}
-          isDark={isDark}
-          toggleTheme={toggleTheme}
           partner={partner}
           showToast={showToast}
           onStartLink={startLinkFlow}
           dueDateNeedsReview={dueDateNeedsReview}
+          afterUnlinkFocusRef={settingsButtonRef}
         />
       )}
 
@@ -2320,12 +2425,15 @@ export default function PandaJRApp() {
         />
       )}
 
-      {/* Toast global: la región viva existe siempre para que el lector de pantalla anuncie cada mensaje. */}
+      {/* Toast global: la región viva existe siempre para que el lector de pantalla anuncie cada mensaje.
+          Exenta de inert y por encima de los diálogos: "Deshacer"/"Reintentar" se anuncian y se tocan con uno abierto. */}
       <div
+        ref={toastRegionRef}
         role="status"
         aria-live="polite"
         aria-atomic="true"
-        className="fixed bottom-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.5rem))] left-4 right-4 max-w-[calc(28rem-2rem)] mx-auto z-[60] pointer-events-none"
+        data-inert-exempt=""
+        className={`fixed bottom-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.5rem))] left-4 right-4 max-w-[calc(28rem-2rem)] mx-auto ${Z_CLASS.toast} pointer-events-none`}
       >
         {toast && (
           <div
@@ -2347,7 +2455,7 @@ export default function PandaJRApp() {
       </div>
 
       {/* Bottom Navigation */}
-      <nav aria-label="Navegación principal" className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 dark:bg-[#181520]/95 backdrop-blur-md border-t border-stone-200/80 dark:border-white/[0.08] flex justify-around items-center px-2 pt-2 pb-[var(--safe-bottom)] z-50 transition-colors">
+      <nav aria-label="Navegación principal" className={`fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 dark:bg-[#181520]/95 backdrop-blur-md border-t border-stone-200/80 dark:border-white/[0.08] grid grid-cols-4 items-center px-2 pt-2 pb-[var(--safe-bottom)] ${Z_CLASS.nav} transition-colors`}>
         <NavItem
           icon={<Compass size={24} />}
           label="Guía"
@@ -2383,12 +2491,14 @@ function NavItem({ icon, label, isActive, onClick }: { icon: React.ReactNode, la
       type="button"
       onClick={onClick}
       aria-current={isActive ? "page" : undefined}
-      className={`flex flex-col items-center gap-1 w-full p-2 transition-colors duration-200 ${
+      className={`flex flex-col items-center justify-center gap-1 w-full min-w-0 min-h-[48px] p-2 rounded-xl transition-colors duration-200 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-terracotta-ink ${
         isActive ? "text-terracotta-ink dark:text-sage-ink font-semibold" : "text-stone-600 hover:text-stone-800 dark:text-[#a6a1b2] dark:hover:text-[#eae6e1]"
       }`}
     >
       {icon}
-      <span className="text-xs font-medium">{label}</span>
+      {/* Por debajo de 300px (zoom del 200% en un teléfono) no caben cuatro etiquetas: el icono queda
+          visible y la etiqueta sigue siendo el nombre accesible del botón. */}
+      <span className="text-xs font-medium max-[300px]:sr-only">{label}</span>
     </button>
   );
 }
@@ -2540,7 +2650,7 @@ function MomStatusCard({
               aria-label={m.label}
               title={m.label}
               onClick={() => setEmoji(m.emoji)}
-              className={`text-2xl min-w-[44px] min-h-[44px] p-2 rounded-xl transition-all motion-reduce:transition-none ${emoji === m.emoji ? 'bg-terracotta/20 scale-110 motion-reduce:scale-100' : 'hover:bg-stone-100 dark:hover:bg-white/5 opacity-60 hover:opacity-100'}`}
+              className={`text-2xl min-w-[44px] min-h-[44px] p-2 rounded-xl transition-all motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink ${emoji === m.emoji ? 'bg-terracotta/20 ring-2 ring-inset ring-terracotta-ink scale-110 motion-reduce:scale-100' : 'hover:bg-stone-100 dark:hover:bg-white/5 opacity-60 hover:opacity-100'}`}
             >
               <span aria-hidden="true">{m.emoji}</span>
             </button>
@@ -2552,12 +2662,12 @@ function MomStatusCard({
           onChange={(e) => setText(e.target.value)}
           aria-label="Mensaje sobre cómo te sientes"
           placeholder={linked ? "Escribe un breve mensaje para tu copiloto..." : "Escribe cómo te sientes..."}
-          className="w-full bg-stone-50 dark:bg-[#1a1724] rounded-xl p-3 text-base sm:text-sm border border-stone-200 dark:border-white/10 dark:text-white mb-4 resize-none h-24 focus:ring-2 focus:ring-terracotta/50 outline-none"
+          className="w-full bg-stone-50 dark:bg-[#1a1724] rounded-xl p-3 text-base sm:text-sm border border-stone-500 dark:border-white/40 text-stone-900 dark:text-white mb-4 resize-none h-24 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-terracotta-ink"
         />
 
         <div className="flex gap-2">
-          <button type="button" onClick={() => setIsEditing(false)} className="flex-1 min-h-[44px] bg-stone-100 dark:bg-white/5 hover:bg-stone-200 dark:hover:bg-white/10 text-stone-700 dark:text-stone-300 font-bold py-2.5 rounded-xl transition-colors">Cancelar</button>
-          <button type="button" onClick={handleSave} className="flex-1 min-h-[44px] bg-terracotta-ink hover:bg-terracotta-ink-hover text-white font-bold py-2.5 rounded-xl transition-colors">{linked ? "Compartir estado" : "Guardar estado"}</button>
+          <button type="button" onClick={() => setIsEditing(false)} className="flex-1 min-h-[44px] bg-stone-100 dark:bg-white/5 hover:bg-stone-200 dark:hover:bg-white/10 text-stone-700 dark:text-stone-300 font-bold py-2.5 rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink">Cancelar</button>
+          <button type="button" onClick={handleSave} className="flex-1 min-h-[44px] bg-terracotta-ink hover:bg-terracotta-ink-hover text-white font-bold py-2.5 rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink">{linked ? "Compartir estado" : "Guardar estado"}</button>
         </div>
       </div>
     );
@@ -2567,8 +2677,8 @@ function MomStatusCard({
     <div className="bg-gradient-to-br from-terracotta/10 to-white dark:from-[#2a222f] dark:to-[#1a1724] rounded-3xl shadow-sm border border-terracotta/20 dark:border-terracotta/10 p-6 animate-in fade-in transition-colors">
       <div className="flex items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-full overflow-hidden bg-stone-100 border border-stone-200 dark:border-white/[0.06] shrink-0">
-            <div className="w-full h-full bg-terracotta/20 flex items-center justify-center text-terracotta-ink font-bold text-lg" aria-hidden="true">
+          <div className="w-10 h-10 rounded-full overflow-hidden bg-stone-100 dark:bg-[#2d273a] border border-stone-200 dark:border-white/[0.06] shrink-0">
+            <div className="w-full h-full bg-terracotta/20 flex items-center justify-center text-terracotta-ink-hover dark:text-terracotta-ink font-bold text-lg" aria-hidden="true">
               {momInitial}
             </div>
           </div>
@@ -2600,7 +2710,7 @@ function MomStatusCard({
             setEmoji(status?.emoji || "😊");
             setIsEditing(true);
           }}
-          className="w-full min-h-[44px] bg-terracotta/10 hover:bg-terracotta/20 dark:bg-terracotta/20 dark:hover:bg-terracotta/30 text-terracotta-ink border border-terracotta/20 rounded-xl py-2.5 text-sm font-bold transition-colors flex items-center justify-center gap-2"
+          className="w-full min-h-[44px] bg-terracotta/10 hover:bg-terracotta/20 dark:bg-terracotta/20 dark:hover:bg-terracotta/30 text-terracotta-ink border border-terracotta/20 rounded-xl py-2.5 text-sm font-bold transition-colors flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
         >
           <Edit3 size={16} aria-hidden="true" />
           Actualizar mi estado
@@ -2610,7 +2720,7 @@ function MomStatusCard({
           type="button"
           onClick={sendHug}
           disabled={hugSent}
-          className="w-full min-h-[44px] bg-sage/10 hover:bg-sage/20 dark:bg-sage/20 dark:hover:bg-sage/30 text-sage-ink border border-sage/25 rounded-xl py-2.5 text-sm font-bold transition-colors flex items-center justify-center gap-2 disabled:cursor-default disabled:hover:bg-sage/10"
+          className="w-full min-h-[44px] bg-sage/10 hover:bg-sage/20 dark:bg-sage/20 dark:hover:bg-sage/30 text-sage-ink border border-sage/25 rounded-xl py-2.5 text-sm font-bold transition-colors flex items-center justify-center gap-2 disabled:cursor-default disabled:hover:bg-sage/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
         >
           {hugSent ? <Check size={16} aria-hidden="true" /> : <Heart size={16} aria-hidden="true" />}
           {hugSent ? `Abrazo enviado a ${partner.partnerName || "tu pareja"}` : "Mandar abrazo virtual"}
@@ -2619,7 +2729,7 @@ function MomStatusCard({
         <button
           type="button"
           onClick={onRequestLink}
-          className="w-full min-h-[44px] bg-sage/10 hover:bg-sage/20 dark:bg-sage/20 dark:hover:bg-sage/30 text-sage-ink border border-sage/25 rounded-xl py-2.5 text-sm font-bold transition-colors flex items-center justify-center gap-2"
+          className="w-full min-h-[44px] bg-sage/10 hover:bg-sage/20 dark:bg-sage/20 dark:hover:bg-sage/30 text-sage-ink border border-sage/25 rounded-xl py-2.5 text-sm font-bold transition-colors flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
         >
           <Users size={16} aria-hidden="true" />
           Vincular con mi pareja
@@ -3155,6 +3265,32 @@ function loadStoredChat(key: string): ChatMessage[] | null {
 }
 
 // --- VISTA: PANDAIA ---
+/** Límite del anuncio de una respuesta: lo bastante para orientar; la respuesta completa está en el chat. */
+const SPOKEN_REPLY_MAX = 220;
+
+/**
+ * Respuesta de PandaIA para la región viva: sin marcas de Markdown (##, **, 1., viñetas), que el lector
+ * de pantalla leería como símbolos, y acotada, para no leer la respuesta entera cada vez.
+ */
+function spokenReply(reply: string): string {
+  const sentences = reply
+    .split(/\r?\n/)
+    .map((line) => line
+      .replace(/^\s*#{1,6}\s+/, "")
+      .replace(/^\s*(?:[-*•]|\d+[.)])\s+/, "")
+      .replace(/\*\*(.+?)\*\*/g, "$1")
+      .replace(/__(.+?)__/g, "$1")
+      .replace(/[*_`]+/g, "")
+      .trim())
+    .filter(Boolean)
+    .map((line) => (/[.!?:;…]$/.test(line) ? line : `${line}.`));
+  const plain = sentences.join(" ").replace(/\s+/g, " ").trim();
+  if (plain.length <= SPOKEN_REPLY_MAX) return plain;
+  const cut = plain.slice(0, SPOKEN_REPLY_MAX);
+  const end = cut.lastIndexOf(" ");
+  return `${(end > 80 ? cut.slice(0, end) : cut).replace(/[\s.,;:]+$/, "")}… La respuesta completa está en el chat.`;
+}
+
 function PandaIAView({
   showToast,
   addEvent,
@@ -3379,18 +3515,13 @@ function PandaIAView({
     }
   }, [initialQuery, clearInitialQuery]);
 
-  // Atajo de teclado: Escape para cerrar el decodificador de ecografías
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setIsUltrasoundModalOpen(false);
-      }
-    };
-    if (isUltrasoundModalOpen) {
-      window.addEventListener("keydown", handleEsc);
-      return () => window.removeEventListener("keydown", handleEsc);
-    }
-  }, [isUltrasoundModalOpen]);
+  // Decodificador de ecografías: diálogo modal (Escape, foco atrapado y de vuelta al clip, fondo inerte).
+  const { dialogProps: ultrasoundDialogProps } = useModalDialog({
+    open: isUltrasoundModalOpen,
+    onClose: () => setIsUltrasoundModalOpen(false),
+    labelledBy: "ultrasound-modal-title",
+    describedBy: "ultrasound-modal-desc",
+  });
 
   const copyMessage = async (id: number, text: string) => {
     const ok = await copyText(text);
@@ -3553,7 +3684,7 @@ function PandaIAView({
         card = { kind: "info", title: repairMojibake(data.card.title).trim(), desc: repairMojibake(data.card.desc).trim() };
       }
       setMessages(prev => [...prev, { id: makeId(), sender: "ai", text: reply, ...(card ? { card } : {}) }]);
-      setAnnouncement(`PandaIA: ${reply}`);
+      setAnnouncement(`PandaIA: ${spokenReply(reply)}`);
     } catch (err: unknown) {
       // Fallo esperado y manejado (sin red, 503, timeout): warn, no error.
       console.warn("PandaIA no respondió:", err);
@@ -3587,10 +3718,10 @@ function PandaIAView({
       if (isHeader) {
         const headerText = trimmed.replace(/^#{2,3}\s+/, "");
         return (
-          <h4 key={idx} className="font-bold text-teal-950 dark:text-sage/80 text-sm mt-3 mb-1.5 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-terracotta inline-block"></span>
+          <h3 key={idx} className="font-bold text-stone-900 dark:text-[#eae6e1] text-sm mt-3 mb-1.5 first:mt-0 flex items-center gap-1.5">
+            <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-terracotta-ink inline-block shrink-0"></span>
             <span>{headerText}</span>
-          </h4>
+          </h3>
         );
       }
 
@@ -3602,7 +3733,7 @@ function PandaIAView({
         const parts = itemContent.split(/(\*\*.*?\*\*)/g);
         return (
           <div key={idx} className="flex items-start gap-2 my-1 pl-1">
-            <span className="text-xs font-bold text-sage dark:text-sage/30 bg-sage/20/90 dark:bg-[#1a1724] px-1.5 py-0.5 rounded-md shrink-0 mt-0.5">{num}</span>
+            <span className="text-xs font-bold text-sage-ink bg-sage/20 dark:bg-[#1a1724] px-1.5 py-0.5 rounded-md shrink-0 mt-0.5 tabular-nums">{num}</span>
             <span className="flex-1 leading-relaxed text-stone-700 dark:text-[#eae6e1]/90">
               {parts.map((p, pIdx) => p.startsWith("**") && p.endsWith("**") ? <strong key={pIdx} className="font-bold text-stone-900 dark:text-[#eae6e1]">{p.slice(2, -2)}</strong> : p)}
             </span>
@@ -3624,7 +3755,7 @@ function PandaIAView({
       if (isBullet) {
         return (
           <div key={idx} className="flex items-start gap-2 my-1 pl-1">
-            <span className="text-terracotta dark:text-sage font-bold shrink-0 mt-0.5">•</span>
+            <span aria-hidden="true" className="text-terracotta-ink dark:text-sage-ink font-bold shrink-0 mt-0.5">•</span>
             <span className="flex-1 leading-relaxed text-stone-700 dark:text-[#eae6e1]/90">{content}</span>
           </div>
         );
@@ -3652,12 +3783,12 @@ function PandaIAView({
             <Bot size={20} aria-hidden="true" />
           </div>
           <div>
-            <h2 className="font-bold text-stone-900 dark:text-[#eae6e1] leading-tight flex items-center gap-1.5 text-sm">
-              <span>PandaIA</span>
+            <div className="flex items-center gap-1.5">
+              <h2 className="font-bold text-stone-900 dark:text-[#eae6e1] leading-tight text-sm">PandaIA</h2>
               <span className="text-xs font-bold text-sage-ink bg-sage/10 dark:bg-[#1a1724] border border-sage-ink/25 px-2 py-0.5 rounded-full tracking-tight">
                 Asistente
               </span>
-            </h2>
+            </div>
             <p className="text-xs font-semibold text-sage-ink">
               {profile.weekUnknown ? "Semana sin confirmar" : `Semana ${profile.week}`}
               {!online && <span className="text-amber-800 dark:text-amber-300"> · Sin conexión</span>}
@@ -3674,7 +3805,7 @@ function PandaIAView({
             title="Reiniciar conversación (se guarda en este teléfono)"
             aria-label="Reiniciar conversación"
           >
-            <RotateCcw size={16} />
+            <RotateCcw size={16} aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -3711,7 +3842,7 @@ function PandaIAView({
                 id={`pandaia-msg-${msg.id}`}
                 className="flex items-end gap-2 max-w-[88%] animate-in fade-in slide-in-from-bottom-2 duration-200 motion-reduce:animate-none"
               >
-                <div className="bg-sage/20 dark:bg-[#1a1724] text-sage dark:text-sage/80 p-1.5 rounded-xl shrink-0 mb-1 shadow-xs">
+                <div className="bg-sage/20 dark:bg-[#1a1724] text-sage-ink p-1.5 rounded-xl shrink-0 mb-1 shadow-xs" aria-hidden="true">
                   <Bot size={16} aria-hidden="true" />
                 </div>
                 <div className="p-4 rounded-3xl rounded-bl-none bg-white dark:bg-[#221d2d] border border-stone-200 dark:border-white/[0.08] text-sm text-stone-800 dark:text-[#eae6e1] shadow-xs">
@@ -3768,7 +3899,7 @@ function PandaIAView({
             }`}
           >
             {msg.sender === 'ai' && (
-              <div className="bg-sage/20 dark:bg-[#1a1724] text-sage dark:text-sage/80 p-1.5 rounded-xl shrink-0 mb-1 shadow-xs">
+              <div className="bg-sage/20 dark:bg-[#1a1724] text-sage-ink p-1.5 rounded-xl shrink-0 mb-1 shadow-xs" aria-hidden="true">
                 <Bot size={16} />
               </div>
             )}
@@ -3813,12 +3944,12 @@ function PandaIAView({
                   const inAgenda = events.some(e => String(e.id) === String(card.eventId));
                   return (
                     <div className="bg-sage/10 dark:bg-[#1f2622] border border-sage/30 dark:border-sage/25 shadow-xs rounded-2xl p-4 w-full max-w-sm animate-in zoom-in-95 duration-200 motion-reduce:animate-none">
-                      <h5 className="flex items-start gap-1.5 font-bold text-stone-900 dark:text-[#eae6e1] text-sm">
+                      <h3 className="flex items-start gap-1.5 font-bold text-stone-900 dark:text-[#eae6e1] text-sm">
                         {inAgenda
                           ? <CalendarCheck size={16} className="mt-0.5 shrink-0 text-sage-ink" aria-hidden="true" />
                           : <CalendarX size={16} className="mt-0.5 shrink-0 text-stone-500 dark:text-[#a6a1b2]" aria-hidden="true" />}
                         <span>{card.title}</span>
-                      </h5>
+                      </h3>
                       <p className="text-xs text-stone-700 dark:text-[#d9d4de] mt-1 leading-relaxed">
                         {card.when}{card.doctor ? ` · ${card.doctor}` : ""}
                       </p>
@@ -3842,10 +3973,10 @@ function PandaIAView({
                 if (card.kind === "pending") {
                   return (
                     <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-300/70 dark:border-amber-400/25 shadow-xs rounded-2xl p-4 w-full max-w-sm animate-in zoom-in-95 duration-200 motion-reduce:animate-none">
-                      <h5 className="flex items-start gap-1.5 font-bold text-stone-900 dark:text-[#eae6e1] text-sm">
+                      <h3 className="flex items-start gap-1.5 font-bold text-stone-900 dark:text-[#eae6e1] text-sm">
                         <CalendarClock size={16} className="mt-0.5 shrink-0 text-amber-800 dark:text-amber-300" aria-hidden="true" />
                         <span>¿Qué día es{card.title ? ` «${card.title}»` : " la cita"}?</span>
-                      </h5>
+                      </h3>
                       <p className="text-xs text-stone-700 dark:text-[#d9d4de] mt-1 leading-relaxed">
                         Aún no está en tu Agenda. Dime la fecha (por ejemplo, «el 20 de octubre a las 10:00») y la agrego.
                       </p>
@@ -3863,10 +3994,10 @@ function PandaIAView({
                 if (!info.title) return null;
                 return (
                   <div className="bg-[#fdfbf7] dark:bg-[#221d2d] border border-stone-200 dark:border-white/[0.08] shadow-xs rounded-2xl p-4 w-full max-w-sm animate-in zoom-in-95 duration-200 motion-reduce:animate-none">
-                    <h5 className="flex items-start gap-1.5 font-bold text-stone-900 dark:text-[#eae6e1] text-sm">
+                    <h3 className="flex items-start gap-1.5 font-bold text-stone-900 dark:text-[#eae6e1] text-sm">
                       <Lightbulb size={16} className="mt-0.5 shrink-0 text-terracotta-ink" aria-hidden="true" />
                       <span>{info.title}</span>
-                    </h5>
+                    </h3>
                     {info.desc && (
                       <p className="text-xs text-stone-700 dark:text-[#d9d4de] mt-1 leading-relaxed">{info.desc}</p>
                     )}
@@ -3880,7 +4011,7 @@ function PandaIAView({
 
         {isTyping && (
           <div className="flex items-end gap-2 max-w-[85%] animate-in fade-in duration-150">
-            <div className="bg-sage/20 dark:bg-[#1a1724] text-sage dark:text-sage/80 p-1.5 rounded-xl shrink-0 mb-1 shadow-xs">
+            <div className="bg-sage/20 dark:bg-[#1a1724] text-sage-ink p-1.5 rounded-xl shrink-0 mb-1 shadow-xs" aria-hidden="true">
               <Bot size={16} />
             </div>
             <div className="bg-white dark:bg-[#221d2d] px-4 py-3 rounded-2xl rounded-bl-none shadow-xs border border-stone-100 dark:border-white/[0.08] flex gap-2 items-center">
@@ -3889,7 +4020,7 @@ function PandaIAView({
                 <div className="w-2 h-2 bg-terracotta rounded-full animate-pulse" style={{ animationDelay: "0.15s" }}></div>
                 <div className="w-2 h-2 bg-terracotta rounded-full animate-pulse" style={{ animationDelay: "0.3s" }}></div>
               </div>
-              <span className="text-xs text-stone-400 dark:text-[#a6a1b2] font-medium">PandaIA está respondiendo...</span>
+              <span className="text-xs text-stone-600 dark:text-[#a6a1b2] font-medium">PandaIA está respondiendo…</span>
             </div>
           </div>
         )}
@@ -3916,7 +4047,7 @@ function PandaIAView({
                 }
               }}
               title={schedule ? "Escribe el día de la cita para agendarla" : undefined}
-              className="whitespace-nowrap inline-flex items-center gap-1.5 bg-sage/10 dark:bg-[#2d273a] border border-sage/30 dark:border-white/10 text-sage-ink text-xs font-semibold px-3.5 py-2 min-h-[44px] rounded-full hover:bg-sage/20 dark:hover:bg-[#383147] active:scale-95 motion-reduce:active:scale-100 transition-all shadow-2xs"
+              className="whitespace-nowrap inline-flex items-center gap-1.5 bg-sage/10 dark:bg-[#2d273a] border border-sage/30 dark:border-white/10 text-sage-ink text-xs font-semibold px-3.5 py-2 min-h-[44px] rounded-full hover:bg-sage/20 dark:hover:bg-[#383147] active:scale-95 motion-reduce:active:scale-100 transition-all shadow-2xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
             >
               {schedule && <CalendarClock size={14} className="shrink-0" aria-hidden="true" />}
               {chip}
@@ -3927,7 +4058,8 @@ function PandaIAView({
 
         {/* Text Input Ergonómico */}
         <div className="p-2.5">
-          <div className="flex items-end gap-2 bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-sage/100 focus-within:border-transparent transition-all shadow-xs">
+          {/* El contenedor es el campo visible: borde ≥3:1 y anillo de tinta al escribir (el textarea no lleva el suyo). */}
+          <div className="flex items-end gap-2 bg-stone-50 dark:bg-[#2d273a] border border-stone-500 dark:border-white/40 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-sage-ink focus-within:border-transparent transition-all shadow-xs">
             <button 
               type="button"
               aria-label="Cargar consulta sobre ecografías"
@@ -3935,7 +4067,7 @@ function PandaIAView({
               className="min-w-[44px] min-h-[44px] flex items-center justify-center text-stone-600 dark:text-[#a6a1b2] hover:text-sage-ink transition-colors shrink-0 rounded-xl hover:bg-white dark:hover:bg-[#221d2d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
               title="Preguntas frecuentes sobre ecografías"
             >
-              <Paperclip size={18} />
+              <Paperclip size={18} aria-hidden="true" />
             </button>
             <textarea 
               ref={textareaRef}
@@ -3950,20 +4082,20 @@ function PandaIAView({
                 }
               }}
               placeholder="Escribe tu pregunta..."
-              className="flex-1 bg-transparent border-none focus:outline-none text-base sm:text-sm py-2 resize-none max-h-32 min-h-[40px] text-stone-800 dark:text-[#eae6e1] placeholder:text-stone-500 dark:placeholder:text-[#948fa1] overflow-y-auto no-scrollbar"
+              className="flex-1 bg-transparent border-none focus:outline-none text-base sm:text-sm py-2.5 resize-none max-h-32 min-h-[44px] text-stone-800 dark:text-[#eae6e1] placeholder:text-stone-500 dark:placeholder:text-[#948fa1] overflow-y-auto no-scrollbar"
             />
             <button 
               type="button"
               aria-label="Enviar mensaje a PandaIA"
               onClick={() => handleSend(inputText)}
               disabled={!inputText.trim() || isTyping}
-              className={`min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl transition-all shrink-0 active:scale-90 motion-reduce:active:scale-100 ${
+              className={`min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl transition-all shrink-0 active:scale-90 motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink ${
                 inputText.trim() && !isTyping 
                   ? "bg-terracotta-ink text-white hover:bg-terracotta-ink-hover shadow-xs" 
                   : "bg-stone-200 dark:bg-[#2a2e37] text-stone-400 dark:text-[#a6a1b2]/60 cursor-not-allowed"
               }`}
             >
-              <Send size={16} />
+              <Send size={16} aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -3971,23 +4103,24 @@ function PandaIAView({
 
       {/* MODAL / SHEET DECODIFICADOR DE ECOGRAFíAS */}
       {isUltrasoundModalOpen && (
-        <div 
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="ultrasound-modal-title"
+        <ModalPortal>
+        <div
           onClick={(e) => { if (e.target === e.currentTarget) setIsUltrasoundModalOpen(false); }}
-          className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-xs z-[55] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150"
+          className={`fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-xs ${Z_CLASS.dialog} flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150`}
         >
-          <div className="bg-white dark:bg-[#221d2d] rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in slide-in-from-bottom-4 duration-200 border border-stone-100 dark:border-white/[0.08]">
+          <div
+            {...ultrasoundDialogProps}
+            className="bg-white dark:bg-[#221d2d] rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in slide-in-from-bottom-4 duration-200 border border-stone-100 dark:border-white/[0.08] outline-none"
+          >
             <div className="bg-sage-ink p-4 flex justify-between items-center text-white">
               <div className="flex items-center gap-2">
-                <div className="bg-white/10 p-2 rounded-xl">
+                <div className="bg-white/10 p-2 rounded-xl" aria-hidden="true">
                   <FileText size={18} />
                 </div>
                 <div>
-                  <h3 id="ultrasound-modal-title" className="font-bold text-sm leading-tight">
+                  <h2 id="ultrasound-modal-title" className="font-bold text-base leading-tight">
                     Decodificador de Ecografía
-                  </h3>
+                  </h2>
                   <p className="text-xs text-white/90">
                     Preguntas rápidas para interpretar tu ecografía
                   </p>
@@ -3999,12 +4132,12 @@ function PandaIAView({
                 className="min-w-[44px] min-h-[44px] flex items-center justify-center text-white/90 hover:text-white hover:bg-white/10 rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 aria-label="Cerrar ventana de ecografías"
               >
-                <X size={20} />
+                <X size={20} aria-hidden="true" />
               </button>
             </div>
 
-            <div className="p-4 space-y-2 max-h-[70vh] overflow-y-auto">
-              <p className="text-xs text-stone-500 dark:text-[#a6a1b2] mb-3">
+            <div className="p-4 space-y-2 max-h-[70dvh] overflow-y-auto">
+              <p id="ultrasound-modal-desc" className="text-xs text-stone-600 dark:text-[#a6a1b2] mb-3">
                 Selecciona una consulta frecuente para que PandaIA te explique los valores clínicos con calma:
               </p>
 
@@ -4013,18 +4146,18 @@ function PandaIAView({
                   key={idx}
                   type="button"
                   onClick={() => handleUltrasoundSelect(item.prompt)}
-                  className="w-full text-left p-3.5 rounded-2xl border border-stone-100 dark:border-white/[0.08] bg-stone-50/70 dark:bg-[#2d273a]/60 hover:bg-sage/10/60 dark:hover:bg-[#2d273a] hover:border-sage/30 dark:hover:border-sage/100/30 transition-all flex items-start justify-between gap-3 group active:scale-[0.99]"
+                  className="w-full min-h-[44px] text-left p-3.5 rounded-2xl border border-stone-200 dark:border-white/[0.08] bg-stone-50/70 dark:bg-[#2d273a]/60 hover:bg-sage/10 dark:hover:bg-[#2d273a] hover:border-sage-ink/40 dark:hover:border-sage/30 transition-colors flex items-start justify-between gap-3 group active:scale-[0.99] motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
                 >
                   <div className="flex-1">
-                    <p className="text-xs font-bold text-stone-900 dark:text-[#eae6e1] group-hover:text-sage dark:group-hover:text-sage/80 flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-terracotta shrink-0"></span>
+                    <p className="text-xs font-bold text-stone-900 dark:text-[#eae6e1] group-hover:text-sage-ink flex items-center gap-1.5">
+                      <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-terracotta shrink-0"></span>
                       <span>{item.title}</span>
                     </p>
-                    <p className="text-xs text-stone-500 dark:text-[#a6a1b2] mt-0.5 leading-snug">
+                    <p className="text-xs text-stone-600 dark:text-[#a6a1b2] mt-0.5 leading-snug">
                       {item.desc}
                     </p>
                   </div>
-                  <ChevronRight size={16} className="text-stone-400 dark:text-[#a6a1b2] group-hover:text-terracotta dark:group-hover:text-sage/80 shrink-0 mt-1" />
+                  <ChevronRight size={16} className="text-stone-500 dark:text-[#a6a1b2] group-hover:text-terracotta-ink dark:group-hover:text-sage-ink shrink-0 mt-1" aria-hidden="true" />
                 </button>
               ))}
             </div>
@@ -4033,13 +4166,14 @@ function PandaIAView({
               <button
                 type="button"
                 onClick={() => setIsUltrasoundModalOpen(false)}
-                className="min-h-[44px] px-4 text-sm font-semibold text-stone-600 dark:text-[#a6a1b2] hover:text-stone-800 dark:hover:text-[#eae6e1] transition-colors"
+                className="min-h-[44px] px-4 rounded-xl text-sm font-semibold text-stone-600 dark:text-[#a6a1b2] hover:text-stone-900 dark:hover:text-[#eae6e1] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
               >
                 Cancelar
               </button>
             </div>
           </div>
         </div>
+        </ModalPortal>
       )}
 
     </div>

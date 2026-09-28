@@ -3,6 +3,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
+  /* Controles nativos (fecha, hora, select, barras) siguen al tema de la app. */
+  color-scheme: light;
   --safe-top: max(0.625rem, env(safe-area-inset-top));
   --safe-bottom: max(0.75rem, env(safe-area-inset-bottom));
   /* Fondo cálido alabastro */
@@ -25,9 +27,13 @@
   --sage-ink: #44695a;             /* blanco 6.15:1 · sobre #faf9f5 5.84:1 · sobre sage/20 4.83:1 */
   --sage-ink-fill: #44695a;
   --sage-ink-hover: #37574a;       /* blanco 8.00:1 */
+
+  /* Placeholder legible (WCAG 1.4.3): sobre #ffffff 5.4:1 · #f5f5f4 4.96:1 · #fdfbf7 5.2:1 */
+  --placeholder: #6f6964;
 }
 
 .dark {
+  color-scheme: dark;
   /* Fondo violeta nocturno cálido */
   --background: #181520;
   --foreground: #eae6e1;
@@ -48,6 +54,8 @@
   --sage-ink: #89bca0;             /* texto: sobre #181520 8.37:1 · sobre #221d2d 7.62:1 */
   --sage-ink-fill: #48705d;        /* relleno: blanco 5.60:1 */
   --sage-ink-hover: #3d5f4f;       /* blanco 7.12:1 */
+
+  --placeholder: #a6a1b2;          /* sobre #1a1724 7.0:1 · #221d2d 6.5:1 · #2d273a 5.7:1 */
 }
 
 @theme inline {
@@ -79,6 +87,82 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@layer base {
+  /* El foco nunca queda tapado por lo fijo (2.4.7; 2.4.11 en WCAG 2.2): al avanzar con Tab el navegador
+     desplaza el control fuera de la barra inferior (nav fija: 4.3rem + zona segura, más el anillo) y de
+     la cabecera fija (3.4375rem + zona segura). Con la cabecera de una herramienta debajo (4.3rem más),
+     el margen superior crece. Con poca altura (zoom, horizontal) las cabeceras dejan de ser fijas. */
+  html {
+    scroll-padding-top: calc(4rem + var(--safe-top));
+    scroll-padding-bottom: calc(5rem + var(--safe-bottom));
+  }
+  html:has([data-tool-header]) {
+    scroll-padding-top: calc(8.5rem + var(--safe-top));
+  }
+  @media (max-height: 500px) {
+    html,
+    html:has([data-tool-header]) {
+      scroll-padding-top: 0.5rem;
+    }
+  }
+
+  /* Anillo de foco de respaldo (teclado): tinta terracota, válida en claro (5.6:1) y oscuro (7.6:1).
+     Capa base: las utilidades focus-visible:outline-* / outline-none de un componente mandan sobre esta
+     (un outline-none sin reemplazo sigue dejando el foco invisible: ver measure.md §5). */
+  :focus-visible {
+    outline: 2px solid var(--terracotta-ink);
+    outline-offset: 2px;
+  }
+
+  /* Placeholder por defecto de Tailwind (currentColor al 50%) no llega a 4.5:1. Las utilidades
+     placeholder:text-* siguen mandando. */
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--placeholder);
+    opacity: 1;
+  }
+}
+
+/* Movimiento reducido: nada se desplaza, escala ni late; los cambios de estado siguen visibles.
+   - Entradas (animate-in + fade/zoom/slide): el elemento aparece ya en su estado final.
+   - Ondas y latidos decorativos (ping/pulse/bounce): quietos; la onda queda tenue y fija.
+   - Transiciones: se anulan las de movimiento (transform, translate, scale, tamaño, posición);
+     los fundidos de color y opacidad que ya tenía cada componente se conservan (no son movimiento
+     y marcan el cambio de estado). Nada gana una transición que no tenía.
+   - animate-spin se mantiene: es el aviso de "cargando" (los componentes pueden apagarlo con
+     motion-reduce:animate-none si el texto ya lo dice). */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, opacity, box-shadow !important;
+    transition-delay: 0s !important;
+  }
+
+  .animate-in,
+  .fade-in,
+  .zoom-in,
+  .zoom-in-95,
+  [class*="slide-in-from-"] {
+    animation: none !important;
+  }
+
+  .animate-pulse,
+  .animate-bounce {
+    animation: none !important;
+  }
+
+  .animate-ping {
+    animation: none !important;
+    opacity: 0.45;
+  }
 }
 
 .no-scrollbar::-webkit-scrollbar {

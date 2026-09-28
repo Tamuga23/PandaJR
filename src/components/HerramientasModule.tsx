@@ -39,11 +39,14 @@ import { SyncBadge, useOnline, usePartner } from "@/components/SyncBadge";
 import { CallActions, EmergencyCallLink } from "@/components/CallActions";
 import { useDetectedEmergency } from "@/lib/useCareTeam";
 import { URGENT_SIGNS, CALL_TODAY_SIGNS, clinicalWeek, isPreterm, telHref, type AlarmSign } from "@/lib/urgency";
+import { ModalPortal } from "@/components/ModalPortal";
+import { useModalDialog } from "@/lib/useModalDialog";
+import { Z_CLASS } from "@/lib/layers";
 import {
   Activity, AlertTriangle, ArrowLeft, ArrowRight, Baby, BookOpen, CalendarClock, Camera, Check, CheckCircle, CheckCircle2,
   ChevronDown, ChevronRight, ChevronUp, Circle, CircleAlert, ClipboardList, Clock, CloudOff, Edit3, FileText, Flame, HeartHandshake,
   Heart, HeartPulse, History, ImagePlus, Info, LoaderCircle, Minus, Moon, Music, Package, Pencil, Phone, PhoneCall, Play,
-  Plus, Printer, RefreshCw, RotateCcw, Send, Share2, Siren, Sparkles, Square, Tag, Trash2, Trophy, Undo2, Users, Utensils,
+  Plus, Printer, RefreshCw, RotateCcw, Send, Share2, Siren, Sparkles, Square, Tag, Timer, Trash2, Trophy, Undo2, Users, Utensils,
   Wallet, Wand2, Waves, X,
 } from "lucide-react";
 
@@ -670,12 +673,27 @@ function formatDayTime(ts: number, now: number): string {
  * control (botón, enlace, campo) ni dentro de un diálogo como la hoja del equipo de salud.
  */
 function isControlTarget(target: EventTarget | null): boolean {
+  // Con un diálogo modal abierto (p. ej. el equipo de salud), el contador de fondo no escucha el teclado.
+  if (typeof document !== "undefined" && document.querySelector('[aria-modal="true"]')) return true;
   if (typeof Element === "undefined" || !(target instanceof Element)) return false;
   return !!target.closest('input, textarea, select, button, a, [contenteditable="true"], [role="dialog"]');
 }
 
 const sosFocusRing =
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink";
+/** Anillo sobre rellenos de color (tarjeta sage-ink): la tinta terracota no se distingue ahí (1.05:1); el blanco sí (≥5.6:1). */
+const onFillFocusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
+/**
+ * Campos de texto: borde ≥3:1 con lo que lo rodea (WCAG 1.4.11; stone-500 ≥4.59:1 en claro,
+ * white/35 ≥3.1:1 en oscuro) y foco con la tinta, como el resto de controles.
+ */
+const fieldBorder = "border border-stone-500 dark:border-white/35";
+const fieldFocus = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink";
+// Placeholder: sin utilidad propia, manda ::placeholder de globals.css (--placeholder: ≥5.2:1 claro, ≥5.7:1 oscuro;
+// el #8f899c de antes daba 4.26:1 sobre #2d273a).
+
+/** Herramientas que se abren como diálogo modal (tienen su propio título y botón de cerrar). */
+const MODAL_TOOLS = ["presupuesto", "story", "reproductor"];
 
 /** Herramientas que HerramientasView puede abrir por `openRequest`. */
 const OPENABLE_TOOLS = [
@@ -854,14 +872,15 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
         {obPhone && (
           <a
             href={telHref(obPhone)}
-            className={`mt-3 flex min-h-[56px] w-full items-center gap-3 rounded-2xl border border-stone-200 bg-white px-3.5 py-2.5 text-stone-900 transition-colors hover:bg-stone-50 active:scale-[0.98] motion-reduce:active:scale-100 dark:border-white/10 dark:bg-[#2d273a] dark:text-[#eae6e1] dark:hover:bg-[#352e44] ${sosFocusRing}`}
+            className={`@container mt-3 flex min-h-[56px] w-full items-center gap-3 rounded-2xl border border-stone-200 bg-white px-3.5 py-2.5 text-stone-900 transition-colors hover:bg-stone-50 active:scale-[0.98] motion-reduce:active:scale-100 dark:border-white/10 dark:bg-[#2d273a] dark:text-[#eae6e1] dark:hover:bg-[#352e44] ${sosFocusRing}`}
           >
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-sage/15 text-sage-ink">
+            {/* Con zoom al 200% el icono cede su sitio y el texto pasa de línea en vez de cortarse (1.4.4). */}
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-sage/15 text-sage-ink @max-[11rem]:hidden">
               <Phone size={20} aria-hidden="true" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-base font-bold leading-tight">{obName ? `Llamar a ${obName}` : "Llamar a tu obstetra"}</span>
-              <span className="block truncate text-sm leading-snug tabular-nums text-stone-600 dark:text-[#a6a1b2]">{obPhone}</span>
+              <span className="block break-words text-base font-bold leading-tight">{obName ? `Llamar a ${obName}` : "Llamar a tu obstetra"}</span>
+              <span className="block break-words text-sm leading-snug tabular-nums text-stone-600 dark:text-[#a6a1b2]">{obPhone}</span>
             </span>
           </a>
         )}
@@ -890,15 +909,16 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
               <a
                 href={telHref(emergencyNumber)}
                 aria-label={`Llamar a emergencias, ${emergencyNumber}`}
-                className={`mt-3 flex min-h-[56px] w-full items-center gap-3 rounded-2xl bg-terracotta-ink px-3.5 py-2.5 text-white transition-[background-color,transform] hover:bg-terracotta-ink-hover active:scale-[0.98] motion-reduce:active:scale-100 ${sosFocusRing}`}
+                className={`@container mt-3 flex min-h-[56px] w-full items-center gap-3 rounded-2xl bg-terracotta-ink px-3.5 py-2.5 text-white transition-[background-color,transform] hover:bg-terracotta-ink-hover active:scale-[0.98] motion-reduce:active:scale-100 ${sosFocusRing}`}
               >
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/15">
+                {/* Igual que CallActions: en un botón estrecho los iconos ceden su sitio a "Emergencias". */}
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/15 @max-[11rem]:hidden">
                   <Siren size={22} aria-hidden="true" />
                 </span>
-                <span className="min-w-0 flex-1 text-lg font-bold leading-tight">
-                  Emergencias · <span className="tabular-nums">{emergencyNumber}</span>
+                <span className="min-w-0 flex-1 break-words hyphens-auto text-lg font-bold leading-tight">
+                  Emergencias <span className="whitespace-nowrap">· <span className="tabular-nums">{emergencyNumber}</span></span>
                 </span>
-                <PhoneCall size={18} className="shrink-0" aria-hidden="true" />
+                <PhoneCall size={18} className="shrink-0 @max-[15rem]:hidden" aria-hidden="true" />
               </a>
             </div>
           )}
@@ -1160,7 +1180,7 @@ export function DiarioView({ profile, showToast }: { profile: UserProfile; onClo
             onChange={(e) => setNewEntry(e.target.value)}
             maxLength={2000}
             placeholder="Escribe un recuerdo, un hito o un mensaje para el bebé…"
-            className="w-full bg-stone-50 dark:bg-[#181520] rounded-2xl p-3 resize-none h-24 text-base text-stone-800 dark:text-white placeholder:text-stone-500 dark:placeholder:text-[#8f899c] focus:outline-none focus:ring-2 focus:ring-terracotta-ink/40 border border-transparent dark:border-white/5"
+            className={`w-full bg-stone-50 dark:bg-[#181520] rounded-2xl p-3 resize-none h-24 text-base text-stone-800 dark:text-white ${fieldBorder} ${fieldFocus}`}
           />
 
           <fieldset className="mt-3">
@@ -1258,7 +1278,9 @@ export function DiarioView({ profile, showToast }: { profile: UserProfile; onClo
                         <div className="min-w-0">
                           <p className="flex items-center gap-1.5 text-sm font-bold text-stone-800 dark:text-[#eae6e1]">
                             <span className="truncate">{entry.authorName || (isMama ? "Mamá" : "Copiloto")}</span>
-                            {entry.mood && <span aria-label={JOURNAL_MOODS.find((m) => m.emoji === entry.mood)?.label}>{entry.mood}</span>}
+                            {entry.mood && (
+                              <span role="img" aria-label={JOURNAL_MOODS.find((m) => m.emoji === entry.mood)?.label ?? "Estado de ánimo"}>{entry.mood}</span>
+                            )}
                           </p>
                           <p className="text-xs text-stone-600 dark:text-[#a6a1b2]">
                             {date
@@ -1380,7 +1402,8 @@ export function MaletaView({ profile }: { profile: UserProfile; onClose?: () => 
                     onClick={() => toggleItem(item.id)}
                     className={`flex w-full min-h-[52px] items-center gap-3 p-4 text-left transition-colors hover:bg-stone-50 dark:hover:bg-white/[0.02] ${sosFocusRing}`}
                   >
-                    <span aria-hidden="true" className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${bag[item.id] ? 'bg-sage-ink border-transparent text-white' : 'border-stone-300 dark:border-stone-600'}`}>
+                    {/* Círculo sin marcar ≥3:1 con el fondo (WCAG 1.4.11): stone-500 4.8:1 claro, stone-400 6.9:1 oscuro. */}
+                    <span aria-hidden="true" className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${bag[item.id] ? 'bg-sage-ink border-transparent text-white' : 'border-stone-500 dark:border-stone-400'}`}>
                       {bag[item.id] && <Check size={14} strokeWidth={3} />}
                     </span>
                     <span className={`text-sm font-medium ${bag[item.id] ? 'text-stone-500 dark:text-stone-400 line-through' : 'text-stone-700 dark:text-stone-200'}`}>
@@ -1463,6 +1486,10 @@ export function HerramientasView({ showToast, profile, openRequest }: { showToas
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const toolHeadingRef = useRef<HTMLHeadingElement>(null);
   const focusedRequestRef = useRef<number | null>(null);
+  const tileRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  // Al cambiar de vista el botón pulsado desaparece: el foco va al título de la herramienta al abrirla
+  // y a su tarjeta del hub al volver (también al cerrar Presupuesto, PandaStory o Panda Audio).
+  const pendingFocusRef = useRef<{ to: "heading" } | { to: "tile"; id: string } | null>(null);
 
   const requestedTool = openRequest?.tool;
   const requestNonce = openRequest?.nonce;
@@ -1485,7 +1512,27 @@ export function HerramientasView({ showToast, profile, openRequest }: { showToas
     toolHeadingRef.current?.focus({ preventScroll: true });
   }, [activeTool, requestNonce, requestedTool]);
 
+  useEffect(() => {
+    const want = pendingFocusRef.current;
+    if (!want) return;
+    pendingFocusRef.current = null;
+    if (want.to === "heading") toolHeadingRef.current?.focus({ preventScroll: true });
+    else tileRefs.current[want.id]?.focus();
+  }, [activeTool]);
+
+  const openTool = (id: string) => {
+    // Los diálogos (Presupuesto, PandaStory, Panda Audio) llevan el foco dentro por su cuenta.
+    pendingFocusRef.current = MODAL_TOOLS.includes(id) ? null : { to: "heading" };
+    setActiveTool(id);
+  };
+
+  const closeTool = () => {
+    if (activeTool) pendingFocusRef.current = { to: "tile", id: activeTool };
+    setActiveTool(null);
+  };
+
   const openToolFromSos = (tool: "patadas" | "contracciones") => {
+    pendingFocusRef.current = { to: "heading" };
     setActiveTool(tool);
     if (typeof window !== "undefined") window.scrollTo({ top: 0 });
   };
@@ -1515,8 +1562,9 @@ export function HerramientasView({ showToast, profile, openRequest }: { showToas
       color: "bg-sage/20 dark:bg-sage/20 border-sage/30 dark:border-sage/20",
     },
 
-    { id: "sos", label: "SOS Síntomas", icon: <HeartPulse size={24} />, desc: "Síntomas de alarma", color: "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400", border: "border-rose-100 dark:border-rose-500/20" },
-    { id: "contracciones", label: "Contracciones", icon: <Activity size={24} />, desc: "Frecuencia y duración", color: "bg-terracotta/10 text-terracotta-ink", border: "border-terracotta/20" },
+    // SOS se pinta aparte (tarjeta ancha en terracota de tinta); estos colores solo lo describen.
+    { id: "sos", label: "SOS Síntomas", icon: <HeartPulse size={24} />, desc: "Síntomas de alarma", color: "bg-terracotta/10 text-terracotta-ink", border: "border-terracotta/20" },
+    { id: "contracciones", label: "Contracciones", icon: <Timer size={24} />, desc: "Frecuencia y duración", color: "bg-terracotta/10 text-terracotta-ink", border: "border-terracotta/20" },
     { id: "patadas", label: "Patadas", icon: <Baby size={24} />, desc: "Método Cardiff", color: "bg-sage/10 text-sage-ink", border: "border-sage/20" },
     { id: "diario", label: "Diario", icon: <FileText size={24} />, desc: "Memorias del bebé", color: "bg-sage/10 text-sage-ink", border: "border-sage/20 dark:border-sage/20" },
     { id: "maleta", label: "Maleta", icon: <Package size={24} />, desc: "Para el hospital", color: "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400", border: "border-amber-100 dark:border-amber-500/20" },
@@ -1540,10 +1588,10 @@ export function HerramientasView({ showToast, profile, openRequest }: { showToas
       <div className="flex flex-col h-full w-full bg-stone-50 dark:bg-[#120f18] animate-in fade-in zoom-in-95 duration-200">
         
         {/* Only show generic header if it's not one of our new custom modal tools */}
-        {!["presupuesto", "story", "reproductor"].includes(activeTool) && (
-          <div className="sticky top-[calc(3.4375rem+var(--safe-top))] z-20 bg-white/90 dark:bg-[#181520]/90 backdrop-blur-md px-4 py-3 flex items-center gap-3 border-b border-stone-200 dark:border-white/5">
+        {!MODAL_TOOLS.includes(activeTool) && (
+          <div data-tool-header className="sticky top-[calc(3.4375rem+var(--safe-top))] [@media(max-height:500px)]:static z-20 bg-white/90 dark:bg-[#181520]/90 backdrop-blur-md px-4 py-3 flex items-center gap-3 border-b border-stone-200 dark:border-white/5">
 
-          <button type="button" onClick={() => setActiveTool(null)} aria-label="Volver a Herramientas" className="w-11 h-11 shrink-0 rounded-full bg-stone-100 dark:bg-white/5 flex items-center justify-center text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-white/10 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink">
+          <button type="button" onClick={closeTool} aria-label="Volver a Herramientas" className="w-11 h-11 shrink-0 rounded-full bg-stone-100 dark:bg-white/5 flex items-center justify-center text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-white/10 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink">
             <ArrowLeft size={20} aria-hidden="true" />
           </button>
           <div>
@@ -1561,9 +1609,9 @@ export function HerramientasView({ showToast, profile, openRequest }: { showToas
           {activeTool === 'nombres' && <VotadorNombres showToast={showToast} />}
           {activeTool === 'parto' && <PlanParto profile={profile} showToast={showToast} />}
           {activeTool === 'lecturas' && <LecturasView profile={profile} />}
-          {activeTool === 'presupuesto' && <CalculadoraPresupuesto profile={profile} onClose={() => setActiveTool(null)} showToast={showToast} />}
-          {activeTool === 'story' && <PandaStoryGenerator profile={profile} onClose={() => setActiveTool(null)} />}
-          {activeTool === 'reproductor' && <ReproductorView onClose={() => setActiveTool(null)} />}
+          {activeTool === 'presupuesto' && <CalculadoraPresupuesto profile={profile} onClose={closeTool} showToast={showToast} />}
+          {activeTool === 'story' && <PandaStoryGenerator profile={profile} onClose={closeTool} />}
+          {activeTool === 'reproductor' && <ReproductorView onClose={closeTool} />}
 
         </div>
       </div>
@@ -1573,45 +1621,51 @@ export function HerramientasView({ showToast, profile, openRequest }: { showToas
   return (
     <div className="flex flex-col h-full w-full bg-stone-50 dark:bg-[#120f18] p-5 overflow-y-auto animate-in fade-in slide-in-from-bottom-4 duration-300">
       <div className="mb-6 mt-4">
-        <h1 className="text-2xl font-black text-stone-800 dark:text-white tracking-tight leading-none mb-1">
+        {/* h2: el h1 de la página es "PandaJR" (una vista, un encabezado principal). */}
+        <h2 className="text-2xl font-black text-stone-800 dark:text-white tracking-tight leading-none mb-1">
           Herramientas
-        </h1>
+        </h2>
         <p className="text-sm text-stone-600 dark:text-[#a6a1b2]">
           {priority.length > 0 ? `Semana ${hubWeek}: primero lo que más vas a usar.` : "Todo lo que necesitas a un toque de distancia."}
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 pb-24">
+      <div className="grid grid-cols-2 max-[300px]:grid-cols-1 gap-4 pb-24">
         {/* SOS takes full width */}
         <button
+          ref={(el) => { tileRefs.current.sos = el; }}
           type="button"
-          onClick={() => setActiveTool('sos')}
-          className="col-span-2 bg-terracotta-ink hover:bg-terracotta-ink-hover text-white rounded-2xl p-4 min-h-[72px] flex items-center justify-between shadow-sm transition-colors group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+          onClick={() => openTool('sos')}
+          className="col-span-2 max-[300px]:col-span-1 bg-terracotta-ink hover:bg-terracotta-ink-hover text-white rounded-2xl p-4 min-h-[72px] flex items-center justify-between shadow-sm transition-colors group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
         >
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 shrink-0 rounded-full bg-white/15 flex items-center justify-center group-hover:scale-110 motion-reduce:group-hover:scale-100 transition-transform">
+          {/* Con zoom al 200% (<300px) los iconos decorativos ceden su sitio al texto, que pasa de línea. */}
+          <div className="flex min-w-0 items-center gap-4">
+            <div className="w-12 h-12 shrink-0 rounded-full bg-white/15 flex items-center justify-center group-hover:scale-110 motion-reduce:group-hover:scale-100 transition-transform max-[300px]:hidden">
               <HeartPulse size={28} aria-hidden="true" />
             </div>
-            <div className="text-left">
-              <h3 className="font-bold text-lg leading-tight">SOS Síntomas</h3>
-              <p className="text-white text-sm leading-snug">Cuándo ir a urgencias y a quién llamar</p>
+            <div className="min-w-0 text-left">
+              <h3 className="font-bold text-lg leading-tight break-words">SOS Síntomas</h3>
+              <p className="text-white text-sm leading-snug break-words">Cuándo ir a urgencias y a quién llamar</p>
             </div>
           </div>
-          <ChevronRight size={24} aria-hidden="true" className="shrink-0 opacity-80 group-hover:opacity-100 group-hover:translate-x-1 motion-reduce:group-hover:translate-x-0 transition-all" />
+          <ChevronRight size={24} aria-hidden="true" className="shrink-0 opacity-80 group-hover:opacity-100 group-hover:translate-x-1 motion-reduce:group-hover:translate-x-0 transition-all max-[300px]:hidden" />
         </button>
 
         {/* Other tools */}
         {orderedTools.filter(t => t.id !== 'sos').map(tool => (
-          <button 
+          <button
             key={tool.id}
-            onClick={() => setActiveTool(tool.id)}
-            className={`bg-white dark:bg-[#181520] rounded-2xl p-4 flex flex-col gap-3 shadow-sm border border-stone-200/60 dark:border-white/[0.04] hover:border-stone-300 dark:hover:border-white/10 hover:shadow-md transition-all text-left group`}
+            ref={(el) => { tileRefs.current[tool.id] = el; }}
+            type="button"
+            onClick={() => openTool(tool.id)}
+            aria-haspopup={MODAL_TOOLS.includes(tool.id) ? "dialog" : undefined}
+            className={`bg-white dark:bg-[#181520] rounded-2xl p-4 flex flex-col gap-3 shadow-sm border border-stone-200/60 dark:border-white/[0.04] hover:border-stone-300 dark:hover:border-white/10 hover:shadow-md transition-all text-left group ${sosFocusRing}`}
           >
             <div className={`w-12 h-12 rounded-2xl ${tool.color} border ${tool.border} flex items-center justify-center group-hover:scale-105 transition-transform`}>
               {tool.icon}
             </div>
             <div>
-              <h3 className="font-bold text-stone-800 dark:text-white text-sm">{tool.label}</h3>
+              <h3 className="font-bold text-stone-800 dark:text-white text-sm break-words">{tool.label}</h3>
               <p className="text-[11px] text-stone-500 dark:text-[#a6a1b2] font-medium leading-tight mt-0.5">{tool.desc}</p>
             </div>
           </button>
@@ -1926,7 +1980,9 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
         <button
           type="button"
           onClick={() => setShowGuide(!showGuide)}
-          className="mt-3 min-h-[44px] text-xs font-bold text-sage-ink hover:underline underline-offset-4 inline-flex items-center gap-1 bg-sage/10 dark:bg-[#1a1724] hover:bg-sage/20 dark:hover:bg-[#19322c] px-3 py-1.5 rounded-xl border border-sage/30 dark:border-sage/25 transition-colors"
+          aria-expanded={showGuide}
+          aria-controls={`${callPanelId}-guia`}
+          className={`mt-3 min-h-[44px] text-xs font-bold text-sage-ink hover:underline underline-offset-4 inline-flex items-center gap-1 bg-sage/10 dark:bg-[#1a1724] hover:bg-sage/20 dark:hover:bg-[#19322c] px-3 py-1.5 rounded-xl border border-sage/30 dark:border-sage/25 transition-colors ${sosFocusRing}`}
         >
           <Info size={14} className="text-sage-ink" />
           <span>{showGuide ? "Ocultar la guía" : "¿Cómo y cuándo contar patadas?"}</span>
@@ -1936,7 +1992,7 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
 
       {/* GUÍA DESPLEGABLE (alineada con guías públicas; no sustituye al obstetra) */}
       {showGuide && (
-        <div className="bg-gradient-to-br from-sage/10 to-emerald-50/70 dark:from-[#221d2d] dark:to-[#1a1724] border border-sage/30 dark:border-sage/25 rounded-3xl p-5 text-left text-xs text-stone-700 dark:text-[#eae6e1]/90 space-y-3 shadow-xs animate-in fade-in slide-in-from-top-2">
+        <div id={`${callPanelId}-guia`} className="bg-gradient-to-br from-sage/10 to-emerald-50/70 dark:from-[#221d2d] dark:to-[#1a1724] border border-sage/30 dark:border-sage/25 rounded-3xl p-5 text-left text-xs text-stone-700 dark:text-[#eae6e1]/90 space-y-3 shadow-xs animate-in fade-in slide-in-from-top-2">
           <h4 className="font-bold text-sage-ink text-sm flex items-center gap-2">
             <ClipboardList size={16} className="text-sage-ink" aria-hidden="true" /> Cómo contar movimientos (método Cardiff)
           </h4>
@@ -2001,11 +2057,12 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
       <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] space-y-3">
         <div className="flex items-center justify-between text-xs font-bold">
           <span className="text-stone-700 dark:text-[#eae6e1]">Progreso de la Sesión</span>
-          <span className="text-sage-ink">{count} de 10 patadas</span>
+          {/* Región viva: cada toque se anuncia ("3 de 10 patadas") sin mover el foco del botón grande. */}
+          <span className="text-sage-ink" aria-live="polite" aria-atomic="true">{count} de 10 patadas</span>
         </div>
 
-        {/* 10 Pills Indicadoras */}
-        <div className="grid grid-cols-10 gap-1.5">
+        {/* 10 Pills Indicadoras (decorativas: el conteo ya se dice en texto) */}
+        <div className="grid grid-cols-10 gap-1.5" aria-hidden="true">
           {Array.from({ length: 10 }).map((_, idx) => {
             const isDone = idx < count;
             const isCurrent = idx === count && startTime !== null;
@@ -2027,7 +2084,7 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
         </div>
 
         {/* Barra de progreso suave */}
-        <div className="w-full bg-stone-100 dark:bg-[#2d273a] rounded-full h-2 overflow-hidden">
+        <div className="w-full bg-stone-100 dark:bg-[#2d273a] rounded-full h-2 overflow-hidden" aria-hidden="true">
           <div
             className="bg-sage-ink h-full transition-all duration-300 rounded-full"
             style={{ width: `${Math.min(100, (count / 10) * 100)}%` }}
@@ -2042,7 +2099,7 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
           onClick={handleKick}
           disabled={count >= 10}
           aria-label={count >= 10 ? "Meta de 10 patadas completada" : "Registrar movimiento o patada del bebé"}
-          className={`relative z-10 w-60 h-60 rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-200 transform active:scale-95 motion-reduce:active:scale-100 select-none focus:outline-none focus-visible:ring-4 focus-visible:ring-sage-ink/60 bg-sage-ink text-white border-4 border-white dark:border-white/15 ${
+          className={`relative z-10 w-60 h-60 rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-200 transform active:scale-95 motion-reduce:active:scale-100 select-none ${sosFocusRing} bg-sage-ink text-white border-4 border-white dark:border-white/15 ${
             count >= 10 ? "cursor-default" : "hover:bg-sage-ink-hover hover:scale-[1.02] motion-reduce:hover:scale-100"
           }`}
         >
@@ -2070,7 +2127,7 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
           <button
             type="button"
             onClick={handleUndo}
-            className="mt-4 inline-flex min-h-[44px] items-center gap-1.5 text-xs font-bold text-stone-600 dark:text-[#eae6e1] hover:text-stone-900 dark:hover:text-white bg-white dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 hover:bg-stone-50 dark:hover:bg-[#2a2e37] px-3.5 py-1.5 rounded-full shadow-xs active:scale-95 transition-all"
+            className={`mt-4 inline-flex min-h-[44px] items-center gap-1.5 text-xs font-bold text-stone-600 dark:text-[#eae6e1] hover:text-stone-900 dark:hover:text-white bg-white dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 hover:bg-stone-50 dark:hover:bg-[#2a2e37] px-3.5 py-1.5 rounded-full shadow-xs active:scale-95 transition-all ${sosFocusRing}`}
             aria-label="Deshacer último movimiento registrado"
           >
             <Undo2 size={13} /> Deshacer última patada (-1)
@@ -2141,7 +2198,9 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
             <button
               type="button"
               onClick={() => setShowTimeline(!showTimeline)}
-              className="w-full flex items-center justify-between text-xs font-bold text-stone-600 dark:text-[#a6a1b2] hover:text-stone-900 dark:hover:text-[#eae6e1] py-1 transition-colors"
+              aria-expanded={showTimeline}
+              aria-controls={`${callPanelId}-ritmo`}
+              className={`w-full min-h-[44px] flex items-center justify-between rounded-lg text-xs font-bold text-stone-600 dark:text-[#a6a1b2] hover:text-stone-900 dark:hover:text-[#eae6e1] py-1 transition-colors ${sosFocusRing}`}
             >
               <span className="flex items-center gap-1.5">
                 <Activity size={14} className="text-sage-ink" />
@@ -2151,7 +2210,7 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
             </button>
 
             {showTimeline && (
-              <div className="mt-2.5 space-y-1.5 max-h-48 overflow-y-auto no-scrollbar pt-1">
+              <div id={`${callPanelId}-ritmo`} className="mt-2.5 space-y-1.5 max-h-48 overflow-y-auto no-scrollbar pt-1">
                 {kicks.map((k, idx) => (
                   <div key={k.id} className="flex justify-between items-center text-xs bg-slate-50 dark:bg-[#2d273a]/60 px-3 py-1.5 rounded-xl border border-slate-100 dark:border-white/[0.06]">
                     <span className="font-bold text-stone-700 dark:text-[#eae6e1]">Patada #{idx + 1}</span>
@@ -2183,7 +2242,7 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
             <button
               type="button"
               onClick={() => setCompletedSession(null)}
-              className="text-white hover:text-white min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-xl hover:bg-white/10 transition-colors"
+              className={`text-white hover:text-white min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-xl hover:bg-white/10 transition-colors ${onFillFocusRing}`}
               aria-label="Cerrar aviso de sesión completada"
             >
               <X size={18} />
@@ -2219,9 +2278,9 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
                   type="button"
                   onClick={() => saveSessionNote(note)}
                   aria-pressed={selectedNote === note}
-                  className={`min-h-[44px] text-xs px-3 py-1.5 rounded-xl font-medium transition-all ${
+                  className={`min-h-[44px] text-xs px-3 py-1.5 rounded-xl font-medium transition-all ${onFillFocusRing} ${
                     selectedNote === note
-                      ? "bg-white text-sage-ink font-bold shadow-sm"
+                      ? "bg-white text-sage-ink dark:text-sage-ink-hover font-bold shadow-sm"
                       : "bg-black/15 text-white hover:bg-black/25"
                   }`}
                 >
@@ -2234,7 +2293,8 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
           <button
             type="button"
             onClick={reset}
-            className="w-full min-h-[48px] py-3 bg-white text-sage-ink rounded-2xl font-bold text-sm hover:bg-stone-100 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2"
+            // Blanco en ambos temas: en oscuro la tinta de texto (#89bca0) daría 2.15:1; la de relleno oscuro da 7.1:1.
+            className={`w-full min-h-[48px] py-3 bg-white text-sage-ink dark:text-sage-ink-hover rounded-2xl font-bold text-sm hover:bg-stone-100 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2 ${onFillFocusRing}`}
           >
             <RotateCcw size={14} /> Iniciar Nueva Sesión
           </button>
@@ -2557,9 +2617,9 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
               <AlertTriangle size={22} aria-hidden="true" />
             </span>
             <div className="min-w-0">
-              <h4 id={`${alertId}-pretermino`} className="text-base font-bold leading-snug text-terracotta-ink">
+              <h3 id={`${alertId}-pretermino`} className="text-base font-bold leading-snug text-terracotta-ink">
                 {weekKnown ? "Posible parto pretérmino" : "4 o más contracciones en la última hora"}
-              </h4>
+              </h3>
               {weekKnown ? (
                 <p className="mt-1 text-sm leading-relaxed text-stone-800 dark:text-[#eae6e1]">
                   {isPapa
@@ -2594,9 +2654,9 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
               <AlertTriangle size={22} aria-hidden="true" />
             </span>
             <div className="min-w-0">
-              <h4 id={`${alertId}-511`} className="text-base font-bold leading-snug text-terracotta-ink">
+              <h3 id={`${alertId}-511`} className="text-base font-bold leading-snug text-terracotta-ink">
                 Posible trabajo de parto activo
-              </h4>
+              </h3>
               <p className="mt-1 text-sm leading-relaxed text-stone-800 dark:text-[#eae6e1]">
                 En la última hora {isPapa ? "sus" : "tus"} contracciones llegaron cada {formatTime(avgInterval)} en promedio y duraron unos {formatTime(avgDuration)}.{" "}
                 <strong className="font-bold text-stone-900 dark:text-white">{isPapa ? "Es momento de llamar a su obstetra o ir al hospital." : "Es momento de llamar a tu obstetra o ir al hospital."}</strong>
@@ -2625,7 +2685,7 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
       <button
         type="button"
         onClick={toggleRecording}
-        className={`w-full py-7 rounded-3xl shadow-xl text-white font-bold text-xl flex flex-col items-center justify-center gap-2 transition-all duration-300 transform active:scale-95 motion-reduce:active:scale-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-sage ${
+        className={`w-full py-7 rounded-3xl shadow-xl text-white font-bold text-xl flex flex-col items-center justify-center gap-2 transition-all duration-300 transform active:scale-95 motion-reduce:active:scale-100 ${sosFocusRing} ${
           isRecording
             ? "bg-terracotta-ink-hover ring-4 ring-terracotta/35"
             : "bg-terracotta-ink hover:bg-terracotta-ink-hover"
@@ -2679,7 +2739,7 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
           <div className="flex items-center justify-between border-b border-sage/20 dark:border-white/[0.06] pb-2.5">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-sage-ink animate-ping motion-reduce:animate-none" aria-hidden="true"></span>
-              <h4 className="text-xs font-bold text-stone-900 dark:text-[#eae6e1] tracking-tight">Descanso entre contracciones</h4>
+              <h3 className="text-xs font-bold text-stone-900 dark:text-[#eae6e1] tracking-tight">Descanso entre contracciones</h3>
             </div>
             <span className="text-xs font-bold text-sage-ink font-mono tabular-nums">
               Descanso: {formatTime(restSeconds)}
@@ -2730,7 +2790,7 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
           <div className="bg-sage/10 dark:bg-[#1a1724] w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 text-sage-ink">
             <HeartPulse size={24} />
           </div>
-          <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm mb-1">Sin contracciones registradas</h4>
+          <h3 className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm mb-1">Sin contracciones registradas</h3>
           <p className="text-sm text-stone-600 dark:text-[#a6a1b2] max-w-xs mx-auto leading-relaxed">
             {isPapa
               ? preterm || !weekKnown
@@ -2749,9 +2809,9 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
       ) : (
         <div className="space-y-3">
           <div className="flex justify-between items-center">
-            <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm flex items-center gap-2">
-              <Activity size={18} className="text-terracotta-ink" aria-hidden="true" /> Historial ({history.length})
-            </h4>
+            <h3 id={`${alertId}-historial`} className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm flex items-center gap-2">
+              <Timer size={18} className="text-terracotta-ink" aria-hidden="true" /> Historial ({history.length})
+            </h3>
             <button
               type="button"
               onClick={clearHistory}
@@ -2761,17 +2821,20 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
             </button>
           </div>
 
-          <div className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-xs border border-stone-200/80 dark:border-white/[0.08] overflow-hidden">
-            <div className="grid grid-cols-4 bg-stone-50 dark:bg-[#2d273a]/50 p-3 text-xs font-bold text-stone-600 dark:text-[#a6a1b2] tracking-tight text-center">
-              <div>Hora</div>
-              <div>Duración</div>
-              <div>Frecuencia</div>
-              <div>Quitar</div>
+          {/* Tabla con semántica ARIA: el lector anuncia la columna (Hora, Duración…) de cada dato. */}
+          <div role="table" aria-labelledby={`${alertId}-historial`} className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-xs border border-stone-200/80 dark:border-white/[0.08] overflow-hidden">
+            <div role="rowgroup">
+              <div role="row" className="grid grid-cols-4 bg-stone-50 dark:bg-[#2d273a]/50 p-3 text-xs font-bold text-stone-600 dark:text-[#a6a1b2] tracking-tight text-center">
+                <div role="columnheader">Hora</div>
+                <div role="columnheader">Duración</div>
+                <div role="columnheader">Frecuencia</div>
+                <div role="columnheader">Quitar</div>
+              </div>
             </div>
-            <div className="divide-y divide-stone-100 dark:divide-white/[0.06] text-xs text-center">
+            <div role="rowgroup" className="divide-y divide-stone-100 dark:divide-white/[0.06] text-xs text-center">
               {history.map((item) => (
-                <div key={item.id} className="grid grid-cols-4 px-3 py-1.5 items-center hover:bg-stone-50/70 dark:hover:bg-[#2d273a]/40 transition-colors">
-                  <div className="flex items-center justify-center gap-1.5 text-stone-700 dark:text-[#a6a1b2] font-medium tabular-nums">
+                <div key={item.id} role="row" className="grid grid-cols-4 px-3 py-1.5 items-center hover:bg-stone-50/70 dark:hover:bg-[#2d273a]/40 transition-colors">
+                  <div role="cell" className="flex items-center justify-center gap-1.5 text-stone-700 dark:text-[#a6a1b2] font-medium tabular-nums">
                     {shared.linked && <ItemAuthor item={item} members={me.members} />}
                     {new Date(item.start).toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" })}
                     {shared.unsentIds.has(String(item.id)) && (
@@ -2780,15 +2843,15 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
                       </span>
                     )}
                   </div>
-                  <div>
+                  <div role="cell">
                     <span className="font-bold text-sage-ink bg-sage/10 dark:bg-[#1a1724] py-1 px-2 rounded-lg inline-block tabular-nums">
                       {formatTime(item.duration)}
                     </span>
                   </div>
-                  <div className="font-bold text-terracotta-ink tabular-nums">
+                  <div role="cell" className="font-bold text-terracotta-ink tabular-nums">
                     {item.interval ? formatTime(item.interval) : "—"}
                   </div>
-                  <div>
+                  <div role="cell">
                     <button
                       type="button"
                       onClick={() => deleteItem(item)}
@@ -3366,7 +3429,7 @@ export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
             maxLength={60}
             placeholder="Escribe un nombre que te guste"
             autoComplete="off"
-            className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-stone-200 bg-white px-4 text-base text-stone-900 placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-terracotta-ink/40 dark:border-white/10 dark:bg-[#221d2d] dark:text-[#eae6e1] dark:placeholder:text-[#8f899c]"
+            className={`min-h-[44px] min-w-0 flex-1 rounded-xl bg-white px-4 text-base text-stone-900 dark:bg-[#221d2d] dark:text-[#eae6e1] ${fieldBorder} ${fieldFocus}`}
           />
           <button
             type="submit"
@@ -3885,7 +3948,7 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile; showT
           : "";
 
   const inputClass =
-    "w-full min-h-[44px] bg-stone-50 dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 rounded-xl px-3 py-2 text-base text-stone-800 dark:text-[#eae6e1] placeholder:text-stone-500 dark:placeholder:text-[#8f899c] focus:outline-none focus:ring-2 focus:ring-sage-ink/50";
+    `w-full min-h-[44px] bg-stone-50 dark:bg-[#2d273a] rounded-xl px-3 py-2 text-base text-stone-800 dark:text-[#eae6e1] ${fieldBorder} ${fieldFocus}`;
 
   const printValue = (v: string) =>
     v.trim() ? <span>{v.trim()}</span> : <span className="inline-block w-48 border-b border-stone-400 align-bottom" />;
@@ -4030,7 +4093,7 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile; showT
               type="button"
               onClick={() => setNeedsReview(false)}
               aria-label="Cerrar aviso"
-              className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-stone-600 hover:bg-amber-100 dark:text-[#a6a1b2] dark:hover:bg-amber-300/10 ${sosFocusRing}`}
+              className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-amber-900 hover:bg-amber-100 dark:text-amber-200 dark:hover:bg-amber-300/10 ${sosFocusRing}`}
             >
               <X size={16} aria-hidden="true" />
             </button>
@@ -4300,7 +4363,6 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
   const pid = me.pid;
   const list = useSharedList(pid, BUDGET_LIST, authorStamp(me));
   const { retryState, fail, clearRetry } = useRetry();
-  const isClient = useIsClient();
   const baseId = React.useId();
   const closeRef = useRef<HTMLButtonElement>(null);
   const amountRef = useRef<HTMLInputElement>(null);
@@ -4429,7 +4491,17 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
     commit(patchById<BudgetItem>(item.id, { isPurchased: !item.isPurchased }), `No se guardó el cambio en "${item.name}".`);
   };
 
+  // "Quitar" desaparece con su fila: el foco pasa al "Quitar" de la fila siguiente (o de la anterior,
+  // o al campo "Agregar un gasto") en vez de caer a body, donde el teclado pierde su sitio.
+  const removeRefs = useRef(new Map<BudgetItem["id"], HTMLButtonElement>());
+  const itemInputRef = useRef<HTMLInputElement>(null);
+  const focusAfterRemoveRef = useRef<{ removed: BudgetItem["id"]; next: BudgetItem["id"] | null } | null>(null);
+
   const removeExpense = (item: BudgetItem) => {
+    const current = list.items;
+    const at = current.findIndex((i) => i.id === item.id);
+    const neighbour = current[at + 1] ?? current[at - 1] ?? null;
+    focusAfterRemoveRef.current = { removed: item.id, next: neighbour ? neighbour.id : null };
     commit(removeById<BudgetItem>(item.id), `No se pudo quitar "${item.name}".`);
     showToast?.(`Quitamos ${item.name}`, () => commit(restoreItems([item]), `No se pudo volver a agregar "${item.name}".`));
   };
@@ -4441,21 +4513,22 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
     amountRef.current?.focus();
   };
 
-  // Cerrar con Escape y llevar el foco al diálogo al abrir (una vez; onClose puede cambiar en cada render).
-  const onCloseRef = useRef(onClose);
-  useEffect(() => {
-    onCloseRef.current = onClose;
-  });
-  useEffect(() => {
-    closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCloseRef.current();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  // Diálogo modal: Escape, foco inicial en "Cerrar", trampa de Tab, fondo inerte y scroll bloqueado.
+  const { dialogProps } = useModalDialog({ open: true, onClose, initialFocusRef: closeRef, labelledBy: `${baseId}-titulo` });
 
   const items = list.items;
+
+  useEffect(() => {
+    const pending = focusAfterRemoveRef.current;
+    if (!pending || items.some((i) => i.id === pending.removed)) return; // la fila sigue ahí
+    focusAfterRemoveRef.current = null;
+    const doc = itemInputRef.current?.ownerDocument;
+    const active = doc?.activeElement;
+    if (doc && active && active !== doc.body && active.isConnected) return; // el foco ya está en otro sitio
+    const target = (pending.next !== null ? removeRefs.current.get(pending.next) : undefined) ?? itemInputRef.current;
+    target?.focus();
+  }, [items]);
+
   const totalPlanned = items.reduce((acc, i) => acc + i.amount, 0);
   const totalPurchased = items.filter((i) => i.isPurchased).reduce((acc, i) => acc + i.amount, 0);
   const remaining = cap !== null ? cap - totalPlanned : null;
@@ -4465,7 +4538,7 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
   const plural = !!pid;
 
   const fieldClass =
-    "min-h-[44px] rounded-xl border border-stone-200 bg-white text-base text-stone-900 placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-sage-ink/50 dark:border-white/10 dark:bg-[#221d2d] dark:text-[#eae6e1] dark:placeholder:text-[#8f899c]";
+    `min-h-[44px] rounded-xl bg-white text-base text-stone-900 dark:bg-[#221d2d] dark:text-[#eae6e1] ${fieldBorder} ${fieldFocus}`;
 
   const capForm = (
     <form onSubmit={submitCap} className="space-y-2" noValidate>
@@ -4511,13 +4584,17 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
     </form>
   );
 
-  const content = (
-    <div className="fixed inset-0 z-[999] flex items-end justify-center bg-black/60 p-0 animate-in fade-in duration-200 sm:items-center sm:p-4 dark:bg-black/80">
+  return (
+    <ModalPortal>
+    <div
+      className={`fixed inset-0 ${Z_CLASS.dialog} flex items-end justify-center bg-black/60 p-0 animate-in fade-in duration-200 sm:items-center sm:p-4 dark:bg-black/80`}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={`${baseId}-titulo`}
-        className="flex h-[88vh] max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl border border-stone-200 bg-[#fdfbf7] shadow-2xl animate-in slide-in-from-bottom-8 sm:h-auto sm:rounded-3xl dark:border-white/10 dark:bg-[#1a1625]"
+        {...dialogProps}
+        className="flex h-[88dvh] max-h-[90dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl border border-stone-200 bg-[#fdfbf7] shadow-2xl outline-none animate-in slide-in-from-bottom-8 sm:h-auto sm:rounded-3xl dark:border-white/10 dark:bg-[#1a1625]"
       >
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-stone-200 px-5 pb-3 pt-4 dark:border-white/10">
           <div className="min-w-0">
@@ -4641,6 +4718,7 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
           <form onSubmit={addExpense} className="space-y-2" noValidate>
             <label htmlFor={`${baseId}-item`} className="block text-sm font-bold text-stone-900 dark:text-[#eae6e1]">Agregar un gasto</label>
             <input
+              ref={itemInputRef}
               id={`${baseId}-item`}
               type="text"
               placeholder="Ej. cuna, pañales…"
@@ -4738,6 +4816,7 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
                     {formatMoney(expense.amount)}
                   </span>
                   <button
+                    ref={(el) => { if (el) removeRefs.current.set(expense.id, el); else removeRefs.current.delete(expense.id); }}
                     type="button"
                     onClick={() => removeExpense(expense)}
                     aria-label={`Quitar ${expense.name}`}
@@ -4752,9 +4831,8 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
-
-  return isClient ? createPortal(content, document.body) : null;
 }
 
 // --- PANDA STORY: tarjeta 9:16 para compartir la semana ---
@@ -4828,7 +4906,6 @@ const STORY_STYLES = [
 ] as const;
 
 export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfile; onClose: () => void }) {
-  const isClient = useIsClient();
   const week = knownWeek(profile);
   const [activeStyleId, setActiveStyleId] = useState<(typeof STORY_STYLES)[number]["id"]>("botanico");
   const style = STORY_STYLES.find((s) => s.id === activeStyleId) ?? STORY_STYLES[0];
@@ -4841,22 +4918,26 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
   const fileInputRef = useRef<HTMLInputElement>(null);
   const objectUrlRef = useRef<string | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
-  const onCloseRef = useRef(onClose);
-  useEffect(() => {
-    onCloseRef.current = onClose;
-  });
+  const createRef = useRef<HTMLButtonElement>(null);
+  const shareRef = useRef<HTMLButtonElement>(null);
+  // Crear y Editar reemplazan los botones: el foco pasa a la acción siguiente en vez de perderse.
+  const focusAfterRef = useRef<"share" | "create" | null>(null);
+
+  // Diálogo modal: Escape, foco inicial en "Cerrar", trampa de Tab, fondo inerte y scroll bloqueado.
+  const { dialogProps } = useModalDialog({ open: true, onClose, initialFocusRef: closeRef, labelledBy: "panda-story-titulo" });
 
   useEffect(() => {
-    closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCloseRef.current();
-    };
-    window.addEventListener("keydown", onKey);
     return () => {
-      window.removeEventListener("keydown", onKey);
       if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    const want = focusAfterRef.current;
+    if (!want) return;
+    focusAfterRef.current = null;
+    (want === "share" ? shareRef : createRef).current?.focus();
+  }, [imageUrl]);
 
   const weekData = typeof week === "number" ? getWeekData(week, profile?.comparisonTheme ?? "frutas") : null;
   const size = weekData ? splitSize(weekData.size) : null;
@@ -4877,6 +4958,7 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
     setError(null);
     try {
       const dataUrl = await toPng(storyRef.current, { pixelRatio: 3, cacheBust: true });
+      focusAfterRef.current = "share";
       setImageUrl(dataUrl);
     } catch (err) {
       console.error("Error generating story:", err);
@@ -4920,14 +5002,20 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
 
   const iconButton = `grid h-11 w-11 shrink-0 place-items-center rounded-full bg-stone-100 text-stone-700 transition-colors hover:bg-stone-200 dark:bg-white/5 dark:text-[#eae6e1] dark:hover:bg-white/10 ${sosFocusRing}`;
 
-  const content = (
-    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 p-4 animate-in fade-in duration-200 dark:bg-black/80">
-      <div role="dialog" aria-modal="true" aria-labelledby="panda-story-titulo" className="flex max-h-[92vh] w-full max-w-sm flex-col overflow-hidden rounded-3xl bg-[#fdfbf7] shadow-2xl dark:bg-[#1a1625]">
+  return (
+    <ModalPortal>
+    <div
+      className={`fixed inset-0 ${Z_CLASS.dialog} flex items-center justify-center bg-black/60 p-4 animate-in fade-in duration-200 dark:bg-black/80`}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div {...dialogProps} className="flex max-h-[92dvh] w-full max-w-sm flex-col overflow-hidden rounded-3xl bg-[#fdfbf7] shadow-2xl outline-none dark:bg-[#1a1625]">
         <div className="flex shrink-0 items-center justify-between border-b border-stone-200 bg-white px-4 py-3 dark:border-white/10 dark:bg-[#221d2d]">
           <h2 id="panda-story-titulo" className="flex items-center gap-2 font-bold text-stone-900 dark:text-[#eae6e1]">
             <Camera size={20} className="text-terracotta-ink" aria-hidden="true" /> Tarjeta de la semana
           </h2>
-          <button ref={closeRef} type="button" onClick={onClose} aria-label="Cerrar" className={iconButton}>
+          <button ref={closeRef} type="button" onClick={onClose} aria-label="Cerrar la tarjeta de la semana" className={iconButton}>
             <X size={18} aria-hidden="true" />
           </button>
         </div>
@@ -4944,7 +5032,8 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
             {/* Tamaños en unidades del contenedor: la tarjeta se ve igual a 260 o 320 px y al exportarla. */}
             <div className="@container relative aspect-[9/16] w-[260px] shrink-0 overflow-hidden rounded-[2rem] border-4 border-white shadow-xl sm:w-[300px] dark:border-[#2d273a]">
               <div ref={storyRef} className={`absolute inset-0 flex flex-col items-center p-[7cqw] text-center ${style.container}`}>
-                <p className={`text-[4.5cqw] font-black tracking-tight opacity-60 ${style.primary}`}>PandaJR</p>
+                {/* Sin opacidad: la marca queda ≥4.99:1 sobre el fondo de cada estilo (antes 2.39:1). */}
+                <p className={`text-[4.5cqw] font-black tracking-tight ${style.primary}`}>PandaJR</p>
 
                 <div className="mt-[4cqw] w-full">
                   <p className={`text-[5cqw] font-bold uppercase tracking-[0.12em] ${style.secondary}`}>¡Estamos en la</p>
@@ -5014,6 +5103,7 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
                     {customImage ? "Cambiar la foto" : "Agregar foto o ecografía"}
                   </button>
                   <button
+                    ref={createRef}
                     type="button"
                     onClick={() => void generateStory()}
                     disabled={isGenerating}
@@ -5030,6 +5120,7 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
               ) : (
                 <div className="flex gap-2">
                   <button
+                    ref={shareRef}
                     type="button"
                     onClick={() => void shareStory()}
                     className={`flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-2xl bg-sage-ink font-bold text-white transition-colors hover:bg-sage-ink-hover ${sosFocusRing}`}
@@ -5038,7 +5129,10 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
                   </button>
                   <button
                     type="button"
-                    onClick={() => setImageUrl(null)}
+                    onClick={() => {
+                      focusAfterRef.current = "create";
+                      setImageUrl(null);
+                    }}
                     className={`flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-2xl bg-stone-200 font-bold text-stone-800 transition-colors hover:bg-stone-300 dark:bg-white/10 dark:text-[#eae6e1] ${sosFocusRing}`}
                   >
                     Editar
@@ -5050,12 +5144,14 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
         )}
       </div>
     </div>
+    </ModalPortal>
   );
-  return isClient ? createPortal(content, document.body) : null;
 }
 
 export function ReproductorView({ onClose }: { onClose: () => void }) {
-  const isClient = useIsClient();
+  const closeRef = useRef<HTMLButtonElement>(null);
+  // Diálogo modal: Escape, foco inicial en "Cerrar", trampa de Tab, fondo inerte y scroll bloqueado.
+  const { dialogProps } = useModalDialog({ open: true, onClose, initialFocusRef: closeRef, labelledBy: "panda-audio-titulo" });
   const [activeTab, setActiveTab] = useState<"dormir" | "estimulacion" | "latidos">("dormir");
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -5124,9 +5220,15 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
     { id: "latidos" as const, label: "Útero", icon: <Waves size={14} aria-hidden="true" />, active: "text-stone-800 dark:text-stone-200" },
   ];
 
-  const content = (
-    <div className="fixed inset-0 bg-black/70 dark:bg-black/90 backdrop-blur-md z-[999] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-      <div role="dialog" aria-modal="true" aria-labelledby="panda-audio-titulo" className="bg-white dark:bg-[#15131a] w-full max-w-md sm:rounded-[2.5rem] rounded-t-[2.5rem] h-[85vh] sm:h-auto max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-white/20 dark:border-white/5 animate-in slide-in-from-bottom-8">
+  return (
+    <ModalPortal>
+    <div
+      className={`fixed inset-0 bg-black/70 dark:bg-black/90 backdrop-blur-md ${Z_CLASS.dialog} flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200`}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div {...dialogProps} className="bg-white dark:bg-[#15131a] w-full max-w-md sm:rounded-[2.5rem] rounded-t-[2.5rem] h-[85dvh] sm:h-auto max-h-[90dvh] flex flex-col overflow-hidden shadow-2xl border border-white/20 dark:border-white/5 outline-none animate-in slide-in-from-bottom-8">
 
         <div className="bg-gradient-to-br from-[#2a2631] to-[#15131a] border-b border-white/5 p-6 shrink-0 relative overflow-hidden text-white">
           <div className="relative z-10 flex justify-between items-start">
@@ -5139,7 +5241,7 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
               </h2>
               <p className="text-stone-300 text-sm font-medium">Estimulación y relajación</p>
             </div>
-            <button type="button" onClick={onClose} aria-label="Cerrar Panda Audio" className="grid h-11 w-11 place-items-center bg-black/10 hover:bg-black/20 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+            <button ref={closeRef} type="button" onClick={onClose} aria-label="Cerrar Panda Audio" className="grid h-11 w-11 place-items-center bg-black/10 hover:bg-black/20 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
               <X size={20} aria-hidden="true" />
             </button>
           </div>
@@ -5199,8 +5301,7 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
                     <button
                       type="button"
                       onClick={toggleNoise}
-                      aria-label={isPlaying ? "Detener el sonido" : "Reproducir el sonido"}
-                      aria-pressed={isPlaying}
+                      aria-label={isPlaying ? "Detener el ruido marrón" : "Reproducir el ruido marrón"}
                       className={`w-32 h-32 bg-sage-ink text-white rounded-full flex items-center justify-center shadow-xl relative z-10 transition-transform hover:scale-105 motion-reduce:hover:scale-100 ${sosFocusRing}`}
                     >
                       {isPlaying ? <Square size={40} className="fill-current" aria-hidden="true" /> : <Play size={40} className="fill-current ml-2" aria-hidden="true" />}
@@ -5216,6 +5317,6 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
-  return isClient ? createPortal(content, document.body) : null;
 }

@@ -141,6 +141,7 @@ export function SyncBadge({
   let Icon = Smartphone;
   let text = "Solo en este teléfono";
   let tone = "text-stone-600 dark:text-[#a6a1b2]";
+  let relative = "";
 
   if (pregnancyId) {
     const name = partnerName?.trim() || partner.partnerName;
@@ -166,14 +167,19 @@ export function SyncBadge({
       Icon = Users;
       text = "Compartido";
     }
-    const relative = online && lastSyncedAt ? formatRelative(lastSyncedAt, now) : "";
-    if (relative && Icon === Users) text += ` · ${relative}`;
+    const rel = online && lastSyncedAt ? formatRelative(lastSyncedAt, now) : "";
+    if (rel && Icon === Users) relative = rel;
   }
 
+  // Solo el estado va en la región viva: el "hace N minutos" cambia cada minuto y, dentro de ella,
+  // el lector de pantalla lo anunciaría una y otra vez. Se lee al recorrer la página.
   return (
-    <span role="status" aria-live="polite" className={`${base} ${tone}${className ? ` ${className}` : ""}`}>
+    <span className={`${base} ${tone}${className ? ` ${className}` : ""}`}>
       <Icon size={14} strokeWidth={2} aria-hidden="true" className="shrink-0" />
-      <span className="truncate">{text}</span>
+      <span className="truncate">
+        <span role="status" aria-live="polite">{text}</span>
+        {relative && <span> · {relative}</span>}
+      </span>
     </span>
   );
 }

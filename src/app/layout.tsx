@@ -1,7 +1,7 @@
-import Script from "next/script";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ThemeSync } from "@/components/ThemeSync";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,10 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const viewport: Viewport = {
+  // Zoom permitido (WCAG 1.4.4): sin maximumScale ni userScalable.
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: "cover",
   themeColor: [{ media: "(prefers-color-scheme: light)", color: "#fdfbf7" }, { media: "(prefers-color-scheme: dark)", color: "#181520" }],
 };
@@ -71,6 +70,19 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Resuelve el tema antes del primer pintado leyendo pandajr-storage:
+ * themePreference (v1) → o migra el estado v0 (isDark true → oscuro; si no, la clave pandajr_theme;
+ * si no, sistema) → "system" usa prefers-color-scheme.
+ */
+const THEME_BOOT_SCRIPT = `(function(){try{var d=document.documentElement,p="system",st=null;
+try{var raw=localStorage.getItem("pandajr-storage");st=raw?(JSON.parse(raw)||{}).state:null}catch(e){}
+if(st&&(st.themePreference==="system"||st.themePreference==="light"||st.themePreference==="dark")){p=st.themePreference}
+else{var legacy=null;try{legacy=localStorage.getItem("pandajr_theme")}catch(e){}
+if(st&&st.isDark===true){p="dark"}else if(legacy==="dark"||legacy==="light"){p=legacy}}
+var dark=p==="dark"||(p==="system"&&!!window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);
+if(dark){d.classList.add("dark")}else{d.classList.remove("dark")}}catch(e){}})();`;
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
@@ -79,28 +91,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
-        <Script id="theme-script" strategy="beforeInteractive" dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                const storage = localStorage.getItem('pandajr-storage');
-                let isDark = false;
-                if (storage) {
-                  const parsed = JSON.parse(storage);
-                  if (parsed.state && parsed.state.isDark === true) {
-                    isDark = true;
-                  }
-                }
-                if (isDark) {
-                  document.documentElement.classList.add('dark');
-                } else {
-                  document.documentElement.classList.remove('dark');
-                }
-              } catch (_) {}
-            `,
-          }}
-        />
+        {/* Síncrono en <head>: pone la clase .dark ANTES del primer pintado (next/script
+            beforeInteractive se encola y corre tras hidratar → destello). Misma regla que
+            resolveTheme/migrateThemePreference de usePandaStore; ThemeSync la mantiene después. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
       </head>
-      <body className="min-h-full flex flex-col bg-[#faf9f5] dark:bg-[#181520] text-stone-900 dark:text-[#eae6e1] w-full overflow-x-hidden transition-colors duration-200">{children}</body>
+      <body className="min-h-full flex flex-col bg-[#faf9f5] dark:bg-[#181520] text-stone-900 dark:text-[#eae6e1] w-full overflow-x-hidden transition-colors duration-200">
+        <ThemeSync />
+        {children}
+      </body>
     </html>
   );
 }

@@ -5,7 +5,7 @@
 // (onboarding o Ajustes) y la escritura a Firebase ocurre allí, en el manejador de "Continuar" o
 // "Guardar". Aquí no se escribe nada.
 
-import React from "react";
+import React, { useRef } from "react";
 import { CheckCircle2, Circle, Minus, Plus } from "lucide-react";
 import {
   MAX_VALID_GESTATION_DAYS,
@@ -186,6 +186,7 @@ export function DatingPicker({
   const her = partnerName?.trim() || "tu pareja";
   const { choice, error } = choiceFromDraft(draft, today);
   const set = (patch: Partial<DatingDraft>) => onDraftChange({ ...draft, ...patch });
+  const radioRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   // Rango que acepta el modelo (2 a 42 + 6 semanas), para que el calendario del teléfono ayude.
   const dueMin = toISODate(addDays(today, -(MAX_VALID_GESTATION_DAYS - PREGNANCY_DAYS)));
@@ -209,16 +210,35 @@ export function DatingPicker({
     { mode: "week", label: "Aún no sé ninguna", hint: "Elige la semana a mano" },
   ];
 
+  // Grupo de radio ARIA: una sola parada de Tab (la opción elegida) y flechas para moverse y
+  // elegir, como en los radios nativos.
+  const selectedIndex = options.findIndex((o) => o.mode === draft.mode);
+  const tabStop = selectedIndex >= 0 ? selectedIndex : 0;
+  const onRadioKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, i: number) => {
+    const last = options.length - 1;
+    let next = -1;
+    if (e.key === "ArrowDown" || e.key === "ArrowRight") next = i === last ? 0 : i + 1;
+    else if (e.key === "ArrowUp" || e.key === "ArrowLeft") next = i === 0 ? last : i - 1;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = last;
+    if (next < 0) return;
+    e.preventDefault();
+    set({ mode: options[next].mode });
+    radioRefs.current[next]?.focus();
+  };
+
   const errorId = `${idPrefix}-error`;
   const resultId = `${idPrefix}-result`;
   const result = choice ? describeChoice(choice, today, reader) : null;
+  // Borde ≥3:1 (1.4.11), también sobre la opción elegida (tinte terracota): stone-500 4.52:1 · white/40 3.64:1.
+  // Campos de fecha: :focus (no :focus-visible), que Chrome no aplica con el foco en los segmentos internos.
   const inputClass =
-    "mt-1 w-full min-h-[48px] px-4 py-3 rounded-xl border border-stone-300 dark:border-white/15 bg-white dark:bg-[#1a1724] text-stone-900 dark:text-[#eae6e1] text-base focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-terracotta-ink";
+    "mt-1 w-full min-h-[48px] px-4 py-3 rounded-xl border border-stone-500 dark:border-white/40 bg-white dark:bg-[#1a1724] text-stone-900 dark:text-[#eae6e1] text-base focus:outline-2 focus:outline-offset-1 focus:outline-terracotta-ink";
 
   return (
     <div className="text-left">
       <div role="radiogroup" aria-label={isMama ? "¿Qué fecha conoces?" : "¿Qué fecha conocen?"} className="rounded-2xl border border-stone-200 dark:border-white/[0.08] divide-y divide-stone-200 dark:divide-white/[0.06] overflow-hidden">
-        {options.map((opt) => {
+        {options.map((opt, i) => {
           const selected = draft.mode === opt.mode;
           return (
             <div key={opt.mode} className={selected ? "bg-terracotta/[0.06] dark:bg-terracotta/[0.08]" : "bg-white dark:bg-[#221d2d]"}>
@@ -226,6 +246,11 @@ export function DatingPicker({
                 type="button"
                 role="radio"
                 aria-checked={selected}
+                ref={(el) => {
+                  radioRefs.current[i] = el;
+                }}
+                tabIndex={i === tabStop ? 0 : -1}
+                onKeyDown={(e) => onRadioKeyDown(e, i)}
                 onClick={() => set({ mode: opt.mode })}
                 className={`w-full min-h-[56px] flex items-center gap-3 px-4 py-3 text-left ${PICKER_FOCUS} focus-visible:-outline-offset-2`}
               >
@@ -306,7 +331,7 @@ export function DatingPicker({
                       }}
                       aria-labelledby={`${idPrefix}-week-label`}
                       aria-invalid={!draft.unknown && !!error}
-                      className="h-12 min-w-0 flex-1 rounded-xl border border-stone-300 dark:border-white/15 bg-white dark:bg-[#1a1724] text-center text-lg font-black tabular-nums text-stone-900 dark:text-[#eae6e1] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-terracotta-ink"
+                      className="h-12 min-w-0 flex-1 rounded-xl border border-stone-500 dark:border-white/40 bg-white dark:bg-[#1a1724] text-center text-lg font-black tabular-nums text-stone-900 dark:text-[#eae6e1] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-terracotta-ink"
                     />
                     <button
                       type="button"

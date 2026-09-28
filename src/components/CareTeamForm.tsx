@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useEffect, useId, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import React, { useCallback, useId, useRef, useState } from "react";
 import { Check, CircleAlert, LoaderCircle, RotateCw, X } from "lucide-react";
 import { usePandaStore } from "@/store/usePandaStore";
 import { useCareTeam, useDetectedEmergency } from "@/lib/useCareTeam";
+import { ModalPortal } from "@/components/ModalPortal";
+import { useModalDialog } from "@/lib/useModalDialog";
+import { Z_CLASS } from "@/lib/layers";
 
 type FormValues = {
   obName: string;
@@ -30,8 +32,10 @@ function phoneProblem(value: string, minDigits: number): string | null {
 
 const inputClass =
   "w-full min-h-[48px] rounded-xl border bg-white dark:bg-[#181520] px-4 py-2.5 text-base text-stone-900 dark:text-[#eae6e1] " +
-  "placeholder:text-stone-500 dark:placeholder:text-[#948fa1] border-stone-400/70 dark:border-white/20 " +
-  "outline-none transition-colors focus:border-terracotta-ink focus:ring-2 focus:ring-terracotta-ink/25 " +
+  // Borde ≥3:1 con el fondo de la hoja (1.4.11): stone-500 4.63:1 sobre #fdfbf7 · white/40 3.73:1 sobre #221d2d.
+  "placeholder:text-stone-500 dark:placeholder:text-[#948fa1] border-stone-500 dark:border-white/40 " +
+  // Foco: anillo de tinta de 2px con separación (visible también en modo de alto contraste).
+  "transition-colors focus:border-terracotta-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink " +
   "aria-[invalid=true]:border-terracotta-ink disabled:opacity-60";
 
 const labelClass = "block text-sm font-semibold text-stone-800 dark:text-[#eae6e1] mb-1.5";
@@ -289,99 +293,71 @@ export function CareTeamForm({ onSaved, onCancel }: { onSaved?: () => void; onCa
   );
 }
 
-const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-export function CareTeamSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+/**
+ * Hoja "Tu equipo de salud". Se abre sobre otras pantallas y también SOBRE Ajustes, por eso usa la
+ * capa Z_CLASS.careTeam. useModalDialog gestiona Escape (solo cierra esta hoja, no la de debajo),
+ * el foco atrapado, el foco de retorno, el fondo inerte y el bloqueo del scroll (con contador).
+ */
+export function CareTeamSheet({
+  open,
+  onClose,
+  onSaved,
+}: {
+  open: boolean;
+  onClose: () => void;
+  /** Tras guardar (la hoja se cierra sola): para confirmar el guardado o recolocar el foco. */
+  onSaved?: () => void;
+}) {
   const titleId = useId();
   const descId = useId();
-  const panelRef = useRef<HTMLDivElement>(null);
-  const onCloseRef = useRef(onClose);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  // Foco inicial en el panel: el lector anuncia el título y la descripción antes del formulario.
+  const { dialogProps } = useModalDialog({ open, onClose, labelledBy: titleId, describedBy: descId, initialFocusRef: panelRef });
+  const { ref: dialogRef, ...dialogRest } = dialogProps;
+  const setPanel = useCallback(
+    (el: HTMLDivElement | null) => {
+      panelRef.current = el;
+      dialogRef(el);
+    },
+    [dialogRef]
+  );
 
-  useEffect(() => {
-    onCloseRef.current = onClose;
-  }, [onClose]);
+  if (!open) return null;
 
-  useEffect(() => {
-    if (!open) return;
-    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const raf = requestAnimationFrame(() => panelRef.current?.focus());
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        e.stopPropagation();
-        onCloseRef.current();
-        return;
-      }
-      if (e.key !== "Tab" || !panelRef.current) return;
-      const focusables = Array.from(panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE));
-      if (focusables.length === 0) {
-        e.preventDefault();
-        return;
-      }
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
-      const active = document.activeElement;
-      if (e.shiftKey && (active === first || active === panelRef.current)) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && active === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.addEventListener("keydown", onKeyDown, true);
-    return () => {
-      cancelAnimationFrame(raf);
-      document.removeEventListener("keydown", onKeyDown, true);
-      document.body.style.overflow = prevOverflow;
-      if (trigger && trigger.isConnected) trigger.focus();
-    };
-  }, [open]);
-
-  if (!open || typeof document === "undefined") return null;
-
-  return createPortal(
-    <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center sm:p-4">
-      <div
-        className="absolute inset-0 bg-black/50 dark:bg-black/70 animate-in fade-in duration-200 motion-reduce:animate-none"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      <div
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        aria-describedby={descId}
-        tabIndex={-1}
-        className="relative w-full max-w-md max-h-[92dvh] flex flex-col bg-[#fdfbf7] dark:bg-[#221d2d] text-stone-900 dark:text-[#eae6e1] rounded-t-3xl sm:rounded-3xl border border-stone-200/80 dark:border-white/[0.08] shadow-[0_-8px_32px_-8px_rgba(24,21,32,0.28)] outline-none animate-in slide-in-from-bottom-4 duration-300 motion-reduce:animate-none"
-      >
-        <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-4 border-b border-stone-200/70 dark:border-white/[0.06]">
-          <div className="min-w-0">
-            <h2 id={titleId} className="text-xl font-black leading-tight text-balance">Tu equipo de salud</h2>
-            <p id={descId} className="mt-1 text-sm leading-snug text-stone-600 dark:text-[#a6a1b2]">
-              A quién llamar y a dónde ir, a un toque de distancia.
-            </p>
+  return (
+    <ModalPortal>
+      <div className={`fixed inset-0 ${Z_CLASS.careTeam} flex items-end sm:items-center justify-center sm:p-4`}>
+        <div
+          className="absolute inset-0 bg-black/50 dark:bg-black/70 animate-in fade-in duration-200 motion-reduce:animate-none"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+        <div
+          ref={setPanel}
+          {...dialogRest}
+          className="relative w-full max-w-md max-h-[92dvh] flex flex-col bg-[#fdfbf7] dark:bg-[#221d2d] text-stone-900 dark:text-[#eae6e1] rounded-t-3xl sm:rounded-3xl border border-stone-200/80 dark:border-white/[0.08] shadow-[0_-8px_32px_-8px_rgba(24,21,32,0.28)] outline-none animate-in slide-in-from-bottom-4 duration-300 motion-reduce:animate-none"
+        >
+          <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-4 border-b border-stone-200/70 dark:border-white/[0.06]">
+            <div className="min-w-0">
+              <h2 id={titleId} className="text-xl font-black leading-tight text-balance">Tu equipo de salud</h2>
+              <p id={descId} className="mt-1 text-sm leading-snug text-stone-600 dark:text-[#a6a1b2]">
+                A quién llamar y a dónde ir, a un toque de distancia.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Cerrar"
+              className="shrink-0 -mr-1 w-11 h-11 inline-flex items-center justify-center rounded-full text-stone-600 dark:text-[#a6a1b2] hover:bg-stone-100 dark:hover:bg-white/10 hover:text-stone-900 dark:hover:text-[#eae6e1] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+            >
+              <X size={20} aria-hidden="true" />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Cerrar"
-            className="shrink-0 -mr-1 w-11 h-11 inline-flex items-center justify-center rounded-full text-stone-600 dark:text-[#a6a1b2] hover:bg-stone-100 dark:hover:bg-white/10 hover:text-stone-900 dark:hover:text-[#eae6e1] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
-          >
-            <X size={20} aria-hidden="true" />
-          </button>
-        </div>
-        <div className="overflow-y-auto overscroll-contain px-5 pt-4 pb-[calc(1.25rem+var(--safe-bottom))]">
-          <CareTeamForm onSaved={onClose} onCancel={onClose} />
+          <div className="overflow-y-auto overscroll-contain px-5 pt-4 pb-[calc(1.25rem+var(--safe-bottom))]">
+            <CareTeamForm onSaved={() => { onSaved?.(); onClose(); }} onCancel={onClose} />
+          </div>
         </div>
       </div>
-    </div>,
-    document.body
+    </ModalPortal>
   );
 }
