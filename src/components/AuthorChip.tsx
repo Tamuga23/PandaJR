@@ -4,7 +4,8 @@ import React from "react";
 
 type Role = "mama" | "papa";
 
-const ROLE_LABEL: Record<Role, string> = { mama: "Mamá", papa: "Copiloto" };
+// La persona sin nombre: "Mamá" o "Papá" ("copiloto" es el rol, no cómo se le llama).
+const ROLE_LABEL: Record<Role, string> = { mama: "Mamá", papa: "Papá" };
 
 /** Primera letra visible del nombre (respeta acentos y emoji compuestos). */
 function initialOf(name?: string, role?: Role): string {
@@ -15,7 +16,7 @@ function initialOf(name?: string, role?: Role): string {
 
 /**
  * Círculo con la inicial de quien marcó/escribió algo. Terracota (tinta) para la mamá,
- * salvia (tinta) para el copiloto, neutro si no se sabe. Informativo, no interactivo.
+ * salvia (tinta) para el papá, neutro si no se sabe. Informativo, no interactivo.
  */
 export function AuthorChip({
   name,

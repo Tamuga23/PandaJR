@@ -46,6 +46,9 @@ export function CareTeamForm({ onSaved, onCancel }: { onSaved?: () => void; onCa
   const { careTeam, save, saving, error } = useCareTeam();
   const detected = useDetectedEmergency();
   const pregnancyId = usePandaStore((s) => s.profile.pregnancyId);
+  // El papá también completa la hoja: "su obstetra" (el de la mamá), como en CallActions.
+  const isPapa = usePandaStore((s) => s.profile.role) === "papa";
+  const whose = isPapa ? "su" : "tu";
   const uid = useId();
   const ids = {
     obName: `${uid}-ob-name`,
@@ -133,7 +136,7 @@ export function CareTeamForm({ onSaved, onCancel }: { onSaved?: () => void; onCa
 
       <div className="flex flex-col gap-4">
         <div>
-          <label htmlFor={ids.obName} className={labelClass}>Nombre de tu obstetra</label>
+          <label htmlFor={ids.obName} className={labelClass}>Nombre de {whose} obstetra</label>
           <input
             id={ids.obName}
             type="text"
@@ -148,7 +151,7 @@ export function CareTeamForm({ onSaved, onCancel }: { onSaved?: () => void; onCa
           />
         </div>
         <div>
-          <label htmlFor={ids.obPhone} className={labelClass}>Teléfono de tu obstetra</label>
+          <label htmlFor={ids.obPhone} className={labelClass}>Teléfono de {whose} obstetra</label>
           <input
             ref={obPhoneRef}
             id={ids.obPhone}
@@ -182,7 +185,7 @@ export function CareTeamForm({ onSaved, onCancel }: { onSaved?: () => void; onCa
             type="text"
             autoComplete="off"
             maxLength={200}
-            placeholder="Donde planeas dar a luz"
+            placeholder={isPapa ? "Donde planean el parto" : "Donde planeas dar a luz"}
             value={values.hospitalName}
             onChange={update("hospitalName")}
             disabled={saving}
@@ -206,7 +209,7 @@ export function CareTeamForm({ onSaved, onCancel }: { onSaved?: () => void; onCa
             className={inputClass}
           />
           <p id={`${ids.hospitalAddress}-help`} className={helpClass}>
-            Con la dirección, el mapa te lleva directo a la entrada.
+            Con la dirección, el mapa encuentra el lugar con más precisión.
           </p>
         </div>
       </div>

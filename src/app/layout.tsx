@@ -23,8 +23,8 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://panda-jr.vercel.app"),
-  title: "PandaJR - Copiloto para Padres Primerizos",
-  description: "Herramienta colaborativa para padres primerizos: neuro-nutrición, citas médicas, contador de contracciones y asistente con IA.",
+  title: "PandaJR: el embarazo en pareja, semana a semana",
+  description: "Guía semanal del embarazo para la mamá y su pareja: tareas compartidas, citas con el obstetra, contador de contracciones y a quién llamar si algo es urgente.",
   applicationName: "PandaJR",
   manifest: "/manifest.json",
   appleWebApp: {
@@ -33,10 +33,10 @@ export const metadata: Metadata = {
     title: "PandaJR",
   },
   authors: [{ name: "PandaJR" }],
-  keywords: ["embarazo", "padres primerizos", "bebé", "agenda médica", "contracciones", "IA"],
+  keywords: ["embarazo", "embarazo en pareja", "padres primerizos", "semanas de embarazo", "contracciones", "obstetra"],
   openGraph: {
-    title: "PandaJR - Copiloto para Padres Primerizos",
-    description: "Herramienta colaborativa para padres primerizos: neuro-nutrición, citas médicas, contador de contracciones y asistente con IA.",
+    title: "PandaJR: el embarazo en pareja, semana a semana",
+    description: "Guía semanal del embarazo para la mamá y su pareja: tareas compartidas, citas con el obstetra, contador de contracciones y a quién llamar si algo es urgente.",
     url: "https://panda-jr.vercel.app",
     siteName: "PandaJR",
     images: [
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
         url: "/og-image.jpg",
         width: 1001,
         height: 1024,
-        alt: "PandaJR - Logo Oficial",
+        alt: "Logo de PandaJR: una mamá panda con su bebé",
         type: "image/jpeg",
       },
     ],
@@ -53,8 +53,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "PandaJR - Copiloto para Padres Primerizos",
-    description: "Herramienta colaborativa para padres primerizos: neuro-nutrición, citas médicas y asistente con IA.",
+    title: "PandaJR: el embarazo en pareja, semana a semana",
+    description: "Guía semanal del embarazo para la mamá y su pareja: tareas compartidas, citas con el obstetra, contador de contracciones y a quién llamar si algo es urgente.",
     images: ["/og-image.jpg"],
   },
   icons: {

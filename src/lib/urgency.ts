@@ -156,6 +156,11 @@ export const URGENT_SIGNS: AlarmSign[] = [
       "quisiera+morir", "ganas de morir", "prefiero morir", "no quiero vivir", "sin ganas de vivir",
       "seguir viviendo+no quiero|no puedo|ganas|sentido|para que", "sentido+vivir", "mejor sin mi",
       "quiero desaparecer", "quisiera desaparecer",
+      // Tercera persona: el papá (o alguien más) cuenta lo que le pasa a la mamá.
+      "quitarse la vida", "se quiere matar", "se va a matar", "no quiere vivir", "no quiere seguir viviendo",
+      "quiere desaparecer", "se quiere lastimar", "se quiere hacer dano", "se va a hacer dano",
+      // Formas ambiguas ("¿el bebé puede hacerse daño?") solo con un verbo de intención en la misma frase.
+      "hacerse dano|hacerse algo|lastimarse|matarse+quiere|quiera|piensa|pensando|pensado|habla|hablado|dice|dijo|ganas|va a|intent|amenaz",
       `dano|danar|lastimar|pegarle|pegar|golpear|sacudir|hacerle algo+${BABY}+pens|pienso|ganas|quier|quisiera|miedo|impulso|idea|tentacion|voy a|siento que`,
     ],
   },

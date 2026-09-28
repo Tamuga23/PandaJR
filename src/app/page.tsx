@@ -44,6 +44,7 @@ import { Compass, Calendar, Bot, Send, CheckCircle2, ChevronRight, ChevronLeft, 
 import { CallActions, EmergencyCallLink } from "@/components/CallActions";
 import { CareTeamSheet } from "@/components/CareTeamForm";
 import { clinicalWeek, detectAlarm, type AlarmSign } from "@/lib/urgency";
+import { signCopy } from "@/lib/urgencyCopy";
 import {
   datingFromPregnancyDoc,
   dueDateSummary,
@@ -277,7 +278,7 @@ function sameEvent(a: AgendaEvent | undefined, b: AgendaEvent | undefined): bool
 
 function inferEventType(title: string): AgendaEvent["type"] {
   const t = title.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-  if (/ecograf|ultrason|sonograf|traslucencia|morfolog/.test(t)) return "ecografia";
+  if (/ecograf|ultrason|sonograf|tra(n)?slucencia|morfolog/.test(t)) return "ecografia";
   if (/laborator|examen|analisis|sangre|glucosa|o'?sullivan|orina|cultivo|estreptococo/.test(t)) return "laboratorio";
   if (/vacuna|tdap|influenza/.test(t)) return "vacuna";
   if (/control|consulta|chequeo|monitoreo/.test(t)) return "control";
@@ -374,7 +375,9 @@ async function copyText(text: string): Promise<boolean> {
   }
 }
 
+// ROLE_LABEL es el rol (lista de acceso); PERSON_LABEL, cómo se nombra a la persona sin nombre.
 const ROLE_LABEL: Record<"mama" | "papa", string> = { mama: "Mamá", papa: "Copiloto" };
+const PERSON_LABEL: Record<"mama" | "papa", string> = { mama: "Mamá", papa: "Papá" };
 
 /**
  * Confirmación destructiva modal (alertdialog) que se abre sobre Ajustes: el foco va a la opción
@@ -496,7 +499,7 @@ function InviteCodePanel({
     status = "Aún no tienes código. Genera uno para invitar a tu pareja.";
     needsNew = true;
   } else if (current?.failed) {
-    status = "No pudimos comprobar la vigencia ahora.";
+    status = "No pudimos comprobar si el código sigue vigente. Revisa tu conexión; si tu pareja no puede usarlo, genera uno nuevo.";
   } else if (preview) {
     if (preview.status === "used") status = "Tu pareja ya se unió con este código.";
     else if (preview.status === "expired") { status = "Este código caducó. Genera uno nuevo para invitar a tu pareja."; needsNew = true; }
@@ -597,7 +600,7 @@ function AccessSection({
         </p>
         <p className="mt-1 text-xs leading-snug text-stone-600 dark:text-[#a6a1b2]">
           {guest
-            ? "Elige tu rol y crea tu embarazo, o únete al de tu pareja con su código. Lo que anotes mientras tanto queda en este teléfono y se comparte al vincularte."
+            ? "Elige tu rol: crea el embarazo compartido o únete al de tu pareja con su código. Lo que anotes mientras tanto queda en este teléfono y se comparte al vincularte."
             : "Nadie más ve lo que registras. Al vincularte, lo que ya anotaste aquí (citas, tareas, patadas, contracciones, presupuesto, nombres, diario y plan de parto) pasa a compartirse con tu pareja."}
         </p>
         {last?.pid && (
@@ -626,7 +629,7 @@ function AccessSection({
 
   const confirmRemove = async () => {
     if (!confirming || !pid) return;
-    const who = confirming.name || ROLE_LABEL[confirming.role];
+    const who = confirming.name || PERSON_LABEL[confirming.role];
     setRemoving(true);
     setRemoveError("");
     try {
@@ -655,7 +658,7 @@ function AccessSection({
         )}
         {partner.members.map((m) => {
           const isMe = m.uid === myUid;
-          const who = m.name || ROLE_LABEL[m.role];
+          const who = m.name || PERSON_LABEL[m.role];
           return (
             <li key={m.uid} className="flex items-center gap-3 p-3">
               <AuthorChip name={m.name} role={m.role} title={who} decorative />
@@ -694,7 +697,7 @@ function AccessSection({
         <ConfirmDialog
           titleId="remove-access-title"
           descId="remove-access-desc"
-          title={`¿Quitar el acceso de ${confirming.name || ROLE_LABEL[confirming.role]}?`}
+          title={`¿Quitar el acceso de ${confirming.name || PERSON_LABEL[confirming.role]}?`}
           error={removeError}
           busy={removing}
           confirmLabel="Sí, quitar acceso"
@@ -891,7 +894,7 @@ function ProfileModal({
         : "Desvinculaste este teléfono. Tu pareja aún te verá en su lista hasta que te quite.");
     }
   };
-  const partnerLabelForUnlink = partner.partnerName || (profile.role === "mama" ? "tu copiloto" : "tu pareja");
+  const partnerLabelForUnlink = partner.partnerName || (profile.role === "mama" ? "papá" : "tu pareja");
 
   return (
     <ModalPortal>
@@ -929,7 +932,7 @@ function ProfileModal({
                 </div>
                 <div className="min-w-0">
                   <p className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm">
-                    {form.role === 'mama' ? 'Modo Mamá' : 'Modo Copiloto'}
+                    {form.role === 'mama' ? 'Modo mamá' : 'Modo copiloto'}
                   </p>
                   <p className="text-xs text-stone-600 dark:text-[#a6a1b2] truncate">{form.name}</p>
                 </div>
@@ -976,15 +979,15 @@ function ProfileModal({
                     <Sparkles size={16} />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-stone-800 dark:text-white mb-0.5">Tema de Comparación</p>
-                    <p className="text-xs text-stone-600 dark:text-[#a6a1b2]">Frutas o estilo Geek</p>
+                    <p className="text-sm font-bold text-stone-800 dark:text-white mb-0.5">Comparación de tamaño</p>
+                    <p className="text-xs text-stone-600 dark:text-[#a6a1b2]">Con frutas o con objetos de tecnología y juegos</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   role="switch"
                   aria-checked={form.comparisonTheme === 'geek'}
-                  aria-label="Comparar con objetos geek en lugar de frutas"
+                  aria-label="Comparar con objetos de tecnología y juegos en lugar de frutas"
                   onClick={() => setForm({...form, comparisonTheme: form.comparisonTheme === 'geek' ? 'frutas' : 'geek'})}
                   className="shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
                 >
@@ -1018,7 +1021,7 @@ function ProfileModal({
 
           {/* Preferencias Médicas */}
           <div className="space-y-3">
-            <h3 className="text-xs font-bold text-stone-500 dark:text-[#a6a1b2] uppercase tracking-wider">Gestación & Detalles</h3>
+            <h3 className="text-xs font-bold text-stone-500 dark:text-[#a6a1b2] uppercase tracking-wider">Embarazo</h3>
 
             {/* Equipo de salud: a quién llamar y a dónde ir (compartido con la pareja) */}
             <button
@@ -1078,13 +1081,13 @@ function ProfileModal({
             </div>
 
             <div>
-              <label htmlFor="settings-location" className="text-sm font-bold text-stone-700 dark:text-[#eae6e1] block mb-1">Ciudad o País</label>
+              <label htmlFor="settings-location" className="text-sm font-bold text-stone-700 dark:text-[#eae6e1] block mb-1">Ciudad o país</label>
               <input
                 id="settings-location"
                 type="text"
                 value={form.location || ""}
                 onChange={(e) => setForm({...form, location: e.target.value})}
-                placeholder="Para recomendaciones locales"
+                placeholder="Ej. Lima, Perú"
                 className={SETTINGS_INPUT}
               />
             </div>
@@ -1095,10 +1098,14 @@ function ProfileModal({
                 id="settings-notes"
                 value={form.notes || ""}
                 onChange={(e) => setForm({...form, notes: e.target.value})}
-                placeholder="Ej. Trabajo en turnos, parto programado..."
+                placeholder="Ej. Trabajo por turnos, parto programado…"
                 rows={2}
+                aria-describedby="settings-local-hint"
                 className={`${SETTINGS_INPUT} resize-none`}
               />
+              <p id="settings-local-hint" className="mt-1 text-xs leading-snug text-stone-600 dark:text-[#a6a1b2]">
+                La ciudad y las notas se guardan solo en este teléfono. Por ahora la app no las usa.
+              </p>
             </div>
           </div>
 
@@ -1151,7 +1158,7 @@ const CONNECT_FAILED = "No pudimos conectar este teléfono. Revisa tu internet e
 
 function inviteShareText(code: string): string {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  return `Hola, te invito a acompañarme en PandaJR${origin ? ` (${origin})` : ""}. Abre la app, elige "Soy el copiloto (pareja)" y escribe este código: ${code}. Vale por 14 días y solo sirve para una persona.`;
+  return `Hola, te invito a acompañarme en PandaJR${origin ? ` (${origin})` : ""}. Abre la app, elige «Soy el copiloto (pareja)» y escribe este código: ${code}. Vale por 14 días y solo sirve para una persona.`;
 }
 
 type OnbStep = "role" | "name" | "date" | "share" | "code" | "confirm";
@@ -1416,7 +1423,7 @@ function OnboardingModal({
         {step === "role" && (
           <div className="text-center">
             <div className="w-24 h-24 rounded-3xl overflow-hidden mx-auto mb-5 border border-stone-200 dark:border-white/[0.08] shadow-sm">
-              <Image src="/panda-icon.jpg" alt="PandaJR Icon" width={96} height={96} className="w-full h-full object-cover" priority />
+              <Image src="/panda-icon.jpg" alt="" width={96} height={96} className="w-full h-full object-cover" priority />
             </div>
             <h2 id="onb-title" ref={headingRef} tabIndex={-1} className={headingClass}>Te damos la bienvenida a PandaJR</h2>
             <p className={subClass}>Cuéntanos quién eres para acompañarte mejor.</p>
@@ -1820,7 +1827,7 @@ export default function PandaJRApp() {
       nudgeSinceRef.current = { pid, since: new Date(typeof seen === "number" && seen > floor ? seen : floor) };
     }
     return listenToNudges(pid, myUid, nudgeSinceRef.current.since, (n) => {
-      const who = n.fromName || (n.fromRole === "papa" ? "Tu copiloto" : "Tu pareja");
+      const who = n.fromName || (n.fromRole === "papa" ? "Papá" : "Tu pareja");
       const seen = readStored<number | null>(nudgeSeenKey(pid), null);
       if (typeof seen !== "number" || n.createdAt.getTime() > seen) writeStored(nudgeSeenKey(pid), n.createdAt.getTime());
       // Los que llegan juntos (al abrir la app) se anuncian en un solo aviso.
@@ -2265,7 +2272,7 @@ export default function PandaJRApp() {
           <button
             type="button"
             onClick={openSymptoms}
-            aria-label="Síntomas de alarma: qué hacer y a quién llamar"
+            aria-label="Síntomas: señales de alarma y a quién llamar"
             className="inline-flex items-center gap-1.5 min-h-[44px] px-3 rounded-full border border-stone-300 dark:border-white/15 bg-white dark:bg-[#221d2d] text-stone-800 dark:text-[#eae6e1] text-xs font-bold hover:bg-stone-50 dark:hover:bg-[#2d273a] active:scale-95 motion-reduce:active:scale-100 transition-[background-color,transform] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
           >
             <HeartPulse size={16} className="shrink-0 text-terracotta-ink" aria-hidden="true" />
@@ -2547,7 +2554,7 @@ function MomStatusCard({
   const linked = !!profile.pregnancyId;
   const isMama = profile.role === "mama";
   const partnerJoined = !!partner.partnerRole;
-  const partnerLabel = partner.partnerName || (isMama ? "tu copiloto" : "tu pareja");
+  const partnerLabel = partner.partnerName || (isMama ? "papá" : "tu pareja");
 
   const status = linked
     ? remoteMomStatus
@@ -2661,7 +2668,7 @@ function MomStatusCard({
           value={text}
           onChange={(e) => setText(e.target.value)}
           aria-label="Mensaje sobre cómo te sientes"
-          placeholder={linked ? "Escribe un breve mensaje para tu copiloto..." : "Escribe cómo te sientes..."}
+          placeholder={linked ? `Escribe un mensaje breve para ${partnerLabel}…` : "Escribe cómo te sientes…"}
           className="w-full bg-stone-50 dark:bg-[#1a1724] rounded-xl p-3 text-base sm:text-sm border border-stone-500 dark:border-white/40 text-stone-900 dark:text-white mb-4 resize-none h-24 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-terracotta-ink"
         />
 
@@ -2723,7 +2730,7 @@ function MomStatusCard({
           className="w-full min-h-[44px] bg-sage/10 hover:bg-sage/20 dark:bg-sage/20 dark:hover:bg-sage/30 text-sage-ink border border-sage/25 rounded-xl py-2.5 text-sm font-bold transition-colors flex items-center justify-center gap-2 disabled:cursor-default disabled:hover:bg-sage/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
         >
           {hugSent ? <Check size={16} aria-hidden="true" /> : <Heart size={16} aria-hidden="true" />}
-          {hugSent ? `Abrazo enviado a ${partner.partnerName || "tu pareja"}` : "Mandar abrazo virtual"}
+          {hugSent ? `Abrazo enviado a ${partner.partnerName || "tu pareja"}` : "Mandar un abrazo"}
         </button>
       ) : (
         <button
@@ -2784,7 +2791,7 @@ function GuiaPapaView({
   const realWeek = ga.source !== "unknown" ? ga.weeks : undefined;
   const pid = profile.pregnancyId || "";
   const partnerName = partner.partnerName?.trim() || undefined;
-  const partnerLabel = partnerName || (reader === "mama" ? "tu copiloto" : "tu pareja");
+  const partnerLabel = partnerName || (reader === "mama" ? "papá" : "tu pareja");
 
   // Con vínculo: lo que dice Firestore (la caché local ya refleja al instante lo que marcas).
   const [remoteChecklist, setRemoteChecklist] = React.useState<{
@@ -2895,19 +2902,19 @@ function GuiaPapaView({
   };
 
   const myLabel = "Tú";
-  const partnerOwnerLabel = partnerName || (otherRole === "mama" ? "Mamá" : "Copiloto");
+  const partnerOwnerLabel = partnerName || (otherRole === "mama" ? "Mamá" : "Papá");
   const ownerLabels: OwnerLabels = {
     mama: reader === "mama" ? myLabel : partnerOwnerLabel,
     papa: reader === "papa" ? myLabel : partnerOwnerLabel,
     ambos: "Los dos",
   };
-  // "ahora te toca a ti", "ahora les toca a los dos", "ahora le toca a Luis" / "a tu copiloto".
+  // "ahora te toca a ti", "ahora les toca a los dos", "ahora le toca a Luis" / "a papá".
   const nowOwnedBy = (o: TaskOwner) =>
     o === "ambos"
       ? "ahora les toca a los dos"
       : o === reader
         ? "ahora te toca a ti"
-        : `ahora le toca a ${partnerName || (otherRole === "mama" ? "mamá" : "tu copiloto")}`;
+        : `ahora le toca a ${partnerName || (otherRole === "mama" ? "mamá" : "papá")}`;
 
   /** Reasigna una tarea (volver al dueño de catálogo borra la reasignación). Con "Deshacer" real. */
   const assignTask = (row: TaskRowModel, owner: TaskOwner, announce = true) => {
@@ -2942,7 +2949,7 @@ function GuiaPapaView({
     const who = whoFromMeta(meta);
     if (!who) return null;
     const when = meta?.at ? formatRelative(meta.at) : "";
-    return { name: who.name, role: who.role, title: `Marcado por ${who.name || (who.role ? ROLE_LABEL[who.role] : "tu pareja")}${when ? ` ${when}` : ""}` };
+    return { name: who.name, role: who.role, title: `Marcado por ${who.name || (who.role ? PERSON_LABEL[who.role] : "tu pareja")}${when ? ` ${when}` : ""}` };
   };
 
   const ownerNote = (key: string) => {
@@ -2979,7 +2986,7 @@ function GuiaPapaView({
   ].map(t => buildRow(t));
   const todayGroups: TodayGroup[] = [
     { id: "mine", title: "Tus tareas", rows: todayRows.filter(r => r.owner === reader) },
-    { id: "partner", title: `Las de ${partnerName || (otherRole === "mama" ? "mamá" : "tu copiloto")}`, rows: todayRows.filter(r => r.owner === otherRole) },
+    { id: "partner", title: `Las de ${partnerName || (otherRole === "mama" ? "mamá" : "papá")}`, rows: todayRows.filter(r => r.owner === otherRole) },
     { id: "both", title: "De los dos", rows: todayRows.filter(r => r.owner === "ambos") },
   ];
 
@@ -3095,7 +3102,7 @@ function GuiaPapaView({
       <section aria-labelledby="guia-check-title">
         <div className="flex items-baseline justify-between gap-3">
           <h2 id="guia-check-title" className="text-2xl font-black tracking-tight text-stone-900 dark:text-[#eae6e1]">
-            Checklists por trimestre
+            Tareas por trimestre
           </h2>
           <span className="shrink-0 text-sm font-bold text-stone-600 dark:text-[#a6a1b2] tabular-nums">
             {checklistLoaded ? `${doneCount} de ${allRows.length}` : "—"}
@@ -3178,18 +3185,22 @@ type ChatApiResponse = {
  * con las acciones de llamada a un toque. El texto va en role="alert"; las acciones
  * quedan fuera del alert para que el lector de pantalla no lea todos los botones de golpe.
  */
-function ChatUrgencyBubble({ id, matches, reason, live = true }: { id: string; matches: AlarmSign[]; reason?: string; live?: boolean }) {
+function ChatUrgencyBubble({ id, matches, reason, live = true, role = "mama" }: { id: string; matches: AlarmSign[]; reason?: string; live?: boolean; role?: "papa" | "mama" }) {
   const titleId = React.useId();
   const first = matches[0];
+  // Voz de quien lee: el papá lee la señal en tercera persona ("no la dejan retener líquidos").
+  const firstCopy = first ? signCopy(first, role) : null;
   const extra = matches.length - 1;
-  const signLine = first
-    ? `${first.title}${extra > 0 ? ` y ${extra} ${extra === 1 ? "señal más" : "señales más"}` : ""}.`
+  const signLine = firstCopy
+    ? `${firstCopy.title}${extra > 0 ? ` y ${extra} ${extra === 1 ? "señal más" : "señales más"}` : ""}.`
     : reason
       ? `${reason.replace(/[.\s]+$/, "")}.`
       : "Lo que describes puede ser una señal de alarma.";
-  const actionLine = first?.id === "salud-mental"
-    ? first.detail
-    : "Llama a emergencias o ve a urgencias ahora.";
+  const actionLine = first?.id === "salud-mental" && firstCopy
+    ? firstCopy.detail
+    : role === "papa"
+      ? "Llama a emergencias o vayan a urgencias ahora."
+      : "Llama a emergencias o ve a urgencias ahora.";
 
   return (
     <section
@@ -3229,7 +3240,7 @@ function ChatSafetyNote({ id, role }: { id: string; role: "papa" | "mama" }) {
         <Info size={16} className="mt-0.5 shrink-0 text-terracotta-ink" aria-hidden="true" />
         <span>
           <strong className="font-bold">{role === "papa" ? "Si le está pasando ahora," : "Si te está pasando ahora,"}</strong>{" "}
-          no esperes: llama a emergencias o ve a urgencias.
+          no esperes: llama a emergencias o {role === "papa" ? "vayan" : "ve"} a urgencias.
         </span>
       </p>
       <button
@@ -3310,136 +3321,184 @@ function PandaIAView({
   setActiveTab?: (tab: Tab) => void,
   onOpenSymptoms?: () => void
 }) {
-  const getContextualChips = (week: number, role: "papa" | "mama") => {
+  // Sin semana confirmada (null): sugerencias generales, sin trimestre ni "semana N" inventados.
+  const getContextualChips = (week: number | null, role: "papa" | "mama") => {
+    if (week === null) {
+      return role === "papa" ? [
+        "¿Qué controles se hacen en cada trimestre?",
+        "¿Qué señales de alarma debo conocer para acompañarla?",
+        "¿Cómo se calcula la fecha probable de parto (FPP)?",
+        "¿Cómo puedo apoyar a mamá en el embarazo?"
+      ] : [
+        "¿Cómo calculo mi fecha probable de parto (FPP)?",
+        "¿Qué controles se hacen en cada trimestre?",
+        "¿Qué señales de alarma debo conocer?",
+        "Agendar mi próximo control"
+      ];
+    }
     if (week <= 13) {
       return role === "papa" ? [
-        "Alimentos con Colina y DHA para el cerebro",
+        "¿Qué alimentos aportan colina y omega-3 (DHA)?",
         "¿Cómo aliviar las náuseas matutinas de mamá?",
-        "Agendar ecografía semana 12 (Traslucencia Nucal)",
-        "Tareas domésticas y químicos que debo asumir hoy"
+        "Agendar la ecografía de la semana 12 (translucencia nucal)",
+        "¿Qué tareas de casa y productos de limpieza debo asumir?"
       ] : [
         "¿Es normal tener tanta fatiga y sueño?",
-        "Alimentos que debo evitar en el 1er trimestre",
+        "Alimentos que debo evitar en el primer trimestre",
         "¿Cuándo se empieza a notar la pancita?",
         "Agendar mi control prenatal de este mes"
       ];
     } else if (week <= 27) {
       return role === "papa" ? [
-        "¿Qué evalúa la ecografía morfológica (semana 20)?",
+        "¿Qué revisa la ecografía morfológica (semanas 18 a 22)?",
         "¿Cuándo empezaremos a sentir las patadas?",
-        "Agendar cita para ecografía 3D / 4D",
+        "Agendar una ecografía 3D o 4D",
         "¿Cómo apoyar a mamá con los dolores de espalda?"
       ] : [
         "¿Cuándo se siente el hipo del bebé?",
-        "Cuidados de la piel y suelo pélvico en 2º trimestre",
-        "Alimentos recomendados para prevenir anemia",
-        "¿Qué dudas llevar a la ecografía morfológica?"
+        "Cuidados de la piel y del suelo pélvico en el segundo trimestre",
+        "Alimentos que ayudan a prevenir la anemia",
+        "¿Qué preguntar en la ecografía morfológica?"
       ];
     } else {
       return role === "papa" ? [
-        "Checklist esencial para la maleta del hospital",
-        "¿Cómo reconocer las contracciones de parto activo?",
-        "Agendar monitoreo fetal preparto",
-        "¿Cómo acompañar a mamá en el dolor de parto?"
+        "¿Qué llevar en la maleta del hospital?",
+        "¿Cómo reconocer las contracciones de trabajo de parto?",
+        "Agendar el monitoreo fetal",
+        "¿Cómo acompañar a mamá durante el trabajo de parto?"
       ] : [
-        "Signos de alarma en el tercer trimestre",
+        "¿Qué señales de alarma debo conocer en el tercer trimestre?",
         "Masaje perineal: ¿cómo y cuándo empezar?",
-        "¿Cómo saber si rompí bolsa o es flujo?",
-        "Revisar las cláusulas de nuestro Plan de Parto"
+        "¿Cómo saber si rompí fuente o es flujo?",
+        "Revisar nuestro plan de parto"
       ];
     }
   };
 
-  const getUltrasoundItems = (week: number) => {
+  // Decodificador de ecografías: explica términos y siglas del informe; no interpreta resultados.
+  const getUltrasoundItems = (week: number | null) => {
+    if (week === null) {
+      // Sin semana confirmada: los términos de las tres etapas, sin "semana N".
+      return [
+        {
+          title: "Translucencia nucal (TN), semanas 11 a 14",
+          desc: "Qué mide el tamizaje del primer trimestre",
+          prompt: "¿Qué evalúan la translucencia nucal (TN) y el hueso nasal en la ecografía de las semanas 11 a 14?"
+        },
+        {
+          title: "Medidas del bebé: LCC, DBP, LF, CA y CC",
+          desc: "Longitud cráneo-caudal, diámetro biparietal, longitud del fémur y circunferencias abdominal y cefálica",
+          prompt: "¿Qué significan las siglas LCC, DBP, LF, CA y CC en un informe de ecografía?"
+        },
+        {
+          title: "Ecografía morfológica (semanas 18 a 22)",
+          desc: "Qué revisa de los órganos, el corazón y el cerebro del bebé",
+          prompt: "¿Qué evalúa la ecografía morfológica de las semanas 18 a 22?"
+        },
+        {
+          title: "Índice de líquido amniótico (ILA)",
+          desc: "Qué mide y cómo aparece en el informe",
+          prompt: "¿Qué es el índice de líquido amniótico (ILA) y cómo se mide?"
+        }
+      ];
+    }
     if (week <= 13) {
       return [
         {
-          title: "Ecografía 11-14: Traslucencia Nucal (TN)",
-          desc: "Cribado genético del primer trimestre y hueso nasal",
-          prompt: `¿Qué evalúa la Traslucencia Nucal (TN) y el Hueso Nasal en la ecografía de semana ${week} (semanas 11 a 14)?`
+          title: "Ecografía de las semanas 11 a 14: translucencia nucal (TN)",
+          desc: "Qué mide el tamizaje del primer trimestre y por qué se revisa el hueso nasal",
+          prompt: "¿Qué evalúan la translucencia nucal (TN) y el hueso nasal en la ecografía de las semanas 11 a 14?"
         },
         {
-          title: `Medidas en Semana ${week}: LCR y DBP`,
-          desc: "Longitud cráneo-raudal y diámetro biparietal del bebé",
-          prompt: `¿Qué significan las medidas LCR (longitud cráneo-raudal) y DBP en mi ecografía de semana ${week}?`
+          title: `Medidas de la semana ${week}: LCC y DBP`,
+          desc: "Longitud cráneo-caudal (LCC) y diámetro biparietal (DBP)",
+          prompt: `¿Qué significan las medidas LCC (longitud cráneo-caudal) y DBP (diámetro biparietal) en una ecografía de la semana ${week}?`
         },
         {
-          title: "Frecuencia Cardíaca Fetal y Vitalidad",
-          desc: "Latidos por minuto y flujo en el primer trimestre",
-          prompt: `¿Cuál es el rango normal de latidos cardíacos fetales en la semana ${week} y qué indica la vitalidad?`
+          title: "Frecuencia cardíaca fetal",
+          desc: "Qué mide y por qué se registra en cada ecografía",
+          prompt: "¿Qué mide la frecuencia cardíaca fetal en la ecografía y por qué se registra?"
         },
         {
-          title: "Hematomas Subcoriónicos o Cuello Uterino",
-          desc: "¿Qué significa si el informe menciona hematoma o sangrado?",
-          prompt: `¿Qué significa un hematoma subcoriónico en el primer trimestre (semana ${week}) y qué cuidados se recomiendan?`
+          title: "Hematoma subcoriónico",
+          desc: "Qué significa el término si aparece en el informe. Si hay sangrado, es una señal de alarma",
+          prompt: "¿Qué significa el término «hematoma subcoriónico» en un informe de ecografía?"
         }
       ];
     } else if (week <= 27) {
       return [
         {
-          title: "Ecografía Morfológica (Semana 20-22)",
-          desc: "Revisión anatómica completa de órganos, corazón y cerebro",
-          prompt: `¿Qué evalúa la ecografía morfológica de alta resolución en esta etapa (semana ${week})?`
+          title: "Ecografía morfológica (semanas 18 a 22)",
+          desc: "Qué revisa de los órganos, el corazón y el cerebro del bebé",
+          prompt: "¿Qué evalúa la ecografía morfológica de las semanas 18 a 22?"
         },
         {
-          title: "Medidas Fetales (DBP, LF, CA, CC)",
-          desc: "Diámetros craneales, longitud femoral y perímetro abdominal",
-          prompt: `¿Qué significan las siglas DBP, LF, CA y CC en el informe ecográfico de la semana ${week}?`
+          title: "Medidas del bebé (DBP, LF, CA, CC)",
+          desc: "Diámetro biparietal, longitud del fémur y circunferencias abdominal y cefálica",
+          prompt: `¿Qué significan las siglas DBP, LF, CA y CC en un informe de ecografía de la semana ${week}?`
         },
         {
-          title: "Percentiles de Crecimiento y Peso Fetal",
-          desc: "¿Cómo interpretar si mi bebé está en percentil 25, 50 o 90?",
-          prompt: `¿Qué significa el percentil fetal de crecimiento y peso estimado en la semana ${week}?`
+          title: "Percentiles de crecimiento y peso",
+          desc: "Qué quiere decir que el bebé esté en el percentil 25, 50 o 90",
+          prompt: `¿Qué significa el percentil de crecimiento y de peso estimado del bebé en la semana ${week}?`
         },
         {
-          title: "Doppler de Arterias Uterinas y Placenta",
-          desc: "¿Qué evalúa el Doppler uterino y la madurez placentaria?",
+          title: "Doppler de arterias uterinas y placenta",
+          desc: "Qué mide el Doppler (el flujo de sangre) y qué es la madurez placentaria",
           prompt: `¿Qué evalúa el Doppler de arterias uterinas y qué significa el grado placentario en la semana ${week}?`
         }
       ];
     } else {
       return [
         {
-          title: `Percentil de Peso en 3er Trimestre (Sem ${week})`,
-          desc: "Monitoreo del peso estimado y curvas de crecimiento",
-          prompt: `¿Cómo se evalúa el percentil de peso y crecimiento fetal en la semana ${week}?`
+          title: `Percentil de peso en el tercer trimestre (semana ${week})`,
+          desc: "Peso estimado y curvas de crecimiento",
+          prompt: `¿Cómo se evalúa el percentil de peso y crecimiento del bebé en la semana ${week}?`
         },
         {
-          title: "índice de Líquido Amniótico (ILA)",
-          desc: "¿Qué significa un índice de líquido amniótico normal o alterado?",
-          prompt: `¿Qué significa el índice de Líquido Amniótico (ILA) en la semana ${week} y cuáles son sus rangos normales?`
+          title: "Índice de líquido amniótico (ILA)",
+          desc: "Qué mide y cómo aparece en el informe",
+          prompt: "¿Qué es el índice de líquido amniótico (ILA) y cómo se mide?"
         },
         {
-          title: "Doppler Fetal (Arteria Umbilical y Cerebral Media)",
-          desc: "Oxigenación fetal y bienestar hemodinámico",
-          prompt: `¿Qué evalúa el Doppler fetal de arteria umbilical y cerebral media en la semana ${week}?`
+          title: "Doppler fetal (arteria umbilical y cerebral media)",
+          desc: "Qué dice sobre el flujo de sangre y oxígeno que recibe el bebé",
+          prompt: `¿Qué evalúa el Doppler fetal de la arteria umbilical y de la cerebral media en la semana ${week}?`
         },
         {
-          title: "Posición Fetal y Grado Placentario",
-          desc: "¿Está en posición cefálica? Grado II / III de placenta",
-          prompt: `¿Qué significa la posición cefálica o podálica y el grado de madurez placentaria en la semana ${week}?`
+          title: "Posición del bebé y grado de la placenta",
+          desc: "Cefálica (cabeza abajo), podálica (de nalgas) y grado placentario",
+          prompt: `¿Qué significan la posición cefálica o podálica y el grado de madurez placentaria en la semana ${week}?`
         }
       ];
     }
   };
 
   const getWelcomeText = (week: number | null, role: "papa" | "mama", name?: string) => {
+    const hello = `¡Hola, ${name || (role === "papa" ? "papá" : "mamá")}! Soy PandaIA.`;
+    // Límites en una línea: orienta, no diagnostica. Ante una alarma, la llamada va antes que el chat.
+    const limits = role === "papa"
+      ? "Te doy información general: no diagnostico ni reemplazo al obstetra de tu pareja. Si notas una señal de alarma, no esperes mi respuesta: toca **Síntomas** o llama a emergencias."
+      : "Te doy información general: no diagnostico ni reemplazo a tu obstetra. Si notas una señal de alarma, no esperes mi respuesta: toca **Síntomas** o llama a emergencias.";
     if (week === null) {
-      return `¡Hola ${name || (role === "papa" ? "Papá" : "Mamá")}! Soy PandaIA.\n\nAún no sé en qué semana están: confírmala en **Ajustes** para orientarte mejor. Mientras tanto, pregúntame lo que necesites o pídeme que **agende una cita** diciéndome el día.`;
+      return `${hello}\n\nAún no sé en qué semana están: confírmala en **Ajustes** para orientarte mejor. Mientras tanto, pregúntame lo que necesites o pídeme que **agende una cita** diciéndome el día.\n\n${limits}`;
     }
     return role === "papa"
-      ? `¡Hola ${name || "Papá"}! Soy PandaIA, tu copiloto clínico en esta Semana ${week}.\n\nPregúntame sobre el **desarrollo del bebé en la semana ${week}**, neuro-nutrición prenatal (DHA, colina), qué preguntar en la próxima consulta médica, o pídeme que **agende una cita médica** diciéndome el día.`
-      : `¡Hola ${name || "Mamá"}! Soy PandaIA, tu espacio de orientación y tranquilidad en esta Semana ${week}.\n\nPuedes consultarme sobre los cambios y síntomas de la **semana ${week}**, nutrición o pedirme que **registre tus próximas citas médicas** diciéndome el día.`;
+      ? `${hello}\n\nPregúntame por el **desarrollo del bebé en la semana ${week}**, la alimentación en el embarazo, qué preguntar en el próximo control o pídeme que **agende una cita** diciéndome el día.\n\n${limits}`
+      : `${hello}\n\nPregúntame por los cambios de la **semana ${week}**, la alimentación o qué preguntar en tu próximo control, o pídeme que **agende una cita** diciéndome el día.\n\n${limits}`;
   };
-  const welcomeWeek = profile.weekUnknown ? null : (profile.week || 14);
-  const welcomeMessage = (): ChatMessage => ({ id: 1, sender: "ai", text: getWelcomeText(welcomeWeek, profile.role, profile.name) });
+  // Semana que menciona PandaIA (saludo, sugerencias y decodificador). Sin confirmar → null: nunca una inventada.
+  const chatWeek = profile.weekUnknown || !profile.week ? null : profile.week;
+  const welcomeMessage = (): ChatMessage => ({ id: 1, sender: "ai", text: getWelcomeText(chatWeek, profile.role, profile.name) });
 
   // La conversación se guarda en este teléfono (últimos 60 mensajes, por embarazo o "local").
   const storageKey = chatStorageKey(profile.pregnancyId);
   const online = useOnline();
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
-    const stored = loadStoredChat(storageKey);
-    if (!stored) return [welcomeMessage()];
+    const saved = loadStoredChat(storageKey);
+    if (!saved) return [welcomeMessage()];
+    // El saludo guardado se escribe de nuevo: así lleva el texto, la semana y el rol de hoy.
+    const stored = saved.map((m) => (m.id === 1 && m.sender === "ai" && !m.kind ? { ...m, text: welcomeMessage().text } : m));
     // La app se cerró antes de la respuesta (el error no se guarda): se ofrece reintentar.
     const last = stored[stored.length - 1];
     if (last && last.sender === "user" && !last.kind && last.text) {
@@ -3451,7 +3510,7 @@ function PandaIAView({
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [copiedId, setCopiedId] = useState<number | null>(null);
-  const [smartChips, setSmartChips] = useState<string[]>(() => getContextualChips(profile.week || 14, profile.role));
+  const [smartChips, setSmartChips] = useState<string[]>(() => getContextualChips(chatWeek, profile.role));
   const [isUltrasoundModalOpen, setIsUltrasoundModalOpen] = useState(false);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
@@ -3493,18 +3552,18 @@ function PandaIAView({
 
   // Actualizar chips cuando cambia el perfil o semana
   useEffect(() => {
-    setSmartChips(getContextualChips(profile.week || 14, profile.role));
-  }, [profile.week, profile.role]);
+    setSmartChips(getContextualChips(chatWeek, profile.role));
+  }, [chatWeek, profile.role]);
 
   // Sincronizar mensaje de bienvenida automáticamente con la semana y rol elegidos
   useEffect(() => {
     setMessages(prev => {
       if (prev.length === 1 && prev[0].id === 1) {
-        return [{ id: 1, sender: "ai", text: getWelcomeText(welcomeWeek, profile.role, profile.name) }];
+        return [{ id: 1, sender: "ai", text: getWelcomeText(chatWeek, profile.role, profile.name) }];
       }
       return prev;
     });
-  }, [welcomeWeek, profile.role, profile.name]);
+  }, [chatWeek, profile.role, profile.name]);
 
   // Si se envió una consulta desde otra pantalla (ej. modal de preparación)
   useEffect(() => {
@@ -3540,7 +3599,7 @@ function PandaIAView({
     if (previous.length <= 1) return;
     urgencyAnchorRef.current = null;
     setMessages([welcomeMessage()]);
-    setSmartChips(getContextualChips(profile.week || 14, profile.role));
+    setSmartChips(getContextualChips(chatWeek, profile.role));
     showToast("Conversación reiniciada", () => {
       urgencyAnchorRef.current = null;
       setMessages(previous.map(m => (m.kind === "urgency" ? { ...m, restored: true } : m)));
@@ -3603,7 +3662,7 @@ function PandaIAView({
       } else if (lowAlarm) {
         added.push({ id: makeId(), sender: "ai", kind: "notice", text: "" });
         setAnnouncement(profile.role === "papa"
-          ? "Si le está pasando ahora, no esperes: llama a emergencias o ve a urgencias."
+          ? "Si le está pasando ahora, no esperes: llama a emergencias o vayan a urgencias."
           : "Si te está pasando ahora, no esperes: llama a emergencias o ve a urgencias.");
       }
       setSmartChips(prev => prev.filter(c => c !== text));
@@ -3630,9 +3689,8 @@ function PandaIAView({
             source: source ?? "user",
             userRole: profile.role,
             userName: profile.name || "",
-            userProfile: profile.role === "papa" ? `Papá${profile.name ? ` (${profile.name})` : ""}` : `Mamá${profile.name ? ` (${profile.name})` : ""}`,
-            location: profile.location || "No especificada",
-            notes: profile.notes || "Embarazo primerizo"
+            userProfile: profile.role === "papa" ? `Papá${profile.name ? ` (${profile.name})` : ""}` : `Mamá${profile.name ? ` (${profile.name})` : ""}`
+            // La ciudad y las notas de Ajustes no se envían: el servidor no las usa y se guardan solo en este teléfono.
           }
         })
       });
@@ -3693,14 +3751,14 @@ function PandaIAView({
         id: makeId(),
         sender: "ai",
         kind: "error",
-        text: "No pude conectar con PandaIA ahora.",
+        text: "PandaIA no pudo responder esta vez.",
         retryText: text,
         sourceId,
         retrySuggestion: source === "suggestion",
         hadAlarm: urgencyShown,
         offline
       }]);
-      setAnnouncement(`No pude conectar con PandaIA ahora.${offline ? " Parece que no tienes conexión a internet." : ""} Si es urgente, llama a emergencias.`);
+      setAnnouncement(`PandaIA no pudo responder esta vez.${offline ? " Parece que no tienes conexión a internet." : ""} Si es urgente, llama a emergencias.`);
     } finally {
       clearTimeout(timeout);
       setIsTyping(false);
@@ -3802,7 +3860,7 @@ function PandaIAView({
             onClick={clearChat}
             disabled={messages.length <= 1}
             className="min-w-[44px] min-h-[44px] flex items-center justify-center text-stone-600 dark:text-[#a6a1b2] hover:text-stone-800 dark:hover:text-[#eae6e1] hover:bg-stone-100 dark:hover:bg-[#2d273a] rounded-xl transition-all active:scale-95 motion-reduce:active:scale-100 disabled:opacity-40 disabled:cursor-default focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
-            title="Reiniciar conversación (se guarda en este teléfono)"
+            title="Reiniciar conversación (el chat se guarda solo en este teléfono)"
             aria-label="Reiniciar conversación"
           >
             <RotateCcw size={16} aria-hidden="true" />
@@ -3826,6 +3884,7 @@ function PandaIAView({
                 matches={msg.matches ?? []}
                 reason={msg.reason}
                 live={!msg.restored}
+                role={profile.role}
               />
             );
           }
@@ -3868,7 +3927,7 @@ function PandaIAView({
                           onClick={onOpenSymptoms}
                           className="mt-1 -ml-1 inline-flex min-h-[44px] items-center gap-1 rounded-lg px-1 text-sm font-bold text-terracotta-ink underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
                         >
-                          Ver síntomas de alarma
+                          Ver señales de alarma
                           <ChevronRight size={16} aria-hidden="true" />
                         </button>
                       )}
@@ -4062,16 +4121,17 @@ function PandaIAView({
           <div className="flex items-end gap-2 bg-stone-50 dark:bg-[#2d273a] border border-stone-500 dark:border-white/40 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-sage-ink focus-within:border-transparent transition-all shadow-xs">
             <button 
               type="button"
-              aria-label="Cargar consulta sobre ecografías"
+              aria-label="Preguntas sobre términos de la ecografía"
               onClick={() => setIsUltrasoundModalOpen(true)}
               className="min-w-[44px] min-h-[44px] flex items-center justify-center text-stone-600 dark:text-[#a6a1b2] hover:text-sage-ink transition-colors shrink-0 rounded-xl hover:bg-white dark:hover:bg-[#221d2d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
-              title="Preguntas frecuentes sobre ecografías"
+              title="Preguntas sobre términos de la ecografía"
             >
               <Paperclip size={18} aria-hidden="true" />
             </button>
             <textarea 
               ref={textareaRef}
-              aria-label="Escribe tu consulta para PandaIA"
+              aria-label="Escribe tu pregunta para PandaIA"
+              aria-describedby="pandaia-limits"
               rows={1}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
@@ -4081,7 +4141,7 @@ function PandaIAView({
                   handleSend(inputText);
                 }
               }}
-              placeholder="Escribe tu pregunta..."
+              placeholder="Escribe tu pregunta…"
               className="flex-1 bg-transparent border-none focus:outline-none text-base sm:text-sm py-2.5 resize-none max-h-32 min-h-[44px] text-stone-800 dark:text-[#eae6e1] placeholder:text-stone-500 dark:placeholder:text-[#948fa1] overflow-y-auto no-scrollbar"
             />
             <button 
@@ -4098,6 +4158,11 @@ function PandaIAView({
               <Send size={16} aria-hidden="true" />
             </button>
           </div>
+          <p id="pandaia-limits" className="mt-1.5 px-1 text-xs leading-snug text-stone-600 dark:text-[#a6a1b2]">
+            {profile.role === "papa"
+              ? "PandaIA orienta; no diagnostica ni reemplaza al obstetra."
+              : "PandaIA orienta; no diagnostica ni reemplaza a tu obstetra."}
+          </p>
         </div>
       </div>
 
@@ -4119,10 +4184,10 @@ function PandaIAView({
                 </div>
                 <div>
                   <h2 id="ultrasound-modal-title" className="font-bold text-base leading-tight">
-                    Decodificador de Ecografía
+                    Decodificador de ecografías
                   </h2>
                   <p className="text-xs text-white/90">
-                    Preguntas rápidas para interpretar tu ecografía
+                    Qué significa cada término del informe
                   </p>
                 </div>
               </div>
@@ -4138,10 +4203,12 @@ function PandaIAView({
 
             <div className="p-4 space-y-2 max-h-[70dvh] overflow-y-auto">
               <p id="ultrasound-modal-desc" className="text-xs text-stone-600 dark:text-[#a6a1b2] mb-3">
-                Selecciona una consulta frecuente para que PandaIA te explique los valores clínicos con calma:
+                {profile.role === "papa"
+                  ? "Elige una pregunta y PandaIA te explica el término. Lo que significan los resultados lo explica el obstetra de tu pareja."
+                  : "Elige una pregunta y PandaIA te explica el término. Lo que significan tus resultados te lo explica tu obstetra."}
               </p>
 
-              {getUltrasoundItems(profile.week || 14).map((item, idx) => (
+              {getUltrasoundItems(chatWeek).map((item, idx) => (
                 <button
                   key={idx}
                   type="button"

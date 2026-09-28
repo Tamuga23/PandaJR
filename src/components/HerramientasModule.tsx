@@ -39,6 +39,7 @@ import { SyncBadge, useOnline, usePartner } from "@/components/SyncBadge";
 import { CallActions, EmergencyCallLink } from "@/components/CallActions";
 import { useDetectedEmergency } from "@/lib/useCareTeam";
 import { URGENT_SIGNS, CALL_TODAY_SIGNS, clinicalWeek, isPreterm, telHref, type AlarmSign } from "@/lib/urgency";
+import { signCopy } from "@/lib/urgencyCopy";
 import { ModalPortal } from "@/components/ModalPortal";
 import { useModalDialog } from "@/lib/useModalDialog";
 import { Z_CLASS } from "@/lib/layers";
@@ -700,12 +701,15 @@ const OPENABLE_TOOLS = [
   "sos", "contracciones", "patadas", "diario", "maleta", "nombres", "parto", "lecturas", "presupuesto", "story", "reproductor",
 ];
 
+// `tips`/`alarm` hablan a la mamá; `tipsPartner`/`alarmPartner` dicen lo mismo al papá.
 const COMMON_DISCOMFORTS: {
   id: string;
   title: string;
   icon: React.ReactNode;
   tips: { lead: string; text: string }[];
   alarm: string;
+  tipsPartner: { lead: string; text: string }[];
+  alarmPartner: string;
 }[] = [
   {
     id: "nauseas",
@@ -717,6 +721,12 @@ const COMMON_DISCOMFORTS: {
       { lead: "Consulta a tu obstetra si:", text: "bajas de peso, la orina se ve muy oscura o las náuseas no te dejan comer. Puede indicarte un tratamiento (por ejemplo, vitamina B6 con doxilamina)." },
     ],
     alarm: "Si vomitas todo y no retienes ni el agua, es una señal de alarma: ve a urgencias.",
+    tipsPartner: [
+      { lead: "Antes de que se levante:", text: "déjale unas galletas saladas o pan tostado junto a la cama." },
+      { lead: "Líquidos en sorbos:", text: "agua fría en tragos pequeños y frecuentes. A algunas personas les ayuda el jengibre o el limón." },
+      { lead: "Que consulte a su obstetra si:", text: "baja de peso, la orina se ve muy oscura o las náuseas no la dejan comer. Puede indicarle un tratamiento (por ejemplo, vitamina B6 con doxilamina)." },
+    ],
+    alarmPartner: "Si vomita todo y no retiene ni el agua, es una señal de alarma: vayan a urgencias.",
   },
   {
     id: "acidez",
@@ -728,17 +738,29 @@ const COMMON_DISCOMFORTS: {
       { lead: "Consulta a tu obstetra si:", text: "la acidez no cede, te despierta seguido o te cuesta tragar." },
     ],
     alarm: "Si el dolor es fuerte o está bajo las costillas del lado derecho, sobre todo con dolor de cabeza o visión borrosa, es una señal de alarma: ve a urgencias.",
+    tipsPartner: [
+      { lead: "Poco y seguido:", text: "5 o 6 comidas pequeñas al día en lugar de 3 grandes." },
+      { lead: "Tiempo para la digestión:", text: "que espere al menos 2 horas después de cenar para acostarse. Elevar la cabecera con una almohada extra ayuda." },
+      { lead: "Que consulte a su obstetra si:", text: "la acidez no cede, la despierta seguido o le cuesta tragar." },
+    ],
+    alarmPartner: "Si el dolor es fuerte o está bajo las costillas del lado derecho, sobre todo con dolor de cabeza o visión borrosa, es una señal de alarma: vayan a urgencias.",
   },
   {
     id: "ciatica",
     title: "Dolor pélvico y ciática",
     icon: <Activity size={20} aria-hidden="true" />,
     tips: [
-      { lead: "Calor local:", text: "compresas tibias en la espalda baja durante 15 a 20 minutos. Si eres la pareja, puedes prepararlas tú." },
+      { lead: "Calor local:", text: "compresas tibias en la espalda baja durante 15 a 20 minutos; tu pareja puede preparártelas." },
       { lead: "Postura y soporte:", text: "una faja o cinturón pélvico para embarazo puede ayudar si tu obstetra lo aprueba. Para dormir, acuéstate de lado, de preferencia el izquierdo, con una almohada entre las rodillas." },
       { lead: "Estiramientos suaves:", text: "yoga prenatal o ejercicios guiados por una persona profesional." },
     ],
     alarm: "Si el dolor lumbar va y viene a ritmo o sientes presión en la pelvis antes de la semana 37, puede ser parto pretérmino: llama ya.",
+    tipsPartner: [
+      { lead: "Calor local:", text: "compresas tibias en la espalda baja durante 15 a 20 minutos; puedes prepararlas tú." },
+      { lead: "Postura y soporte:", text: "una faja o cinturón pélvico para embarazo puede ayudar si su obstetra lo aprueba. Para dormir, de lado, de preferencia el izquierdo, con una almohada entre las rodillas." },
+      { lead: "Estiramientos suaves:", text: "yoga prenatal o ejercicios guiados por una persona profesional." },
+    ],
+    alarmPartner: "Si el dolor lumbar le va y viene a ritmo o siente presión en la pelvis antes de la semana 37, puede ser parto pretérmino: llama ya.",
   },
 ];
 
@@ -760,6 +782,8 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
   const week = knownWeek(profile);
   const preterm = isPreterm(week);
   const highlightMovement = typeof week === "number" && week >= 28;
+  // Quien lee: la mamá ("si tienes…") o el papá, que acompaña ("si ella tiene…").
+  const isPapa = profile?.role === "papa";
 
   const callTodaySigns = CALL_TODAY_SIGNS.filter((s) => s.id !== "animo");
   const moodSign = CALL_TODAY_SIGNS.find((s) => s.id === "animo");
@@ -768,32 +792,52 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
   const signNote = (sign: AlarmSign): { text: string; tool?: SosLinkTool; toolLabel?: string } | null => {
     if (typeof week !== "number") {
       if (sign.id === "movimientos") {
-        return { text: "Desde la semana 28, cuenta sus movimientos cada día.", tool: "patadas", toolLabel: "Abrir el contador de patadas" };
+        return {
+          text: isPapa ? "Desde la semana 28, cuenten sus movimientos cada día." : "Desde la semana 28, cuenta sus movimientos cada día.",
+          tool: "patadas",
+          toolLabel: "Abrir el contador de patadas",
+        };
       }
       if (sign.id === "pretermino") {
-        return { text: "Si tienes contracciones, el contador te dice cuándo llamar.", tool: "contracciones", toolLabel: "Abrir el contador de contracciones" };
+        return {
+          text: isPapa ? "Si ella tiene contracciones, el contador te dice cuándo llamar." : "Si tienes contracciones, el contador te dice cuándo llamar.",
+          tool: "contracciones",
+          toolLabel: "Abrir el contador de contracciones",
+        };
       }
       return null;
     }
     if (sign.id === "movimientos") {
       if (week >= 28) {
         return {
-          text: `Estás en la semana ${week}: cuenta sus movimientos cada día, en un momento tranquilo.`,
+          text: isPapa
+            ? `Están en la semana ${week}: cuenten sus movimientos cada día, en un momento tranquilo.`
+            : `Estás en la semana ${week}: cuenta sus movimientos cada día, en un momento tranquilo.`,
           tool: "patadas",
           toolLabel: "Abrir el contador de patadas",
         };
       }
-      if (week < 20) return { text: `En la semana ${week} es normal que todavía no sientas sus movimientos.` };
+      if (week < 20) {
+        return {
+          text: isPapa
+            ? `En la semana ${week} es normal que ella todavía no sienta sus movimientos.`
+            : `En la semana ${week} es normal que todavía no sientas sus movimientos.`,
+        };
+      }
     }
     if (sign.id === "pretermino") {
       return preterm
         ? {
-            text: `Estás en la semana ${week}: si cuentas 4 o más contracciones en 1 hora, llama ya.`,
+            text: isPapa
+              ? `Están en la semana ${week}: si ella tiene 4 o más contracciones en 1 hora, llama ya.`
+              : `Estás en la semana ${week}: si cuentas 4 o más contracciones en 1 hora, llama ya.`,
             tool: "contracciones",
             toolLabel: "Abrir el contador de contracciones",
           }
         : {
-            text: `Ya estás en la semana ${week}: las contracciones regulares pueden ser trabajo de parto. El contador te indica cuándo llamar.`,
+            text: isPapa
+              ? `Ya están en la semana ${week}: las contracciones regulares pueden ser trabajo de parto. El contador te indica cuándo llamar.`
+              : `Ya estás en la semana ${week}: las contracciones regulares pueden ser trabajo de parto. El contador te indica cuándo llamar.`,
             tool: "contracciones",
             toolLabel: "Abrir el contador de contracciones",
           };
@@ -810,10 +854,12 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
       <section aria-labelledby={`${baseId}-urgente`}>
         <h3 id={`${baseId}-urgente`} className="flex items-center gap-2 text-2xl font-black leading-tight text-terracotta-ink">
           <Siren size={24} className="shrink-0" aria-hidden="true" />
-          Ve a urgencias ya
+          {isPapa ? "Vayan a urgencias ya" : "Ve a urgencias ya"}
         </h3>
         <p className="mt-1.5 text-base leading-relaxed text-stone-700 dark:text-[#eae6e1]">
-          Si tienes cualquiera de estas señales, llama a emergencias o ve al hospital ahora. No esperes a ver si se pasa.
+          {isPapa
+            ? "Si ella tiene cualquiera de estas señales, llama a emergencias o llévala al hospital ahora. No esperen a ver si se pasa."
+            : "Si tienes cualquiera de estas señales, llama a emergencias o ve al hospital ahora. No esperes a ver si se pasa."}
         </p>
 
         <CallActions context="sos" className="mt-4" />
@@ -822,15 +868,16 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
           {URGENT_SIGNS.map((sign) => {
             const note = signNote(sign);
             const emphasized = sign.id === "movimientos" && highlightMovement;
+            const copy = signCopy(sign, profile?.role);
             return (
               <li
                 key={sign.id}
                 className={`px-4 py-3.5 first:rounded-t-3xl last:rounded-b-3xl ${emphasized ? "bg-terracotta/10 dark:bg-terracotta/[0.12]" : ""}`}
               >
                 <p className={`text-base font-bold leading-snug ${emphasized ? "text-terracotta-ink" : "text-stone-900 dark:text-[#eae6e1]"}`}>
-                  {sign.title}
+                  {copy.title}
                 </p>
-                <p className="mt-0.5 text-sm leading-relaxed text-stone-700 dark:text-[#a6a1b2]">{sign.detail}</p>
+                <p className="mt-0.5 text-sm leading-relaxed text-stone-700 dark:text-[#a6a1b2]">{copy.detail}</p>
                 {note && (
                   <div className="mt-2">
                     <p className="text-sm font-semibold leading-snug text-stone-900 dark:text-[#eae6e1]">{note.text}</p>
@@ -856,18 +903,21 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
       <section aria-labelledby={`${baseId}-hoy`}>
         <h3 id={`${baseId}-hoy`} className="flex items-center gap-2 text-xl font-black leading-tight text-stone-900 dark:text-[#eae6e1]">
           <CalendarClock size={22} className="shrink-0 text-terracotta-ink" aria-hidden="true" />
-          Llama hoy a tu obstetra
+          {isPapa ? "Llama hoy a su obstetra" : "Llama hoy a tu obstetra"}
         </h3>
         <p className="mt-1.5 text-base leading-relaxed text-stone-700 dark:text-[#a6a1b2]">
-          No es una emergencia, pero conviene que te revisen pronto.
+          {isPapa ? "No es una emergencia, pero conviene que la revisen pronto." : "No es una emergencia, pero conviene que te revisen pronto."}
         </p>
         <ul className={`mt-4 ${listSurface} border-stone-200 dark:border-white/[0.08]`}>
-          {callTodaySigns.map((sign) => (
-            <li key={sign.id} className="px-4 py-3.5">
-              <p className="text-base font-bold leading-snug text-stone-900 dark:text-[#eae6e1]">{sign.title}</p>
-              <p className="mt-0.5 text-sm leading-relaxed text-stone-700 dark:text-[#a6a1b2]">{sign.detail}</p>
-            </li>
-          ))}
+          {callTodaySigns.map((sign) => {
+            const copy = signCopy(sign, profile?.role);
+            return (
+              <li key={sign.id} className="px-4 py-3.5">
+                <p className="text-base font-bold leading-snug text-stone-900 dark:text-[#eae6e1]">{copy.title}</p>
+                <p className="mt-0.5 text-sm leading-relaxed text-stone-700 dark:text-[#a6a1b2]">{copy.detail}</p>
+              </li>
+            );
+          })}
         </ul>
         {obPhone && (
           <a
@@ -879,7 +929,7 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
               <Phone size={20} aria-hidden="true" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block break-words text-base font-bold leading-tight">{obName ? `Llamar a ${obName}` : "Llamar a tu obstetra"}</span>
+              <span className="block break-words text-base font-bold leading-tight">{obName ? `Llamar a ${obName}` : isPapa ? "Llamar a su obstetra" : "Llamar a tu obstetra"}</span>
               <span className="block break-words text-sm leading-snug tabular-nums text-stone-600 dark:text-[#a6a1b2]">{obPhone}</span>
             </span>
           </a>
@@ -890,22 +940,24 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
       <section aria-labelledby={`${baseId}-emocional`}>
         <h3 id={`${baseId}-emocional`} className="flex items-center gap-2 text-xl font-black leading-tight text-stone-900 dark:text-[#eae6e1]">
           <HeartHandshake size={22} className="shrink-0 text-sage-ink" aria-hidden="true" />
-          Tu salud emocional
+          {isPapa ? "Su salud emocional" : "Tu salud emocional"}
         </h3>
         <p className="mt-1.5 text-base leading-relaxed text-stone-700 dark:text-[#a6a1b2]">
-          Lo que sientes también cuenta. Hablarlo es parte de cuidarte.
+          {isPapa
+            ? "Lo que ella siente también cuenta. Si notas estas señales, ayúdala a pedir ayuda."
+            : "Lo que sientes también cuenta. Hablarlo es parte de cuidarte."}
         </p>
         <div className={`mt-4 ${listSurface} border-stone-200 dark:border-white/[0.08]`}>
           {moodSign && (
             <div className="px-4 py-3.5">
-              <p className="text-base font-bold leading-snug text-stone-900 dark:text-[#eae6e1]">{moodSign.title}</p>
-              <p className="mt-0.5 text-sm leading-relaxed text-stone-700 dark:text-[#a6a1b2]">{moodSign.detail}</p>
+              <p className="text-base font-bold leading-snug text-stone-900 dark:text-[#eae6e1]">{signCopy(moodSign, profile?.role).title}</p>
+              <p className="mt-0.5 text-sm leading-relaxed text-stone-700 dark:text-[#a6a1b2]">{signCopy(moodSign, profile?.role).detail}</p>
             </div>
           )}
           {harmSign && (
             <div className="rounded-b-3xl bg-terracotta/10 px-4 py-3.5 dark:bg-terracotta/[0.12]">
-              <p className="text-base font-bold leading-snug text-terracotta-ink">{harmSign.title}</p>
-              <p className="mt-0.5 text-sm leading-relaxed text-stone-800 dark:text-[#eae6e1]">{harmSign.detail}</p>
+              <p className="text-base font-bold leading-snug text-terracotta-ink">{signCopy(harmSign, profile?.role).title}</p>
+              <p className="mt-0.5 text-sm leading-relaxed text-stone-800 dark:text-[#eae6e1]">{signCopy(harmSign, profile?.role).detail}</p>
               <a
                 href={telHref(emergencyNumber)}
                 aria-label={`Llamar a emergencias, ${emergencyNumber}`}
@@ -931,7 +983,9 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
           Molestias comunes
         </h3>
         <p className="mt-1 text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
-          Son frecuentes y suelen mejorar con cuidados en casa. Ante la duda, consulta a tu obstetra.
+          {isPapa
+            ? "Son frecuentes y suelen mejorar con cuidados en casa; en varios puedes ayudar tú. Ante la duda, que lo consulte con su obstetra."
+            : "Son frecuentes y suelen mejorar con cuidados en casa. Ante la duda, consulta a tu obstetra."}
         </p>
         <ul className={`mt-3 ${listSurface} border-stone-200 dark:border-white/[0.08]`}>
           {COMMON_DISCOMFORTS.map((d) => {
@@ -960,20 +1014,22 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
                 </h4>
                 <div id={panelId} hidden={!open} className="px-3 pb-3 pt-1">
                   <ul className="space-y-2 text-sm leading-relaxed text-stone-700 dark:text-[#a6a1b2]">
-                    {d.tips.map((t) => (
+                    {(isPapa ? d.tipsPartner : d.tips).map((t) => (
                       <li key={t.lead}>
                         <strong className="font-semibold text-stone-900 dark:text-[#eae6e1]">{t.lead}</strong> {t.text}
                       </li>
                     ))}
                   </ul>
-                  <p className="mt-3 text-sm font-semibold leading-snug text-terracotta-ink">{d.alarm}</p>
+                  <p className="mt-3 text-sm font-semibold leading-snug text-terracotta-ink">{isPapa ? d.alarmPartner : d.alarm}</p>
                 </div>
               </li>
             );
           })}
         </ul>
         <p className="mt-4 text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
-          Esta guía no reemplaza la valoración de tu obstetra. Si algo te preocupa, llama.
+          {isPapa
+            ? "Esta guía no reemplaza la valoración de su obstetra. Si algo les preocupa, llama."
+            : "Esta guía no reemplaza la valoración de tu obstetra. Si algo te preocupa, llama."}
         </p>
       </section>
     </div>
@@ -1151,8 +1207,8 @@ export function DiarioView({ profile, showToast }: { profile: UserProfile; onClo
       });
       return;
     }
-    if (!confirm("¿Eliminar este recuerdo? Tu pareja también dejará de verlo.")) return;
-    deleteJournalEntry(pid, entry.id).catch(() => fail("No se pudo eliminar el recuerdo.", () => handleDelete(entry)));
+    if (!confirm("¿Eliminar este recuerdo? Se borrará también para tu pareja y no se puede deshacer.")) return;
+    deleteJournalEntry(pid, entry.id).catch(() => fail("No se pudo eliminar el recuerdo. Revisa tu conexión.", () => handleDelete(entry)));
   };
 
   return (
@@ -1254,14 +1310,14 @@ export function DiarioView({ profile, showToast }: { profile: UserProfile; onClo
                 <FileText size={24} aria-hidden="true" />
               </div>
               <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] mb-1">El diario está vacío</h4>
-              <p className="text-sm text-stone-600 dark:text-[#a6a1b2]">El primer recuerdo de este viaje empieza aquí.</p>
+              <p className="text-sm text-stone-600 dark:text-[#a6a1b2]">Escribe arriba el primero: un antojo, una ecografía o un mensaje para el bebé.</p>
             </div>
           ) : (
             <ol className="flex flex-col gap-6 relative">
               {entries.map((entry) => {
                 const date = journalDate(entry.createdAt);
                 const isMama = entry.authorRole === "mama";
-                const initial = Array.from((entry.authorName || (isMama ? "Mamá" : "Copiloto")).trim())[0]?.toLocaleUpperCase("es") ?? "?";
+                const initial = Array.from((entry.authorName || (isMama ? "Mamá" : "Papá")).trim())[0]?.toLocaleUpperCase("es") ?? "?";
                 return (
                   <li key={entry.id} className="flex gap-4">
                     <div
@@ -1277,7 +1333,7 @@ export function DiarioView({ profile, showToast }: { profile: UserProfile; onClo
                       <div className="flex justify-between items-start gap-2 mb-2">
                         <div className="min-w-0">
                           <p className="flex items-center gap-1.5 text-sm font-bold text-stone-800 dark:text-[#eae6e1]">
-                            <span className="truncate">{entry.authorName || (isMama ? "Mamá" : "Copiloto")}</span>
+                            <span className="truncate">{entry.authorName || (isMama ? "Mamá" : "Papá")}</span>
                             {entry.mood && (
                               <span role="img" aria-label={JOURNAL_MOODS.find((m) => m.emoji === entry.mood)?.label ?? "Estado de ánimo"}>{entry.mood}</span>
                             )}
@@ -1374,7 +1430,7 @@ export function MaletaView({ profile }: { profile: UserProfile; onClose?: () => 
       { id: 'b6', label: 'Asiento de auto (instalado)' }
     ],
     papa: [
-      { id: 'p1', label: 'Snacks y botellas de agua' },
+      { id: 'p1', label: 'Algo de comer y botellas de agua' },
       { id: 'p2', label: 'Cargador de celular (cable largo)' },
       { id: 'p3', label: 'Ropa de cambio cómoda' },
       { id: 'p4', label: 'Artículos de aseo personal' },
@@ -1389,9 +1445,9 @@ export function MaletaView({ profile }: { profile: UserProfile; onClose?: () => 
         <RetryNotice state={retryState} onDismiss={clearRetry} />
 
         {Object.entries(items).map(([category, list]) => (
-          <section key={category} aria-label={category === 'mama' ? 'Para mamá' : category === 'bebe' ? 'Para el bebé' : 'Para el copiloto'}>
+          <section key={category} aria-label={category === 'mama' ? 'Para mamá' : category === 'bebe' ? 'Para el bebé' : 'Para papá'}>
             <h3 className="font-bold text-sm text-stone-600 dark:text-[#a6a1b2] mb-3">
-              {category === 'mama' ? 'Para mamá' : category === 'bebe' ? 'Para el bebé' : 'Para el copiloto'}
+              {category === 'mama' ? 'Para mamá' : category === 'bebe' ? 'Para el bebé' : 'Para papá'}
             </h3>
             <ul className="bg-white dark:bg-[#181a20] rounded-2xl shadow-sm border border-stone-200 dark:border-white/[0.05] overflow-hidden divide-y divide-stone-100 dark:divide-white/5">
               {list.map((item) => (
@@ -1433,8 +1489,8 @@ const LECTURAS: Record<1 | 2 | 3, { title: string; desc: string; type: string }[
   ],
   3: [
     { title: "Entender las contracciones", desc: "Contracciones de práctica y trabajo de parto: la regla 5-1-1.", type: "Guía" },
-    { title: "Masaje perineal", desc: "Técnicas con evidencia para prepararte para un parto vaginal.", type: "Guía" },
-    { title: "El posparto", desc: "Salud mental, sueño y cómo el copiloto puede tomar el mando de la casa.", type: "Guía" },
+    { title: "Masaje perineal", desc: "Cómo preparar el periné antes de un parto vaginal.", type: "Guía" },
+    { title: "El posparto", desc: "Salud mental, sueño y cómo papá puede encargarse de la casa.", type: "Guía" },
   ],
 };
 
@@ -1446,7 +1502,9 @@ export function LecturasView({ profile }: { profile?: UserProfile; onClose?: () 
   return (
     <div className="w-full flex flex-col h-full animate-in fade-in duration-300">
       <p className="text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
-        Estas lecturas aún no están disponibles. Mientras tanto, ante cualquier duda consulta a tu obstetra.
+        {profile?.role === "papa"
+          ? "Estas lecturas aún no están disponibles. Mientras tanto, ante cualquier duda, consulten con su obstetra."
+          : "Estas lecturas aún no están disponibles. Mientras tanto, ante cualquier duda, consulta a tu obstetra."}
       </p>
 
       <div className="mt-3 mb-2 flex gap-2 overflow-x-auto hide-scrollbar shrink-0 py-1" role="group" aria-label="Trimestre">
@@ -1461,7 +1519,7 @@ export function LecturasView({ profile }: { profile?: UserProfile; onClose?: () 
             }`}
           >
             Trimestre {t}
-            {currentTrimester === t && <span className="sr-only"> (tu trimestre)</span>}
+            {currentTrimester === t && <span className="sr-only"> (trimestre actual)</span>}
           </button>
         ))}
       </div>
@@ -1542,15 +1600,15 @@ export function HerramientasView({ showToast, profile, openRequest }: { showToas
       id: "reproductor",
       icon: <Music className="text-sage-ink" size={26} />,
       label: "Panda Audio",
-      desc: "Relajación y ruidos",
+      desc: "Música para relajarte",
       color: "bg-sage/10 dark:bg-stone-800/40 border-sage/20 dark:border-sage/20"
     },
 
     {
       id: "story",
       icon: <Camera className="text-terracotta-ink" size={26} />,
-      label: "Panda Story",
-      desc: "Comparte tu avance",
+      label: "PandaStory",
+      desc: "Tarjeta de la semana",
       color: "bg-terracotta/10 dark:bg-terracotta/20 border-terracotta/20 dark:border-terracotta/30"
     },
 
@@ -1563,13 +1621,13 @@ export function HerramientasView({ showToast, profile, openRequest }: { showToas
     },
 
     // SOS se pinta aparte (tarjeta ancha en terracota de tinta); estos colores solo lo describen.
-    { id: "sos", label: "SOS Síntomas", icon: <HeartPulse size={24} />, desc: "Síntomas de alarma", color: "bg-terracotta/10 text-terracotta-ink", border: "border-terracotta/20" },
+    { id: "sos", label: "SOS Síntomas", icon: <HeartPulse size={24} />, desc: "Señales de alarma y a quién llamar", color: "bg-terracotta/10 text-terracotta-ink", border: "border-terracotta/20" },
     { id: "contracciones", label: "Contracciones", icon: <Timer size={24} />, desc: "Frecuencia y duración", color: "bg-terracotta/10 text-terracotta-ink", border: "border-terracotta/20" },
-    { id: "patadas", label: "Patadas", icon: <Baby size={24} />, desc: "Método Cardiff", color: "bg-sage/10 text-sage-ink", border: "border-sage/20" },
-    { id: "diario", label: "Diario", icon: <FileText size={24} />, desc: "Memorias del bebé", color: "bg-sage/10 text-sage-ink", border: "border-sage/20 dark:border-sage/20" },
+    { id: "patadas", label: "Patadas", icon: <Baby size={24} />, desc: "Conteo desde la semana 28", color: "bg-sage/10 text-sage-ink", border: "border-sage/20" },
+    { id: "diario", label: "Diario", icon: <FileText size={24} />, desc: "Recuerdos del embarazo", color: "bg-sage/10 text-sage-ink", border: "border-sage/20 dark:border-sage/20" },
     { id: "maleta", label: "Maleta", icon: <Package size={24} />, desc: "Para el hospital", color: "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400", border: "border-amber-100 dark:border-amber-500/20" },
     { id: "nombres", label: "Nombres", icon: <Users size={24} />, desc: "Voten por separado", color: "bg-terracotta/10 text-terracotta-ink", border: "border-terracotta/20" },
-    { id: "parto", label: "Plan de parto", icon: <ClipboardList size={24} />, desc: "Tus preferencias", color: "bg-sage/10 text-sage-ink", border: "border-sage/20" },
+    { id: "parto", label: "Plan de parto", icon: <ClipboardList size={24} />, desc: "Preferencias para el hospital", color: "bg-sage/10 text-sage-ink", border: "border-sage/20" },
     { id: "lecturas", label: "Lecturas", icon: <BookOpen size={24} />, desc: "Próximamente", color: "bg-stone-100 text-stone-600 dark:bg-white/5 dark:text-[#a6a1b2]", border: "border-stone-200 dark:border-white/10" },
   ];
 
@@ -1857,7 +1915,7 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
       // Registro nuevo: si no llega al servidor queda "Sin enviar" en este teléfono y se reenvía solo.
       void history.add(newSessionItem);
       setStartTime(null);
-      showToast("Meta de 10 movimientos alcanzada");
+      showToast("Listo: 10 movimientos contados");
     }
   };
 
@@ -1966,8 +2024,8 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
         <h3 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1]">Cuenta sus movimientos</h3>
         <p className="text-sm text-stone-600 dark:text-[#a6a1b2] max-w-xs mx-auto mt-1 leading-relaxed">
           {isPapa
-            ? `Método Cardiff: cada vez que ${her} sienta un movimiento, regístralo aquí. Lo habitual es llegar a 10 en menos de 2 horas.`
-            : "Método Cardiff: registra 10 movimientos. Lo habitual es llegar a 10 en menos de 2 horas."}
+            ? `Con el método Cardiff se cuentan 10 movimientos del bebé: cada vez que ${her} sienta un movimiento, regístralo aquí. Lo habitual es llegar a 10 en menos de 2 horas.`
+            : "Con el método Cardiff cuentas 10 movimientos del bebé. Lo habitual es llegar a 10 en menos de 2 horas."}
         </p>
         {typeof week === "number" && week < 28 && (
           <p className="mt-2 mx-auto max-w-xs inline-flex items-start gap-1.5 text-left text-sm leading-snug text-stone-600 dark:text-[#a6a1b2]">
@@ -2056,9 +2114,9 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
       {/* TRACKER VISUAL DE 10 PASOS */}
       <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] space-y-3">
         <div className="flex items-center justify-between text-xs font-bold">
-          <span className="text-stone-700 dark:text-[#eae6e1]">Progreso de la Sesión</span>
-          {/* Región viva: cada toque se anuncia ("3 de 10 patadas") sin mover el foco del botón grande. */}
-          <span className="text-sage-ink" aria-live="polite" aria-atomic="true">{count} de 10 patadas</span>
+          <span className="text-stone-700 dark:text-[#eae6e1]">Progreso de la sesión</span>
+          {/* Región viva: cada toque se anuncia ("3 de 10 movimientos") sin mover el foco del botón grande. */}
+          <span className="text-sage-ink" aria-live="polite" aria-atomic="true">{count} de 10 movimientos</span>
         </div>
 
         {/* 10 Pills Indicadoras (decorativas: el conteo ya se dice en texto) */}
@@ -2098,7 +2156,7 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
           type="button"
           onClick={handleKick}
           disabled={count >= 10}
-          aria-label={count >= 10 ? "Meta de 10 patadas completada" : "Registrar movimiento o patada del bebé"}
+          aria-label={count >= 10 ? "Conteo completo: 10 de 10 movimientos" : "Registrar movimiento del bebé"}
           className={`relative z-10 w-60 h-60 rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-200 transform active:scale-95 motion-reduce:active:scale-100 select-none ${sosFocusRing} bg-sage-ink text-white border-4 border-white dark:border-white/15 ${
             count >= 10 ? "cursor-default" : "hover:bg-sage-ink-hover hover:scale-[1.02] motion-reduce:hover:scale-100"
           }`}
@@ -2128,9 +2186,8 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
             type="button"
             onClick={handleUndo}
             className={`mt-4 inline-flex min-h-[44px] items-center gap-1.5 text-xs font-bold text-stone-600 dark:text-[#eae6e1] hover:text-stone-900 dark:hover:text-white bg-white dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 hover:bg-stone-50 dark:hover:bg-[#2a2e37] px-3.5 py-1.5 rounded-full shadow-xs active:scale-95 transition-all ${sosFocusRing}`}
-            aria-label="Deshacer último movimiento registrado"
           >
-            <Undo2 size={13} /> Deshacer última patada (-1)
+            <Undo2 size={13} aria-hidden="true" /> Deshacer último movimiento
           </button>
         )}
 
@@ -2148,10 +2205,11 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
         {/* Atajo de teclado accesible */}
         {count < 10 && (
           <div className="mt-3 text-xs text-stone-500 dark:text-[#a6a1b2] font-medium flex items-center gap-1.5 select-none">
+            <span>Con teclado, pulsa</span>
             <kbd className="px-1.5 py-0.5 text-xs font-mono font-semibold bg-stone-100 dark:bg-[#2d273a] border border-stone-300 dark:border-white/10 rounded text-stone-700 dark:text-[#eae6e1] shadow-2xs">
               Espacio
             </kbd>
-            <span>en teclado para registrar movimiento</span>
+            <span>para registrar un movimiento</span>
           </div>
         )}
       </div>
@@ -2177,7 +2235,7 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
               <Clock size={22} className={startTime ? "animate-pulse motion-reduce:animate-none text-sage-ink" : ""} />
             </div>
             <div>
-              <p className="text-xs text-sage-ink font-bold tracking-tight">Tiempo de Sesión</p>
+              <p className="text-xs text-sage-ink font-bold tracking-tight">Tiempo de la sesión</p>
               <p className="text-2xl font-black text-stone-800 dark:text-[#eae6e1] tracking-tight font-mono tabular-nums">{formatTimer(elapsedSeconds)}</p>
             </div>
           </div>
@@ -2186,9 +2244,9 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
             type="button"
             onClick={reset} 
             className="min-h-[44px] text-terracotta-ink font-bold text-xs bg-terracotta/10 hover:bg-terracotta/20 dark:bg-terracotta/[0.12] dark:hover:bg-terracotta/20 px-3.5 py-2 rounded-xl transition-colors tracking-tight flex items-center gap-1.5 active:scale-95 border border-terracotta-ink/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
-            title="Reiniciar conteo y cronómetro"
+            title="Borra los movimientos y el tiempo de esta sesión"
           >
-            <RotateCcw size={13} /> Reiniciar
+            <RotateCcw size={13} aria-hidden="true" /> Descartar conteo
           </button>
         </div>
 
@@ -2213,7 +2271,7 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
               <div id={`${callPanelId}-ritmo`} className="mt-2.5 space-y-1.5 max-h-48 overflow-y-auto no-scrollbar pt-1">
                 {kicks.map((k, idx) => (
                   <div key={k.id} className="flex justify-between items-center text-xs bg-slate-50 dark:bg-[#2d273a]/60 px-3 py-1.5 rounded-xl border border-slate-100 dark:border-white/[0.06]">
-                    <span className="font-bold text-stone-700 dark:text-[#eae6e1]">Patada #{idx + 1}</span>
+                    <span className="font-bold text-stone-700 dark:text-[#eae6e1]">Movimiento {idx + 1}</span>
                     <span className="text-stone-500 dark:text-[#a6a1b2] font-mono">{k.timeStr}</span>
                     <span className="text-sage-ink font-semibold text-xs">
                       {k.intervalSecs !== null ? `+${formatDurationText(k.intervalSecs)}` : "Inicio"}
@@ -2263,7 +2321,7 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
           {slowSession && <CallActions context="patadas" />}
 
           <div>
-            <p className="text-xs font-bold tracking-tight text-white mb-2">Añadir contexto a la sesión:</p>
+            <p className="text-xs font-bold tracking-tight text-white mb-2">Agrega una nota a la sesión:</p>
               <div className="flex flex-wrap gap-1.5">
                 {[
                   "Después de comer",
@@ -2296,7 +2354,7 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
             // Blanco en ambos temas: en oscuro la tinta de texto (#89bca0) daría 2.15:1; la de relleno oscuro da 7.1:1.
             className={`w-full min-h-[48px] py-3 bg-white text-sage-ink dark:text-sage-ink-hover rounded-2xl font-bold text-sm hover:bg-stone-100 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2 ${onFillFocusRing}`}
           >
-            <RotateCcw size={14} /> Iniciar Nueva Sesión
+            <RotateCcw size={14} aria-hidden="true" /> Iniciar una sesión nueva
           </button>
         </div>
       )}
@@ -2375,7 +2433,7 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
 
                 <div className="flex items-center gap-3">
                   <div className="text-right">
-                    <p className="text-xs font-black text-stone-800 dark:text-[#eae6e1]">{s.count} patadas</p>
+                    <p className="text-xs font-black text-stone-800 dark:text-[#eae6e1]">{s.count} movimientos</p>
                     <p className="text-xs font-semibold text-stone-500 dark:text-[#a6a1b2] font-mono">en {s.durationFormatted}</p>
                   </div>
                   <button
@@ -2587,8 +2645,8 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
     const backup = [...history];
     const ids = new Set(backup.map((h) => h.id));
     // Quita solo lo que se veía (si la pareja registra otra en ese instante, se conserva).
-    commitHistory((items) => items.filter((h) => !ids.has(h.id)), "No se pudo reiniciar el historial.");
-    showToast("Historial de contracciones reiniciado", () =>
+    commitHistory((items) => items.filter((h) => !ids.has(h.id)), "No se pudo borrar el historial.");
+    showToast("Historial de contracciones borrado", () =>
       commitHistory(restoreItems(backup), "No se pudo recuperar el historial.")
     );
   };
@@ -2695,7 +2753,7 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
         <div className="flex items-center gap-2">
           {isRecording ? <Square size={32} /> : <Play size={32} />}
           <span className="text-2xl font-black tracking-tight tabular-nums">
-            {isRecording ? formatTime(currentDuration) : "Iniciar Contracción"}
+            {isRecording ? formatTime(currentDuration) : "Iniciar contracción"}
           </span>
         </div>
         <span className="text-xs font-medium">
@@ -2723,9 +2781,9 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
             ) : (
               <p className="text-sm leading-relaxed text-stone-700 dark:text-[#eae6e1]">
                 {isPapa ? (
-                  <><strong className="font-bold text-stone-900 dark:text-white">Si se rompe la fuente, {her} tiene sangrado o el bebé se mueve menos,</strong> no esperen a la regla 5-1-1: llama.</>
+                  <><strong className="font-bold text-stone-900 dark:text-white">Si se rompe la fuente, {her} tiene sangrado o el bebé se mueve menos,</strong> no esperen a la regla 5-1-1 (contracciones cada 5 minutos, de 1 minuto, durante 1 hora): llama.</>
                 ) : (
-                  <><strong className="font-bold text-stone-900 dark:text-white">Si se rompe la fuente, tienes sangrado o el bebé se mueve menos,</strong> no esperes a la regla 5-1-1: llama.</>
+                  <><strong className="font-bold text-stone-900 dark:text-white">Si se rompe la fuente, tienes sangrado o el bebé se mueve menos,</strong> no esperes a la regla 5-1-1 (contracciones cada 5 minutos, de 1 minuto, durante 1 hora): llama.</>
                 )}
               </p>
             )}
@@ -2817,7 +2875,7 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
               onClick={clearHistory}
               className="min-h-[44px] px-2 -mr-2 rounded-lg text-xs font-bold text-stone-600 dark:text-[#a6a1b2] hover:text-terracotta-ink transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
             >
-              Reiniciar historial
+              Borrar historial
             </button>
           </div>
 
@@ -2828,7 +2886,7 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
                 <div role="columnheader">Hora</div>
                 <div role="columnheader">Duración</div>
                 <div role="columnheader">Frecuencia</div>
-                <div role="columnheader">Quitar</div>
+                <div role="columnheader">Eliminar</div>
               </div>
             </div>
             <div role="rowgroup" className="divide-y divide-stone-100 dark:divide-white/[0.06] text-xs text-center">
@@ -3131,7 +3189,7 @@ export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
   const memberUids = useMemo(() => members.map((m) => m.uid), [members]);
   const others = members.filter((m) => m.uid !== myUid);
   const partnerMember = others.length > 0 ? others[others.length - 1] : undefined;
-  const partnerName = partnerMember?.name || (partnerMember ? (partnerMember.role === "mama" ? "mamá" : "tu copiloto") : undefined);
+  const partnerName = partnerMember?.name || (partnerMember ? (partnerMember.role === "mama" ? "mamá" : "papá") : undefined);
   const PartnerName = partnerName ? partnerName.charAt(0).toLocaleUpperCase("es") + partnerName.slice(1) : "Tu pareja";
   const canMatch = linked && !!myUid && memberUids.length >= 2 && !!partnerMember;
 
@@ -3244,7 +3302,7 @@ export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
         fresh.push({ name, gender: toGender(item.gender), origin: cleanStr(item.origin) || undefined, meaning: cleanStr(item.meaning, 400) || undefined, source });
       }
       if (fresh.length === 0) {
-        showToast("No encontramos nombres nuevos para este filtro.");
+        showToast("No encontramos nombres nuevos para este filtro. Prueba con otro.");
         return;
       }
       if (!linked || !pid) {
@@ -3493,7 +3551,7 @@ export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
           <h4 id={`${baseId}-favoritos`} className="text-base font-bold text-stone-900 dark:text-[#eae6e1]">Tus favoritos</h4>
           <p className="mt-0.5 text-sm text-stone-600 dark:text-[#a6a1b2]">
             {!linked
-              ? "Invita a tu pareja para hacer match."
+              ? "Invita a tu pareja para ver en qué coinciden."
               : !partnerMember
                 ? "Cuando tu pareja se una, verán en qué coinciden."
                 : "Los nombres que te gustan y aún no coinciden."}
@@ -3565,7 +3623,7 @@ const PLAN_SECTIONS: PlanSection[] = [
     id: 1,
     category: "Ambiente",
     title: "Acompañamiento y ambiente",
-    subtitle: "Cómo te gustaría que fuera el entorno durante el trabajo de parto.",
+    subtitle: "El entorno y la compañía durante el trabajo de parto.",
     options: [
       { id: "a1", label: "Acompañante en todo momento", desc: "Que mi pareja o acompañante esté presente en la dilatación, el expulsivo y la recuperación." },
       { id: "a2", label: "Luz tenue y silencio", desc: "Reducir la luz y el ruido en la sala para favorecer un ambiente tranquilo." },
@@ -3583,7 +3641,7 @@ const PLAN_SECTIONS: PlanSection[] = [
     options: [
       { id: "d1", label: "Alivio sin medicamentos primero", desc: "Masajes, respiración guiada, compresas y cambios de postura antes que otros métodos." },
       { id: "d2", label: "Anestesia epidural cuando la pida", desc: "Que la epidural esté disponible y se aplique cuando yo la solicite." },
-      { id: "d3", label: "Rotura espontánea de la bolsa", desc: "Dejar que la bolsa se rompa sola y evitar romperla de rutina." },
+      { id: "d3", label: "Rotura espontánea de la fuente", desc: "Dejar que la fuente se rompa sola, sin romperla de rutina (amniotomía)." },
       { id: "d4", label: "Oxitocina solo si hace falta", desc: "No usar goteo de oxitocina de rutina para acelerar el parto, salvo indicación médica." },
       { id: "d5", label: "Pocos tactos vaginales", desc: "Hacer exploraciones vaginales solo cuando sean necesarias y avisándome antes." },
     ],
@@ -3592,11 +3650,11 @@ const PLAN_SECTIONS: PlanSection[] = [
     id: 3,
     category: "Expulsivo",
     title: "Expulsivo y nacimiento",
-    subtitle: "Cómo te gustaría vivir el momento en que nace tu bebé.",
+    subtitle: "La etapa de pujar (expulsivo) y el momento del nacimiento.",
     options: [
       { id: "e1", label: "Elegir la postura para pujar", desc: "Parir en la postura más cómoda para mí (semisentada, en cuclillas, de lado o en cuatro apoyos)." },
       { id: "e2", label: "Pujos espontáneos", desc: "Pujar cuando mi cuerpo lo pida, en lugar de pujos dirigidos." },
-      { id: "e3", label: "Episiotomía solo si es necesaria", desc: "Proteger el periné con compresas tibias y masaje; episiotomía solo si hay un motivo médico." },
+      { id: "e3", label: "Episiotomía solo si es necesaria", desc: "Proteger el periné con compresas tibias y masaje; episiotomía (un corte en el periné) solo si hay un motivo médico." },
       { id: "e4", label: "Que mi acompañante corte el cordón", desc: "Que mi acompañante pueda cortar el cordón umbilical con la guía del equipo." },
       { id: "e5", label: "Ver o tocar al bebé al coronar", desc: "Poder ver con un espejo o tocar la cabeza de mi bebé cuando empiece a asomar." },
     ],
@@ -3742,6 +3800,8 @@ type SaveStatus = "idle" | "pending" | "error";
 export function PlanParto({ profile, showToast }: { profile?: UserProfile; showToast: ShowToast }) {
   const me = useMe();
   const pid = me.pid;
+  // El plan habla con la voz de la mamá; al papá se le explica y se le habla de "su" obstetra.
+  const { isPapa, her } = companionVoice(me);
   const careTeam = usePandaStore((s) => s.careTeam);
   const week = knownWeek(profile);
   const baseId = React.useId();
@@ -3847,7 +3907,7 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile; showT
       },
       () => {
         setSaveStatus("error");
-        fail("No se guardó el plan de parto. Tus cambios siguen aquí.", () => {
+        fail("No se guardó el plan de parto. Los cambios siguen aquí.", () => {
           dirtyRef.current = true;
           flushRef.current();
         });
@@ -3931,7 +3991,7 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile; showT
         window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank", "noopener");
       }
     } catch (err) {
-      if ((err as { name?: string })?.name !== "AbortError") showToast("No se pudo abrir el menú para compartir");
+      if ((err as { name?: string })?.name !== "AbortError") showToast("No se pudo abrir el menú para compartir. Prueba con Imprimir o PDF.");
     }
   };
 
@@ -3964,7 +4024,7 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile; showT
           <p className="text-xs text-stone-700 mt-0.5">Preferencias para la atención del parto y del recién nacido</p>
         </div>
         <div className="text-right text-xs text-stone-700 shrink-0">
-          <p>PandaJR · Copiloto prenatal</p>
+          <p>Hecho con PandaJR</p>
           <p>Fecha: {new Date(now).toLocaleDateString("es")}</p>
         </div>
       </div>
@@ -4065,9 +4125,11 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile; showT
 
       <div className="no-print space-y-4">
         <div className="space-y-1.5">
-          <h3 className="text-2xl font-black text-stone-900 dark:text-[#eae6e1]">Tu plan de parto</h3>
+          <h3 className="text-2xl font-black text-stone-900 dark:text-[#eae6e1]">{isPapa ? `El plan de parto de ${her}` : "Tu plan de parto"}</h3>
           <p className="text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
-            Para cada opción, elige si la deseas, si prefieres evitarla o si la hablarás con tu obstetra. Puedes dejar opciones sin marcar.
+            {isPapa
+              ? `Está escrito con la voz de ${her}: complétenlo juntos. En cada opción, marquen si la desea, si prefiere evitarla o si la hablará con su obstetra. Pueden dejar opciones sin marcar.`
+              : "Para cada opción, elige si la deseas, si prefieres evitarla o si la hablarás con tu obstetra. Puedes dejar opciones sin marcar."}
           </p>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <SyncBadge waiting={!ready} />
@@ -4087,7 +4149,7 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile; showT
           <div role="note" className="flex items-start gap-2 rounded-2xl border border-amber-700/30 bg-amber-50 p-3 dark:border-amber-300/25 dark:bg-amber-300/[0.08]">
             <Info size={18} className="mt-0.5 shrink-0 text-amber-800 dark:text-amber-300" aria-hidden="true" />
             <p className="min-w-0 flex-1 text-sm leading-snug text-stone-800 dark:text-[#eae6e1]">
-              Tu plan anterior venía con casi todo marcado de antemano. Conservamos solo lo que cambiaste tú: revisa cada opción y marca lo que de verdad quieres.
+              El plan anterior venía con casi todo marcado de antemano. Solo conservamos las opciones que se cambiaron a mano: revisa cada una antes de imprimirlo.
             </p>
             <button
               type="button"
@@ -4231,7 +4293,7 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile; showT
               />
             </div>
             <p className="text-sm text-stone-600 dark:text-[#a6a1b2]">
-              {typeof week === "number" ? `Semana de gestación: ${week} (se toma de tu perfil).` : "Tu semana no está confirmada: se imprimirá una línea para completarla."}
+              {typeof week === "number" ? `Semana de gestación: ${week} (se toma de Ajustes).` : "La semana no está confirmada: se imprimirá una línea para completarla a mano."}
             </p>
           </section>
 
@@ -4240,7 +4302,7 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile; showT
             <p className="text-sm text-stone-600 dark:text-[#a6a1b2]">
               {counts.marked === 0
                 ? "Aún no marcaste ninguna preferencia."
-                : `${counts.want} ${counts.want === 1 ? "deseo" : "deseos"} · ${counts.avoid} para evitar · ${counts.discuss} para hablar con tu obstetra`}
+                : `${counts.want} ${counts.want === 1 ? "deseo" : "deseos"} · ${counts.avoid} para evitar · ${counts.discuss} para hablar con ${isPapa ? "su" : "tu"} obstetra`}
             </p>
             <div className="mt-3 divide-y divide-stone-100 dark:divide-white/[0.06]">
               {PLAN_SECTIONS.map((sec) => {
@@ -4270,7 +4332,7 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile; showT
           </section>
 
           <div className="space-y-2">
-            <p className="text-sm text-stone-600 dark:text-[#a6a1b2]">Imprime dos copias (una para tu historia clínica y otra para el equipo) o guárdalo como PDF.</p>
+            <p className="text-sm text-stone-600 dark:text-[#a6a1b2]">Imprime dos copias (una para la historia clínica y otra para el equipo que atienda el parto) o guárdalo como PDF.</p>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
@@ -4642,7 +4704,7 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
                     ¿Cuánto {plural ? "quieren" : "quieres"} destinar en total?
                   </label>
                   <p className="mt-0.5 text-sm text-stone-600 dark:text-[#a6a1b2]">
-                    Así {plural ? "sabrán" : "sabrás"} cuánto queda. Se puede cambiar cuando quieras.
+                    Así {plural ? "sabrán" : "sabrás"} cuánto queda. {plural ? "Pueden cambiarlo cuando quieran." : "Puedes cambiarlo cuando quieras."}
                     {totalPlanned > 0 && ` Planeado hasta ahora: ${formatMoney(totalPlanned)}.`}
                   </p>
                 </div>
@@ -4652,9 +4714,9 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
               <>
                 <div className="flex items-end justify-between gap-4">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-stone-600 dark:text-[#a6a1b2]">{over ? "Te pasaste por" : "Quedan"}</p>
+                    <p className="text-sm font-semibold text-stone-600 dark:text-[#a6a1b2]">{over ? "Por encima del tope" : "Quedan"}</p>
                     <p className={`text-3xl font-black tracking-tight tabular-nums ${over ? "text-terracotta-ink" : "text-sage-ink"}`}>
-                      {/* "Te pasaste por $500" (sin signo menos: la etiqueta ya dice que es de más). */}
+                      {/* "Por encima del tope: $500" (sin signo menos ni culpa: la etiqueta ya dice que es de más). */}
                       {formatMoney(over ? Math.abs(remaining ?? 0) : (remaining ?? 0))}
                     </p>
                   </div>
@@ -4907,6 +4969,7 @@ const STORY_STYLES = [
 
 export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfile; onClose: () => void }) {
   const week = knownWeek(profile);
+  const earlyWeek = !!profile && !profile.weekUnknown && typeof profile.week === "number" && profile.week >= 1 && profile.week < 4;
   const [activeStyleId, setActiveStyleId] = useState<(typeof STORY_STYLES)[number]["id"]>("botanico");
   const style = STORY_STYLES.find((s) => s.id === activeStyleId) ?? STORY_STYLES[0];
 
@@ -5021,12 +5084,22 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
         </div>
 
         {typeof week !== "number" || !weekData || !size ? (
-          <div className="space-y-2 p-6 text-center">
-            <p className="font-bold text-stone-900 dark:text-[#eae6e1]">Primero confirma tu semana</p>
-            <p className="text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
-              La tarjeta muestra la semana de embarazo y el tamaño del bebé. Confírmala en tu perfil para crearla.
-            </p>
-          </div>
+          // Semana confirmada pero menor de 4: pedir que la confirme sería un callejón sin salida.
+          earlyWeek ? (
+            <div className="space-y-2 p-6 text-center">
+              <p className="font-bold text-stone-900 dark:text-[#eae6e1]">La tarjeta estará disponible desde la semana 4</p>
+              <p className="text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
+                Muestra la semana y el tamaño del bebé, que antes de la semana 4 todavía no se puede medir.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2 p-6 text-center">
+              <p className="font-bold text-stone-900 dark:text-[#eae6e1]">Primero confirma la semana de embarazo</p>
+              <p className="text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
+                La tarjeta muestra la semana y el tamaño del bebé. Confirma la semana en Ajustes para crearla.
+              </p>
+            </div>
+          )
         ) : (
           <div className="flex flex-1 flex-col items-center gap-5 overflow-y-auto p-5">
             {/* Tamaños en unidades del contenedor: la tarjeta se ve igual a 260 o 320 px y al exportarla. */}
@@ -5216,8 +5289,8 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
 
   const tabs = [
     { id: "dormir" as const, label: "Dormir", icon: <Moon size={14} aria-hidden="true" />, active: "text-sage-ink" },
-    { id: "estimulacion" as const, label: "Estimulación", icon: <Music size={14} aria-hidden="true" />, active: "text-terracotta-ink" },
-    { id: "latidos" as const, label: "Útero", icon: <Waves size={14} aria-hidden="true" />, active: "text-stone-800 dark:text-stone-200" },
+    { id: "estimulacion" as const, label: "Clásica", icon: <Music size={14} aria-hidden="true" />, active: "text-terracotta-ink" },
+    { id: "latidos" as const, label: "Ruido", icon: <Waves size={14} aria-hidden="true" />, active: "text-stone-800 dark:text-stone-200" },
   ];
 
   return (
@@ -5239,7 +5312,7 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
               <h2 id="panda-audio-titulo" className="text-2xl font-black tracking-tight leading-none mb-1">
                 Panda Audio
               </h2>
-              <p className="text-stone-300 text-sm font-medium">Estimulación y relajación</p>
+              <p className="text-stone-300 text-sm font-medium">Música y sonidos para relajarte</p>
             </div>
             <button ref={closeRef} type="button" onClick={onClose} aria-label="Cerrar Panda Audio" className="grid h-11 w-11 place-items-center bg-black/10 hover:bg-black/20 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
               <X size={20} aria-hidden="true" />
@@ -5268,14 +5341,14 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
           <div className="p-4 flex-1 flex flex-col animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="mb-4 px-2">
               <h3 className="text-lg font-black text-stone-800 dark:text-stone-200">
-                {activeTab === "dormir" && "Listas para arrullar"}
+                {activeTab === "dormir" && "Música para dormir"}
                 {activeTab === "estimulacion" && "Música clásica"}
-                {activeTab === "latidos" && "Sonido del útero"}
+                {activeTab === "latidos" && "Sonido constante"}
               </h3>
               <p className="text-xs text-stone-600 dark:text-stone-400 mt-1">
-                {activeTab === "dormir" && "Música en Spotify para relajarse antes de dormir."}
-                {activeTab === "estimulacion" && "Música clásica en Spotify para escuchar juntos."}
-                {activeTab === "latidos" && "Ruido marrón continuo, parecido al sonido del flujo sanguíneo que el bebé escucha."}
+                {activeTab === "dormir" && "Una lista de Spotify para relajarte antes de dormir. Necesita conexión."}
+                {activeTab === "estimulacion" && "Música clásica en Spotify para escuchar juntos. Necesita conexión."}
+                {activeTab === "latidos" && "Un sonido grave y continuo que a muchas personas les ayuda a relajarse o a dormir."}
               </p>
             </div>
 
@@ -5309,7 +5382,7 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
                  </div>
 
                  <h4 className="font-black text-xl text-stone-800 dark:text-stone-200 mb-2">Ruido marrón</h4>
-                 <p className="text-sm text-stone-600 dark:text-[#a6a1b2] text-center mb-6">Se genera en el teléfono, sin anuncios ni conexión.</p>
+                 <p className="text-sm text-stone-600 dark:text-[#a6a1b2] text-center mb-6">Se genera en el teléfono: sin anuncios y sin conexión. Se detiene al cerrar Panda Audio.</p>
               </div>
             )}
 

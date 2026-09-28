@@ -36,8 +36,8 @@ export type TaskCategory = {
 
 export const TASK_OWNERS: readonly TaskOwner[] = ["mama", "papa", "ambos"];
 
-/** Etiquetas cortas (mismo criterio que AuthorChip: el papá es "Copiloto"). */
-export const TASK_OWNER_LABEL: Record<TaskOwner, string> = { mama: "Mamá", papa: "Copiloto", ambos: "Los dos" };
+/** Etiquetas cortas (mismo criterio que AuthorChip: la persona es "Papá"; "copiloto" es su rol). */
+export const TASK_OWNER_LABEL: Record<TaskOwner, string> = { mama: "Mamá", papa: "Papá", ambos: "Los dos" };
 
 /** Semanas de cada trimestre (el tercero llega hasta la 42). */
 export const TRIMESTER_WEEKS: Record<Trimester, { from: number; to: number }> = {
@@ -88,14 +88,14 @@ export const TASK_CATEGORIES: readonly TaskCategory[] = [
       {
         id: 113,
         text: "Encargarse de limpiar la caja de arena del gato",
-        detail: "Las heces de gato pueden transmitir toxoplasmosis. Durante el embarazo, que lo haga el copiloto; si no hay otra opción, con guantes y lavándose bien las manos.",
+        detail: "Las heces de gato pueden transmitir toxoplasmosis. Durante el embarazo, que lo haga el papá; si no hay otra opción, con guantes y lavándose bien las manos.",
         trimester: 1,
         defaultOwner: "papa",
       },
       {
         id: 114,
         text: "Aliviar las náuseas del primer trimestre",
-        detail: "Galletas saladas en la mesita de noche para comer antes de levantarse y comidas pequeñas y frecuentes. Si vomita tanto que no retiene líquidos, es una señal de alarma: llamen hoy al obstetra.",
+        detail: "Galletas saladas en la mesita de noche para comer antes de levantarse y comidas pequeñas y frecuentes. Si vomita tanto que no retiene ni el agua, es una señal de alarma: vayan a urgencias o llamen a emergencias.",
         trimester: 1,
         weekFrom: 5,
         defaultOwner: "papa",
@@ -104,7 +104,7 @@ export const TASK_CATEGORIES: readonly TaskCategory[] = [
       {
         id: 115,
         text: "Revisar los productos de limpieza de la casa",
-        detail: "Ventilen al limpiar, nunca mezclen cloro con amoniaco y prefieran productos sin fragancias fuertes. Los productos fuertes o en aerosol, que los use el copiloto.",
+        detail: "Ventilen al limpiar, nunca mezclen cloro con amoniaco y prefieran productos sin fragancias fuertes. Los productos fuertes o en aerosol, que los use el papá.",
         trimester: 1,
         defaultOwner: "papa",
       },
@@ -184,7 +184,7 @@ export const TASK_CATEGORIES: readonly TaskCategory[] = [
       {
         id: 216,
         text: "Pintar y ventilar la habitación del bebé",
-        detail: "Háganlo con tiempo para que los vapores de la pintura (COV) se disipen. Que pinte el copiloto y que la mamá no entre al cuarto hasta que esté ventilado.",
+        detail: "Háganlo con tiempo para que los vapores de la pintura (compuestos orgánicos volátiles, COV) se disipen. Que pinte el papá y que la mamá no entre al cuarto hasta que esté ventilado.",
         trimester: 2,
         defaultOwner: "papa",
       },
@@ -244,7 +244,7 @@ export const TASK_CATEGORIES: readonly TaskCategory[] = [
       {
         id: 313,
         text: "Vacunar al círculo cercano (estrategia capullo)",
-        detail: "El copiloto y los abuelos o cuidadores deberían tener al día la Tdap y la vacuna de la influenza, idealmente al menos 2 semanas antes del parto.",
+        detail: "El papá y los abuelos o cuidadores deberían tener al día la Tdap y la vacuna de la influenza, idealmente al menos 2 semanas antes del parto.",
         trimester: 3,
         weekTo: 36,
         defaultOwner: "papa",

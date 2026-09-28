@@ -294,8 +294,8 @@ export function laborReadyText(weeks: number, reader: Role, partnerName?: string
   }
   if (weeks < 37) {
     return isMama
-      ? `Semana ${weeks}: el parto se acerca. Llama a tu obstetra si se rompe la fuente, tienes sangrado, el bebé se mueve menos o tienes 4 o más contracciones en una hora: antes de la semana 37 no esperes a la regla 5-1-1.`
-      : `Semana ${weeks}: el parto se acerca. Llama a su obstetra si a ${her} se le rompe la fuente, tiene sangrado, el bebé se mueve menos o tiene 4 o más contracciones en una hora: antes de la semana 37 no esperen a la regla 5-1-1.`;
+      ? `Semana ${weeks}: el parto se acerca. Llama a tu obstetra si se rompe la fuente, tienes sangrado, el bebé se mueve menos o tienes 4 o más contracciones en una hora: antes de la semana 37 no esperes a la regla 5-1-1 (contracciones cada 5 minutos, de 1 minuto, durante 1 hora).`
+      : `Semana ${weeks}: el parto se acerca. Llama a su obstetra si a ${her} se le rompe la fuente, tiene sangrado, el bebé se mueve menos o tiene 4 o más contracciones en una hora: antes de la semana 37 no esperen a la regla 5-1-1 (contracciones cada 5 minutos, de 1 minuto, durante 1 hora).`;
   }
   if (weeks <= 40) {
     return isMama
@@ -304,7 +304,7 @@ export function laborReadyText(weeks: number, reader: Role, partnerName?: string
   }
   return isMama
     ? `Semana ${weeks}: ya pasó la fecha probable. Sigue el plan de controles de tu obstetra y llama si se rompe la fuente, tienes sangrado o el bebé se mueve menos.`
-    : `Semana ${weeks}: ya pasó la fecha probable. Sigan el plan de controles de su obstetra y llama si a ${her} se le rompe la fuente, tiene sangrado o el bebé se mueve menos.`;
+    : `Semana ${weeks}: ya pasó la fecha probable. Sigan el plan de controles de su obstetra. Llama si a ${her} se le rompe la fuente, tiene sangrado o el bebé se mueve menos.`;
 }
 
 export function LaborReadyBlock({

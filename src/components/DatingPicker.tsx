@@ -147,7 +147,12 @@ export function describeChoice(c: DatingChoice, today: Date = new Date(), reader
   if (c.kind === "manual") {
     const estimated = parseISODate(estimatedDueDateForWeek(c.week, today));
     if (!estimated) {
-      return { title: `Semana ${c.week}`, detail: "Cuando sepas la fecha probable de parto, agrégala en Ajustes para que la semana avance sola." };
+      return {
+        title: `Semana ${c.week}`,
+        detail: reader === "mama"
+          ? "Cuando sepas la fecha probable de parto, agrégala en Ajustes para que la semana avance sola."
+          : "Cuando sepan la fecha probable de parto, agréguenla en Ajustes para que la semana avance sola.",
+      };
     }
     return {
       title: `Semana ${c.week}`,
@@ -156,7 +161,12 @@ export function describeChoice(c: DatingChoice, today: Date = new Date(), reader
       }`,
     };
   }
-  return { title: "Semana sin confirmar", detail: "No calcularemos nada con una semana inventada. Podrás confirmarla en Ajustes cuando la sepas." };
+  return {
+    title: "Semana sin confirmar",
+    detail: reader === "mama"
+      ? "No usaremos una semana supuesta para las recomendaciones. Podrás confirmarla en Ajustes cuando la sepas."
+      : "No usaremos una semana supuesta para las recomendaciones. Podrán confirmarla en Ajustes cuando la sepan.",
+  };
 }
 
 const PICKER_FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink";

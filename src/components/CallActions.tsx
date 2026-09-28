@@ -100,7 +100,7 @@ export function CallActions({
   const { careTeam, emergency } = useCareTeam();
   const [sheetOpen, setSheetOpen] = useState(false);
   // Guardados desde esta hoja: confirma por lector de pantalla y recoloca el foco si el botón que
-  // abrió la hoja ("Añadir el teléfono…") desapareció al guardar (ahora está "Llamar a…").
+  // abrió la hoja ("Agregar el teléfono…") desapareció al guardar (ahora está "Llamar a…").
   const [savedCount, setSavedCount] = useState(0);
   const groupRef = useRef<HTMLDivElement>(null);
   const obLinkRef = useRef<HTMLAnchorElement>(null);
@@ -131,7 +131,7 @@ export function CallActions({
     (obLinkRef.current ?? groupRef.current?.querySelector<HTMLElement>("a[href], button"))?.focus();
   }, [savedCount]);
 
-  // Llamar al obstetra es una llamada: 56px siempre. El mapa y "añadir" pueden ser más bajos en el chat.
+  // Llamar al obstetra es una llamada: 56px siempre. El mapa y "agregar" pueden ser más bajos en el chat.
   const callHeight = "min-h-[56px] py-2.5";
   const secondaryHeight = compact ? "min-h-[48px] py-2" : "min-h-[56px] py-2.5";
   const wellSize = compact ? "w-9 h-9" : "w-10 h-10";
@@ -211,7 +211,7 @@ export function CallActions({
               <UserPen size={iconSize} aria-hidden="true" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className={`block ${wrapText} text-base font-bold leading-tight`}>Añadir el teléfono de {whose} obstetra</span>
+              <span className={`block ${wrapText} text-base font-bold leading-tight`}>Agregar el teléfono de {whose} obstetra</span>
               {!compact && <span className={subText}>Para llamarle con un toque</span>}
             </span>
           </button>

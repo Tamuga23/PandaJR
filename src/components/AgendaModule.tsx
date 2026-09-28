@@ -176,12 +176,12 @@ const PREP_GUIDES: Record<GuideId, AppointmentPrepInfo> = {
     whatToBring: [
       "Ropa cómoda de dos piezas (evita vestidos enteros)",
       "Si la clínica lo pidió, la vejiga con algo de líquido (confirma antes: no siempre se pide)",
-      "Resultados de análisis previos y del ADN fetal, si ya lo hiciste",
+      "Resultados de análisis previos y del estudio de ADN fetal en sangre, si ya lo hiciste",
       "Carnet perinatal, documento de identidad y seguro",
     ],
     whatToAsk: [
-      "¿Cuánto mide la translucencia nucal y se ve el hueso nasal?",
-      "¿Cuál es la longitud cráneo-caudal y se confirma la fecha probable de parto?",
+      "¿Cuánto mide la translucencia nucal (el líquido bajo la piel de la nuca) y se ve el hueso nasal?",
+      "¿Cuánto mide de la cabeza a las nalgas (longitud cráneo-caudal) y se confirma la fecha probable de parto?",
       "¿Cuál es la frecuencia cardiaca del bebé?",
       "¿El resultado del tamizaje sugiere hacer estudios adicionales?",
     ],
@@ -203,7 +203,7 @@ const PREP_GUIDES: Record<GuideId, AppointmentPrepInfo> = {
       "¿La cantidad de líquido amniótico y la longitud del cuello uterino están bien?",
       "¿Se puede ver el sexo y el perfil de la cara?",
     ],
-    tip: "Es la ecografía más minuciosa (30 a 45 minutos). Si el especialista se queda en silencio un rato, está tomando medidas: no es mala señal.",
+    tip: "Es la ecografía más minuciosa (30 a 45 minutos). Si el especialista se queda en silencio un rato, suele ser porque está tomando medidas. Si tienes dudas, pregúntale al final.",
   },
   eco_3d: {
     category: "Ecografía 3D / 4D",
@@ -286,7 +286,7 @@ const PREP_GUIDES: Record<GuideId, AppointmentPrepInfo> = {
     tip: "Quédate sentada y tranquila entre tomas: caminar o hacer esfuerzo puede alterar el resultado.",
   },
   lab_sgb: {
-    category: "Cultivo de estreptococo del grupo B",
+    category: "Cultivo de estreptococo del grupo B (SGB)",
     badge: "Semanas 36 a 37",
     whatToBring: [
       "Carnet perinatal, documento de identidad y seguro",
@@ -328,7 +328,7 @@ const PREP_GUIDES: Record<GuideId, AppointmentPrepInfo> = {
     ],
     whatToAsk: [
       "¿En qué posición está el bebé?",
-      "¿Hay borramiento o dilatación del cuello uterino?",
+      "¿El cuello uterino ya empezó a adelgazarse (borramiento) o a dilatarse?",
       "¿Con qué frecuencia y duración de contracciones debemos ir al hospital?",
       "¿Qué opciones de alivio del dolor hay (epidural y métodos sin medicamentos)?",
       "¿Quién del equipo estará de guardia o atenderá el parto?",
@@ -344,7 +344,7 @@ const PREP_GUIDES: Record<GuideId, AppointmentPrepInfo> = {
       "Documento de identidad y seguro",
     ],
     whatToAsk: [
-      "¿Qué vacuna me corresponde hoy (Tdap, influenza, VSR u otra)?",
+      "¿Qué vacuna me corresponde hoy: Tdap (tos ferina), influenza, VSR (virus respiratorio sincitial) u otra?",
       "¿Qué molestias son normales después y cuáles debo reportar?",
       "¿Quienes cuidarán al bebé también deberían vacunarse?",
       "¿Puedo recibir otra vacuna el mismo día?",
@@ -648,7 +648,7 @@ function prepDescription(ev: AgendaEvent, prep: AppointmentPrepInfo): string {
     "Qué llevar:",
     ...prep.whatToBring.map((i) => `• ${i}`),
     "",
-    "Preguntas para tu médico:",
+    "Preguntas para la consulta:",
     ...prep.whatToAsk.map((q) => `• ${q}`),
     "",
     `Consejo: ${prep.tip}`,
@@ -777,7 +777,7 @@ function errorCodeOf(e: unknown): string {
 
 function writeErrorMessage(e: unknown, what = "la cita"): string {
   if (errorCodeOf(e) === "permission-denied") {
-    return `No se pudo guardar ${what}: este teléfono ya no tiene acceso al embarazo compartido. Revisa el vínculo en tu perfil.`;
+    return `No se pudo guardar ${what}: este teléfono ya no tiene acceso al embarazo compartido. Revisa el vínculo en Ajustes.`;
   }
   return `No se pudo guardar ${what}. Revisa tu conexión y vuelve a intentarlo.`;
 }
@@ -1092,6 +1092,11 @@ export function AppointmentPrepModal({
             <strong className="font-bold">Consejo:</strong> {prep.tip}
           </p>
         </div>
+        {profile?.role === "papa" && (
+          <p className="text-sm leading-relaxed text-stone-700 dark:text-[#cfcad6]">
+            Las preguntas están escritas para que tu pareja las haga. Tú puedes llevar la lista y anotar las respuestas.
+          </p>
+        )}
 
         {loading && (
           <p className="flex items-center gap-2 text-sm text-stone-600 dark:text-[#a6a1b2]" role="status">
@@ -1147,7 +1152,7 @@ export function AppointmentPrepModal({
         <section aria-labelledby={`${titleId}-ask`}>
           <div className="flex items-baseline justify-between gap-3 mb-2.5">
             <h3 id={`${titleId}-ask`} className="font-bold text-base flex items-center gap-2">
-              <ClipboardList size={17} aria-hidden="true" className="text-terracotta-ink" /> Preguntas para tu médico
+              <ClipboardList size={17} aria-hidden="true" className="text-terracotta-ink" /> Preguntas para la consulta
             </h3>
             <span className="text-sm font-medium text-stone-600 dark:text-[#a6a1b2] tabular-nums">
               {askedQuestions} de {prep.whatToAsk.length} hechas
@@ -1161,9 +1166,11 @@ export function AppointmentPrepModal({
             Recordatorios en tu calendario
           </h3>
           <p className="mt-1 text-sm leading-snug text-stone-600 dark:text-[#a6a1b2]">
-            {canCalendar
-              ? "El archivo .ics trae dos avisos: un día antes y dos horas antes, con esta lista en las notas. En Google Calendar se usan tus avisos habituales."
-              : "Esta cita no tiene una fecha válida. Edítala para poder añadirla a tu calendario."}
+            {!canCalendar
+              ? "Esta cita no tiene una fecha válida. Edítala para poder agregarla a tu calendario."
+              : hasTime(event)
+                ? "El archivo de calendario (.ics) trae dos avisos, un día antes y dos horas antes, con esta lista en las notas. Google Calendar usa tus avisos habituales."
+                : "El archivo de calendario (.ics) trae un aviso el día anterior, con esta lista en las notas. Google Calendar usa tus avisos habituales."}
           </p>
           <div className="grid grid-cols-2 gap-2 mt-3">
             <button
@@ -1171,11 +1178,11 @@ export function AppointmentPrepModal({
               disabled={!canCalendar}
               onClick={() => {
                 const ok = downloadIcs(event, prep);
-                setCalendarNote(ok ? "Abre el archivo descargado para añadir la cita a tu calendario." : null);
+                setCalendarNote(ok ? "Abre el archivo descargado para agregar la cita a tu calendario." : null);
               }}
               className={`min-h-[48px] px-3 rounded-xl border border-stone-300 dark:border-white/15 bg-white dark:bg-[#1c1826] text-sm font-bold text-stone-800 dark:text-[#eae6e1] inline-flex items-center justify-center gap-1.5 hover:bg-stone-50 dark:hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${focusRing}`}
             >
-              <Download size={16} aria-hidden="true" /> Archivo .ics
+              <Download size={16} aria-hidden="true" /> Descargar .ics
             </button>
             <button
               type="button"
@@ -1273,7 +1280,7 @@ const SUGGESTIONS: SuggestionDef[] = [
     showTo: 14,
     type: "ecografia",
     title: "Ecografía de tamizaje del primer trimestre",
-    detail: "Mide la translucencia nucal y revisa el desarrollo temprano. Se hace entre las semanas 11 y 14.",
+    detail: "Mide la translucencia nucal (el líquido bajo la piel de la nuca del bebé) y revisa su desarrollo temprano. Se hace entre las semanas 11 y 14.",
     eventTitle: "Ecografía de tamizaje (translucencia nucal)",
     covers: coveredByWeek("ecografia", 10, 15, RX.ecoT1, /\b(morfologica|morfologia|estructural|3d|4d|5d|crecimiento)\b/),
   },
@@ -1312,8 +1319,8 @@ const SUGGESTIONS: SuggestionDef[] = [
     showFrom: 35,
     showTo: 37,
     type: "laboratorio",
-    title: "Cultivo de estreptococo del grupo B",
-    detail: "Una toma rápida con hisopo. Si sale positivo, te darán antibiótico durante el parto. Se hace entre las semanas 36 y 37.",
+    title: "Cultivo de estreptococo del grupo B (SGB)",
+    detail: "Busca una bacteria común que puede pasar al bebé en el parto. Es una toma rápida con hisopo; si sale positivo, se da antibiótico durante el parto. Se hace entre las semanas 36 y 37.",
     eventTitle: "Cultivo de estreptococo del grupo B",
     covers: coveredByWeek("laboratorio", 34, 38, RX.sgb, RX.glucosa),
   },
@@ -1714,9 +1721,9 @@ export function AgendaView({
           ) : upcoming.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-stone-300 dark:border-white/15 px-5 py-6 text-center">
               <Calendar size={28} aria-hidden="true" className="mx-auto text-stone-500 dark:text-[#a6a1b2]" />
-              <p className="mt-2 font-semibold text-stone-800 dark:text-[#eae6e1]">No tienes citas próximas</p>
+              <p className="mt-2 font-semibold text-stone-800 dark:text-[#eae6e1]">No hay citas próximas</p>
               <p className="mt-1 text-sm text-stone-600 dark:text-[#a6a1b2]">
-                Agrega tu próxima consulta y tendrás a mano qué llevar y qué preguntar.
+                Agrega la próxima consulta para tener a mano qué llevar y qué preguntar.
               </p>
             </div>
           ) : (
@@ -1742,16 +1749,19 @@ export function AgendaView({
             ofrecería agendar algo que quizá ya está agendado) */}
         {loading || loadError ? null : cw === undefined ? (
           <p className="text-sm leading-snug text-stone-600 dark:text-[#a6a1b2]">
-            Cuando confirmes tu semana de embarazo en tu perfil, aquí verás qué estudios suelen tocar.
+            {/* Semana confirmada pero menor de 4: pedir que la confirme sería un callejón sin salida. */}
+            {!profile.weekUnknown && typeof profile.week === "number" && profile.week >= 1 && profile.week < 4
+              ? "Desde la semana 4 verás aquí qué estudios suelen tocar."
+              : "Cuando la semana de embarazo esté confirmada en Ajustes, aquí verás qué estudios suelen tocar."}
           </p>
         ) : (
           suggestions.length > 0 && (
             <section aria-labelledby={ids.suggestions}>
               <h3 id={ids.suggestions} className="text-lg font-bold text-stone-900 dark:text-[#eae6e1]">
-                Para tu semana {cw}
+                {profile.role === "papa" ? `Para la semana ${cw}` : `Para tu semana ${cw}`}
               </h3>
               <p className="mt-0.5 text-sm text-stone-600 dark:text-[#a6a1b2]">
-                Guía general: tu obstetra define las fechas exactas.
+                {profile.role === "papa" ? "Guía general: su obstetra define las fechas exactas." : "Guía general: tu obstetra define las fechas exactas."}
               </p>
               <ul className="mt-3 rounded-2xl border border-stone-200/80 dark:border-white/[0.08] bg-white dark:bg-[#221d2d] divide-y divide-stone-200/80 dark:divide-white/[0.08]">
                 {suggestions.map((s) => {
@@ -1970,7 +1980,7 @@ export function AgendaView({
               value={form.doctor}
               onChange={(e) => updateField({ doctor: e.target.value })}
               disabled={saving}
-              placeholder="Nombre del médico o de la clínica"
+              placeholder="Ej. Dra. Gómez o Clínica del Valle"
               className={inputClass}
             />
           </div>
