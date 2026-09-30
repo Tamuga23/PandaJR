@@ -534,6 +534,14 @@ export const EMERGENCY_NUMBERS: Record<string, string> = {
   CL: "131",
   PE: "106",
   AR: "107",
+  // Sin 911 único; se usa el servicio que atiende y traslada emergencias médicas en todo el país.
+  // Nicaragua: Cruz Blanca (antes Cruz Roja), línea 128 gratuita, 24 h, todo el territorio (Canal 4, 2026-04-09:
+  // https://www.canal4.com.ni/exito-total-temporada-veraniega-2026-nicaragua-cruz-blanca-servicio-pueblo/;
+  // también en la lista de SINAPRED, https://www.sinapred.gob.ni/).
+  NI: "128",
+  // Guatemala: Bomberos Voluntarios 122 (CONRED, 2023-12-11, también Cruz Roja 125 y Bomberos Municipales 123:
+  // https://conred.gob.gt/durante-la-temporada-de-descenso-de-tempertatura-conozca-los-numeros-de-emergencia/).
+  GT: "122",
   ES: "112", FR: "112", DE: "112", IT: "112", PT: "112",
 };
 
@@ -544,7 +552,7 @@ const TIMEZONE_REGION: Record<string, string> = {
   "America/Hermosillo": "MX", "America/Mazatlan": "MX", "America/Bahia_Banderas": "MX", "America/Tijuana": "MX",
   // Centroamérica y Caribe
   "America/Tegucigalpa": "HN", "America/El_Salvador": "SV", "America/Costa_Rica": "CR", "America/Panama": "PA",
-  "America/Santo_Domingo": "DO", "America/Puerto_Rico": "PR",
+  "America/Santo_Domingo": "DO", "America/Puerto_Rico": "PR", "America/Managua": "NI", "America/Guatemala": "GT",
   // Sudamérica
   "America/Bogota": "CO", "America/Santiago": "CL", "America/Punta_Arenas": "CL", "America/Lima": "PE",
   "America/Buenos_Aires": "AR", "America/Guayaquil": "EC", "Pacific/Galapagos": "EC", "America/Montevideo": "UY",

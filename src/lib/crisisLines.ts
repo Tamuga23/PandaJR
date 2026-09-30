@@ -18,6 +18,10 @@
 // - Argentina 135 / 0800-345-1435 (Centro de Asistencia al Suicida): ONG, de 8:00 a 24:00. Se usa la
 //   línea nacional oficial de 24 h.
 // - Costa Rica, El Salvador, Honduras, Venezuela: sin fuente oficial verificada.
+// - Nicaragua, Guatemala (añadidos 2026-09-30): sin línea de crisis de 24 h verificada; solo Emergencias
+//   (128 y 122, fuentes en EMERGENCY_NUMBERS de urgency.ts).
+// - Bolivia: el 168 (número único, Minsalud 2018) se anunció con implementación gradual y no hay
+//   confirmación de que funcione en todo el país; no se incluye hasta verificarlo.
 
 import { EMERGENCY_NUMBERS } from "./urgency";
 
@@ -34,8 +38,10 @@ export const MARKET_COUNTRIES: readonly { code: string; name: string }[] = [
   { code: "SV", name: "El Salvador" },
   { code: "ES", name: "España" },
   { code: "US", name: "Estados Unidos" },
+  { code: "GT", name: "Guatemala" },
   { code: "HN", name: "Honduras" },
   { code: "MX", name: "México" },
+  { code: "NI", name: "Nicaragua" },
   { code: "PA", name: "Panamá" },
   { code: "PY", name: "Paraguay" },
   { code: "PE", name: "Perú" },
