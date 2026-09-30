@@ -85,10 +85,10 @@ import {
   type DatingDraft,
 } from "@/components/DatingPicker";
 import {
+  AllTasksSheet,
   FetalCard,
   LaborReadyBlock,
   TodayBlock,
-  TrimesterChecklists,
   WeekHeader,
   taskWindowNote,
   type GuiaTool,
@@ -3040,10 +3040,17 @@ function GuiaPapaView({
   const doneCount = allRows.filter(r => r.completed).length;
   const loadingText = isOffline() ? "Sin conexión: no podemos mostrar el progreso compartido ahora." : "Cargando el progreso compartido…";
   const laborReady = ga.source !== "unknown" && typeof ga.weeks === "number" && ga.weeks >= 36;
+  // «Todas las tareas» (los tres trimestres) se abre en su propia hoja: en la Guía ninguna tarea se
+  // repite (antes el trimestre actual, desplegado, volvía a listar las mismas tareas de «Hoy»).
+  const [allTasksOpen, setAllTasksOpen] = useState(false);
+  // Dónde vive el progreso de las tareas: bajo la fila de «Hoy» y en la cabecera de la hoja.
+  const checklistBadge = (
+    <SyncBadge partnerName={partner.partnerName} lastSyncedAt={lastChecklistChange} waiting={!checklistLoaded} className="mt-2" />
+  );
 
   // Composición (fase 6). Móvil: una columna, 40px entre secciones y más aire sobre cada título que
-  // debajo. ≥1280px: dos columnas en rejilla (semana + ficha + checklists a la izquierda, «Hoy» y el
-  // estado de mamá a la derecha) SIN cambiar el orden del DOM: labor → semana → hoy → ficha, igual
+  // debajo. ≥1280px: dos columnas en rejilla (semana + ficha a la izquierda, «Hoy» y el estado de
+  // mamá a la derecha) SIN cambiar el orden del DOM: labor → semana → hoy → ficha, igual
   // que en el teléfono. La fila flexible (1fr) absorbe la altura de la columna derecha, así que la
   // ficha arranca justo bajo la semana. «¿Es la hora?» ocupa las dos columnas arriba.
   // 36+ en el teléfono: el ritmo se aprieta (32px entre secciones, 16px bajo la cabecera) para que la primera
@@ -3091,6 +3098,13 @@ function GuiaPapaView({
           onGoToAgenda={onGoToAgenda}
           sinceLastVisit={sinceLastVisit}
           onOpenTool={laborReady ? onOpenTool : undefined}
+          allTasks={{
+            done: doneCount,
+            total: allRows.length,
+            loaded: checklistLoaded,
+            onOpen: () => setAllTasksOpen(true),
+            syncBadge: checklistBadge,
+          }}
         />
 
         <MomStatusCard
@@ -3111,34 +3125,24 @@ function GuiaPapaView({
           reader={reader}
           partnerName={partnerName}
         />
-
-        <section aria-labelledby="guia-check-title">
-          <div className="flex items-baseline justify-between gap-3">
-            <h2 id="guia-check-title" className="font-display text-subtitle text-ink">
-              Tareas por trimestre
-            </h2>
-            <span className="shrink-0 text-meta font-bold text-ink-muted tabular-nums">
-              {checklistLoaded ? `${doneCount} de ${allRows.length}` : "—"}
-            </span>
-          </div>
-          {/* Dónde vive este progreso: solo aquí o compartido con la pareja. */}
-          <SyncBadge partnerName={partner.partnerName} lastSyncedAt={lastChecklistChange} waiting={!checklistLoaded} className="mt-1" />
-          {!checklistLoaded && (
-            <p className="mt-1 text-meta text-ink-muted" aria-live="polite">{loadingText}</p>
-          )}
-          <p className="mt-2 mb-3 text-meta text-ink-muted">
-            Toca una tarea para ver por qué importa y a quién le toca.
-          </p>
-          <TrimesterChecklists
-            trimesters={trimesters}
-            currentTrimester={realWeek !== undefined ? ga.trimester : undefined}
-            ownerLabels={ownerLabels}
-            disabled={!checklistLoaded}
-            onToggleDone={toggleTask}
-            onAssign={(row, o) => assignTask(row, o)}
-          />
-        </section>
       </div>
+
+      {allTasksOpen && (
+        <AllTasksSheet
+          onClose={() => setAllTasksOpen(false)}
+          done={doneCount}
+          total={allRows.length}
+          loaded={checklistLoaded}
+          loadingText={loadingText}
+          syncBadge={checklistBadge}
+          trimesters={trimesters}
+          currentTrimester={realWeek !== undefined ? ga.trimester : undefined}
+          ownerLabels={ownerLabels}
+          disabled={!checklistLoaded}
+          onToggleDone={toggleTask}
+          onAssign={(row, o) => assignTask(row, o)}
+        />
+      )}
     </div>
   );
 }

@@ -1,13 +1,17 @@
 "use client";
 
 // Bloques de la Guía: bloque de semana (con la planta que crece), «¿Es la hora?» (36+), «Hoy», ficha de la
-// semana explorable y checklists por trimestre. Solo presentación y estado de interfaz (qué está
-// desplegado): las lecturas y escrituras de Firebase viven en page.tsx, en listeners y manejadores.
+// semana explorable y la hoja «Todas las tareas» (checklists por trimestre). Solo presentación y estado de
+// interfaz (qué está desplegado): las lecturas y escrituras de Firebase viven en page.tsx, en listeners y
+// manejadores.
 //
 // Fase 6 ("la Guía es un jardín compartido"): secciones y listas con divisores en lugar de tarjetas,
 // títulos en Alegreya (font-display) y la planta como firma. Primitivas en @/components/ui/List.
+//
+// R2: ninguna tarea aparece dos veces en la misma vista. «Hoy» lista las de la semana; el resto vive en
+// una hoja aparte («Todas las tareas»), a la que se llega desde una sola fila al final de las tareas.
 
-import React, { useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
   CalendarClock,
   CalendarPlus,
@@ -16,14 +20,19 @@ import {
   ChevronLeft,
   ChevronRight,
   Circle,
+  ListChecks,
   Luggage,
   Timer,
+  X,
 } from "lucide-react";
 import { AuthorChip } from "@/components/AuthorChip";
 import { CallActions } from "@/components/CallActions";
 import { formatDateLong } from "@/components/DatingPicker";
 import { GrowingPlant } from "@/components/GrowingPlant";
+import { ModalPortal } from "@/components/ModalPortal";
 import { ListGroup, ListRow, RowButton } from "@/components/ui/List";
+import { Z_CLASS } from "@/lib/layers";
+import { useModalDialog } from "@/lib/useModalDialog";
 import { MAX_VALID_GESTATION_DAYS, PREGNANCY_DAYS, dueDateSummary, type GestationalAgeState } from "@/lib/pregnancy";
 import { TASK_OWNERS, taskWindow, type TaskOwner, type TaskWithCategory } from "@/lib/tasks";
 import { WEEK_MAX, WEEK_MIN, formatLength, formatWeight, getWeek, lengthMeasure } from "@/lib/weeks";
@@ -384,6 +393,22 @@ export function LaborReadyBlock({
 export type TodayGroup = { id: "mine" | "partner" | "both"; title: string; rows: TaskRowModel[] };
 export type NextEventInfo = { title: string; when: string; relative: string; byName?: string; byRole?: Role };
 export type SinceLastVisit = { name?: string; role?: Role; text: string; titles: string[] } | null;
+/** Entrada a la hoja «Todas las tareas»: progreso total y dónde vive (SyncBadge). */
+export type AllTasksEntry = {
+  done: number;
+  total: number;
+  /** false = aún sin el primer dato del servidor: no se afirma un conteo. */
+  loaded: boolean;
+  onOpen: () => void;
+  /** Estado de sincronía del progreso (SyncBadge), bajo la fila. */
+  syncBadge?: React.ReactNode;
+};
+
+/** "3 de 21 hechas" (sin conteo mientras carga). */
+export function allTasksProgress(done: number, total: number, loaded: boolean): string | null {
+  if (!loaded) return null;
+  return `${done} de ${total} ${total === 1 ? "hecha" : "hechas"}`;
+}
 
 const GROUP_LIMIT = 4;
 
@@ -413,6 +438,7 @@ export function TodayBlock({
   onGoToAgenda,
   sinceLastVisit,
   onOpenTool,
+  allTasks,
 }: {
   weekKnown: boolean;
   reader: Role;
@@ -430,6 +456,8 @@ export function TodayBlock({
   sinceLastVisit: SinceLastVisit;
   /** Desde la semana 36 (semana conocida): «Para el parto», con el cronómetro y la maleta a mano. */
   onOpenTool?: (tool: GuiaTool) => void;
+  /** Fila «Todas las tareas» tras las de la semana (abre la hoja con los trimestres). */
+  allTasks?: AllTasksEntry;
 }) {
   const [showAll, setShowAll] = useState<Record<string, boolean>>({});
   const todayText = new Intl.DateTimeFormat("es", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
@@ -493,7 +521,9 @@ export function TodayBlock({
           {loadingText}
         </p>
       ) : visible.length === 0 ? (
-        <p className="mt-3 text-body text-ink-muted">No hay tareas con fecha para esta semana. Abajo están todas las del trimestre.</p>
+        <p className="mt-3 text-body text-ink-muted">
+          No hay tareas con fecha para esta semana.{allTasks ? " En «Todas las tareas» están las de cada trimestre." : ""}
+        </p>
       ) : (
         visible.map((g) => {
           const all = !!showAll[g.id];
@@ -525,12 +555,34 @@ export function TodayBlock({
                   onClick={() => setShowAll((s) => ({ ...s, [g.id]: !all }))}
                   className={`mt-1 -mx-2 ${TEXT_ACTION}`}
                 >
-                  {all ? "Ver menos" : `Ver todas (${g.rows.length})`}
+                  {/* «Ver las 5», no «Ver todas»: «Todas las tareas» es la fila de abajo (todo el embarazo). */}
+                  {all ? "Ver menos" : `Ver las ${g.rows.length}`}
                 </button>
               )}
             </div>
           );
         })
+      )}
+
+      {/* El resto del embarazo, en su propia hoja: aquí no se repite ninguna tarea de arriba. */}
+      {allTasks && (
+        <div className="mt-6">
+          <ListGroup edges>
+            <ListRow
+              leading={<ListChecks {...ICON} />}
+              title="Todas las tareas"
+              meta={
+                <span className="tabular-nums">
+                  {cap([allTasksProgress(allTasks.done, allTasks.total, allTasks.loaded), "por trimestre"].filter(Boolean).join(" · "))}
+                </span>
+              }
+              onClick={allTasks.onOpen}
+              aria-haspopup="dialog"
+              trailing="chevron"
+            />
+          </ListGroup>
+          {allTasks.syncBadge}
+        </div>
       )}
 
       {/* Próxima cita (solo futura) */}
@@ -680,7 +732,9 @@ export function FetalCard({
 
 // =====================================================================================
 // Checklists por trimestre (solo el actual desplegado de entrada): filas desplegables con
-// divisores y, dentro, una lista por categoría.
+// divisores y, dentro, una lista por categoría. Viven en la hoja «Todas las tareas», no en la
+// Guía: así ninguna tarea de «Hoy» se repite en la misma vista. Las filas llegan al borde del
+// contenedor (--gutter lo pone quien las monta).
 // =====================================================================================
 
 export type TrimesterModel = {
@@ -706,7 +760,7 @@ export function TrimesterChecklists({
 }) {
   const [open, setOpen] = useState<Record<number, boolean>>({});
   return (
-    <div className="-mx-[var(--gutter)]">
+    <div>
       {trimesters.map((t, i) => {
         const isOpen = open[t.trimester] ?? t.trimester === currentTrimester;
         const rows = t.categories.flatMap((c) => c.rows);
@@ -768,5 +822,110 @@ export function TrimesterChecklists({
         );
       })}
     </div>
+  );
+}
+
+// =====================================================================================
+// Hoja «Todas las tareas»: los tres trimestres en su propia vista (ModalPortal + useModalDialog).
+// En el teléfono sube desde abajo; desde sm se centra. El foco entra al panel (el lector anuncia
+// el título y el progreso) y al cerrar vuelve a la fila que la abrió.
+// =====================================================================================
+
+export function AllTasksSheet({
+  onClose,
+  done,
+  total,
+  loaded,
+  loadingText,
+  syncBadge,
+  trimesters,
+  currentTrimester,
+  ownerLabels,
+  disabled,
+  onToggleDone,
+  onAssign,
+}: {
+  onClose: () => void;
+  done: number;
+  total: number;
+  /** false = aún sin el primer dato del servidor (no se puede marcar ni se afirma un conteo). */
+  loaded: boolean;
+  loadingText: string;
+  /** Dónde vive este progreso: solo aquí o compartido con la pareja. */
+  syncBadge?: React.ReactNode;
+  trimesters: TrimesterModel[];
+  currentTrimester: 1 | 2 | 3 | undefined;
+  ownerLabels: OwnerLabels;
+  disabled: boolean;
+  onToggleDone: (row: TaskRowModel) => void;
+  onAssign: (row: TaskRowModel, owner: TaskOwner) => void;
+}) {
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const { dialogProps } = useModalDialog({
+    open: true,
+    onClose,
+    labelledBy: "guia-all-title",
+    describedBy: "guia-all-desc",
+    initialFocusRef: panelRef,
+  });
+  const { ref: dialogRef, ...dialogRest } = dialogProps;
+  const setPanel = useCallback(
+    (el: HTMLDivElement | null) => {
+      panelRef.current = el;
+      dialogRef(el);
+    },
+    [dialogRef]
+  );
+  const progress = allTasksProgress(done, total, loaded);
+
+  return (
+    <ModalPortal>
+      <div className={`fixed inset-0 ${Z_CLASS.sheet} flex items-end justify-center sm:items-center sm:p-4`}>
+        {/* Tocar fuera cierra (Escape también, desde useModalDialog). */}
+        <div className="absolute inset-0 bg-scrim" onClick={onClose} aria-hidden="true" />
+        <div
+          ref={setPanel}
+          {...dialogRest}
+          className="relative flex max-h-[92dvh] w-full max-w-lg flex-col rounded-t-3xl border border-line bg-surface-raised text-ink shadow-sheet outline-none sm:rounded-3xl"
+        >
+          <div className="flex shrink-0 items-start justify-between gap-3 border-b border-line px-5 pt-5 pb-4">
+            <div className="min-w-0">
+              <h2 id="guia-all-title" className="font-display text-title text-balance text-ink">
+                Todas las tareas
+              </h2>
+              <p id="guia-all-desc" className="mt-1 text-meta text-ink-muted">
+                {progress && <span className="font-bold text-ink tabular-nums">{cap(progress)}. </span>}
+                Toca una tarea para ver por qué importa y a quién le toca.
+              </p>
+              {syncBadge}
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Cerrar"
+              className={`-me-1 grid size-11 shrink-0 place-items-center rounded-full text-ink-muted transition-colors hover:bg-surface-hover hover:text-ink ${FOCUS}`}
+            >
+              <X size={20} strokeWidth={1.75} aria-hidden="true" />
+            </button>
+          </div>
+          {/* --gutter = el margen de la cabecera (px-5): las filas llegan al borde de la hoja. */}
+          <div className="overflow-y-auto overscroll-contain pb-[calc(0.5rem+var(--safe-bottom))] [--gutter:1.25rem]">
+            {!loaded && (
+              <p className="px-[var(--gutter)] pt-3 text-meta text-ink-muted" aria-live="polite">
+                {loadingText}
+              </p>
+            )}
+            <TrimesterChecklists
+              trimesters={trimesters}
+              currentTrimester={currentTrimester}
+              ownerLabels={ownerLabels}
+              disabled={disabled}
+              onToggleDone={onToggleDone}
+              onAssign={onAssign}
+            />
+          </div>
+        </div>
+      </div>
+    </ModalPortal>
   );
 }
