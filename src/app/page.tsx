@@ -2,7 +2,7 @@
 
 import { AgendaView, AppointmentPrepModal, parseEventDate } from "@/components/AgendaModule";
 import { HerramientasView } from "@/components/HerramientasModule";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useSyncExternalStore } from "react";
 import { usePandaStore, type ThemePreference } from "@/store/usePandaStore";
 import { ModalPortal } from "@/components/ModalPortal";
 import { focusIntoTopDialog, useModalDialog, useModalOpenerTracking } from "@/lib/useModalDialog";
@@ -29,7 +29,10 @@ import {
   sendNudge,
   listenToNudges,
   currentUid,
+  readAccessLink,
   PAIRING_MESSAGES,
+  type AccessLink,
+  type RestoredAccount,
   type ChecklistMeta,
   type InvitePreview,
   type Member,
@@ -39,9 +42,11 @@ import { SyncBadge, useOnline, usePartner, type PartnerInfo } from "@/components
 import { AuthorChip } from "@/components/AuthorChip";
 import { formatDateShort, formatDayCountdown, formatRelative, repairMojibake } from "@/lib/format";
 import { isLegacySeedEvent, linkedFromLocalKey, localToSharedFlag } from "@/lib/seeds";
-import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, ChevronRight, ChevronLeft, HeartPulse, Baby, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Users, AlertTriangle, AlertCircle, FileText, Settings, Paperclip, Share2, RotateCcw, RotateCw, Stethoscope, PhoneCall, Check, Copy, Edit3, Sun, Moon, SunMoon, RefreshCw, UserMinus, Lightbulb, CalendarCheck, CalendarClock, CalendarX, Smartphone, Sprout } from "lucide-react";
+import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, ChevronRight, ChevronLeft, HeartPulse, Baby, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Users, AlertTriangle, AlertCircle, FileText, Settings, Paperclip, Share2, RotateCcw, RotateCw, Stethoscope, PhoneCall, Check, Copy, Edit3, Sun, Moon, SunMoon, RefreshCw, UserMinus, Lightbulb, CalendarCheck, CalendarClock, CalendarX, Smartphone, Sprout, KeyRound } from "lucide-react";
 import { CallActions, EmergencyCallLink } from "@/components/CallActions";
 import { CareTeamSheet } from "@/components/CareTeamForm";
+import { AccountSheet } from "@/components/AccountSheet";
+import { useAccount } from "@/lib/useAccount";
 import { useCareTeam } from "@/lib/useCareTeam";
 import { MARKET_COUNTRIES, OTHER_COUNTRY, isCountryChoice } from "@/lib/crisisLines";
 import { clinicalWeek, detectAlarm, type AlarmSign } from "@/lib/urgency";
@@ -1040,6 +1045,10 @@ function ProfileModal({
   // Ajustes entero y el foco va al botón de Ajustes de la cabecera.
   const unlinkReturnRef = useRef<HTMLElement | null>(null);
   const [careTeamOpen, setCareTeamOpen] = useState(false);
+  // Cuenta opcional: el mismo acceso en otro dispositivo (Google o enlace por correo).
+  const [accountOpen, setAccountOpen] = useState(false);
+  const account = useAccount();
+  const showAccess = !!account.uid && (!!profile.pregnancyId || !account.anonymous);
   const careTeam = usePandaStore(state => state.careTeam);
   const careTeamSummary = careTeam.obName || careTeam.obPhone || careTeam.hospitalName
     ? [careTeam.obName || (careTeam.obPhone ? "Obstetra" : ""), careTeam.hospitalName].filter(Boolean).join(" · ")
@@ -1119,6 +1128,18 @@ function ProfileModal({
                   ) : undefined
                 }
               />
+              {showAccess && (
+                <ListRow
+                  leading={<KeyRound size={20} strokeWidth={1.75} />}
+                  title="Tu acceso"
+                  meta={account.anonymous ? "Solo en este dispositivo" : `Cuenta: ${account.email ?? "guardada"}`}
+                  trailing={
+                    <RowButton onClick={() => setAccountOpen(true)} aria-haspopup="dialog">
+                      {account.anonymous ? "Otro dispositivo" : "Ver"}
+                    </RowButton>
+                  }
+                />
+              )}
               {/* R2 · paso 5: para los dos roles (antes solo el papá) y con un texto sin estereotipos. */}
                 <ListRow
                   leading={<Sparkles size={20} strokeWidth={1.75} />}
@@ -1289,6 +1310,27 @@ function ProfileModal({
       </div>
 
       <CareTeamSheet open={careTeamOpen} onClose={() => setCareTeamOpen(false)} onSaved={() => showToast("Equipo de salud guardado")} />
+      {accountOpen && (
+        <AccountSheet
+          mode="manage"
+          current={{ pregnancyId: profile.pregnancyId, role: profile.role }}
+          onClose={() => setAccountOpen(false)}
+          onRestored={(restored) => {
+            // Cambió este dispositivo a la cuenta del otro: lo del embarazo manda.
+            usePandaStore.getState().setProfile(profileFromRestored(restored, profile));
+            setAccountOpen(false);
+            showToast("Listo: este dispositivo ya usa tu cuenta.");
+          }}
+          onSignedOut={() => {
+            // La pertenencia al embarazo no cambia: con la cuenta se vuelve a entrar.
+            setAccountOpen(false);
+            usePandaStore.getState().setProfile({ name: "", pregnancyId: "", inviteCode: "", week: 14, weekUnknown: undefined, dueDate: undefined, dueDateSource: undefined });
+            usePandaStore.setState({ careTeam: {} });
+            onClose();
+            showToast("Cerraste sesión en este dispositivo. Para volver, elige «Ya uso PandaJR en otro dispositivo».");
+          }}
+        />
+      )}
 
       {closeAsk === "save" && pendingDating && (
         <ChoiceDialog
@@ -1395,6 +1437,28 @@ function joinedDatingFields(res: { week: number; dueDate?: string; dueDateSource
   return unconfirmed;
 }
 
+/** Perfil al entrar con una cuenta (o al cambiar este dispositivo a ella): el embarazo compartido manda. */
+function profileFromRestored(r: RestoredAccount, prev: UserProfile): UserProfile {
+  const keptName = prev.name && prev.name !== "Invitado" ? prev.name : "";
+  return {
+    ...prev,
+    role: r.role,
+    name: r.name || keptName || (r.role === "mama" ? "Mamá" : "Copiloto"),
+    pregnancyId: r.pregnancyId,
+    inviteCode: r.inviteCode ?? "",
+    ...joinedDatingFields(r),
+  };
+}
+
+/** Vuelta de un enlace de acceso por correo (se lee una vez, solo en el navegador). */
+let accessLinkCache: AccessLink | null | undefined;
+const noopSubscribe = () => () => {};
+const getAccessLinkSnapshot = () => {
+  if (accessLinkCache === undefined) accessLinkCache = readAccessLink(window.location.href);
+  return accessLinkCache;
+};
+const getServerAccessLink = () => null;
+
 /** Semana que ve el copiloto antes de unirse (con una FPP fuera de rango no se calcula nada). */
 function previewWeekLabel(p: { dueDate?: string; week?: number }): string {
   const due = parseISODate(p.dueDate);
@@ -1406,9 +1470,12 @@ function OnboardingModal({
   onComplete,
   onSkip,
   onCancel,
+  onUseAccount,
   initial,
 }: {
   onComplete: (profile: UserProfile) => void;
+  /** «Ya uso PandaJR en otro dispositivo»: entrar con la cuenta guardada. */
+  onUseAccount?: () => void;
   /** "Explorar como invitado" con el rol elegido (o ninguno). */
   onSkip?: (role: "mama" | "papa" | null) => void;
   /** Si llega, la primera pantalla ofrece "Ahora no" (vuelve sin tocar el perfil) en lugar de "Explorar como invitado". */
@@ -1655,6 +1722,19 @@ function OnboardingModal({
               >
                 Explorar como invitado
               </button>
+            )}
+            {onUseAccount && (
+              <div className="mt-6 border-t border-line pt-4">
+                <button
+                  type="button"
+                  onClick={onUseAccount}
+                  aria-haspopup="dialog"
+                  className={`inline-flex w-full min-h-11 items-center justify-center gap-2 rounded-full text-meta font-bold text-ink transition-colors hover:bg-surface-hover ${FOCUS_RING}`}
+                >
+                  <KeyRound size={16} strokeWidth={1.75} aria-hidden="true" />
+                  Ya uso PandaJR en otro dispositivo
+                </button>
+              </div>
             )}
           </div>
         )}
@@ -2043,6 +2123,10 @@ export default function PandaJRApp() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   // Onboarding abierto a propósito desde "Vincular con mi pareja" (se puede cancelar).
   const [linkFlowOpen, setLinkFlowOpen] = useState(false);
+  // Cuenta: «Ya uso PandaJR en otro dispositivo» y la vuelta de un enlace de acceso por correo.
+  const [signInOpen, setSignInOpen] = useState(false);
+  const accessLink = useSyncExternalStore(noopSubscribe, getAccessLinkSnapshot, getServerAccessLink);
+  const [accessLinkDone, setAccessLinkDone] = useState(false);
   const [selectedPrepEvent, setSelectedPrepEvent] = useState<AgendaEvent | null>(null);
   const [aiInitialQuery, setAiInitialQuery] = useState<string>("");
   // Pide a Herramientas que abra una herramienta concreta (ej. 'sos'); el nonce permite repetir la petición.
@@ -2579,6 +2663,27 @@ export default function PandaJRApp() {
             setShowOnboarding(false);
           }}
           onCancel={linkFlowOpen && !showOnboarding ? () => setLinkFlowOpen(false) : undefined}
+          onUseAccount={() => setSignInOpen(true)}
+        />
+      )}
+
+      {/* Cuenta: entrar en este dispositivo o terminar con el enlace del correo (sobre la bienvenida). */}
+      {hasHydrated && (signInOpen || (!!accessLink && !accessLinkDone)) && (
+        <AccountSheet
+          mode={signInOpen ? "signin" : "return"}
+          link={signInOpen ? null : accessLink}
+          current={{ pregnancyId: profile.pregnancyId, role: profile.role }}
+          onClose={() => { setSignInOpen(false); setAccessLinkDone(true); }}
+          onRestored={(restored, how) => {
+            setProfile(profileFromRestored(restored, profile));
+            setShowOnboarding(false);
+            setLinkFlowOpen(false);
+            setSignInOpen(false);
+            setAccessLinkDone(true);
+            showToast(how === "switched"
+              ? "Listo: este dispositivo ya usa tu cuenta."
+              : `Hola de nuevo${restored.name ? `, ${restored.name}` : ""}. Todo está como lo dejaste.`);
+          }}
         />
       )}
 

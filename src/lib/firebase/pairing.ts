@@ -1,5 +1,8 @@
-import { db, auth } from "./config";
+import { app, db, auth } from "./config";
+import { getApps, initializeApp } from "firebase/app";
 import {
+  getFirestore,
+  type Firestore,
   collection,
   doc,
   setDoc,
@@ -20,7 +23,28 @@ import {
   type DocumentData,
   type DocumentReference,
 } from "firebase/firestore";
-import { signInAnonymously, onAuthStateChanged } from "firebase/auth";
+import {
+  signInAnonymously,
+  onAuthStateChanged,
+  onIdTokenChanged,
+  GoogleAuthProvider,
+  EmailAuthProvider,
+  linkWithPopup,
+  linkWithCredential,
+  signInWithPopup,
+  signInWithCredential,
+  signInWithEmailLink,
+  sendSignInLinkToEmail,
+  isSignInWithEmailLink,
+  signOut,
+  updateCurrentUser,
+  initializeAuth,
+  getAuth,
+  inMemoryPersistence,
+  type Auth,
+  type AuthCredential,
+  type User,
+} from "firebase/auth";
 import { sanitizeCareTeam, type CareTeam } from "../urgency";
 import { repairMojibake } from "../format";
 import { datingFromPregnancyDoc, isDueDateSource, parseISODate, toISODate, weekFromDueDateISO, type DueDateSource, type PregnancyDating } from "../pregnancy";
@@ -312,6 +336,409 @@ export function currentUid(): string | null {
 /** Avisa cada vez que cambia el uid (incluye el valor inicial al restaurar la sesión). No inicia sesión. */
 export function onUidChange(cb: (uid: string | null) => void): () => void {
   return onAuthStateChanged(auth, (user) => cb(user?.uid ?? null));
+}
+
+// =====================================================================================
+// Cuenta (opcional): el mismo uid en varios dispositivos
+// =====================================================================================
+// Cada dispositivo empieza con un usuario anónimo. Guardar el acceso VINCULA ese usuario a Google o a
+// un correo (mismo uid: la pertenencia al embarazo, que va por uid, no cambia y las reglas no se tocan).
+// En otro dispositivo se ENTRA con la misma cuenta y se restaura el perfil desde users/{uid}.
+// Cambiar de cuenta un dispositivo que ya está dentro prueba ANTES la otra cuenta en una instancia
+// aparte de Auth (en memoria): si esa cuenta no tiene embarazo, este dispositivo no pierde nada.
+
+export type AccountMethod = "google" | "email";
+
+export type AccountInfo = {
+  uid: string | null;
+  anonymous: boolean;
+  email: string | null;
+  methods: AccountMethod[];
+};
+
+/** Mensajes humanos del acceso con cuenta (sin códigos técnicos). */
+export const ACCOUNT_MESSAGES = {
+  popupClosed: "Se cerró la ventana antes de terminar. Inténtalo de nuevo cuando quieras.",
+  popupBlocked: "El navegador bloqueó la ventana de Google. Permite las ventanas emergentes para PandaJR o usa el enlace por correo.",
+  googleUnavailable: "El acceso con Google aún no está disponible. Mientras tanto, usa el enlace por correo.",
+  emailUnavailable: "El acceso por correo aún no está disponible. Mientras tanto, usa Google.",
+  invalidEmail: "Ese correo no parece válido. Revísalo.",
+  linkExpired: "Ese enlace ya no sirve: caducó o ya se usó. Pide uno nuevo.",
+  otherBrowser:
+    "Abre el enlace en el mismo navegador donde lo pediste. Si tu correo lo abrió en su propio navegador, cópialo y pégalo en el navegador donde usas PandaJR.",
+  wrongEmail: "Ese enlace es de otro correo. Escribe el correo al que llegó el enlace.",
+  tooMany: "Demasiados intentos seguidos. Espera unos minutos e inténtalo de nuevo.",
+  mamaSwitch:
+    "Tu embarazo compartido pertenece al acceso de este dispositivo, así que no podemos cambiarlo a otra cuenta. Guarda el acceso con otra cuenta de Google u otro correo.",
+  otherAccountEmpty: "Esa cuenta aún no está en ningún embarazo, así que dejamos este dispositivo como estaba.",
+  generic: "No pudimos completar el acceso. Inténtalo de nuevo en un momento.",
+} as const;
+
+/** Error con mensaje listo para mostrar (mismo contrato que PairingError: `human`). */
+export class AccountError extends Error {
+  readonly human = true;
+  constructor(message: string) {
+    super(message);
+    this.name = "AccountError";
+  }
+}
+
+function accountError(e: unknown, method: AccountMethod): Error {
+  if (e instanceof AccountError || e instanceof PairingError) return e;
+  switch (errorCode(e)) {
+    case "auth/popup-closed-by-user":
+    case "auth/cancelled-popup-request":
+    case "auth/user-cancelled":
+      return new AccountError(ACCOUNT_MESSAGES.popupClosed);
+    case "auth/popup-blocked":
+      return new AccountError(ACCOUNT_MESSAGES.popupBlocked);
+    case "auth/operation-not-allowed":
+    case "auth/unauthorized-domain":
+    case "auth/unauthorized-continue-uri":
+    case "auth/invalid-continue-uri":
+    case "auth/admin-restricted-operation":
+      return new AccountError(method === "google" ? ACCOUNT_MESSAGES.googleUnavailable : ACCOUNT_MESSAGES.emailUnavailable);
+    case "auth/invalid-email":
+    case "auth/missing-email":
+      return new AccountError(ACCOUNT_MESSAGES.invalidEmail);
+    case "auth/invalid-action-code":
+    case "auth/expired-action-code":
+      return new AccountError(ACCOUNT_MESSAGES.linkExpired);
+    case "auth/too-many-requests":
+    case "auth/quota-exceeded":
+      return new AccountError(ACCOUNT_MESSAGES.tooMany);
+    case "auth/network-request-failed":
+      return new AccountError(PAIRING_MESSAGES.offline);
+    default:
+      return new AccountError(isOffline() ? PAIRING_MESSAGES.offline : ACCOUNT_MESSAGES.generic);
+  }
+}
+
+function accountOf(user: User | null): AccountInfo {
+  if (!user) return { uid: null, anonymous: true, email: null, methods: [] };
+  const methods: AccountMethod[] = [];
+  for (const p of user.providerData) {
+    if (p.providerId === "google.com" && !methods.includes("google")) methods.push("google");
+    if (p.providerId === "password" && !methods.includes("email")) methods.push("email");
+  }
+  const email = user.email ?? user.providerData.find((p) => p.email)?.email ?? null;
+  return { uid: user.uid, anonymous: user.isAnonymous, email, methods };
+}
+
+const accountListeners = new Set<() => void>();
+let accountSnapshot: AccountInfo = accountOf(null);
+let accountUnsub: (() => void) | null = null;
+
+function refreshAccount(): void {
+  const next = accountOf(auth.currentUser);
+  if (JSON.stringify(next) === JSON.stringify(accountSnapshot)) return;
+  accountSnapshot = next;
+  accountListeners.forEach((l) => l());
+}
+
+/** Para useSyncExternalStore: la cuenta de este dispositivo (se actualiza al entrar, vincular o salir). */
+export function subscribeAccount(listener: () => void): () => void {
+  accountListeners.add(listener);
+  if (!accountUnsub) accountUnsub = onIdTokenChanged(auth, () => refreshAccount());
+  return () => {
+    accountListeners.delete(listener);
+    if (accountListeners.size === 0 && accountUnsub) {
+      accountUnsub();
+      accountUnsub = null;
+    }
+  };
+}
+
+export function getAccountSnapshot(): AccountInfo {
+  return accountSnapshot;
+}
+
+function googleProvider(): GoogleAuthProvider {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
+  return provider;
+}
+
+/**
+ * Resultado de vincular: `conflict` si esa cuenta ya pertenece a otro acceso (otro dispositivo).
+ * Con Google trae la credencial para cambiar este dispositivo a esa cuenta sin volver a abrir la ventana.
+ */
+export type LinkResult =
+  | { ok: true }
+  | { ok: false; conflict: true; method: AccountMethod; email: string | null; credential: AuthCredential | null };
+
+function conflictEmail(e: unknown): string | null {
+  const data = (e as { customData?: { email?: unknown } } | null)?.customData;
+  return typeof data?.email === "string" ? data.email : null;
+}
+
+function isConflict(e: unknown): boolean {
+  const c = errorCode(e);
+  return c === "auth/credential-already-in-use" || c === "auth/email-already-in-use" || c === "auth/account-exists-with-different-credential";
+}
+
+/**
+ * Guarda el acceso de este dispositivo con Google (mismo uid). Llamar DIRECTAMENTE desde el clic:
+ * la ventana de Google debe abrirse sin esperas previas o el navegador la bloquea.
+ */
+export function linkGoogle(): Promise<LinkResult> {
+  const user = auth.currentUser;
+  if (!user) return Promise.reject(new AccountError(ACCOUNT_MESSAGES.generic));
+  return linkWithPopup(user, googleProvider()).then(
+    () => {
+      refreshAccount();
+      return { ok: true } as const;
+    },
+    (e) => {
+      if (errorCode(e) === "auth/provider-already-linked") {
+        refreshAccount();
+        return { ok: true } as const;
+      }
+      if (isConflict(e)) {
+        return { ok: false, conflict: true, method: "google", email: conflictEmail(e), credential: GoogleAuthProvider.credentialFromError(e) } as const;
+      }
+      throw accountError(e, "google");
+    }
+  );
+}
+
+/** Entra con Google en un dispositivo nuevo (la llamada también va directa en el clic). */
+export function signInGoogle(): Promise<string> {
+  return signInWithPopup(auth, googleProvider()).then(
+    (res) => {
+      refreshAccount();
+      return res.user.uid;
+    },
+    (e) => {
+      throw accountError(e, "google");
+    }
+  );
+}
+
+/** Para qué es el enlace por correo: guardar el acceso, entrar en un dispositivo nuevo o cambiar de cuenta. */
+export type AccessLinkMode = "vincular" | "entrar" | "cambiar";
+
+const LS_ACCESS_EMAIL = "pandajr_access_email";
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+export function normalizeEmail(input: string): string | null {
+  const e = input.trim().toLowerCase();
+  return EMAIL_RE.test(e) ? e : null;
+}
+
+function storedAccessEmail(): string | null {
+  try {
+    const raw = window.localStorage.getItem(LS_ACCESS_EMAIL);
+    const v = raw ? JSON.parse(raw) : null;
+    return v && typeof v.email === "string" ? v.email : null;
+  } catch {
+    return null;
+  }
+}
+
+function forgetAccessEmail(): void {
+  try { window.localStorage.removeItem(LS_ACCESS_EMAIL); } catch { /* sin almacenamiento */ }
+}
+
+/** Envía el enlace de acceso. La vuelta trae `acceso` (y el uid de este dispositivo si no es para entrar). */
+export async function sendAccessLink(email: string, mode: AccessLinkMode): Promise<void> {
+  const clean = normalizeEmail(email);
+  if (!clean) throw new AccountError(ACCOUNT_MESSAGES.invalidEmail);
+  if (isOffline()) throw new AccountError(PAIRING_MESSAGES.offline);
+  const url = new URL("/", window.location.origin);
+  url.searchParams.set("acceso", mode);
+  if (mode !== "entrar") {
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new AccountError(ACCOUNT_MESSAGES.generic);
+    url.searchParams.set("uid", uid);
+  }
+  try {
+    await sendSignInLinkToEmail(auth, clean, { url: url.toString(), handleCodeInApp: true });
+  } catch (e) {
+    throw accountError(e, "email");
+  }
+  try { window.localStorage.setItem(LS_ACCESS_EMAIL, JSON.stringify({ email: clean, mode, at: Date.now() })); } catch { /* sin almacenamiento */ }
+}
+
+export type AccessLink = {
+  href: string;
+  mode: AccessLinkMode;
+  /** uid del dispositivo que pidió el enlace (vincular y cambiar). */
+  uid: string | null;
+  /** Correo guardado al pedirlo (null si el enlace se abrió en otro navegador). */
+  email: string | null;
+  /** Identifica el enlace (para completarlo una sola vez). */
+  oobCode: string;
+};
+
+/** ¿Esta URL es la vuelta de un enlace de acceso? (No escribe nada.) */
+export function readAccessLink(href: string): AccessLink | null {
+  let url: URL;
+  try { url = new URL(href); } catch { return null; }
+  const mode = url.searchParams.get("acceso");
+  if (mode !== "vincular" && mode !== "entrar" && mode !== "cambiar") return null;
+  if (!isSignInWithEmailLink(auth, href)) return null;
+  return { href, mode, uid: url.searchParams.get("uid"), email: storedAccessEmail(), oobCode: url.searchParams.get("oobCode") ?? href };
+}
+
+/** Quita de la barra de direcciones los parámetros del enlace (sin recargar). */
+export function clearAccessLinkFromUrl(): void {
+  try {
+    const url = new URL(window.location.href);
+    for (const k of ["acceso", "uid", "apiKey", "oobCode", "mode", "lang", "continueUrl", "tenantId"]) url.searchParams.delete(k);
+    window.history.replaceState(window.history.state, "", url.pathname + (url.search ? url.search : "") + url.hash);
+  } catch { /* nada que limpiar */ }
+}
+
+/**
+ * Completa «vincular» con el enlace: SOLO si este navegador es el que lo pidió (mismo uid). Si se abrió
+ * en otro navegador no se entra con una cuenta vacía: se explica dónde abrirlo.
+ */
+export async function linkEmailLink(link: AccessLink, email: string): Promise<LinkResult> {
+  if (typeof auth.authStateReady === "function") await auth.authStateReady();
+  const user = auth.currentUser;
+  if (!user || !link.uid || user.uid !== link.uid) throw new AccountError(ACCOUNT_MESSAGES.otherBrowser);
+  const clean = normalizeEmail(email);
+  if (!clean) throw new AccountError(ACCOUNT_MESSAGES.invalidEmail);
+  try {
+    await linkWithCredential(user, EmailAuthProvider.credentialWithLink(clean, link.href));
+    forgetAccessEmail();
+    refreshAccount();
+    return { ok: true };
+  } catch (e) {
+    if (errorCode(e) === "auth/provider-already-linked") {
+      forgetAccessEmail();
+      refreshAccount();
+      return { ok: true };
+    }
+    if (isConflict(e)) return { ok: false, conflict: true, method: "email", email: clean, credential: null };
+    throw accountError(e, "email");
+  }
+}
+
+/** Completa «entrar» con el enlace en un dispositivo nuevo. Devuelve el uid de la cuenta. */
+export async function signInEmailLink(link: AccessLink, email: string): Promise<string> {
+  const clean = normalizeEmail(email);
+  if (!clean) throw new AccountError(ACCOUNT_MESSAGES.invalidEmail);
+  try {
+    const res = await signInWithEmailLink(auth, clean, link.href);
+    forgetAccessEmail();
+    refreshAccount();
+    return res.user.uid;
+  } catch (e) {
+    if (errorCode(e) === "auth/invalid-email") throw new AccountError(ACCOUNT_MESSAGES.wrongEmail);
+    throw accountError(e, "email");
+  }
+}
+
+/** Perfil que se reconstruye al entrar con una cuenta (null si la cuenta no está en ningún embarazo). */
+export type RestoredAccount = {
+  role: MemberRole;
+  name?: string;
+  pregnancyId: string;
+  inviteCode?: string;
+  week: number;
+  dueDate?: string;
+  dueDateSource?: DueDateSource;
+};
+
+/** Lee users/{uid} y el embarazo (pertenencia por uid). Sin permiso o sin datos → null. */
+export async function restoreAccount(uid: string, database: Firestore = db): Promise<RestoredAccount | null> {
+  const readOrNull = async (ref: DocumentReference) => {
+    try {
+      return await getDoc(ref);
+    } catch (e) {
+      if (errorCode(e) === "permission-denied") return null;
+      throw e;
+    }
+  };
+  const userSnap = await readOrNull(doc(database, "users", uid));
+  const pid = userSnap?.exists() ? userSnap.data().pregnancyId : undefined;
+  if (typeof pid !== "string" || !pid) return null;
+  const snap = await readOrNull(doc(database, "pregnancies", pid));
+  if (!snap?.exists()) return null;
+  const d = snap.data();
+  const me = membersFrom(d.members).find((m) => m.uid === uid);
+  if (!me) return null;
+  const dating = datingFromPregnancyDoc(d);
+  return stripUndefined({
+    role: me.role,
+    name: me.name,
+    pregnancyId: pid,
+    inviteCode: me.role === "mama" && typeof d.inviteCode === "string" ? d.inviteCode : undefined,
+    week: dating.dueDateOutOfRange ? 0 : dating.week ?? weekFromDoc(d) ?? 0,
+    dueDate: dating.dueDate,
+    dueDateSource: dating.dueDate ? dating.dueDateSource : undefined,
+  });
+}
+
+let probe: { auth: Auth; db: Firestore } | null = null;
+
+/** Instancia aparte (en memoria) para probar otra cuenta sin tocar la sesión de este dispositivo. */
+function probeInstance(): { auth: Auth; db: Firestore } {
+  if (probe) return probe;
+  const name = "pandajr-probe";
+  const probeApp = getApps().find((a) => a.name === name) ?? initializeApp(app.options, name);
+  let probeAuth: Auth;
+  try {
+    probeAuth = initializeAuth(probeApp, { persistence: inMemoryPersistence });
+  } catch {
+    probeAuth = getAuth(probeApp); // ya inicializada (recarga en caliente)
+  }
+  probe = { auth: probeAuth, db: getFirestore(probeApp) };
+  return probe;
+}
+
+/**
+ * Cambia ESTE dispositivo a otra cuenta que ya existe (la de tu otro dispositivo):
+ * 1) entra con esa cuenta en una instancia aparte y lee su embarazo;
+ * 2) solo si tiene embarazo: el copiloto sale de la lista con su acceso actual (sin duplicados) y
+ *    este dispositivo pasa a esa cuenta (updateCurrentUser copia el usuario a la sesión principal).
+ * La mamá con embarazo no puede: ese embarazo pertenece a su acceso actual.
+ */
+export async function switchDeviceToAccount(
+  source: { credential: AuthCredential } | { link: AccessLink; email: string },
+  current: { pregnancyId?: string; role?: MemberRole }
+): Promise<RestoredAccount> {
+  if (current.pregnancyId && current.role === "mama") throw new AccountError(ACCOUNT_MESSAGES.mamaSwitch);
+  const method: AccountMethod = "credential" in source ? "google" : "email";
+  if ("link" in source) {
+    if (typeof auth.authStateReady === "function") await auth.authStateReady();
+    if (!auth.currentUser || !source.link.uid || auth.currentUser.uid !== source.link.uid) throw new AccountError(ACCOUNT_MESSAGES.otherBrowser);
+  }
+  const p = probeInstance();
+  let probeUser: User;
+  try {
+    const res =
+      "credential" in source
+        ? await signInWithCredential(p.auth, source.credential)
+        : await signInWithEmailLink(p.auth, normalizeEmail(source.email) ?? source.email, source.link.href);
+    probeUser = res.user;
+  } catch (e) {
+    throw accountError(e, method);
+  }
+  try {
+    const restored = await restoreAccount(probeUser.uid, p.db);
+    if (!restored) throw new AccountError(ACCOUNT_MESSAGES.otherAccountEmpty);
+    const me = auth.currentUser?.uid;
+    if (current.pregnancyId && me && me !== probeUser.uid) {
+      // Sale de la lista con el acceso de este dispositivo. Si falla, la mamá puede quitarlo después.
+      try { await removeMember(current.pregnancyId, me); } catch { /* sigue en la lista */ }
+    }
+    await updateCurrentUser(auth, probeUser);
+    if (method === "email") forgetAccessEmail();
+    refreshAccount();
+    return restored;
+  } finally {
+    await signOut(p.auth).catch(() => undefined);
+  }
+}
+
+/** Cierra la sesión de ESTE dispositivo (solo con cuenta: la pertenencia al embarazo no cambia). */
+export async function signOutDevice(): Promise<void> {
+  if (!auth.currentUser || auth.currentUser.isAnonymous) throw new AccountError(ACCOUNT_MESSAGES.generic);
+  await signOut(auth);
+  refreshAccount();
 }
 
 // =====================================================================================

@@ -88,7 +88,7 @@ Todo esto se apoya en contenido clínico alineado con guías públicas (ACOG, se
   - Moneda local del presupuesto: hoy es un "$" genérico.
   - Completar el mapa de números de emergencia: faltan Bolivia (el 168 se anunció con implementación gradual; verificar) y Cuba. Mientras un país no esté en el mapa, se elige «Otro» y la app pide confirmar el número.
   - `firestore.rules` está desplegado desde el 2026-09-30; cualquier cambio se prueba antes en el emulador (pide un Java más reciente que el 8 instalado en esta máquina).
-- **Stack:** Next.js 16 (App Router) con React 19, Tailwind v4, Zustand, Firebase (Auth anónimo y Firestore) y Gemini vía `src/app/api/chat/route.ts`.
+- **Stack:** Next.js 16 (App Router) con React 19, Tailwind v4, Zustand, Firebase (Auth anónimo, con cuenta opcional de Google o enlace por correo que conserva el mismo uid para usar varios dispositivos; y Firestore) y Gemini vía `src/app/api/chat/route.ts`.
 
 ## Brand Commitments
 
