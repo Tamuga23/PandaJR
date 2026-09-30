@@ -245,7 +245,7 @@ export function DatingPicker({
   // Borde ≥3:1 (1.4.11), también sobre la opción elegida (lavado terracota): line-control.
   // Campos de fecha: :focus (no :focus-visible), que Chrome no aplica con el foco en los segmentos internos.
   const inputClass =
-    "mt-1 w-full min-h-12 px-4 py-3 rounded-xl border border-line-control bg-surface-raised text-ink text-body focus:outline-2 focus:outline-offset-1 focus:outline-terracotta-ink";
+    "mt-1 w-full min-h-12 px-4 py-3 rounded-2xl border border-line-control bg-surface-raised text-ink text-body focus:outline-2 focus:outline-offset-1 focus:outline-terracotta-ink";
   const stepClass = `grid size-12 shrink-0 place-items-center rounded-xl border border-line-control bg-surface-raised text-ink transition-colors hover:bg-surface-hover disabled:border-line disabled:text-ink-disabled disabled:hover:bg-surface-raised ${PICKER_FOCUS}`;
   const fieldLabel = "text-meta font-bold text-ink";
 

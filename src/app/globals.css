@@ -62,6 +62,9 @@
   /* Superficies del navegador */
   --selection: #f1d6cb;            /* ink encima 10.4:1 */
 
+  /* Velo bajo hojas y diálogos (oscurece la app; no lleva texto) */
+  --scrim: rgb(0 0 0 / 0.5);
+
   /* Placeholder legible (WCAG 1.4.3): sobre #ffffff 5.4:1 · #f5f5f4 4.96:1 · #fdfbf7 5.2:1 */
   --placeholder: #6f6964;
 
@@ -120,6 +123,8 @@
 
   --selection: #5a3440;            /* ink encima 8.5:1 */
 
+  --scrim: rgb(0 0 0 / 0.7);
+
   --placeholder: #a6a1b2;          /* sobre #1a1724 7.0:1 · #221d2d 6.5:1 · #2d273a 5.7:1 */
 
   /* Panda de noche: el pelaje se recorta solo contra la obsidiana (sin contorno); manchas en tinta cálida. */
@@ -165,6 +170,10 @@
   --color-terracotta-wash: var(--terracotta-wash);
   --color-sage-wash: var(--sage-wash);
   --color-amber-wash: var(--amber-wash);
+  /* Velo de hojas y diálogos: bg-scrim */
+  --color-scrim: var(--scrim);
+  /* Halo de emergencia (DESIGN.md › Elevation & Depth): solo el botón "Emergencias". */
+  --shadow-emergency: 0 3px 10px -3px color-mix(in srgb, var(--terracotta-ink-fill) 55%, transparent);
   /* Estados (alias semánticos de las tintas): text-danger, text-success, text-warning */
   --color-danger: var(--terracotta-ink);
   --color-success: var(--sage-ink);
@@ -182,6 +191,16 @@
   --font-sans: var(--font-alegreya-sans), "Alegreya Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-display: var(--font-alegreya), "Alegreya", ui-serif, Georgia, "Times New Roman", serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+/* Sombras (DESIGN.md › Elevation & Depth). Plano por defecto: solo llevan sombra lo que flota sobre la
+   app (hoja, diálogo, toast), las piezas táctiles grandes de las herramientas y "Emergencias" (arriba,
+   shadow-emergency). Utilidades: shadow-sheet, shadow-dialog, shadow-toast, shadow-tool. */
+@theme {
+  --shadow-sheet: 0 -8px 32px -8px rgb(24 21 32 / 0.28);   /* hoja que sube desde abajo */
+  --shadow-dialog: 0 16px 48px -16px rgb(24 21 32 / 0.35); /* diálogo centrado */
+  --shadow-toast: 0 12px 32px -12px rgb(24 21 32 / 0.5);   /* aviso invertido */
+  --shadow-tool: 0 18px 40px -20px rgb(45 42 38 / 0.6);    /* pieza de herramienta (conteo, votador) */
 }
 
 /* Escala tipográfica (roles, no tamaños). Pasos de la escala de títulos ≥1.2 (16 → 20 → 24 → 30);
@@ -284,8 +303,7 @@ body {
 }
 
 /* Movimiento reducido: nada se desplaza, escala ni late; los cambios de estado siguen visibles.
-   - Entradas (animate-in + fade/zoom/slide): el elemento aparece ya en su estado final.
-   - Ondas y latidos decorativos (ping/pulse/bounce): quietos; la onda queda tenue y fija.
+   - Latidos decorativos (animate-pulse): quietos.
    - Transiciones: se anulan las de movimiento (transform, translate, scale, tamaño, posición);
      los fundidos de color y opacidad que ya tenía cada componente se conservan (no son movimiento
      y marcan el cambio de estado). Nada gana una transición que no tenía.
@@ -306,22 +324,8 @@ body {
     transition-delay: 0s !important;
   }
 
-  .animate-in,
-  .fade-in,
-  .zoom-in,
-  .zoom-in-95,
-  [class*="slide-in-from-"] {
+  .animate-pulse {
     animation: none !important;
-  }
-
-  .animate-pulse,
-  .animate-bounce {
-    animation: none !important;
-  }
-
-  .animate-ping {
-    animation: none !important;
-    opacity: 0.45;
   }
 }
 
@@ -374,87 +378,3 @@ body {
   }
 }
 
-
-/* --- PandaJR Tailwind-animate Polyfills --- */
-/* These utilities map Shadcn-like animate-in classes directly in Tailwind v4 */
-
-@utility animate-in {
-  animation-duration: 0.3s;
-  animation-fill-mode: both;
-  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@utility duration-150 { animation-duration: 150ms; }
-@utility duration-200 { animation-duration: 200ms; }
-@utility duration-300 { animation-duration: 300ms; }
-@utility duration-500 { animation-duration: 500ms; }
-
-@utility fade-in { animation-name: fadeIn; }
-@utility zoom-in { animation-name: zoomIn; }
-@utility zoom-in-95 { animation-name: zoomIn95; }
-
-@utility slide-in-from-bottom-2 { animation-name: slideInBottom2; }
-@utility slide-in-from-bottom-3 { animation-name: slideInBottom3; }
-@utility slide-in-from-bottom-4 { animation-name: slideInBottom4; }
-@utility slide-in-from-bottom-6 { animation-name: slideInBottom6; }
-@utility slide-in-from-bottom-8 { animation-name: slideInBottom8; }
-
-@utility slide-in-from-top-2 { animation-name: slideInTop2; }
-@utility slide-in-from-top-3 { animation-name: slideInTop3; }
-@utility slide-in-from-top-4 { animation-name: slideInTop4; }
-
-@utility slide-in-from-right-4 { animation-name: slideInRight4; }
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes zoomIn {
-  from { transform: scale(0); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-@keyframes zoomIn95 {
-  from { transform: scale(0.95); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-@keyframes slideInBottom2 {
-  from { transform: translateY(0.5rem); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-@keyframes slideInBottom3 {
-  from { transform: translateY(0.75rem); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-@keyframes slideInBottom4 {
-  from { transform: translateY(1rem); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-@keyframes slideInBottom6 {
-  from { transform: translateY(1.5rem); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-@keyframes slideInBottom8 {
-  from { transform: translateY(2rem); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-@keyframes slideInTop2 {
-  from { transform: translateY(-0.5rem); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-@keyframes slideInTop3 {
-  from { transform: translateY(-0.75rem); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-@keyframes slideInTop4 {
-  from { transform: translateY(-1rem); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-@keyframes slideInRight4 {
-  from { transform: translateX(1rem); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}

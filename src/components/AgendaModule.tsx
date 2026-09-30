@@ -830,14 +830,14 @@ function Sheet({
       <div className={`fixed inset-0 ${Z_CLASS.sheet} flex items-end sm:items-center justify-center sm:p-4`}>
         {/* Tocar fuera cierra (el teclado cierra con Escape desde useModalDialog). */}
         <div
-          className="absolute inset-0 bg-black/50 dark:bg-black/70"
+          className="absolute inset-0 bg-scrim"
           onClick={onClose}
           aria-hidden="true"
         />
         <div
           ref={setPanel}
           {...dialogRest}
-          className="relative w-full max-w-md max-h-[92dvh] flex flex-col bg-surface-raised text-ink rounded-t-3xl sm:rounded-3xl border border-line shadow-[0_-8px_32px_-8px_rgba(24,21,32,0.28)] outline-none"
+          className="relative w-full max-w-md max-h-[92dvh] flex flex-col bg-surface-raised text-ink rounded-t-3xl sm:rounded-3xl border border-line shadow-sheet outline-none"
         >
           {children}
         </div>
@@ -855,7 +855,7 @@ const focusInset = "focus-visible:outline-2 focus-visible:-outline-offset-2 focu
 
 /** Cabecera fija de las hojas: título en Alegreya (rol title) y botón de cerrar. */
 const sheetHeadClass = "flex items-start justify-between gap-3 px-5 pt-5 pb-4 border-b border-line shrink-0";
-const sheetTitleClass = "font-display text-title text-ink text-balance break-words";
+const sheetTitleClass = "font-display text-title text-ink text-balance break-words hyphens-auto";
 
 /** Botón de texto en tinta terracota (acción secundaria de una fila o de un aviso), ≥44px. */
 const textActionClass = `min-h-11 px-2 rounded-full inline-flex items-center gap-1.5 text-meta font-bold text-terracotta-ink hover:bg-surface-hover transition-colors ${focusRing}`;
@@ -1219,7 +1219,7 @@ export function AppointmentPrepModal({
         </p>
       </div>
 
-      <div className="shrink-0 px-5 pt-3 pb-[calc(0.75rem+var(--safe-bottom))] border-t border-line flex gap-2">
+      <div className="shrink-0 px-5 pt-3 pb-[calc(0.75rem+var(--safe-bottom))] border-t border-line flex gap-2 max-[300px]:flex-col">
         {onAskPandaIA && (
           <button
             type="button"
@@ -1370,7 +1370,7 @@ const EMPTY_FORM: FormState = { title: "", date: "", time: "", doctor: "", typeT
 
 const inputClass =
   // Campo = pozo (surface-sunken) sobre el panel de la hoja (surface-raised).
-  "w-full min-h-[48px] rounded-xl border bg-surface-sunken px-4 py-2.5 text-body text-ink " +
+  "w-full min-h-[48px] rounded-2xl border bg-surface-sunken px-4 py-2.5 text-body text-ink " +
   // Borde ≥3:1 con el panel (1.4.11): line-control 3.6:1 sobre raised claro · 3.7:1 sobre raised oscuro.
   // El placeholder usa --placeholder (globals.css, ≥4.5:1 sobre los pozos de los dos temas).
   "border-line-control " +
@@ -1699,10 +1699,13 @@ export function AgendaView({
       <div className="px-[var(--gutter)] pt-7 pb-[calc(6.5rem+var(--safe-bottom))] flex flex-col gap-9 lg:px-8 lg:pb-12">
         {/* Próximas citas: una lista con divisores; la primera (la que toca) lleva la acción principal */}
         <section aria-labelledby={ids.upcoming}>
-          <div className="mb-2 flex items-end justify-between gap-3">
-            <h3 id={ids.upcoming} ref={upcomingHeadingRef} tabIndex={-1} className="font-display text-subtitle text-ink rounded-md">
-              Próximas citas
-            </h3>
+          {/* Como Section: con el título por debajo de 8rem (zoom del 200%) «Nueva cita» baja de línea. */}
+          <div className="mb-2 flex flex-wrap items-end justify-between gap-x-3 gap-y-1">
+            <div className="min-w-0 flex-1 basis-32">
+              <h3 id={ids.upcoming} ref={upcomingHeadingRef} tabIndex={-1} className="font-display text-subtitle text-ink rounded-md">
+                Próximas citas
+              </h3>
+            </div>
             <div className="-mb-1.5 flex shrink-0 items-center">
               {/* Sin citas, agregar una es LA acción de la pantalla; con citas, lo es preparar la próxima. */}
               <RowButton tone={upcoming.length === 0 && !loading && !loadError ? "primary" : "default"} onClick={() => openNew()} aria-haspopup="dialog">
@@ -2165,7 +2168,9 @@ function EventRow({
       ) : (
         <div className="pj-row-body min-w-0 flex-1 pt-3.5 pb-2 pe-[calc(var(--gutter)-0.75rem)]">
           {text}
-          <div className="mt-2 flex items-center gap-2">
+          {/* Si «Qué llevar y preguntar» no cabe junto a editar/borrar (320px), estos bajan a otra línea
+              en vez de partir la acción en dos. */}
+          <div className="mt-2 flex flex-wrap items-center gap-2">
             {featured ? (
               <RowButton
                 tone="primary"

@@ -717,15 +717,16 @@ const chip = (active: boolean) =>
   `inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border px-3.5 text-meta font-bold transition-colors ${sosFocusRing} ${
     active ? "border-transparent bg-sage-ink text-on-accent" : "border-line-control text-ink-muted hover:bg-surface-hover hover:text-ink"
   }`;
-/** Control segmentado: pista hundida y opción activa elevada. */
+/** Control segmentado: pista hundida y opción elegida en sage-ink (como Apariencia en Ajustes; sin sombra). */
 const segTrack = "flex rounded-2xl bg-surface-sunken p-1";
 const segButton = (active: boolean) =>
   `flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl px-2 text-meta font-bold transition-colors ${sosFocusRing} ${
-    active ? "bg-surface-raised text-ink shadow-sm" : "text-ink-muted hover:text-ink"
+    active ? "bg-sage-ink text-on-accent hover:bg-sage-ink-hover" : "text-ink-muted hover:bg-surface-hover hover:text-ink"
   }`;
-/** Panel de un diálogo (Presupuesto, PandaStory, Panda Audio) y su velo. */
-const dialogScrim = `fixed inset-0 ${Z_CLASS.dialog} flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4 dark:bg-black/75`;
-const dialogPanel = "flex w-full flex-col overflow-hidden border border-line bg-surface-raised shadow-2xl outline-none";
+/** Panel de un diálogo (Presupuesto, PandaStory, Panda Audio) y su velo. Sombra: shadow-sheet si sube
+ * desde abajo en móvil (Presupuesto, Panda Audio), shadow-dialog si siempre va centrado (PandaStory). */
+const dialogScrim = `fixed inset-0 ${Z_CLASS.dialog} flex items-end justify-center bg-scrim p-0 sm:items-center sm:p-4`;
+const dialogPanel = "flex w-full flex-col overflow-hidden border border-line bg-surface-raised outline-none";
 /** Cerrar un diálogo (44px, pozo neutro como el botón Volver de la cabecera de herramienta). */
 const dialogClose = `grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface-sunken text-ink-muted transition-colors hover:bg-line hover:text-ink ${sosFocusRing}`;
 
@@ -748,6 +749,9 @@ const COMMON_DISCOMFORTS: {
   alarm: string;
   tipsPartner: { lead: string; text: string }[];
   alarmPartner: string;
+  /** Aviso antes de la semana 20, cuando `alarm` habla de parto pretérmino (ACOG: de la 20+0 a la 36+6). */
+  alarmBefore20?: string;
+  alarmBefore20Partner?: string;
 }[] = [
   {
     id: "nauseas",
@@ -799,6 +803,8 @@ const COMMON_DISCOMFORTS: {
       { lead: "Estiramientos suaves:", text: "yoga prenatal o ejercicios guiados por una persona profesional." },
     ],
     alarmPartner: "Si el dolor lumbar le va y viene a ritmo o siente presión en la pelvis antes de la semana 37, puede ser parto pretérmino: llama ya.",
+    alarmBefore20: "Si el dolor lumbar va y viene a ritmo, tienes cólicos regulares o sientes presión en la pelvis, llama ya a tu obstetra.",
+    alarmBefore20Partner: "Si el dolor lumbar le va y viene a ritmo, tiene cólicos regulares o siente presión en la pelvis, llama ya a su obstetra.",
   },
 ];
 
@@ -903,7 +909,7 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
           {URGENT_SIGNS.map((sign) => {
             const note = signNote(sign);
             const emphasized = sign.id === "movimientos" && highlightMovement;
-            const copy = signCopy(sign, profile?.role);
+            const copy = signCopy(sign, profile?.role, week);
             return (
               <li key={sign.id} className={`${bleedRow} py-3.5 ${emphasized ? "bg-terracotta-wash" : ""}`}>
                 <p className={`text-body font-bold ${emphasized ? "text-terracotta-ink" : "text-ink"}`}>{copy.title}</p>
@@ -991,10 +997,10 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
               <a
                 href={telHref(emergencyNumber)}
                 aria-label={`Llamar a emergencias, ${emergencyNumber}`}
-                className={`@container mt-3 flex min-h-[56px] w-full items-center gap-3 rounded-2xl bg-terracotta-ink px-3.5 py-2.5 text-on-accent transition-[background-color,transform] hover:bg-terracotta-ink-hover active:scale-[0.98] motion-reduce:active:scale-100 ${sosFocusRing}`}
+                className={`@container mt-3 flex min-h-[56px] w-full items-center gap-3 rounded-2xl bg-terracotta-ink px-3.5 py-2.5 text-on-accent shadow-emergency transition-[background-color,transform] hover:bg-terracotta-ink-hover active:scale-[0.98] motion-reduce:active:scale-100 ${sosFocusRing}`}
               >
                 {/* Igual que CallActions: en un botón estrecho los iconos ceden su sitio a "Emergencias". */}
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/15 @max-[11rem]:hidden">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-on-accent/15 @max-[11rem]:hidden">
                   <Siren size={22} aria-hidden="true" />
                 </span>
                 <span className="min-w-0 flex-1 break-words hyphens-auto text-lg font-bold leading-tight">
@@ -1050,7 +1056,11 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
                       </li>
                     ))}
                   </ul>
-                  <p className="mt-3 text-meta font-bold text-terracotta-ink">{isPapa ? d.alarmPartner : d.alarm}</p>
+                  <p className="mt-3 text-meta font-bold text-terracotta-ink">
+                    {typeof week === "number" && week < 20 && d.alarmBefore20
+                      ? isPapa ? d.alarmBefore20Partner : d.alarmBefore20
+                      : isPapa ? d.alarmPartner : d.alarm}
+                  </p>
                 </div>
               </li>
             );
@@ -1262,7 +1272,7 @@ export function DiarioView({ profile, showToast }: { profile: UserProfile; onClo
           onChange={(e) => setNewEntry(e.target.value)}
           maxLength={2000}
           placeholder="Escribe un recuerdo, un hito o un mensaje para el bebé…"
-          className={`h-24 w-full resize-none rounded-xl bg-surface-raised p-3 text-body text-ink ${fieldBorder} ${fieldFocus}`}
+          className={`h-24 w-full resize-none rounded-2xl bg-surface-raised p-3 text-body text-ink ${fieldBorder} ${fieldFocus}`}
         />
 
         <fieldset className="mt-4">
@@ -1667,7 +1677,7 @@ export function HerramientasView({ showToast, profile, openRequest }: { showToas
             </button>
             <div className="min-w-0">
               <h2 ref={toolHeadingRef} tabIndex={-1} className="font-display text-subtitle text-ink outline-none">{tool?.label}</h2>
-              <p className="truncate text-micro font-medium text-ink-subtle">{tool?.desc}</p>
+              <p className="text-micro font-medium text-ink-subtle">{tool?.desc}</p>
             </div>
           </div>
         )}
@@ -1992,6 +2002,41 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
     setShowTimeline(false);
   };
 
+  // "Descartar conteo" borra la sesión en curso, que aún no está en el historial. "Deshacer" la
+  // devuelve tal cual (mismos movimientos y el tiempo desde su inicio real), salvo que ya haya
+  // empezado otro conteo: entonces no se pisa el nuevo y se dice.
+  const liveSessionRef = useRef({ count, startTime });
+  useEffect(() => {
+    liveSessionRef.current = { count, startTime };
+  });
+  // El botón pulsado desaparece al reiniciar: el foco pasa al botón grande (o a «Nueva sesión»).
+  const kickButtonRef = useRef<HTMLButtonElement>(null);
+  const focusSoon = (target: () => HTMLElement | null | undefined) => requestAnimationFrame(() => target()?.focus());
+  const startNewSession = () => {
+    reset();
+    focusSoon(() => kickButtonRef.current);
+  };
+  const discardSession = () => {
+    if (count === 0 && startTime === null) return;
+    const snapshot = { count, startTime, kicks, showTimeline };
+    reset();
+    focusSoon(() => kickButtonRef.current);
+    showToast("Descartamos el conteo en curso", () => {
+      const live = liveSessionRef.current;
+      if (live.count > 0 || live.startTime !== null || loadActiveKickSession()) {
+        showToast("Ya empezaste otro conteo: el anterior no se puede recuperar.");
+        return;
+      }
+      setCount(snapshot.count);
+      setKicks(snapshot.kicks);
+      setStartTime(snapshot.startTime);
+      setElapsedSeconds(snapshot.startTime !== null ? Math.max(0, Math.floor((Date.now() - snapshot.startTime) / 1000)) : 0);
+      setShowTimeline(snapshot.showTimeline);
+      persistActive(snapshot.startTime, snapshot.kicks);
+      focusSoon(() => kickButtonRef.current);
+    });
+  };
+
   const deleteSession = (session: KickSessionItem) => {
     commitSessions(removeById<KickSessionItem>(session.id), "No se pudo eliminar la sesión.");
     showToast("Sesión eliminada del historial", () =>
@@ -2156,11 +2201,12 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
       {/* BOTÓN PRINCIPAL DE CONTEO ERGONÓMICO (240px) */}
       <div className="relative flex flex-col items-center justify-center py-2">
         <button
+          ref={kickButtonRef}
           type="button"
           onClick={handleKick}
           disabled={count >= 10}
           aria-label={count >= 10 ? "Conteo completo: 10 de 10 movimientos" : "Registrar movimiento del bebé"}
-          className={`relative z-10 flex h-60 w-60 select-none flex-col items-center justify-center rounded-full bg-sage-ink text-on-accent shadow-[0_18px_40px_-20px_rgb(45_42_38/0.6)] ring-8 ring-sage-wash transition-[background-color,transform] duration-200 active:scale-95 motion-reduce:active:scale-100 ${sosFocusRing} ${
+          className={`relative z-10 flex h-60 w-60 select-none flex-col items-center justify-center rounded-full bg-sage-ink text-on-accent shadow-tool ring-8 ring-sage-wash transition-[background-color,transform] duration-200 active:scale-95 motion-reduce:active:scale-100 ${sosFocusRing} ${
             count >= 10 ? "cursor-default" : "hover:bg-sage-ink-hover"
           }`}
         >
@@ -2233,9 +2279,18 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
             </div>
           </div>
 
-          <RowButton tone="danger" onClick={reset} title="Borra los movimientos y el tiempo de esta sesión">
-            <RotateCcw size={14} aria-hidden="true" /> Descartar conteo
-          </RowButton>
+          {/* Solo con algo que descartar; al completar, la sesión ya está guardada y se empieza otra. */}
+          {count >= 10 ? (
+            !completedSession && (
+              <RowButton id={`${callPanelId}-nueva`} onClick={startNewSession}>
+                <RotateCcw size={14} aria-hidden="true" /> Nueva sesión
+              </RowButton>
+            )
+          ) : (count > 0 || startTime !== null) && (
+            <RowButton tone="danger" onClick={discardSession} title="Borra los movimientos y el tiempo de esta sesión">
+              <RotateCcw size={14} aria-hidden="true" /> Descartar conteo
+            </RowButton>
+          )}
         </div>
 
         {/* Desplegable del ritmo de los movimientos registrados */}
@@ -2285,7 +2340,10 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
             </div>
             <button
               type="button"
-              onClick={() => setCompletedSession(null)}
+              onClick={() => {
+                setCompletedSession(null);
+                focusSoon(() => document.getElementById(`${callPanelId}-nueva`));
+              }}
               className={`-me-2 -mt-2 ${iconButton}`}
               aria-label="Cerrar aviso de sesión completada"
             >
@@ -2330,7 +2388,7 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
             </div>
           </div>
 
-          <button type="button" onClick={reset} className={`w-full ${btnSage}`}>
+          <button type="button" onClick={startNewSession} className={`w-full ${btnSage}`}>
             <RotateCcw size={16} aria-hidden="true" /> Iniciar una sesión nueva
           </button>
         </div>
@@ -2631,11 +2689,15 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
   const { count: recentCount, avgDuration, avgInterval, preterm, weekKnown, pretermAlert, activeLabor } = analyzeContractions(history, now, week);
   // Con semana desconocida y 5-1-1 cumplido, basta la alerta de trabajo de parto (también pide llamar).
   const showPretermAlert = pretermAlert && !activeLabor;
+  // El pretérmino (ACOG) va de la 20+0 a la 36+6. Antes de la 20 el mismo disparador pide llamar ya,
+  // pero sin llamarlo parto pretérmino.
+  const beforeWeek20 = typeof week === "number" && week < 20;
 
   return (
     <div className="mx-auto flex w-full max-w-lg flex-col gap-6 py-2">
 
-      {/* Alerta: posible parto pretérmino (antes de la semana 37, 4 o más en 1 hora) */}
+      {/* Alerta: 4 o más contracciones en 1 hora antes de la semana 37 (posible parto pretérmino desde
+          la 20; antes, contracciones o cólicos regulares) */}
       {showPretermAlert && (
         <section aria-labelledby={`${alertId}-pretermino`} className="rounded-2xl bg-terracotta-wash p-4">
           <div role="alert" aria-live="assertive" className="flex gap-3">
@@ -2644,9 +2706,19 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
             </span>
             <div className="min-w-0">
               <h3 id={`${alertId}-pretermino`} className="text-body font-bold text-terracotta-ink">
-                {weekKnown ? "Posible parto pretérmino" : "4 o más contracciones en la última hora"}
+                {beforeWeek20
+                  ? `Contracciones o cólicos regulares antes de la semana 20: llama ya a ${isPapa ? "su" : "tu"} obstetra`
+                  : weekKnown ? "Posible parto pretérmino" : "4 o más contracciones en la última hora"}
               </h3>
-              {weekKnown ? (
+              {beforeWeek20 ? (
+                <p className="mt-1 text-meta text-ink">
+                  {isPapa
+                    ? `Registraron ${recentCount} contracciones o cólicos en la última hora y ${her} está en la semana ${week}.`
+                    : `Registraste ${recentCount} contracciones o cólicos en la última hora y estás en la semana ${week}.`}{" "}
+                  <strong className="font-bold">{isPapa ? "Si no localizan a su obstetra, llama a emergencias." : "Si no localizas a tu obstetra, llama a emergencias."}</strong>{" "}
+                  {isPapa ? "No esperen a que se detengan." : "No esperes a que se detengan."}
+                </p>
+              ) : weekKnown ? (
                 <p className="mt-1 text-meta text-ink">
                   {isPapa
                     ? `Registraron ${recentCount} contracciones en la última hora y ${her} está en la semana ${week}.`
@@ -2709,7 +2781,7 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
       <button
         type="button"
         onClick={toggleRecording}
-        className={`flex w-full flex-col items-center justify-center gap-2 rounded-3xl py-7 text-on-accent shadow-[0_18px_40px_-20px_rgb(45_42_38/0.6)] transition-[background-color,transform] duration-300 active:scale-95 motion-reduce:active:scale-100 ${sosFocusRing} ${
+        className={`flex w-full flex-col items-center justify-center gap-2 rounded-3xl py-7 text-on-accent shadow-tool transition-[background-color,transform] duration-300 active:scale-95 motion-reduce:active:scale-100 ${sosFocusRing} ${
           isRecording
             ? "bg-sage-ink-hover ring-4 ring-sage/40"
             : "bg-sage-ink hover:bg-sage-ink-hover"
@@ -2736,7 +2808,12 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
             <Info size={20} className="mt-0.5 shrink-0 text-terracotta-ink" aria-hidden="true" />
             {preterm ? (
               <p className="text-meta text-ink-muted">
-                {isPapa ? `${Her} está en la semana ${week}.` : `Estás en la semana ${week}.`} Antes de la semana 37, <strong className="font-bold text-ink">4 o más contracciones en 1 hora</strong>, presión en la pelvis o dolor lumbar que va y viene son motivo para llamar ya.
+                {isPapa ? `${Her} está en la semana ${week}.` : `Estás en la semana ${week}.`}{" "}
+                {beforeWeek20 ? (
+                  <><strong className="font-bold text-ink">Contracciones o cólicos regulares (4 o más en 1 hora)</strong>, presión en la pelvis o dolor lumbar que va y viene son motivo para llamar ya.</>
+                ) : (
+                  <>Antes de la semana 37, <strong className="font-bold text-ink">4 o más contracciones en 1 hora</strong>, presión en la pelvis o dolor lumbar que va y viene son motivo para llamar ya.</>
+                )}
                 {recentCount > 0 && ` En la última hora ${isPapa ? "llevan" : "llevas"} ${recentCount} ${recentCount === 1 ? "contracción" : "contracciones"}.`}
               </p>
             ) : !weekKnown ? (
@@ -3353,7 +3430,7 @@ export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
             transform: touchStart !== null ? `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.05}deg)` : undefined,
             transition: touchStart !== null ? "none" : "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
           }}
-          className="w-full touch-pan-y select-none rounded-3xl border border-line-strong bg-surface px-6 pb-6 pt-9 text-center shadow-[0_14px_32px_-22px_rgb(45_42_38/0.45)]"
+          className="w-full touch-pan-y select-none rounded-3xl border border-line-strong bg-surface px-6 pb-6 pt-9 text-center shadow-tool"
         >
           <h4 id={`${baseId}-nombre`} className="break-words font-display text-[2.5rem] font-bold leading-[1.1] text-ink">
             {card.name}
@@ -4100,7 +4177,7 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile; showT
           </button>
           <button type="button" aria-pressed={viewMode === "document"} onClick={() => setViewMode("document")} className={segButton(viewMode === "document")}>
             <FileText size={15} aria-hidden="true" /> Documento
-            <span className="font-medium tabular-nums text-ink-subtle">· {counts.marked}</span>
+            <span className={`font-medium tabular-nums ${viewMode === "document" ? "" : "text-ink-subtle"}`}>· {counts.marked}</span>
           </button>
         </div>
       </div>
@@ -4111,8 +4188,10 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile; showT
         </p>
       ) : viewMode === "wizard" ? (
         <div className="no-print mt-6 space-y-6">
-          <div className="flex items-center gap-3">
-            <div className="flex flex-1 items-center gap-1.5">
+          {/* Cada paso es un objetivo de 44px: si no caben en la fila junto al contador (320px), el
+              contador baja a la línea siguiente. */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <div className="flex min-w-[15.25rem] flex-1 items-center gap-1.5">
               {PLAN_SECTIONS.map((s) => (
                 <button
                   key={s.id}
@@ -4561,7 +4640,7 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div {...dialogProps} className={`${dialogPanel} h-[88dvh] max-h-[90dvh] max-w-lg rounded-t-3xl sm:h-auto sm:rounded-3xl`}>
+      <div {...dialogProps} className={`${dialogPanel} h-[88dvh] max-h-[90dvh] max-w-lg rounded-t-3xl shadow-sheet sm:h-auto sm:rounded-3xl`}>
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-line px-5 pb-3 pt-4">
           <div className="min-w-0">
             <h2 id={`${baseId}-titulo`} className="flex items-center gap-2 font-display text-title text-ink">
@@ -4928,7 +5007,9 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
     setIsGenerating(true);
     setError(null);
     try {
-      const dataUrl = await toPng(storyRef.current, { pixelRatio: 3, cacheBust: true });
+      // Al menos 780px de ancho (3 × 260), aunque con zoom la vista previa se estreche.
+      const pixelRatio = Math.max(3, 780 / Math.max(1, storyRef.current.offsetWidth));
+      const dataUrl = await toPng(storyRef.current, { pixelRatio, cacheBust: true });
       focusAfterRef.current = "share";
       setImageUrl(dataUrl);
     } catch (err) {
@@ -4974,15 +5055,15 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
   return (
     <ModalPortal>
     <div
-      className={`fixed inset-0 ${Z_CLASS.dialog} flex items-center justify-center bg-black/60 p-4 dark:bg-black/75`}
+      className={`fixed inset-0 ${Z_CLASS.dialog} flex items-center justify-center bg-scrim p-4`}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div {...dialogProps} className={`${dialogPanel} max-h-[92dvh] max-w-sm rounded-3xl`}>
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-line px-5 py-3">
-          <h2 id="panda-story-titulo" className="flex items-center gap-2 font-display text-title text-ink">
-            <Camera size={22} strokeWidth={1.75} className="shrink-0 text-terracotta-ink" aria-hidden="true" /> Tarjeta de la semana
+      <div {...dialogProps} className={`${dialogPanel} max-h-[92dvh] max-w-sm rounded-3xl shadow-dialog`}>
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-line px-5 py-3 max-[300px]:px-3">
+          <h2 id="panda-story-titulo" className="flex min-w-0 items-center gap-2 font-display text-title text-ink">
+            <Camera size={22} strokeWidth={1.75} className="shrink-0 text-terracotta-ink max-[300px]:hidden" aria-hidden="true" /> Tarjeta de la semana
           </h2>
           <button ref={closeRef} type="button" onClick={onClose} aria-label="Cerrar la tarjeta de la semana" className={dialogClose}>
             <X size={18} aria-hidden="true" />
@@ -5009,7 +5090,7 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
         ) : (
           <div className="flex flex-1 flex-col items-center gap-5 overflow-y-auto p-5">
             {/* Tamaños en unidades del contenedor: la tarjeta se ve igual a 260 o 300 px y al exportarla. */}
-            <div className="@container relative aspect-[9/16] w-[260px] shrink-0 overflow-hidden rounded-[2rem] border border-line-strong shadow-[0_18px_40px_-24px_rgb(45_42_38/0.55)] sm:w-[300px]">
+            <div className="@container relative aspect-[9/16] w-[260px] max-w-full shrink-0 overflow-hidden rounded-[2rem] border border-line-strong sm:w-[300px]">
               <div
                 ref={storyRef}
                 style={style.vars as React.CSSProperties}
@@ -5199,7 +5280,7 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div {...dialogProps} className={`${dialogPanel} h-[85dvh] max-h-[90dvh] max-w-md rounded-t-3xl sm:h-auto sm:rounded-3xl`}>
+      <div {...dialogProps} className={`${dialogPanel} h-[85dvh] max-h-[90dvh] max-w-md rounded-t-3xl shadow-sheet sm:h-auto sm:rounded-3xl`}>
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-line px-5 pb-3 pt-4">
           <div className="min-w-0">
             <h2 id="panda-audio-titulo" className="flex items-center gap-2 font-display text-title text-ink">

@@ -32,7 +32,7 @@ function phoneProblem(value: string, minDigits: number): string | null {
 
 const inputClass =
   // Campo = pozo (surface-sunken) sobre el panel de la hoja (surface-raised), como en la Agenda.
-  "w-full min-h-[48px] rounded-xl border bg-surface-sunken px-4 py-2.5 text-body text-ink " +
+  "w-full min-h-[48px] rounded-2xl border bg-surface-sunken px-4 py-2.5 text-body text-ink " +
   // Borde ≥3:1 con el panel (1.4.11): line-control 3.6:1 sobre raised claro · 3.7:1 sobre raised oscuro.
   // El placeholder usa --placeholder (globals.css, ≥4.5:1 sobre los pozos de los dos temas).
   "border-line-control " +
@@ -265,7 +265,7 @@ export function CareTeamForm({ onSaved, onCancel }: { onSaved?: () => void; onCa
         <button
           type="submit"
           disabled={saving}
-          className="w-full min-h-[52px] inline-flex items-center justify-center gap-2 rounded-2xl bg-terracotta-ink hover:bg-terracotta-ink-hover text-on-accent text-body font-bold shadow-[0_2px_8px_-2px_color-mix(in_srgb,var(--terracotta-ink-fill)_40%,transparent)] transition-[background-color,transform] active:scale-[0.98] motion-reduce:active:scale-100 disabled:opacity-70 disabled:cursor-not-allowed disabled:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+          className="w-full min-h-[52px] inline-flex items-center justify-center gap-2 rounded-2xl bg-terracotta-ink hover:bg-terracotta-ink-hover text-on-accent text-body font-bold transition-[background-color,transform] active:scale-[0.98] motion-reduce:active:scale-100 disabled:opacity-70 disabled:cursor-not-allowed disabled:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
         >
           {saving ? (
             <>
@@ -333,14 +333,14 @@ export function CareTeamSheet({
     <ModalPortal>
       <div className={`fixed inset-0 ${Z_CLASS.careTeam} flex items-end sm:items-center justify-center sm:p-4`}>
         <div
-          className="absolute inset-0 bg-black/50 dark:bg-black/70"
+          className="absolute inset-0 bg-scrim"
           onClick={onClose}
           aria-hidden="true"
         />
         <div
           ref={setPanel}
           {...dialogRest}
-          className="relative w-full max-w-md max-h-[92dvh] flex flex-col bg-surface-raised text-ink rounded-t-3xl sm:rounded-3xl border border-line shadow-[0_-8px_32px_-8px_rgba(24,21,32,0.28)] outline-none"
+          className="relative w-full max-w-md max-h-[92dvh] flex flex-col bg-surface-raised text-ink rounded-t-3xl sm:rounded-3xl border border-line shadow-sheet outline-none"
         >
           <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-4 border-b border-line">
             <div className="min-w-0">

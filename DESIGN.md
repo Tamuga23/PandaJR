@@ -226,6 +226,7 @@ Un solo valor canónico por token: esta tabla, el frontmatter y `src/app/globals
 | Lavados | `terracotta-wash`, `sage-wash`, `amber-wash` | `#f6e6df`, `#e5eee8`, `#faf0dc` | `#3a2429`, `#1e2d2a`, `#342a1b` | Fondos sólidos de estado; encima, la tinta del mismo tono (≥4.8:1). |
 | Estados | `danger`, `success`, `warning` | = terracotta-ink, sage-ink, amber-ink | ídem | Alias semánticos para texto de estado. |
 | Selección | `selection` | `#f1d6cb` | `#5a3440` | `::selection`, con `ink` encima. |
+| Velo | `scrim` (`bg-scrim`) | negro al 50% | negro al 70% | Bajo hojas y diálogos (oscurece la app; nunca lleva texto). |
 | Placeholder | `placeholder` | `#6f6964` | `#a6a1b2` | Texto de ejemplo en campos (≥4.5:1). |
 | Panda | `panda-fur`, `panda-baby`, `panda-shade`, `panda-patch`, `panda-line` | `#fffefb`, `#f3efe7`, `#e8e2d7`, `#2d2a26`, `#2d2a26` | `#f3efe7`, `#e3ddd2`, `#cfc7b8`, `#2d2a26`, transparente | Solo el `PandaMark` (ver Components › Marca). |
 
@@ -244,7 +245,7 @@ Un solo valor canónico por token: esta tabla, el frontmatter y `src/app/globals
 - **Filetes** (`line`, `line-strong`, `line-control`): decorativos los dos primeros; `line-control` es el único borde que cumple 3:1 para controles.
 
 ### Named Rules
-**The Two Voices Rule.** Terracota es acción y alarma; sage es crecimiento y completado; amber es solo logística. Un color no cambia de oficio. La única excepción es el monograma de autor (`AuthorChip`): terracota para la mamá, sage para el papá, y vive solo ahí.
+**The Two Voices Rule.** Terracota es acción y alarma; sage es crecimiento y completado; amber es solo logística. Un color no cambia de oficio. Las excepciones son el color por rol: el monograma de autor (`AuthorChip`) y el onboarding (botón principal y barra de progreso según el rol elegido) usan terracota para la mamá y sage para el papá. Es una seña de identidad del producto (la pareja desde la primera pantalla) y no se extiende a otros componentes.
 
 **The Ink-For-Text Rule.** Los tonos (`terracotta`, `sage`, `amber`) no llegan a 4.5:1: son relleno y decoración. Todo texto de color usa la tinta (`*-ink`); en oscuro la tinta de texto y la de relleno se separan (`--*-ink-fill`).
 
@@ -294,11 +295,12 @@ Tokens `--text-*` en `globals.css`; cada utilidad trae su interlineado y los tí
 Plano por defecto: la profundidad se lee por tono (ground → surface → raised, más claro hacia arriba en oscuro) y por filetes. Las sombras son ambientales, cálidas y con dispersión negativa; solo en lo que flota sobre la app (hojas, diálogos, toast) y en la acción de emergencia, donde el halo terracota la señala como la más fuerte.
 
 ### Shadow Vocabulary
-- **Hoja inferior** (`box-shadow: 0 -8px 32px -8px rgba(24,21,32,0.28)`): hojas que suben desde abajo (Nueva cita, Equipo de salud, Ajustes).
-- **Diálogo centrado** (`box-shadow: 0 16px 48px -16px rgba(24,21,32,0.35)`): diálogos de confirmación y selección.
-- **Toast** (`box-shadow: 0 12px 32px -12px rgba(24,21,32,0.5)`): aviso invertido (`bg-ink`, texto `ground`).
-- **Halo de emergencia** (`box-shadow: 0 3px 10px -3px color-mix(in srgb, var(--terracotta-ink-fill) 55%, transparent)`): solo el botón "Emergencias".
-- **Pieza de herramienta** (`box-shadow: 0 18px 40px -20px rgb(45 42 38 / 0.6)`): los grandes botones táctiles de conteo (movimientos, contracciones).
+Tokens `--shadow-*` en `globals.css`; se usan solo como utilidades (`shadow-sheet`…), nunca como valores sueltos.
+- **Hoja inferior** (`shadow-sheet`: `0 -8px 32px -8px rgba(24,21,32,0.28)`): hojas que suben desde abajo en móvil (Nueva cita, Equipo de salud, Ajustes, Presupuesto, Panda Audio).
+- **Diálogo centrado** (`shadow-dialog`: `0 16px 48px -16px rgba(24,21,32,0.35)`): diálogos de confirmación y selección, PandaStory.
+- **Toast** (`shadow-toast`: `0 12px 32px -12px rgba(24,21,32,0.5)`): aviso invertido (`bg-ink`, texto `ground`).
+- **Halo de emergencia** (`shadow-emergency`: `0 3px 10px -3px color-mix(in srgb, var(--terracotta-ink-fill) 55%, transparent)`): solo el botón "Emergencias" (CallActions y el de SOS).
+- **Pieza de herramienta** (`shadow-tool`: `0 18px 40px -20px rgb(45 42 38 / 0.6)`): los grandes objetos táctiles de las herramientas (botón de movimientos, botón de contracciones, tarjeta del votador de nombres).
 
 ### Named Rules
 **The Flat Ground Rule.** Nada que viva en el flujo de la página lleva sombra; una sombra significa "esto flota sobre la app" o "esta es la llamada de emergencia".
@@ -335,6 +337,7 @@ La estructura de toda la app. Se lee en secciones con título y listas con divis
 - **Style:** `surface-raised`, borde `line-control`, radio 16px, alto ≥48px, texto 16px (evita el zoom de iOS), placeholder `placeholder`.
 - **Focus:** anillo de 2px `terracotta-ink`, cursor de texto terracota.
 - **Controles nativos** (fecha, hora, select) siguen al tema con `color-scheme`; `accent-color` es `sage-ink`.
+- **Control segmentado:** pista `surface-sunken`; la opción elegida en `sage-ink` con `on-accent` (Apariencia en Ajustes, vista del plan de parto, Panda Audio, Lecturas), sin sombra.
 
 ### Chips
 - **Monograma de autor (`AuthorChip`):** cuadrado de 20–24px, radio 3px, inicial en Alegreya 13px bold; `terracotta-ink` (mamá), `sage-ink` (papá) o `ink-muted` (sin rol). Informativo, no interactivo.
@@ -343,7 +346,7 @@ La estructura de toda la app. Se lee en secciones con título y listas con divis
 ### Navigation
 - **Barra inferior (móvil):** cuatro destinos en rejilla sobre `ground`, filete superior `line`. Icono en un pozo de 56×32px; activo: pozo `terracotta-wash`, icono y etiqueta `terracotta-ink` bold, `aria-current="page"`; inactivo: `ink-muted`, hover `surface-hover`. Etiqueta `micro`; por debajo de 300px de ancho queda solo el icono (la etiqueta sigue como nombre accesible).
 - **Riel (escritorio):** la misma barra en columna de 96px a la izquierda, con los mismos estados.
-- **Cabecera:** `Wordmark` responsive como `<h1>` y, a la derecha, "Síntomas" (píldora contorno con icono terracota), avisos y ajustes como botones redondos de 44px.
+- **Cabecera:** `Wordmark` responsive como `<h1>` y, a la derecha, "Síntomas" (píldora contorno con icono terracota), avisos y ajustes como botones redondos de 44px. Por debajo de 300px (zoom del 200%) "Síntomas" queda con su icono y la etiqueta sigue como nombre accesible, igual que en la barra.
 
 ### Ruta de urgencia (`src/components/CallActions.tsx`)
 - **Emergencias siempre es la acción más fuerte:** relleno `terracotta-ink`, texto `on-accent` 18px bold, alto ≥56px, radio 16px, halo terracota, pozo de icono `on-accent` al 15%. Número con `tabular-nums`; si la región no está confirmada, una nota `meta` pide revisarlo.
@@ -394,6 +397,6 @@ La firma del sistema. SVG paramétrico y determinista (viewBox 120; la variació
 - **Don't** usar emoji ni glifos como iconos; un emoji guardado como dato (el estado de ánimo) se muestra por su nombre.
 - **Don't** usar colores fuera de la paleta (sky, emerald, blue, indigo, rose, stone…), degradados de texto ni glassmorphism decorativo.
 - **Don't** marcar estado con un `border-left` de color.
-- **Don't** añadir animaciones de entrada deslizantes ni otra animación de autor: los cambios de estado se marcan con color y opacidad; las utilidades `animate-in`/`slide-in-from-*` de `globals.css` son heredadas y no se usan.
+- **Don't** añadir animaciones de entrada deslizantes ni otra animación de autor: los cambios de estado se marcan con color y opacidad; las utilidades heredadas `animate-in`/`slide-in-from-*` se retiraron de `globals.css` y no deben volver.
 - **Don't** reintroducir la ficha fetal de categoría (número gigante, fruta como héroe, tarjetas apiladas).
 - **Don't** usar los alias de compatibilidad (`--background`, `--foreground`, `--surface-card`, `--surface-muted`, `--border-subtle`) en código nuevo.

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MapPin, Pencil, Phone, PhoneCall, Siren, UserPen } from "lucide-react";
 import { useCareTeam } from "@/lib/useCareTeam";
 import { hospitalMapsUrl, telHref } from "@/lib/urgency";
@@ -36,7 +36,7 @@ const endIconNarrow = "@max-[15rem]:hidden";
 const startIconNarrow = "@max-[11rem]:hidden";
 
 const emergencyClass =
-  `${baseAction} @container min-h-[56px] py-2.5 bg-terracotta-ink hover:bg-terracotta-ink-hover text-on-accent shadow-[0_3px_10px_-3px_color-mix(in_srgb,var(--terracotta-ink-fill)_55%,transparent)]`;
+  `${baseAction} @container min-h-[56px] py-2.5 bg-terracotta-ink hover:bg-terracotta-ink-hover text-on-accent shadow-emergency`;
 
 /** Aviso cuando el número de emergencias no se pudo confirmar para la región. */
 function EmergencyConfirmNote({ number }: { number: string }) {

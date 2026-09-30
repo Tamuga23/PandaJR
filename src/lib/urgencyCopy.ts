@@ -33,8 +33,29 @@ const PARTNER_SIGN_COPY: Record<string, SignCopy> = {
   },
 };
 
-/** Título y detalle de una señal en la voz de quien lee: la mamá (tal cual) o el papá. */
-export function signCopy(sign: AlarmSign, role?: "mama" | "papa"): { title: string; detail: string } {
+/**
+ * Antes de la semana 20 no se habla de parto pretérmino (ACOG: de la 20+0 a la 36+6), pero las
+ * contracciones o cólicos regulares siguen siendo motivo para llamar ya a su obstetra.
+ */
+const BEFORE_20_SIGN_COPY: Record<string, { mama: SignCopy; papa: SignCopy }> = {
+  pretermino: {
+    mama: {
+      title: "Contracciones, cólicos regulares o presión en la pelvis",
+      detail: "Contracciones o cólicos como de menstruación que van y vienen, presión en la pelvis o dolor lumbar rítmico. Con 4 o más en 1 hora, llama ya a tu obstetra.",
+    },
+    papa: {
+      title: "Contracciones, cólicos regulares o presión en la pelvis",
+      detail: "Contracciones o cólicos como de menstruación que le van y vienen, presión en la pelvis o dolor lumbar rítmico. Si tiene 4 o más en 1 hora, llama ya a su obstetra.",
+    },
+  },
+};
+
+/**
+ * Título y detalle de una señal en la voz de quien lee: la mamá (tal cual) o el papá. Con la
+ * semana confirmada (`week`), antes de la 20 algunas señales se dicen sin hablar de pretérmino.
+ */
+export function signCopy(sign: AlarmSign, role?: "mama" | "papa", week?: number): { title: string; detail: string } {
+  const early = typeof week === "number" && week < 20 ? BEFORE_20_SIGN_COPY[sign.id]?.[role === "papa" ? "papa" : "mama"] : undefined;
   const partner = role === "papa" ? PARTNER_SIGN_COPY[sign.id] : undefined;
-  return { title: partner?.title ?? sign.title, detail: partner?.detail ?? sign.detail };
+  return { title: early?.title ?? partner?.title ?? sign.title, detail: early?.detail ?? partner?.detail ?? sign.detail };
 }

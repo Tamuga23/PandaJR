@@ -227,12 +227,14 @@ export function WeekHeader({
     <GrowingPlant week={ga.source === "unknown" ? undefined : ga.weeks} size={120} title="" className="-ms-2 shrink-0" />
   );
 
+  // Con el texto por debajo de 10rem (zoom del 200% en un teléfono) la planta queda arriba y el texto
+  // debajo, en vez de partir "Semana" letra a letra.
   if (ga.source === "unknown") {
     return (
       <header>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {plant}
-          <h2 className="min-w-0 font-display text-display text-ink">Semana sin confirmar</h2>
+          <h2 className="min-w-[10rem] flex-1 font-display text-display text-ink">Semana sin confirmar</h2>
         </div>
         <p className="mt-2 text-body text-ink-muted">
           {needsReview
@@ -259,9 +261,9 @@ export function WeekHeader({
 
   if (ga.source === "manual") {
     return (
-      <header className="flex items-center gap-3">
+      <header className="flex flex-wrap items-center gap-3">
         {plant}
-        <div className="min-w-0 flex-1">
+        <div className="min-w-[10rem] flex-1">
           {title}
           <p className="mt-1 text-meta text-ink-muted">
             Semana elegida a mano: no avanza sola.{" "}
@@ -280,9 +282,9 @@ export function WeekHeader({
   const total = ga.totalDays ?? 0;
   const left = PREGNANCY_DAYS - total;
   return (
-    <header className="flex items-center gap-3">
+    <header className="flex flex-wrap items-center gap-3">
       {plant}
-      <div className="min-w-0 flex-1">
+      <div className="min-w-[10rem] flex-1">
         {title}
         {parts.note && (
           <p aria-hidden="true" className="mt-1 text-meta font-bold text-ink">

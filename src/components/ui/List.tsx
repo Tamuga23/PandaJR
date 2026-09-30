@@ -53,8 +53,9 @@ export function Section({
   const visual = size ?? (Heading === "h2" ? "md" : "sm");
   return (
     <section id={id} aria-labelledby={hid} className={className}>
-      <div className="mb-2 flex items-end justify-between gap-3">
-        <div className="min-w-0">
+      {/* Si el título quedaría por debajo de 8rem (zoom del 200%), la acción baja a la línea siguiente. */}
+      <div className="mb-2 flex flex-wrap items-end justify-between gap-x-3 gap-y-1">
+        <div className="min-w-0 flex-1 basis-32">
           <Heading
             id={hid}
             className={cx(

@@ -398,9 +398,9 @@ const OUTLINE_FILL = "border border-line-control text-ink hover:bg-surface-hover
 /** Acción de texto terracota con objetivo ≥44px. */
 const TEXT_ACTION = `-mx-2 inline-flex min-h-11 items-center gap-1.5 rounded-full px-2 text-meta font-bold text-terracotta-ink underline-offset-4 hover:underline ${FOCUS_RING}`;
 /** Campo de texto: borde ≥3:1 (1.4.11) y foco en tinta. */
-const FIELD = "w-full min-h-12 rounded-xl border border-line-control bg-surface-sunken px-4 py-3 text-body text-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-terracotta-ink";
+const FIELD = "w-full min-h-12 rounded-2xl border border-line-control bg-surface-sunken px-4 py-3 text-body text-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-terracotta-ink";
 /** Velo de diálogo: sólido, sin desenfoque decorativo. */
-const SCRIM = "bg-black/45 dark:bg-black/65";
+const SCRIM = "bg-scrim";
 
 /**
  * Confirmación destructiva modal (alertdialog) que se abre sobre Ajustes: el foco va a la opción
@@ -452,7 +452,7 @@ function ConfirmDialog({
       >
         <div
           {...dialogProps}
-          className="w-full max-w-sm rounded-3xl border border-line bg-surface-raised p-5 shadow-[0_16px_48px_-16px_rgba(24,21,32,0.35)] outline-none"
+          className="w-full max-w-sm rounded-3xl border border-line bg-surface-raised p-5 shadow-dialog outline-none"
         >
           <h2 id={titleId} className="font-display text-title text-ink">{title}</h2>
           <div id={descId} className="mt-2 space-y-2 text-body text-ink-muted">{children}</div>
@@ -903,7 +903,7 @@ function ProfileModal({
     <div className={`fixed inset-0 ${SCRIM} ${Z_CLASS.dialog} flex items-center justify-center p-4`}>
       <div
         {...dialogProps}
-        className="bg-surface-raised text-ink rounded-3xl shadow-[0_16px_48px_-16px_rgba(24,21,32,0.35)] w-full max-w-sm overflow-hidden border border-line flex flex-col max-h-[85dvh] outline-none"
+        className="bg-surface-raised text-ink rounded-3xl shadow-dialog w-full max-w-sm overflow-hidden border border-line flex flex-col max-h-[85dvh] outline-none"
       >
         <div className="flex items-center justify-between gap-3 border-b border-line py-2 ps-5 pe-2">
           <h2 id="profile-modal-title" className="font-display text-title text-ink">Ajustes</h2>
@@ -986,7 +986,7 @@ function ProfileModal({
                 code={form.inviteCode}
                 myUid={partner.myUid}
                 onCodeChange={(inviteCode) => {
-                  // También en el formulario: "Guardar Cambios" no debe volver al código anterior.
+                  // También en el formulario: "Guardar cambios" no debe volver al código anterior.
                   usePandaStore.getState().setProfile({ inviteCode });
                   setForm(f => ({ ...f, inviteCode }));
                   showToast("Código nuevo listo. El anterior ya no sirve.");
@@ -2239,7 +2239,7 @@ export default function PandaJRApp() {
     <div className={`relative mx-auto flex w-full max-w-md flex-col overflow-x-clip bg-ground text-ink sm:border-x sm:border-line lg:max-w-none lg:border-x-0 lg:ps-24 ${activeTab === "pandaia" ? "h-dvh overflow-hidden" : "min-h-dvh pb-[calc(3.5rem+var(--safe-bottom))] lg:pb-0"}`}>
       {/* Cabecera: marca en Alegreya, Síntomas, cita próxima y Ajustes. Fondo sólido (sin desenfoque); su
           altura (3.4375rem + zona segura) la usan las cabeceras de herramienta y el scroll-padding. */}
-      <header className={`sticky top-0 [@media(max-height:500px)]:static ${Z_CLASS.header} w-full shrink-0 border-b border-line bg-ground px-3 pt-[var(--safe-top)] pb-2.5 sm:px-4 lg:px-0`}>
+      <header className={`sticky top-0 [@media(max-height:500px)]:static ${Z_CLASS.header} w-full shrink-0 border-b border-line bg-ground px-3 pt-[var(--safe-top)] pb-2.5 max-[300px]:px-2 sm:px-4 lg:px-0`}>
         {/* Escritorio: el padding va dentro de la columna, así la marca se alinea con el contenido. */}
         <div className={`mx-auto flex w-full items-center justify-between gap-2 lg:px-8 ${columnWidth}`}>
           <h1 className="min-w-0">
@@ -2249,15 +2249,16 @@ export default function PandaJRApp() {
           </h1>
 
           <div className="flex shrink-0 items-center gap-1 min-[400px]:gap-1.5 sm:gap-2">
-            {/* Acceso a síntomas de alarma desde cualquier pestaña */}
+            {/* Acceso a síntomas de alarma desde cualquier pestaña. Por debajo de 300px (zoom del 200% en un
+                teléfono) queda el icono, como en la barra: la etiqueta sigue siendo el nombre accesible. */}
             <button
               type="button"
               onClick={openSymptoms}
               aria-label="Síntomas: señales de alarma y a quién llamar"
-              className={`inline-flex min-h-11 items-center gap-1.5 rounded-full border border-line-strong px-3.5 text-meta font-bold text-ink transition-colors hover:bg-surface-hover ${FOCUS_RING}`}
+              className={`inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-line-strong px-3.5 text-meta font-bold text-ink transition-colors hover:bg-surface-hover max-[300px]:w-11 max-[300px]:px-0 ${FOCUS_RING}`}
             >
               <HeartPulse size={18} strokeWidth={1.75} className="shrink-0 text-terracotta-ink" aria-hidden="true" />
-              <span>Síntomas</span>
+              <span className="max-[300px]:sr-only">Síntomas</span>
             </button>
 
             <HeaderBell events={events} onOpen={(ev) => setSelectedPrepEvent(ev)} />
@@ -2430,7 +2431,7 @@ export default function PandaJRApp() {
         {toast && (
           <div
             key={toast.id}
-            className="pointer-events-auto flex min-h-13 items-center justify-between gap-3 rounded-2xl bg-ink py-2 ps-4 pe-2 text-ground shadow-[0_12px_32px_-12px_rgba(24,21,32,0.5)]"
+            className="pointer-events-auto flex min-h-13 items-center justify-between gap-3 rounded-2xl bg-ink py-2 ps-4 pe-2 text-ground shadow-toast"
           >
             <span className="min-w-0 py-1 text-meta font-medium">{toast.message}</span>
             {toast.onAction && (
@@ -2450,7 +2451,7 @@ export default function PandaJRApp() {
           DOM, así el orden del foco no cambia). Fondo sólido, sin desenfoque. */}
       <nav
         aria-label="Navegación principal"
-        className={`fixed inset-x-0 bottom-0 mx-auto grid max-w-md grid-cols-4 items-stretch gap-1 border-t border-line bg-ground px-2 pt-1.5 pb-[var(--safe-bottom)] ${Z_CLASS.nav} lg:inset-y-0 lg:right-auto lg:mx-0 lg:flex lg:w-24 lg:max-w-none lg:flex-col lg:justify-start lg:gap-2 lg:border-t-0 lg:border-e lg:px-2 lg:pt-[calc(var(--safe-top)+4.5rem)] lg:pb-6`}
+        className={`fixed inset-x-0 bottom-0 mx-auto grid max-w-md grid-cols-4 items-stretch gap-1 border-t border-line bg-ground px-2 pt-1.5 pb-[var(--safe-bottom)] max-[300px]:gap-0 max-[300px]:px-1 ${Z_CLASS.nav} lg:inset-y-0 lg:right-auto lg:mx-0 lg:flex lg:w-24 lg:max-w-none lg:flex-col lg:justify-start lg:gap-2 lg:border-t-0 lg:border-e lg:px-2 lg:pt-[calc(var(--safe-top)+4.5rem)] lg:pb-6`}
       >
         {/* Riel: el filete de la cabecera continúa hasta el borde de la ventana. */}
         <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 hidden h-[calc(3.4375rem+var(--safe-top))] border-b border-line lg:block" />
@@ -2496,7 +2497,7 @@ function NavItem({ icon, label, isActive, onClick }: { icon: React.ReactNode, la
     >
       <span
         aria-hidden="true"
-        className={`grid h-8 w-14 place-items-center rounded-full transition-colors ${isActive ? "bg-terracotta-wash" : "group-hover:bg-surface-hover"}`}
+        className={`grid h-8 w-14 place-items-center rounded-full transition-colors max-[300px]:w-11 ${isActive ? "bg-terracotta-wash" : "group-hover:bg-surface-hover"}`}
       >
         {icon}
       </span>
@@ -3219,7 +3220,7 @@ function ChatUrgencyBubble({ id, matches, reason, live = true, role = "mama" }: 
     <section
       id={id}
       aria-labelledby={titleId}
-      className="w-full shrink-0 scroll-mt-2 overflow-hidden rounded-3xl rounded-bl-md border border-terracotta-ink shadow-[0_4px_16px_-6px_color-mix(in_srgb,var(--terracotta-ink-fill)_45%,transparent)]"
+      className="w-full shrink-0 scroll-mt-2 overflow-hidden rounded-3xl rounded-bl-md border border-terracotta-ink"
     >
       {/* La burbuja más fuerte del chat: relleno terracota (ninguna otra burbuja lo usa). */}
       <div role={live ? "alert" : undefined} className="bg-terracotta-ink px-4 py-3.5 text-on-accent">
@@ -4112,7 +4113,7 @@ function PandaIAView({
         {/* Text Input Ergonómico */}
         <div className="p-2.5 lg:px-8">
           {/* El contenedor es el campo visible: borde ≥3:1 y anillo de tinta al escribir (el textarea no lleva el suyo). */}
-          <div className="flex items-end gap-2 rounded-3xl border border-line-control bg-surface-raised p-1.5 focus-within:border-transparent focus-within:ring-2 focus-within:ring-sage-ink">
+          <div className="flex items-end gap-2 rounded-3xl border border-line-control bg-surface-raised p-1.5 focus-within:border-transparent focus-within:ring-2 focus-within:ring-terracotta-ink">
             <button
               type="button"
               aria-label="Preguntas sobre términos de la ecografía"
@@ -4169,7 +4170,7 @@ function PandaIAView({
         >
           <div
             {...ultrasoundDialogProps}
-            className="w-full max-w-md overflow-hidden rounded-t-3xl border border-line bg-surface-raised text-ink shadow-[0_-8px_32px_-8px_rgba(24,21,32,0.28)] outline-none sm:rounded-3xl"
+            className="w-full max-w-md overflow-hidden rounded-t-3xl border border-line bg-surface-raised text-ink shadow-sheet outline-none sm:rounded-3xl"
           >
             <div className="flex items-start justify-between gap-3 border-b border-line py-3 ps-5 pe-2">
               <div className="min-w-0 pt-1">

@@ -155,7 +155,7 @@
       "**Don't** usar emoji ni glifos como iconos; un emoji guardado como dato (el estado de ánimo) se muestra por su nombre.",
       "**Don't** usar colores fuera de la paleta (sky, emerald, blue, indigo, rose, stone…), degradados de texto ni glassmorphism decorativo.",
       "**Don't** marcar estado con un `border-left` de color.",
-      "**Don't** añadir animaciones de entrada deslizantes ni otra animación de autor: los cambios de estado se marcan con color y opacidad; las utilidades `animate-in`/`slide-in-from-*` de `globals.css` son heredadas y no se usan.",
+      "**Don't** añadir animaciones de entrada deslizantes ni otra animación de autor: los cambios de estado se marcan con color y opacidad; las utilidades heredadas `animate-in`/`slide-in-from-*` se retiraron de `globals.css` y no deben volver.",
       "**Don't** reintroducir la ficha fetal de categoría (número gigante, fruta como héroe, tarjetas apiladas).",
       "**Don't** usar los alias de compatibilidad (`--background`, `--foreground`, `--surface-card`, `--surface-muted`, `--border-subtle`) en código nuevo."
     ]
