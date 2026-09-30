@@ -1,24 +1,36 @@
 {
-  "name": "PandaJR Copiloto",
+  "name": "PandaJR",
   "short_name": "PandaJR",
-  "description": "Herramienta colaborativa para padres primerizos",
+  "description": "Guía semanal del embarazo para la mamá y su pareja.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f8fafc",
-  "theme_color": "#d97757",
+  "background_color": "#faf9f5",
+  "theme_color": "#faf9f5",
   "icons": [
     {
-      "src": "/app-icon.jpg",
+      "src": "/icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/jpeg",
-      "purpose": "any maskable"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "/app-icon.jpg",
+      "src": "/icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
-      "purpose": "any maskable"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "categories": ["medical", "lifestyle", "health"]

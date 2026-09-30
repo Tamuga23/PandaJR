@@ -1,8 +1,11 @@
 "use client";
 
-// Bloques de la Guía: cabecera de semana, «¿Es la hora?» (36+), «Hoy», ficha fetal explorable y
-// checklists por trimestre. Solo presentación y estado de interfaz (qué está desplegado): las
-// lecturas y escrituras de Firebase viven en page.tsx, en listeners y manejadores de eventos.
+// Bloques de la Guía: bloque de semana (con la planta que crece), «¿Es la hora?» (36+), «Hoy», ficha de la
+// semana explorable y checklists por trimestre. Solo presentación y estado de interfaz (qué está
+// desplegado): las lecturas y escrituras de Firebase viven en page.tsx, en listeners y manejadores.
+//
+// Fase 6 ("la Guía es un jardín compartido"): secciones y listas con divisores en lugar de tarjetas,
+// títulos en Alegreya (font-display) y la planta como firma. Primitivas en @/components/ui/List.
 
 import React, { useState } from "react";
 import {
@@ -13,14 +16,14 @@ import {
   ChevronLeft,
   ChevronRight,
   Circle,
-  HeartPulse,
   Luggage,
-  Sparkles,
   Timer,
 } from "lucide-react";
 import { AuthorChip } from "@/components/AuthorChip";
 import { CallActions } from "@/components/CallActions";
 import { formatDateLong } from "@/components/DatingPicker";
+import { GrowingPlant } from "@/components/GrowingPlant";
+import { ListGroup, ListRow, RowButton } from "@/components/ui/List";
 import { MAX_VALID_GESTATION_DAYS, PREGNANCY_DAYS, dueDateSummary, type GestationalAgeState } from "@/lib/pregnancy";
 import { TASK_OWNERS, taskWindow, type TaskOwner, type TaskWithCategory } from "@/lib/tasks";
 import { WEEK_MAX, WEEK_MIN, formatLength, formatWeight, getWeek, lengthMeasure } from "@/lib/weeks";
@@ -30,8 +33,10 @@ export type OwnerLabels = Record<TaskOwner, string>;
 export type GuiaTool = "contracciones" | "sos" | "maleta";
 
 const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink";
-const SURFACE = "bg-white dark:bg-[#221d2d] rounded-2xl border border-stone-200/80 dark:border-white/[0.08]";
-const MUTED = "text-stone-600 dark:text-[#a6a1b2]";
+const FOCUS_INSET = "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-terracotta-ink";
+/** Acción de texto (terracota) con objetivo ≥44px. */
+const TEXT_ACTION = `inline-flex min-h-11 items-center rounded-full px-2 text-meta font-bold text-terracotta-ink underline-offset-4 hover:underline ${FOCUS}`;
+const ICON = { size: 20, strokeWidth: 1.75, "aria-hidden": true } as const;
 
 const cap = (s: string) => (s ? s.charAt(0).toLocaleUpperCase("es") + s.slice(1) : s);
 
@@ -68,7 +73,8 @@ export function taskWindowNote(
 }
 
 // =====================================================================================
-// Fila de tarea: marcar, ver el porqué clínico y reasignar
+// Fila de tarea: marcar, ver el porqué clínico y reasignar. Va dentro de un <ListGroup>: el
+// divisor entre filas empieza en el texto (clase pj-row-body), tras la casilla.
 // =====================================================================================
 
 export type TaskRowModel = {
@@ -101,8 +107,9 @@ export function TaskRow({
   const { task, completed, owner, windowNote, author } = row;
   const panelId = `${idBase}-panel`;
   return (
-    <li className="py-1">
-      <div className="flex items-start gap-1">
+    <li className="relative">
+      <div className="flex items-start ps-[var(--gutter)]">
+        {/* Casilla: 44px de objetivo; el círculo (22px) queda alineado con el margen de la columna. */}
         <button
           type="button"
           role="checkbox"
@@ -110,49 +117,56 @@ export function TaskRow({
           aria-label={task.text}
           disabled={disabled}
           onClick={onToggleDone}
-          className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl transition-colors hover:bg-sage/10 disabled:cursor-wait disabled:opacity-60 ${FOCUS}`}
+          className={`-ms-2.5 mt-0.5 grid size-11 shrink-0 place-items-center rounded-full transition-colors hover:bg-surface-hover disabled:cursor-wait disabled:opacity-60 ${FOCUS}`}
         >
           {completed ? (
-            <CheckCircle2 size={22} className="text-sage-ink" aria-hidden="true" />
+            <CheckCircle2 size={22} strokeWidth={1.75} className="text-sage-ink" aria-hidden="true" />
           ) : (
-            <Circle size={22} className="text-stone-500 dark:text-[#a6a1b2]" aria-hidden="true" />
+            <Circle size={22} strokeWidth={1.75} className="text-line-control" aria-hidden="true" />
           )}
         </button>
-        <button
-          type="button"
-          aria-expanded={expanded}
-          aria-controls={panelId}
-          onClick={() => setExpanded((v) => !v)}
-          className={`min-h-[44px] min-w-0 flex-1 flex items-start gap-2 rounded-xl py-2 pr-1 text-left ${FOCUS}`}
-        >
-          <span className="min-w-0 flex-1">
-            <span className="sr-only">Detalles: </span>
-            <span
-              className={`block text-sm leading-snug ${
-                completed ? "text-stone-600 dark:text-[#a6a1b2] line-through decoration-stone-400" : "font-semibold text-stone-800 dark:text-[#eae6e1]"
-              }`}
-            >
-              {task.text}
+        <div className="pj-row-body ms-0.5 flex min-w-0 flex-1">
+          <button
+            type="button"
+            aria-expanded={expanded}
+            aria-controls={panelId}
+            onClick={() => setExpanded((v) => !v)}
+            className={`flex min-h-12 min-w-0 flex-1 items-start gap-3 py-2.5 pe-[var(--gutter)] text-left ${FOCUS_INSET}`}
+          >
+            <span className="min-w-0 flex-1">
+              <span className="sr-only">Detalles: </span>
+              <span
+                className={`block text-body ${
+                  completed ? "text-ink-subtle line-through decoration-line-control" : "font-medium text-ink"
+                }`}
+              >
+                {task.text}
+              </span>
+              <span className={`mt-0.5 block text-meta ${windowNote?.overdue ? "text-amber-ink" : "text-ink-muted"}`}>
+                {ownerLabels[owner]}
+                {windowNote ? ` · ${windowNote.text}` : ""}
+              </span>
             </span>
-            <span className={`mt-0.5 block text-xs leading-snug ${windowNote?.overdue ? "text-amber-800 dark:text-amber-300" : MUTED}`}>
-              {ownerLabels[owner]}
-              {windowNote ? ` · ${windowNote.text}` : ""}
-            </span>
-          </span>
-          {author && <AuthorChip size="xs" name={author.name} role={author.role} title={author.title} />}
-          <ChevronDown
-            size={18}
-            aria-hidden="true"
-            className={`mt-0.5 shrink-0 text-stone-500 dark:text-[#a6a1b2] transition-transform motion-reduce:transition-none ${expanded ? "rotate-180" : ""}`}
-          />
-        </button>
+            {author && (
+              <span className="mt-0.5 shrink-0">
+                <AuthorChip size="xs" name={author.name} role={author.role} title={author.title} />
+              </span>
+            )}
+            <ChevronDown
+              size={18}
+              strokeWidth={1.75}
+              aria-hidden="true"
+              className={`mt-0.5 shrink-0 text-ink-subtle transition-transform motion-reduce:transition-none ${expanded ? "rotate-180" : ""}`}
+            />
+          </button>
+        </div>
       </div>
-      <div id={panelId} hidden={!expanded} className="pl-12 pr-2 pb-3">
+      <div id={panelId} hidden={!expanded} className="ps-[calc(var(--gutter)+2.25rem)] pe-[var(--gutter)] pb-4">
         {expanded && (
           <>
-            <p className="text-sm leading-relaxed text-stone-700 dark:text-[#d9d4de]">{task.detail}</p>
+            <p className="text-body text-ink-muted">{task.detail}</p>
             <div role="group" aria-label={`Asignar «${task.text}»`} className="mt-3">
-              <p className="text-xs font-bold text-stone-700 dark:text-[#d9d4de]">Asignar a</p>
+              <p className="text-meta font-bold text-ink">Asignar a</p>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
                 {TASK_OWNERS.map((o) => {
                   const on = owner === o;
@@ -165,10 +179,8 @@ export function TaskRow({
                       onClick={() => {
                         if (!on) onAssign(o);
                       }}
-                      className={`min-h-[44px] rounded-xl px-3.5 text-sm font-bold transition-colors disabled:cursor-wait disabled:opacity-60 ${FOCUS} ${
-                        on
-                          ? "bg-sage-ink text-white"
-                          : "border border-stone-300 dark:border-white/15 bg-white dark:bg-[#2d273a] text-stone-800 dark:text-[#eae6e1] hover:bg-stone-50 dark:hover:bg-[#352e44]"
+                      className={`min-h-11 rounded-full px-4 text-meta font-bold transition-colors disabled:cursor-wait disabled:opacity-60 ${FOCUS} ${
+                        on ? "bg-sage-ink text-on-accent" : "border border-line-control text-ink hover:bg-surface-hover"
                       }`}
                     >
                       {ownerLabels[o]}
@@ -176,7 +188,7 @@ export function TaskRow({
                   );
                 })}
               </div>
-              {row.ownerNote && <p className={`mt-1.5 text-xs ${MUTED}`}>{row.ownerNote}</p>}
+              {row.ownerNote && <p className="mt-1.5 text-micro font-medium text-ink-subtle">{row.ownerNote}</p>}
             </div>
           </>
         )}
@@ -186,8 +198,16 @@ export function TaskRow({
 }
 
 // =====================================================================================
-// Cabecera de semana (siempre la semana REAL; explorar vive en la ficha fetal)
+// Bloque de semana: la planta (semana REAL) y la semana en Alegreya; explorar vive en la ficha
 // =====================================================================================
+
+/** "Semana 24 + 3 días · hoy es la fecha probable" → partes para componer el título. */
+function splitWeekLabel(label: string): { week: string; extra?: string; note?: string } {
+  const [main, ...rest] = label.split(" · ");
+  const note = rest.length ? rest.join(" · ") : undefined;
+  const plus = main.indexOf(" + ");
+  return plus > 0 ? { week: main.slice(0, plus), extra: main.slice(plus + 1), note } : { week: main, note };
+}
 
 export function WeekHeader({
   ga,
@@ -202,42 +222,54 @@ export function WeekHeader({
   needsReview?: boolean;
 }) {
   const isMama = reader === "mama";
+  // La planta dice la semana real; sin confirmar, un brote neutro (no se inventa una semana).
+  const plant = (
+    <GrowingPlant week={ga.source === "unknown" ? undefined : ga.weeks} size={120} title="" className="-ms-2 shrink-0" />
+  );
+
   if (ga.source === "unknown") {
     return (
       <header>
-        <h2 className="text-2xl font-black tracking-tight text-stone-900 dark:text-[#eae6e1]">Semana sin confirmar</h2>
-        <p className={`mt-1 text-sm leading-snug ${MUTED}`}>
+        <div className="flex items-center gap-3">
+          {plant}
+          <h2 className="min-w-0 font-display text-display text-ink">Semana sin confirmar</h2>
+        </div>
+        <p className="mt-2 text-body text-ink-muted">
           {needsReview
             ? "La fecha probable guardada no es válida: serían menos de 2 o más de 42 semanas de embarazo. Revisa la fecha en Ajustes."
             : isMama
               ? "Con tu fecha probable de parto calculamos la semana cada día y te mostramos qué toca."
               : "Con la fecha probable de parto calculamos la semana cada día y les mostramos qué toca."}
         </p>
-        <button
-          type="button"
-          onClick={onConfirmDate}
-          className={`mt-3 min-h-[44px] rounded-xl bg-terracotta-ink hover:bg-terracotta-ink-hover px-4 text-sm font-bold text-white transition-colors ${FOCUS}`}
-        >
+        <RowButton tone="primary" onClick={onConfirmDate} className="mt-3">
           {needsReview ? "Revisar la fecha" : isMama ? "Confirmar mi fecha" : "Confirmar la fecha"}
-        </button>
+        </RowButton>
       </header>
     );
   }
 
+  const parts = splitWeekLabel(ga.label);
+  const title = (
+    <h2 className="font-display text-display text-ink">
+      {parts.week}
+      {parts.extra && <span className="whitespace-nowrap text-ink-muted"> {parts.extra}</span>}
+      {parts.note && <span className="sr-only"> · {parts.note}</span>}
+    </h2>
+  );
+
   if (ga.source === "manual") {
     return (
-      <header>
-        <h2 className="text-2xl font-black tracking-tight text-stone-900 dark:text-[#eae6e1]">{ga.label}</h2>
-        <p className={`mt-1 text-sm leading-snug ${MUTED}`}>
-          Semana elegida a mano: no avanza sola.{" "}
-          <button
-            type="button"
-            onClick={onConfirmDate}
-            className={`inline-flex min-h-[44px] items-center rounded-lg px-1 -mx-1 font-bold text-terracotta-ink underline underline-offset-4 ${FOCUS}`}
-          >
-            Agregar la fecha probable
-          </button>
-        </p>
+      <header className="flex items-center gap-3">
+        {plant}
+        <div className="min-w-0 flex-1">
+          {title}
+          <p className="mt-1 text-meta text-ink-muted">
+            Semana elegida a mano: no avanza sola.{" "}
+            <button type="button" onClick={onConfirmDate} className={`-mx-2 ${TEXT_ACTION} underline`}>
+              Agregar la fecha probable
+            </button>
+          </p>
+        </div>
       </header>
     );
   }
@@ -247,28 +279,23 @@ export function WeekHeader({
   const src = dueDateSummary(ga.dueDateSource, reader, ga.dueDate ? formatDateLong(ga.dueDate, today) : undefined);
   const total = ga.totalDays ?? 0;
   const left = PREGNANCY_DAYS - total;
-  const percent = Math.min(100, Math.max(0, Math.round((total / PREGNANCY_DAYS) * 100)));
   return (
-    <header>
-      <h2 className="text-2xl font-black tracking-tight text-stone-900 dark:text-[#eae6e1] text-balance">{ga.label}</h2>
-      <p className={`mt-1 text-sm leading-snug ${MUTED}`}>{src}</p>
-      {left > 0 && (
-        <div className="mt-3">
-          <div
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={percent}
-            aria-label={`Van ${percent}% del embarazo`}
-            className="h-1.5 w-full overflow-hidden rounded-full bg-stone-200 dark:bg-[#2d273a]"
-          >
-            <div className="h-full rounded-full bg-sage-ink" style={{ width: `${percent}%` }} />
-          </div>
-          <p className={`mt-1.5 text-xs ${MUTED}`}>
+    <header className="flex items-center gap-3">
+      {plant}
+      <div className="min-w-0 flex-1">
+        {title}
+        {parts.note && (
+          <p aria-hidden="true" className="mt-1 text-meta font-bold text-ink">
+            {cap(parts.note)}
+          </p>
+        )}
+        <p className="mt-1.5 text-meta text-ink-muted">{src}</p>
+        {left > 0 && (
+          <p className="mt-1 text-micro font-medium text-ink-subtle tabular-nums">
             {left === 1 ? "Falta 1 día para la fecha probable" : `Faltan ${left} días para la fecha probable`}
           </p>
-        </div>
-      )}
+        )}
+      </div>
     </header>
   );
 }
@@ -312,7 +339,6 @@ export function LaborReadyBlock({
   totalDays,
   reader = "mama",
   partnerName,
-  onOpenTool,
   onReviewDate,
 }: {
   weeks: number;
@@ -320,74 +346,37 @@ export function LaborReadyBlock({
   totalDays?: number;
   reader?: Role;
   partnerName?: string;
-  onOpenTool: (tool: GuiaTool) => void;
   /** Abre Ajustes en la fecha (se ofrece solo si la fecha es dudosa). */
   onReviewDate?: () => void;
 }) {
   const dateInDoubt = typeof totalDays === "number" && totalDays > MAX_VALID_GESTATION_DAYS;
-  const row = `w-full min-h-[64px] flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-stone-50 dark:hover:bg-[#2d273a] ${FOCUS} focus-visible:-outline-offset-2`;
-  const icon = "grid h-10 w-10 shrink-0 place-items-center rounded-xl";
   return (
-    <section aria-labelledby="guia-labor-title">
-      <h2 id="guia-labor-title" className="text-2xl font-black tracking-tight text-stone-900 dark:text-[#eae6e1]">
-        ¿Es la hora?
-      </h2>
-      <p className="mt-1 text-sm leading-snug text-stone-700 dark:text-[#d9d4de]">{laborReadyText(weeks, reader, partnerName, dateInDoubt)}</p>
-      {dateInDoubt && onReviewDate && (
-        <button
-          type="button"
-          onClick={onReviewDate}
-          className={`mt-1 inline-flex min-h-[44px] items-center rounded-lg px-1 -mx-1 text-sm font-bold text-terracotta-ink underline underline-offset-4 ${FOCUS}`}
-        >
-          Revisar la fecha
-        </button>
-      )}
-      {/* Llamar, a un toque (Principio 1). Antes de la 37 manda la regla pretérmino. */}
-      <CallActions context={weeks >= 37 ? "contracciones" : "pretermino"} className="mt-3" />
-      <ul className={`mt-3 ${SURFACE} divide-y divide-stone-200 dark:divide-white/[0.06] overflow-hidden`}>
-        <li>
-          <button type="button" onClick={() => onOpenTool("contracciones")} className={row}>
-            <span className={`${icon} bg-sage/15 text-sage-ink`}>
-              <Timer size={20} aria-hidden="true" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm font-bold text-stone-900 dark:text-[#eae6e1]">Cronometrar contracciones</span>
-              <span className={`block text-xs ${MUTED}`}>Frecuencia, duración y cuándo llamar</span>
-            </span>
-            <ChevronRight size={18} aria-hidden="true" className="shrink-0 text-stone-500 dark:text-[#a6a1b2]" />
+    // Solo el criterio y las llamadas: así la planta, la semana y el inicio de «Hoy» caben en la primera
+    // pantalla (390×844). Cronometrar y la maleta viven en «Hoy» («Para el parto»); las señales de alarma,
+    // en «Síntomas» de la cabecera. ≥1280px: texto a la izquierda y llamadas a la derecha.
+    <section aria-labelledby="guia-labor-title" className="xl:grid xl:grid-cols-2 xl:items-start xl:gap-x-16">
+      <div>
+        <div>
+          <h2 id="guia-labor-title" className="font-display text-title text-ink">
+            ¿Es la hora?
+          </h2>
+          <p className="mt-1.5 text-body text-ink">{laborReadyText(weeks, reader, partnerName, dateInDoubt)}</p>
+        </div>
+        {dateInDoubt && onReviewDate && (
+          <button type="button" onClick={onReviewDate} className={`mt-1 -mx-2 ${TEXT_ACTION} underline`}>
+            Revisar la fecha
           </button>
-        </li>
-        <li>
-          <button type="button" onClick={() => onOpenTool("sos")} className={row}>
-            <span className={`${icon} bg-terracotta/10 text-terracotta-ink`}>
-              <HeartPulse size={20} aria-hidden="true" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm font-bold text-stone-900 dark:text-[#eae6e1]">Señales de alarma</span>
-              <span className={`block text-xs ${MUTED}`}>Qué hacer y a quién llamar</span>
-            </span>
-            <ChevronRight size={18} aria-hidden="true" className="shrink-0 text-stone-500 dark:text-[#a6a1b2]" />
-          </button>
-        </li>
-        <li>
-          <button type="button" onClick={() => onOpenTool("maleta")} className={row}>
-            <span className={`${icon} bg-amber-100 text-amber-800 dark:bg-amber-300/10 dark:text-amber-300`}>
-              <Luggage size={20} aria-hidden="true" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm font-bold text-stone-900 dark:text-[#eae6e1]">Maleta del hospital</span>
-              <span className={`block text-xs ${MUTED}`}>Revisa qué falta</span>
-            </span>
-            <ChevronRight size={18} aria-hidden="true" className="shrink-0 text-stone-500 dark:text-[#a6a1b2]" />
-          </button>
-        </li>
-      </ul>
+        )}
+      </div>
+      {/* Llamar, a un toque (Principio 1): la acción más fuerte de la pantalla, fuera de cualquier lista.
+          Antes de la 37 manda la regla pretérmino. */}
+      <CallActions context={weeks >= 37 ? "contracciones" : "pretermino"} className="mt-3 xl:mt-1" />
     </section>
   );
 }
 
 // =====================================================================================
-// «Hoy»: qué toca y quién, próxima cita y lo que hizo la pareja
+// «Hoy»: qué toca y quién (una lista por dueño), la próxima cita y lo que hizo la pareja
 // =====================================================================================
 
 export type TodayGroup = { id: "mine" | "partner" | "both"; title: string; rows: TaskRowModel[] };
@@ -395,6 +384,16 @@ export type NextEventInfo = { title: string; when: string; relative: string; byN
 export type SinceLastVisit = { name?: string; role?: Role; text: string; titles: string[] } | null;
 
 const GROUP_LIMIT = 4;
+
+/** Subtítulo de un grupo de «Hoy» (h3). La lista va justo después (el h3 y su lista son hermanos). */
+function GroupHeading({ title, aside }: { title: string; aside?: string }) {
+  return (
+    <h3 className="flex items-baseline justify-between gap-3">
+      <span className="font-display text-body font-bold text-ink">{title}</span>
+      {aside && <span className="shrink-0 text-micro font-medium text-ink-subtle tabular-nums">{aside}</span>}
+    </h3>
+  );
+}
 
 export function TodayBlock({
   weekKnown,
@@ -411,6 +410,7 @@ export function TodayBlock({
   onOpenPrep,
   onGoToAgenda,
   sinceLastVisit,
+  onOpenTool,
 }: {
   weekKnown: boolean;
   reader: Role;
@@ -426,6 +426,8 @@ export function TodayBlock({
   onOpenPrep: () => void;
   onGoToAgenda: () => void;
   sinceLastVisit: SinceLastVisit;
+  /** Desde la semana 36 (semana conocida): «Para el parto», con el cronómetro y la maleta a mano. */
+  onOpenTool?: (tool: GuiaTool) => void;
 }) {
   const [showAll, setShowAll] = useState<Record<string, boolean>>({});
   const todayText = new Intl.DateTimeFormat("es", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
@@ -434,91 +436,74 @@ export function TodayBlock({
   return (
     <section aria-labelledby="guia-hoy-title">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 id="guia-hoy-title" className="text-2xl font-black tracking-tight text-stone-900 dark:text-[#eae6e1]">
+        <h2 id="guia-hoy-title" className="font-display text-title text-ink">
           Hoy
         </h2>
-        <span className={`text-sm ${MUTED}`}>{cap(todayText)}</span>
+        <span className="text-meta text-ink-subtle">{cap(todayText)}</span>
       </div>
 
       {sinceLastVisit && (
-        <div className="mt-3 flex items-start gap-3 rounded-2xl bg-sage/10 dark:bg-sage/[0.12] px-4 py-3">
-          <AuthorChip name={sinceLastVisit.name} role={sinceLastVisit.role} decorative />
+        <div className="mt-3 flex items-start gap-3">
+          <span className="mt-0.5">
+            <AuthorChip name={sinceLastVisit.name} role={sinceLastVisit.role} decorative />
+          </span>
           <div className="min-w-0">
-            <p className="text-sm font-bold leading-snug text-stone-900 dark:text-[#eae6e1]">{sinceLastVisit.text}</p>
+            <p className="text-meta font-bold text-ink">{sinceLastVisit.text}</p>
             {sinceLastVisit.titles.length > 0 && (
-              <p className={`mt-0.5 text-xs leading-snug ${MUTED}`}>{sinceLastVisit.titles.join(" · ")}</p>
+              <p className="mt-0.5 text-micro font-medium text-ink-subtle">{sinceLastVisit.titles.join(" · ")}</p>
             )}
           </div>
         </div>
       )}
 
-      {/* Próxima cita (solo futura) */}
-      <div className={`mt-3 ${SURFACE} px-4 py-3`}>
-        {eventsLoading ? (
-          <p className={`text-sm ${MUTED}`} aria-live="polite">Cargando la agenda…</p>
-        ) : nextEvent ? (
-          <div className="flex items-center gap-3">
-            <CalendarClock size={22} className="shrink-0 text-sage-ink" aria-hidden="true" />
-            <div className="min-w-0 flex-1">
-              <p className={`text-xs ${MUTED}`}>Próxima cita · {nextEvent.relative}</p>
-              <p className="truncate text-sm font-bold text-stone-900 dark:text-[#eae6e1]">{nextEvent.title}</p>
-              <p className={`text-xs ${MUTED}`}>
-                {nextEvent.when}
-                {nextEvent.byName ? ` · agendada por ${nextEvent.byName}` : ""}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={onOpenPrep}
-              aria-label={`Preparar la cita: ${nextEvent.title}`}
-              aria-haspopup="dialog"
-              className={`shrink-0 min-h-[44px] rounded-xl border border-sage-ink/40 px-3 text-sm font-bold text-sage-ink hover:bg-sage/10 transition-colors ${FOCUS}`}
-            >
-              Preparar
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3">
-            <CalendarPlus size={22} className="shrink-0 text-stone-500 dark:text-[#a6a1b2]" aria-hidden="true" />
-            <p className={`min-w-0 flex-1 text-sm ${MUTED}`}>No hay citas próximas en la agenda.</p>
-            <button
-              type="button"
-              onClick={onGoToAgenda}
-              className={`shrink-0 min-h-[44px] rounded-xl px-3 text-sm font-bold text-terracotta-ink hover:bg-terracotta/10 transition-colors ${FOCUS}`}
-            >
-              Agendar
-            </button>
-          </div>
-        )}
-      </div>
+      {/* 36+: lo del parto a mano, antes que las tareas (la semana manda). Emergencias sigue arriba, en CallActions. */}
+      {onOpenTool && (
+        <div className="mt-6">
+          <GroupHeading title="Para el parto" />
+          <ListGroup className="mt-1">
+            <ListRow
+              leading={<Timer {...ICON} />}
+              title="Cronometrar contracciones"
+              meta="Frecuencia, duración y cuándo llamar"
+              onClick={() => onOpenTool("contracciones")}
+              trailing="chevron"
+            />
+            <ListRow
+              leading={<Luggage {...ICON} />}
+              title="Maleta del hospital"
+              meta="Revisa qué falta"
+              onClick={() => onOpenTool("maleta")}
+              trailing="chevron"
+            />
+          </ListGroup>
+        </div>
+      )}
 
       {/* Tareas por dueño */}
       {!weekKnown ? (
-        <p className={`mt-4 text-sm leading-snug ${MUTED}`}>
+        <p className="mt-3 text-body text-ink-muted">
           {reader === "mama"
             ? "Cuando confirmes tu fecha, aquí verás qué toca esta semana y a quién le toca."
             : "Cuando confirmen la fecha, aquí verás qué toca esta semana y a quién le toca."}
         </p>
       ) : loading ? (
-        <p className={`mt-4 text-sm ${MUTED}`} aria-live="polite">{loadingText}</p>
-      ) : visible.length === 0 ? (
-        <p className={`mt-4 text-sm leading-snug ${MUTED}`}>
-          No hay tareas con fecha para esta semana. Abajo están todas las del trimestre.
+        <p className="mt-3 text-body text-ink-muted" aria-live="polite">
+          {loadingText}
         </p>
+      ) : visible.length === 0 ? (
+        <p className="mt-3 text-body text-ink-muted">No hay tareas con fecha para esta semana. Abajo están todas las del trimestre.</p>
       ) : (
         visible.map((g) => {
           const all = !!showAll[g.id];
           const rows = all ? g.rows : g.rows.slice(0, GROUP_LIMIT);
           const pending = g.rows.filter((r) => !r.completed).length;
           return (
-            <div key={g.id} className="mt-5">
-              <h3 className="flex items-baseline justify-between gap-3 text-sm font-bold text-stone-800 dark:text-[#eae6e1]">
-                <span>{g.title}</span>
-                <span className={`text-xs font-semibold ${MUTED}`}>
-                  {pending === 0 ? "Todo hecho" : pending === 1 ? "1 pendiente" : `${pending} pendientes`}
-                </span>
-              </h3>
-              <ul className={`mt-2 ${SURFACE} divide-y divide-stone-100 dark:divide-white/[0.06] px-1`}>
+            <div key={g.id} className="mt-6">
+              <GroupHeading
+                title={g.title}
+                aside={pending === 0 ? "Todo hecho" : pending === 1 ? "1 pendiente" : `${pending} pendientes`}
+              />
+              <ListGroup className="mt-1">
                 {rows.map((row) => (
                   <TaskRow
                     key={row.task.id}
@@ -530,13 +515,13 @@ export function TodayBlock({
                     onAssign={(o) => onAssign(row, o)}
                   />
                 ))}
-              </ul>
+              </ListGroup>
               {g.rows.length > GROUP_LIMIT && (
                 <button
                   type="button"
                   aria-expanded={all}
                   onClick={() => setShowAll((s) => ({ ...s, [g.id]: !all }))}
-                  className={`mt-1 min-h-[44px] rounded-lg px-1 -ml-1 text-sm font-bold text-terracotta-ink underline-offset-4 hover:underline ${FOCUS}`}
+                  className={`mt-1 -mx-2 ${TEXT_ACTION}`}
                 >
                   {all ? "Ver menos" : `Ver todas (${g.rows.length})`}
                 </button>
@@ -545,12 +530,52 @@ export function TodayBlock({
           );
         })
       )}
+
+      {/* Próxima cita (solo futura) */}
+      <div className="mt-6">
+        <GroupHeading title="Próxima cita" />
+        <ListGroup className="mt-1">
+          {eventsLoading ? (
+            <li>
+              <p className="pj-row-body py-3 ps-[var(--gutter)] pe-[var(--gutter)] text-body text-ink-muted" aria-live="polite">
+                Cargando la agenda…
+              </p>
+            </li>
+          ) : nextEvent ? (
+            <ListRow
+              leading={<CalendarClock {...ICON} />}
+              title={nextEvent.title}
+              meta={`${cap(nextEvent.relative)} · ${nextEvent.when}${nextEvent.byName ? ` · agendada por ${nextEvent.byName}` : ""}`}
+              trailing={
+                <RowButton onClick={onOpenPrep} aria-label={`Preparar la cita: ${nextEvent.title}`} aria-haspopup="dialog">
+                  Preparar
+                </RowButton>
+              }
+            />
+          ) : (
+            <ListRow
+              leading={<CalendarPlus {...ICON} className="text-ink-subtle" />}
+              title="No hay citas próximas en la agenda."
+              weight="medium"
+              trailing={
+                <RowButton tone="default" onClick={onGoToAgenda}>
+                  Agendar
+                </RowButton>
+              }
+            />
+          )}
+        </ListGroup>
+      </div>
     </section>
   );
 }
 
 // =====================================================================================
-// Ficha fetal con explorador de semanas (1..42). La semana real no se pierde al navegar.
+// Ficha de la semana (1..42) con explorador: sin tarjetas ni etiquetas sobre los títulos.
+// El título ES el hito (en Alegreya): la semana ya la dice el bloque de semana, no se repite. Longitud,
+// peso y tamaño aproximado (en ese orden: la comparación va al final) en una lista de definiciones; la
+// misión cierra. Al explorar, una planta pequeña muestra (y hace crecer) la semana que se mira; la semana
+// real no se pierde.
 // =====================================================================================
 
 export function FetalCard({
@@ -574,87 +599,86 @@ export function FetalCard({
   const measure = lengthMeasure(display);
   const isMama = reader === "mama";
   const go = (w: number) => setViewWeek(Math.min(WEEK_MAX, Math.max(WEEK_MIN, w)));
-  const stepBtn = `grid h-11 w-11 shrink-0 place-items-center rounded-full text-stone-700 dark:text-[#d9d4de] hover:bg-stone-100 dark:hover:bg-[#2d273a] disabled:text-stone-300 dark:disabled:text-[#4a4458] transition-colors ${FOCUS}`;
+  const stepBtn = `grid size-11 shrink-0 place-items-center rounded-full border border-line-control text-ink transition-colors hover:bg-surface-hover disabled:border-line disabled:text-ink-disabled disabled:hover:bg-transparent ${FOCUS}`;
+  const fact = "flex items-baseline justify-between gap-4 py-2.5";
+  const srWeek = realWeek === undefined || exploring ? `Semana ${display}` : isMama ? `Tu semana, la ${display}` : `Su semana, la ${display}`;
 
   return (
-    <section aria-labelledby="guia-fetal-title" className={`${SURFACE} overflow-hidden`}>
-      <div className="flex items-center justify-between gap-2 px-2 pt-2">
-        <button type="button" onClick={() => go(display - 1)} disabled={display <= WEEK_MIN} aria-label="Ver la semana anterior" className={stepBtn}>
-          <ChevronLeft size={22} aria-hidden="true" />
-        </button>
-        <div className="min-w-0 text-center" aria-live="polite">
-          <h2 id="guia-fetal-title" className="text-lg font-black tracking-tight text-stone-900 dark:text-[#eae6e1]">
-            Semana {display}
-          </h2>
-          <p className={`text-xs ${MUTED}`}>
-            {realWeek === undefined ? "Lo típico de esta semana" : exploring ? "Explorando otra semana" : isMama ? "Tu semana" : "Su semana"}
-          </p>
+    <section aria-labelledby="guia-fetal-title">
+      <div className="flex items-start justify-between gap-3">
+        <h2 id="guia-fetal-title" className="min-w-0 flex-1 pt-1.5 font-display text-subtitle text-ink">
+          {/* La semana que se mira, para el lector (a la vista la dicen el bloque de semana o la barra de abajo). */}
+          <span className="sr-only">{srWeek}: </span>
+          {info.milestone}
+        </h2>
+        <div className="flex shrink-0 gap-2">
+          <button type="button" onClick={() => go(display - 1)} disabled={display <= WEEK_MIN} aria-label="Ver la semana anterior" className={stepBtn}>
+            <ChevronLeft size={20} strokeWidth={1.75} aria-hidden="true" />
+          </button>
+          <button type="button" onClick={() => go(display + 1)} disabled={display >= WEEK_MAX} aria-label="Ver la semana siguiente" className={stepBtn}>
+            <ChevronRight size={20} strokeWidth={1.75} aria-hidden="true" />
+          </button>
         </div>
-        <button type="button" onClick={() => go(display + 1)} disabled={display >= WEEK_MAX} aria-label="Ver la semana siguiente" className={stepBtn}>
-          <ChevronRight size={22} aria-hidden="true" />
-        </button>
       </div>
+      {/* Anuncia la semana al explorar (el título cambia con ella). */}
+      <p className="sr-only" aria-live="polite">
+        {viewWeek !== null ? `Semana ${display}` : ""}
+      </p>
+
+      {realWeek === undefined && (
+        <p className="mt-1 text-meta text-ink-muted">Semana {display} · Lo típico de esta semana</p>
+      )}
 
       {exploring && (
-        <div className="mx-4 mt-2 flex items-center justify-between gap-2 rounded-xl bg-amber-50 dark:bg-amber-300/[0.08] px-3 py-1">
-          <p className="text-sm font-semibold text-stone-800 dark:text-[#eae6e1]">Viendo la semana {display}</p>
-          <button
-            type="button"
-            onClick={() => setViewWeek(null)}
-            className={`min-h-[44px] rounded-lg px-2 text-sm font-bold text-terracotta-ink underline underline-offset-4 ${FOCUS}`}
-          >
+        <div className="mt-3 flex items-center gap-3 rounded-2xl bg-surface-sunken py-1.5 ps-1.5 pe-3">
+          {/* La planta sigue a la semana que se explora (al avanzar, crece). La de arriba no cambia. */}
+          <GrowingPlant week={display} size={56} title="" className="shrink-0" />
+          <p className="min-w-0 flex-1 text-meta font-bold text-ink">Viendo la semana {display}</p>
+          <button type="button" onClick={() => setViewWeek(null)} className={`${TEXT_ACTION} underline`}>
             Volver a hoy
           </button>
         </div>
       )}
 
-      <dl className="px-5 pt-4 pb-4">
-        <div>
-          <dt className={`text-xs font-semibold ${MUTED}`}>Tamaño aproximado</dt>
-          <dd className="mt-0.5 text-2xl font-black leading-tight tracking-tight text-stone-900 dark:text-[#eae6e1] text-balance">
-            {theme === "geek" ? info.size.geek : info.size.fruta}
-          </dd>
+      <dl className="mt-4 divide-y divide-line">
+        <div className={fact}>
+          <dt className="text-meta text-ink-muted">
+            Longitud
+            {/* Cómo se mide va con la longitud, no al pie de la ficha (ahí se leía como nota del tamaño con fruta). */}
+            {measure && (
+              <span className="block text-micro font-medium text-ink-subtle">
+                {measure === "coronilla-rabadilla" ? "De la coronilla a la rabadilla" : "De la cabeza al talón"}
+              </span>
+            )}
+          </dt>
+          <dd className="text-body font-bold text-ink tabular-nums">{formatLength(info)}</dd>
         </div>
-        <div className="mt-3 flex divide-x divide-stone-200 dark:divide-white/[0.08]">
-          <div className="pr-5">
-            <dt className={`text-xs font-semibold ${MUTED}`}>Longitud</dt>
-            <dd className="text-base font-bold tabular-nums text-stone-900 dark:text-[#eae6e1]">{formatLength(info)}</dd>
-          </div>
-          <div className="pl-5">
-            <dt className={`text-xs font-semibold ${MUTED}`}>Peso</dt>
-            <dd className="text-base font-bold tabular-nums text-stone-900 dark:text-[#eae6e1]">{formatWeight(info)}</dd>
-          </div>
+        <div className={fact}>
+          <dt className="text-meta text-ink-muted">Peso</dt>
+          <dd className="text-body font-bold text-ink tabular-nums">{formatWeight(info)}</dd>
         </div>
-        {(info.note || measure) && (
-          <p className={`mt-2 text-xs leading-snug ${MUTED}`}>
-            {measure === "coronilla-rabadilla" ? "Medida de la coronilla a la rabadilla. " : measure === "cabeza-talon" ? "Medida de la cabeza al talón. " : ""}
-            {info.note ?? ""}
-          </p>
-        )}
+        <div className={fact}>
+          <dt className="shrink-0 text-meta text-ink-muted">Tamaño aproximado</dt>
+          <dd className="min-w-0 text-right text-body font-medium text-ink">{theme === "geek" ? info.size.geek : info.size.fruta}</dd>
+        </div>
       </dl>
+      {info.note && <p className="mt-2 text-micro font-medium text-ink-subtle">{info.note}</p>}
 
-      <div className="border-t border-stone-100 dark:border-white/[0.06] px-5 py-4">
-        <h3 className="flex items-center gap-2 text-sm font-bold text-terracotta-ink">
-          <Sparkles size={16} aria-hidden="true" />
-          Hito de la semana
-        </h3>
-        <p className="mt-1 text-sm leading-relaxed text-stone-800 dark:text-[#eae6e1]">{info.milestone}</p>
-      </div>
-
-      <div className="border-t border-sage/20 dark:border-white/[0.06] bg-sage/10 dark:bg-[#1a1724] px-5 py-4">
-        <h3 className="text-sm font-bold text-sage-ink">{isMama ? "Tu misión" : "Tu misión de copiloto"}</h3>
-        <p className="mt-1 text-sm leading-relaxed text-stone-700 dark:text-[#eae6e1]">{isMama ? info.forMom : info.forDad}</p>
-        {!isMama && realWeek === undefined && (
-          <p className={`mt-2 text-xs ${MUTED}`}>Lo típico de la semana {display}, no necesariamente la de {partnerName || "tu pareja"}.</p>
-        )}
-        {isMama && realWeek === undefined && <p className={`mt-2 text-xs ${MUTED}`}>Lo típico de la semana {display}, no necesariamente la tuya.</p>}
-      </div>
+      <h3 className="mt-6 font-display text-body font-bold text-ink">{isMama ? "Tu misión" : "Tu misión de copiloto"}</h3>
+      <p className="mt-1 text-body text-ink-muted">{isMama ? info.forMom : info.forDad}</p>
+      {!isMama && realWeek === undefined && (
+        <p className="mt-2 text-micro font-medium text-ink-subtle">Lo típico de la semana {display}, no necesariamente la de {partnerName || "tu pareja"}.</p>
+      )}
+      {isMama && realWeek === undefined && (
+        <p className="mt-2 text-micro font-medium text-ink-subtle">Lo típico de la semana {display}, no necesariamente la tuya.</p>
+      )}
     </section>
   );
 }
 
 // =====================================================================================
-// Checklists por trimestre (solo el actual desplegado de entrada)
+// Checklists por trimestre (solo el actual desplegado de entrada): filas desplegables con
+// divisores y, dentro, una lista por categoría.
 // =====================================================================================
 
 export type TrimesterModel = {
@@ -680,8 +704,8 @@ export function TrimesterChecklists({
 }) {
   const [open, setOpen] = useState<Record<number, boolean>>({});
   return (
-    <div className={`${SURFACE} divide-y divide-stone-200 dark:divide-white/[0.06] overflow-hidden`}>
-      {trimesters.map((t) => {
+    <div className="-mx-[var(--gutter)]">
+      {trimesters.map((t, i) => {
         const isOpen = open[t.trimester] ?? t.trimester === currentTrimester;
         const rows = t.categories.flatMap((c) => c.rows);
         const done = rows.filter((r) => r.completed).length;
@@ -689,37 +713,40 @@ export function TrimesterChecklists({
         const panelId = `guia-trim-${t.trimester}`;
         return (
           <div key={t.trimester}>
+            {/* Divisor entre trimestres: empieza en el texto, como el de las filas. */}
+            {i > 0 && <div aria-hidden="true" className="ms-[var(--gutter)] h-px bg-line" />}
             <h3>
               <button
                 type="button"
                 aria-expanded={isOpen}
                 aria-controls={panelId}
                 onClick={() => setOpen((s) => ({ ...s, [t.trimester]: !isOpen }))}
-                className={`w-full min-h-[60px] flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-stone-50 dark:hover:bg-[#2d273a]/60 transition-colors ${FOCUS} focus-visible:-outline-offset-2`}
+                className={`flex min-h-16 w-full items-center justify-between gap-3 px-[var(--gutter)] py-3 text-left transition-colors hover:bg-surface-hover ${FOCUS_INSET}`}
               >
                 <span className="min-w-0">
-                  <span className="block text-base font-bold text-stone-900 dark:text-[#eae6e1]">
+                  <span className="block font-display text-body font-bold text-ink">
                     Trimestre {t.trimester}
-                    {t.trimester === currentTrimester ? <span className={`font-semibold ${MUTED}`}> · el actual</span> : null}
+                    {t.trimester === currentTrimester ? <span className="font-sans font-medium text-ink-muted"> · el actual</span> : null}
                   </span>
-                  <span className={`block text-xs ${MUTED}`}>
+                  <span className="mt-0.5 block text-meta text-ink-muted tabular-nums">
                     {t.range} · {done} de {rows.length} hechas
                     {overdue > 0 ? ` · ${overdue === 1 ? "1 pendiente de revisar" : `${overdue} pendientes de revisar`}` : ""}
                   </span>
                 </span>
                 <ChevronDown
                   size={20}
+                  strokeWidth={1.75}
                   aria-hidden="true"
-                  className={`shrink-0 text-stone-500 dark:text-[#a6a1b2] transition-transform motion-reduce:transition-none ${isOpen ? "rotate-180" : ""}`}
+                  className={`shrink-0 text-ink-subtle transition-transform motion-reduce:transition-none ${isOpen ? "rotate-180" : ""}`}
                 />
               </button>
             </h3>
-            <div id={panelId} hidden={!isOpen} className="px-1 pb-2">
+            <div id={panelId} hidden={!isOpen} className="pb-3">
               {isOpen &&
                 t.categories.map((cat) => (
                   <div key={cat.id}>
-                    <h4 className={`px-3 pt-3 text-xs font-bold ${MUTED}`}>{cat.title}</h4>
-                    <ul className="divide-y divide-stone-100 dark:divide-white/[0.06]">
+                    <h4 className="px-[var(--gutter)] pt-4 pb-0.5 text-meta font-bold text-ink-muted">{cat.title}</h4>
+                    <ListGroup bleed={false}>
                       {cat.rows.map((row) => (
                         <TaskRow
                           key={row.task.id}
@@ -731,7 +758,7 @@ export function TrimesterChecklists({
                           onAssign={(o) => onAssign(row, o)}
                         />
                       ))}
-                    </ul>
+                    </ListGroup>
                   </div>
                 ))}
             </div>

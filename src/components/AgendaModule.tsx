@@ -14,7 +14,6 @@ import {
   ClipboardList,
   Clock,
   Download,
-  ExternalLink,
   FlaskConical,
   Lightbulb,
   LoaderCircle,
@@ -22,7 +21,6 @@ import {
   Plus,
   RotateCw,
   ScanHeart,
-  ShoppingBag,
   Stethoscope,
   Syringe,
   Trash2,
@@ -37,6 +35,7 @@ import { localToSharedFlag } from "@/lib/seeds";
 import { AuthorChip } from "@/components/AuthorChip";
 import { SyncBadge, usePartner } from "@/components/SyncBadge";
 import { ModalPortal } from "@/components/ModalPortal";
+import { ListGroup, ListRow, RowButton, Section } from "@/components/ui/List";
 import { useModalDialog } from "@/lib/useModalDialog";
 import { Z_CLASS } from "@/lib/layers";
 
@@ -831,14 +830,14 @@ function Sheet({
       <div className={`fixed inset-0 ${Z_CLASS.sheet} flex items-end sm:items-center justify-center sm:p-4`}>
         {/* Tocar fuera cierra (el teclado cierra con Escape desde useModalDialog). */}
         <div
-          className="absolute inset-0 bg-black/50 dark:bg-black/70 animate-in fade-in duration-200 motion-reduce:animate-none"
+          className="absolute inset-0 bg-black/50 dark:bg-black/70"
           onClick={onClose}
           aria-hidden="true"
         />
         <div
           ref={setPanel}
           {...dialogRest}
-          className="relative w-full max-w-md max-h-[92dvh] flex flex-col bg-[#fdfbf7] dark:bg-[#221d2d] text-stone-900 dark:text-[#eae6e1] rounded-t-3xl sm:rounded-3xl border border-stone-200/80 dark:border-white/[0.08] shadow-[0_-8px_32px_-8px_rgba(24,21,32,0.28)] outline-none animate-in slide-in-from-bottom-4 duration-300 motion-reduce:animate-none"
+          className="relative w-full max-w-md max-h-[92dvh] flex flex-col bg-surface-raised text-ink rounded-t-3xl sm:rounded-3xl border border-line shadow-[0_-8px_32px_-8px_rgba(24,21,32,0.28)] outline-none"
         >
           {children}
         </div>
@@ -848,9 +847,21 @@ function Sheet({
 }
 
 const closeButtonClass =
-  "shrink-0 -mr-1 w-11 h-11 inline-flex items-center justify-center rounded-full text-stone-600 dark:text-[#a6a1b2] hover:bg-stone-100 dark:hover:bg-white/10 hover:text-stone-900 dark:hover:text-[#eae6e1] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink";
+  "shrink-0 -mr-1 w-11 h-11 inline-flex items-center justify-center rounded-full text-ink-muted hover:bg-surface-hover hover:text-ink transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink";
 
 const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink";
+/** Foco dentro de una fila que llega al borde (anillo interior, como ListRow). */
+const focusInset = "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-terracotta-ink";
+
+/** Cabecera fija de las hojas: título en Alegreya (rol title) y botón de cerrar. */
+const sheetHeadClass = "flex items-start justify-between gap-3 px-5 pt-5 pb-4 border-b border-line shrink-0";
+const sheetTitleClass = "font-display text-title text-ink text-balance break-words";
+
+/** Botón de texto en tinta terracota (acción secundaria de una fila o de un aviso), ≥44px. */
+const textActionClass = `min-h-11 px-2 rounded-full inline-flex items-center gap-1.5 text-meta font-bold text-terracotta-ink hover:bg-surface-hover transition-colors ${focusRing}`;
+
+/** Aviso en línea (error de carga o de escritura): lavado terracota, tinta del mismo tono. */
+const alertClass = "flex items-start gap-2.5 rounded-xl bg-terracotta-wash px-3.5 py-3 text-meta text-ink";
 
 // =====================================================================================
 // Preparación de la cita (compartida con la pareja; sin vínculo, en este teléfono)
@@ -1010,49 +1021,52 @@ export function AppointmentPrepModal({
       ? `Voy a acompañar a mi pareja a su cita de ${title}${date ? ` el ${formatDateShort(date)}` : ""}${doctor ? ` con ${doctor}` : ""}. ¿Qué más nos conviene preparar o preguntar?`
       : `Tengo una cita de ${title}${date ? ` el ${formatDateShort(date)}` : ""}${doctor ? ` con ${doctor}` : ""}. ¿Qué más me conviene preparar o preguntar?`;
 
-  const renderChecklist = (kind: PrepKind, list: string[]) => (
-    <ul className="space-y-2" aria-busy={loading}>
+  // Cada punto es una fila de la lista (divisor fino, sin cajas): un checkbox que ocupa toda la fila.
+  const renderChecklist = (kind: PrepKind, list: string[], labelledBy: string) => (
+    <ListGroup aria-labelledby={labelledBy}>
       {list.map((text) => {
         const checked = isChecked(kind, text);
         return (
-          <li key={text}>
+          <li key={text} className="relative">
             <button
               type="button"
               role="checkbox"
               aria-checked={checked}
               disabled={!canToggle}
               onClick={() => setItem(kind, text, !checked)}
-              className={`w-full min-h-[44px] text-left px-3 py-2.5 rounded-xl border text-sm leading-snug transition-colors flex items-start gap-2.5 disabled:cursor-wait disabled:opacity-70 ${focusRing} ${
-                checked
-                  ? "bg-sage/10 dark:bg-sage/[0.12] border-sage-ink/25 text-stone-600 dark:text-[#b9b4c4] line-through decoration-stone-400"
-                  : "bg-white dark:bg-[#1c1826] border-stone-200 dark:border-white/[0.08] hover:border-stone-300 dark:hover:border-white/20 text-stone-800 dark:text-[#eae6e1]"
-              }`}
+              className={`flex w-full min-h-12 items-stretch ps-[var(--gutter)] text-left transition-colors hover:bg-surface-hover active:bg-surface-hover disabled:cursor-wait disabled:opacity-70 disabled:hover:bg-transparent ${focusInset}`}
             >
-              <span className={`mt-px shrink-0 ${checked ? "text-sage-ink" : "text-stone-500 dark:text-[#a6a1b2]"}`} aria-hidden="true">
-                {checked ? <CheckCircle2 size={18} /> : <Circle size={18} />}
+              <span className={`flex shrink-0 items-start pt-3 pe-3 ${checked ? "text-sage-ink" : "text-line-control"}`} aria-hidden="true">
+                {checked ? <CheckCircle2 size={20} strokeWidth={1.75} /> : <Circle size={20} strokeWidth={1.75} />}
               </span>
-              <span className="flex-1 break-words">{text}</span>
+              <span
+                className={`pj-row-body min-w-0 flex-1 py-3 pe-[var(--gutter)] text-body break-words ${
+                  checked ? "text-ink-muted line-through decoration-ink-subtle" : "text-ink"
+                }`}
+              >
+                {text}
+              </span>
             </button>
           </li>
         );
       })}
-    </ul>
+    </ListGroup>
   );
 
   return (
     <Sheet open onClose={onClose} labelledBy={titleId}>
       {/* Cabecera: legible (≥4.5:1), sin texto blanco sobre salvia */}
-      <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-4 border-b border-stone-200/70 dark:border-white/[0.06] shrink-0">
+      <div className={sheetHeadClass}>
         <div className="min-w-0">
-          <h2 id={titleId} className="text-xl font-black leading-tight text-balance break-words">
+          <h2 id={titleId} className={sheetTitleClass}>
             {title}
           </h2>
-          <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-stone-700 dark:text-[#cfcad6]">
+          <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-meta text-ink-muted">
             <span className="inline-flex items-center gap-1.5">
               <Calendar size={15} aria-hidden="true" className="shrink-0" />
               {date ? formatDateLong(date) : "Fecha sin confirmar"}
             </span>
-            <span className="inline-flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1.5 tabular-nums">
               <Clock size={15} aria-hidden="true" className="shrink-0" />
               {timeLabel(event)}
             </span>
@@ -1063,18 +1077,14 @@ export function AppointmentPrepModal({
               </span>
             )}
           </p>
-          <p className="mt-2.5 flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-sage/15 dark:bg-sage/20 px-2.5 py-0.5 text-xs font-bold text-sage-ink">{prep.category}</span>
+          {/* Texto plano (sin píldoras: no se tocan). La urgencia la lleva la cuenta atrás en terracota. */}
+          <p className="mt-2 text-meta font-bold text-ink-muted">
+            {prep.category}
             {countdown && (
-              <span
-                className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                  countdown.soon
-                    ? "bg-terracotta/15 dark:bg-terracotta/20 text-terracotta-ink"
-                    : "bg-stone-200/70 dark:bg-white/10 text-stone-700 dark:text-[#cfcad6]"
-                }`}
-              >
-                {countdown.text}
-              </span>
+              <>
+                {" · "}
+                <span className={countdown.soon ? "text-terracotta-ink" : undefined}>{countdown.text}</span>
+              </>
             )}
           </p>
         </div>
@@ -1083,145 +1093,146 @@ export function AppointmentPrepModal({
         </button>
       </div>
 
-      <div className="overflow-y-auto overscroll-contain flex-1 px-5 py-5 space-y-6">
-        <SyncBadge lastSyncedAt={remoteCurrent?.meta?.updatedAt ?? null} />
+      <div className="overflow-y-auto overscroll-contain flex-1 px-5 [--gutter:1.25rem] pt-4 pb-6 flex flex-col gap-7">
+        <div className="flex flex-col gap-4">
+          <SyncBadge lastSyncedAt={remoteCurrent?.meta?.updatedAt ?? null} />
 
-        <div className="rounded-2xl bg-terracotta/10 dark:bg-terracotta/[0.12] p-3.5 flex gap-3 items-start">
-          <Lightbulb size={18} aria-hidden="true" className="text-terracotta-ink shrink-0 mt-0.5" />
-          <p className="text-sm leading-relaxed text-stone-800 dark:text-[#eae6e1]">
-            <strong className="font-bold">Consejo:</strong> {prep.tip}
-          </p>
-        </div>
-        {profile?.role === "papa" && (
-          <p className="text-sm leading-relaxed text-stone-700 dark:text-[#cfcad6]">
-            Las preguntas están escritas para que tu pareja las haga. Tú puedes llevar la lista y anotar las respuestas.
-          </p>
-        )}
-
-        {loading && (
-          <p className="flex items-center gap-2 text-sm text-stone-600 dark:text-[#a6a1b2]" role="status">
-            <LoaderCircle size={16} aria-hidden="true" className="animate-spin motion-reduce:animate-none" />
-            Cargando lo que ya marcaron…
-          </p>
-        )}
-        {loadFailed && (
-          <div role="alert" className="flex items-start gap-2 rounded-xl bg-terracotta/10 dark:bg-terracotta/[0.12] p-3 text-sm text-stone-800 dark:text-[#eae6e1]">
-            <CircleAlert size={16} aria-hidden="true" className="text-terracotta-ink shrink-0 mt-0.5" />
-            <p className="flex-1">No pudimos cargar lo que marcó tu pareja. Revisa tu conexión.</p>
-            <button
-              type="button"
-              onClick={() => setRetryNonce((n) => n + 1)}
-              className={`-my-2 min-h-[44px] px-2 inline-flex items-center gap-1 font-bold text-terracotta-ink rounded-lg ${focusRing}`}
-            >
-              <RotateCw size={14} aria-hidden="true" /> Reintentar
-            </button>
-          </div>
-        )}
-        {writeError && (
-          <div role="alert" className="flex items-start gap-2 rounded-xl bg-terracotta/10 dark:bg-terracotta/[0.12] p-3 text-sm text-stone-800 dark:text-[#eae6e1]">
-            <CircleAlert size={16} aria-hidden="true" className="text-terracotta-ink shrink-0 mt-0.5" />
-            <p className="flex-1">
-              {writeError.localOnly
-                ? "No se pudo guardar en este teléfono (el navegador no permite guardar datos). Lo marcado se perderá al cerrar."
-                : "No se pudo guardar lo que marcaste. Revisa tu conexión."}
+          <div className="flex items-start gap-3 rounded-xl bg-surface-sunken px-3.5 py-3">
+            <Lightbulb size={18} strokeWidth={1.75} aria-hidden="true" className="text-ink-muted shrink-0 mt-0.5" />
+            <p className="text-meta text-ink">
+              <strong className="font-bold">Consejo:</strong> {prep.tip}
             </p>
-            {!writeError.localOnly && (
-              <button
-                type="button"
-                onClick={() => setItem(writeError.kind, writeError.key, writeError.checked)}
-                className={`-my-2 min-h-[44px] px-2 inline-flex items-center gap-1 font-bold text-terracotta-ink rounded-lg ${focusRing}`}
-              >
+          </div>
+          {profile?.role === "papa" && (
+            <p className="text-meta text-ink-muted">
+              Las preguntas están escritas para que tu pareja las haga. Tú puedes llevar la lista y anotar las respuestas.
+            </p>
+          )}
+
+          {loading && (
+            <p className="flex items-center gap-2 text-meta text-ink-muted" role="status">
+              <LoaderCircle size={16} aria-hidden="true" className="animate-spin motion-reduce:animate-none" />
+              Cargando lo que ya marcaron…
+            </p>
+          )}
+          {loadFailed && (
+            <div role="alert" className={alertClass}>
+              <CircleAlert size={16} aria-hidden="true" className="text-terracotta-ink shrink-0 mt-0.5" />
+              <p className="flex-1">No pudimos cargar lo que marcó tu pareja. Revisa tu conexión.</p>
+              <button type="button" onClick={() => setRetryNonce((n) => n + 1)} className={`-my-2.5 -me-1.5 ${textActionClass}`}>
                 <RotateCw size={14} aria-hidden="true" /> Reintentar
               </button>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+          {writeError && (
+            <div role="alert" className={alertClass}>
+              <CircleAlert size={16} aria-hidden="true" className="text-terracotta-ink shrink-0 mt-0.5" />
+              <p className="flex-1">
+                {writeError.localOnly
+                  ? "No se pudo guardar en este teléfono (el navegador no permite guardar datos). Lo marcado se perderá al cerrar."
+                  : "No se pudo guardar lo que marcaste. Revisa tu conexión."}
+              </p>
+              {!writeError.localOnly && (
+                <button
+                  type="button"
+                  onClick={() => setItem(writeError.kind, writeError.key, writeError.checked)}
+                  className={`-my-2.5 -me-1.5 ${textActionClass}`}
+                >
+                  <RotateCw size={14} aria-hidden="true" /> Reintentar
+                </button>
+              )}
+            </div>
+          )}
+        </div>
 
-        <section aria-labelledby={`${titleId}-bring`}>
-          <div className="flex items-baseline justify-between gap-3 mb-2.5">
-            <h3 id={`${titleId}-bring`} className="font-bold text-base flex items-center gap-2">
-              <ShoppingBag size={17} aria-hidden="true" className="text-terracotta-ink" /> Qué llevar
-            </h3>
-            <span className="text-sm font-medium text-stone-600 dark:text-[#a6a1b2] tabular-nums">
+        <Section
+          as="h3"
+          size="md"
+          headingId={`${titleId}-bring`}
+          title="Qué llevar"
+          action={
+            <span className="text-meta font-medium text-ink-subtle tabular-nums">
               {readyItems} de {prep.whatToBring.length} listos
             </span>
-          </div>
-          {renderChecklist("items", prep.whatToBring)}
-        </section>
+          }
+        >
+          <div aria-busy={loading}>{renderChecklist("items", prep.whatToBring, `${titleId}-bring`)}</div>
+        </Section>
 
-        <section aria-labelledby={`${titleId}-ask`}>
-          <div className="flex items-baseline justify-between gap-3 mb-2.5">
-            <h3 id={`${titleId}-ask`} className="font-bold text-base flex items-center gap-2">
-              <ClipboardList size={17} aria-hidden="true" className="text-terracotta-ink" /> Preguntas para la consulta
-            </h3>
-            <span className="text-sm font-medium text-stone-600 dark:text-[#a6a1b2] tabular-nums">
+        <Section
+          as="h3"
+          size="md"
+          headingId={`${titleId}-ask`}
+          title="Preguntas para la consulta"
+          action={
+            <span className="text-meta font-medium text-ink-subtle tabular-nums">
               {askedQuestions} de {prep.whatToAsk.length} hechas
             </span>
-          </div>
-          {renderChecklist("questions", prep.whatToAsk)}
-        </section>
+          }
+        >
+          <div aria-busy={loading}>{renderChecklist("questions", prep.whatToAsk, `${titleId}-ask`)}</div>
+        </Section>
 
-        <section aria-labelledby={`${titleId}-cal`} className="border-t border-stone-200/80 dark:border-white/[0.08] pt-5">
-          <h3 id={`${titleId}-cal`} className="font-bold text-base">
-            Recordatorios en tu calendario
-          </h3>
-          <p className="mt-1 text-sm leading-snug text-stone-600 dark:text-[#a6a1b2]">
-            {!canCalendar
+        <Section
+          as="h3"
+          size="md"
+          headingId={`${titleId}-cal`}
+          title="Recordatorios en tu calendario"
+          description={
+            !canCalendar
               ? "Esta cita no tiene una fecha válida. Edítala para poder agregarla a tu calendario."
               : hasTime(event)
                 ? "El archivo de calendario (.ics) trae dos avisos, un día antes y dos horas antes, con esta lista en las notas. Google Calendar usa tus avisos habituales."
-                : "El archivo de calendario (.ics) trae un aviso el día anterior, con esta lista en las notas. Google Calendar usa tus avisos habituales."}
-          </p>
-          <div className="grid grid-cols-2 gap-2 mt-3">
-            <button
-              type="button"
+                : "El archivo de calendario (.ics) trae un aviso el día anterior, con esta lista en las notas. Google Calendar usa tus avisos habituales."
+          }
+        >
+          <ListGroup>
+            <ListRow
+              leading={<Download size={20} strokeWidth={1.75} />}
+              title="Descargar .ics"
               disabled={!canCalendar}
               onClick={() => {
                 const ok = downloadIcs(event, prep);
                 setCalendarNote(ok ? "Abre el archivo descargado para agregar la cita a tu calendario." : null);
               }}
-              className={`min-h-[48px] px-3 rounded-xl border border-stone-300 dark:border-white/15 bg-white dark:bg-[#1c1826] text-sm font-bold text-stone-800 dark:text-[#eae6e1] inline-flex items-center justify-center gap-1.5 hover:bg-stone-50 dark:hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${focusRing}`}
-            >
-              <Download size={16} aria-hidden="true" /> Descargar .ics
-            </button>
-            <button
-              type="button"
+            />
+            <ListRow
+              leading={<CalendarPlus size={20} strokeWidth={1.75} />}
+              title="Google Calendar"
+              trailing="external"
               disabled={!canCalendar}
               onClick={() => {
                 const url = googleCalendarUrl(event, prep);
                 if (url) window.open(url, "_blank", "noopener,noreferrer");
               }}
-              className={`min-h-[48px] px-3 rounded-xl border border-stone-300 dark:border-white/15 bg-white dark:bg-[#1c1826] text-sm font-bold text-stone-800 dark:text-[#eae6e1] inline-flex items-center justify-center gap-1.5 hover:bg-stone-50 dark:hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${focusRing}`}
-            >
-              <ExternalLink size={16} aria-hidden="true" /> Google Calendar
-            </button>
-          </div>
+            />
+          </ListGroup>
           {calendarNote && (
-            <p className="mt-2 text-sm text-stone-600 dark:text-[#a6a1b2]" role="status">
+            <p className="mt-2 text-meta text-ink-muted" role="status">
               {calendarNote}
             </p>
           )}
-        </section>
+        </Section>
 
-        <p className="text-xs leading-snug text-stone-600 dark:text-[#a6a1b2]">
+        <p className="text-micro font-medium text-ink-subtle">
           Es una guía general. Sigue siempre las indicaciones de tu equipo de salud.
         </p>
       </div>
 
-      <div className="shrink-0 px-5 pt-3 pb-[calc(0.75rem+var(--safe-bottom))] border-t border-stone-200/80 dark:border-white/[0.08] flex gap-2">
+      <div className="shrink-0 px-5 pt-3 pb-[calc(0.75rem+var(--safe-bottom))] border-t border-line flex gap-2">
         {onAskPandaIA && (
           <button
             type="button"
             onClick={() => onAskPandaIA(askText)}
-            className={`flex-1 min-h-[48px] px-4 bg-terracotta-ink hover:bg-terracotta-ink-hover text-white rounded-xl font-bold text-sm inline-flex items-center justify-center gap-2 transition-colors active:scale-[0.98] ${focusRing}`}
+            className={`flex-1 min-h-[48px] px-4 bg-terracotta-ink hover:bg-terracotta-ink-hover text-on-accent rounded-2xl font-bold text-body inline-flex items-center justify-center gap-2 transition-colors active:scale-[0.98] ${focusRing}`}
           >
-            <Bot size={17} aria-hidden="true" /> Preguntar a PandaIA
+            <Bot size={18} aria-hidden="true" /> Preguntar a PandaIA
           </button>
         )}
         <button
           type="button"
           onClick={onClose}
-          className={`min-h-[48px] px-5 rounded-xl font-bold text-sm bg-stone-200 hover:bg-stone-300 dark:bg-[#2d273a] dark:hover:bg-[#383046] text-stone-800 dark:text-[#eae6e1] transition-colors ${
+          className={`min-h-[48px] px-5 rounded-2xl border border-line-control font-bold text-body text-ink hover:bg-surface-hover transition-colors ${
             onAskPandaIA ? "" : "flex-1"
           } ${focusRing}`}
         >
@@ -1358,17 +1369,20 @@ type FormState = {
 const EMPTY_FORM: FormState = { title: "", date: "", time: "", doctor: "", typeTouched: false };
 
 const inputClass =
-  "w-full min-h-[48px] rounded-xl border bg-white dark:bg-[#181520] px-4 py-2.5 text-base text-stone-900 dark:text-[#eae6e1] " +
-  // Borde ≥3:1 con el fondo de la hoja (1.4.11): stone-500 4.63:1 sobre #fdfbf7 · white/40 3.73:1 sobre #221d2d.
-  "placeholder:text-stone-500 dark:placeholder:text-[#948fa1] border-stone-500 dark:border-white/40 " +
+  // Campo = pozo (surface-sunken) sobre el panel de la hoja (surface-raised).
+  "w-full min-h-[48px] rounded-xl border bg-surface-sunken px-4 py-2.5 text-body text-ink " +
+  // Borde ≥3:1 con el panel (1.4.11): line-control 3.6:1 sobre raised claro · 3.7:1 sobre raised oscuro.
+  // El placeholder usa --placeholder (globals.css, ≥4.5:1 sobre los pozos de los dos temas).
+  "border-line-control " +
   // Foco: anillo de tinta de 2px con separación (visible también en modo de alto contraste).
   // :focus (no :focus-visible): en fecha y hora Chrome no aplica :focus-visible cuando el foco está en
   // los segmentos internos o en el icono del calendario, y el campo se quedaba sin contorno.
   "transition-colors focus:border-terracotta-ink focus:outline-2 focus:outline-offset-2 focus:outline-terracotta-ink " +
   "aria-[invalid=true]:border-terracotta-ink disabled:opacity-60";
-const labelClass = "block text-sm font-semibold text-stone-800 dark:text-[#eae6e1] mb-1.5";
-const helpClass = "mt-1.5 text-sm leading-snug text-stone-600 dark:text-[#a6a1b2]";
-const errorClass = "mt-1.5 flex items-start gap-1.5 text-sm leading-snug font-medium text-terracotta-ink";
+const labelClass = "block text-meta font-bold text-ink mb-1.5";
+const optionalClass = "font-normal text-ink-muted";
+const helpClass = "mt-1.5 text-meta text-ink-muted";
+const errorClass = "mt-1.5 flex items-start gap-1.5 text-meta font-medium text-terracotta-ink";
 
 const SAVE_WAIT_MS = 2500;
 
@@ -1669,65 +1683,64 @@ export function AgendaView({
   const saving = saveState === "saving";
 
   return (
+    // Padding = --gutter (16px, el de toda la app): las listas llegan al borde y el texto queda alineado con los
+    // títulos. Desde 1024px el gutter es 0 (sin sangrado) y la columna lleva lg:px-8, como la cabecera.
     <div className="relative flex flex-col">
-      <header className="px-5 pt-6 pb-1">
-        <h2 className="text-2xl font-black tracking-tight text-stone-900 dark:text-[#eae6e1]">Agenda médica</h2>
-        <p className="mt-1 text-sm text-stone-600 dark:text-[#a6a1b2]">
+      <header className="px-[var(--gutter)] pt-6 lg:px-8 lg:pt-10">
+        <h2 className="font-display text-title text-ink">Agenda médica</h2>
+        <p className="mt-1 text-meta text-ink-muted">
           {week === undefined
             ? "Semana sin confirmar"
             : `Semana ${week} · ${trimester}${weeksLeft > 0 ? ` · faltan ${weeksLeft} ${weeksLeft === 1 ? "semana" : "semanas"}` : ""}`}
         </p>
-        <SyncBadge className="mt-2" waiting={loading} />
+        <SyncBadge className="mt-1.5" waiting={loading} />
       </header>
 
-      <div className="px-5 pt-5 pb-[calc(6.5rem+var(--safe-bottom))] space-y-8">
-        {/* Próximas citas: la primera se destaca (sin banner que duplique la lista) */}
+      <div className="px-[var(--gutter)] pt-7 pb-[calc(6.5rem+var(--safe-bottom))] flex flex-col gap-9 lg:px-8 lg:pb-12">
+        {/* Próximas citas: una lista con divisores; la primera (la que toca) lleva la acción principal */}
         <section aria-labelledby={ids.upcoming}>
-          <div className="flex items-center justify-between gap-3 mb-3">
-            <h3 id={ids.upcoming} ref={upcomingHeadingRef} tabIndex={-1} className="text-lg font-bold text-stone-900 dark:text-[#eae6e1] rounded-md">
+          <div className="mb-2 flex items-end justify-between gap-3">
+            <h3 id={ids.upcoming} ref={upcomingHeadingRef} tabIndex={-1} className="font-display text-subtitle text-ink rounded-md">
               Próximas citas
             </h3>
-            <button
-              type="button"
-              onClick={() => openNew()}
-              aria-haspopup="dialog"
-              className={`min-h-[44px] px-3.5 rounded-xl bg-terracotta-ink hover:bg-terracotta-ink-hover text-white text-sm font-bold inline-flex items-center gap-1.5 transition-colors active:scale-[0.98] ${focusRing}`}
-            >
-              <Plus size={17} aria-hidden="true" /> Nueva cita
-            </button>
+            <div className="-mb-1.5 flex shrink-0 items-center">
+              {/* Sin citas, agregar una es LA acción de la pantalla; con citas, lo es preparar la próxima. */}
+              <RowButton tone={upcoming.length === 0 && !loading && !loadError ? "primary" : "default"} onClick={() => openNew()} aria-haspopup="dialog">
+                <Plus size={17} aria-hidden="true" /> Nueva cita
+              </RowButton>
+            </div>
           </div>
 
           {loadError && upcoming.length === 0 ? (
-            <div role="alert" className="rounded-2xl border border-terracotta-ink/30 bg-terracotta/10 dark:bg-terracotta/[0.12] px-4 py-3">
-              <p className="text-sm leading-snug text-stone-800 dark:text-[#eae6e1]">
-                No pudimos cargar la agenda compartida. Revisa tu conexión.
-              </p>
-              {onRetryLoad && (
-                <button
-                  type="button"
-                  onClick={onRetryLoad}
-                  className={`mt-2 min-h-[44px] px-3 -ml-1 rounded-xl inline-flex items-center gap-1.5 text-sm font-bold text-terracotta-ink hover:bg-terracotta/15 ${focusRing}`}
-                >
-                  <RotateCw size={15} aria-hidden="true" /> Reintentar
-                </button>
-              )}
+            <div role="alert" className={`mt-3 ${alertClass}`}>
+              <CircleAlert size={16} aria-hidden="true" className="text-terracotta-ink shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p>No pudimos cargar la agenda compartida. Revisa tu conexión.</p>
+                {onRetryLoad && (
+                  <button type="button" onClick={onRetryLoad} className={`mt-1 -ms-2 ${textActionClass}`}>
+                    <RotateCw size={15} aria-hidden="true" /> Reintentar
+                  </button>
+                )}
+              </div>
             </div>
           ) : loading && upcoming.length === 0 ? (
-            <p role="status" className="rounded-2xl border border-dashed border-stone-300 dark:border-white/15 px-5 py-6 text-center text-sm text-stone-600 dark:text-[#a6a1b2]">
+            <p role="status" className="flex items-center gap-2 py-5 text-meta text-ink-muted">
+              {isOnline() && <LoaderCircle size={16} aria-hidden="true" className="shrink-0 animate-spin motion-reduce:animate-none" />}
               {isOnline()
                 ? "Cargando la agenda compartida…"
                 : "Sin conexión: no podemos mostrar la agenda compartida ahora."}
             </p>
           ) : upcoming.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-stone-300 dark:border-white/15 px-5 py-6 text-center">
-              <Calendar size={28} aria-hidden="true" className="mx-auto text-stone-500 dark:text-[#a6a1b2]" />
-              <p className="mt-2 font-semibold text-stone-800 dark:text-[#eae6e1]">No hay citas próximas</p>
-              <p className="mt-1 text-sm text-stone-600 dark:text-[#a6a1b2]">
-                Agrega la próxima consulta para tener a mano qué llevar y qué preguntar.
-              </p>
-            </div>
+            <ListGroup>
+              <ListRow
+                leading={<Calendar size={20} strokeWidth={1.75} />}
+                title="No hay citas próximas"
+                meta="Agrega la próxima consulta para tener a mano qué llevar y qué preguntar."
+                className="py-1.5"
+              />
+            </ListGroup>
           ) : (
-            <ol className="space-y-3">
+            <ListGroup>
               {upcoming.map((d, i) => (
                 <EventRow
                   key={d.key}
@@ -1741,14 +1754,14 @@ export function AgendaView({
                   onDelete={(ev) => handleDelete(ev, "upcoming")}
                 />
               ))}
-            </ol>
+            </ListGroup>
           )}
         </section>
 
         {/* Sugerencias según la semana (no mientras la agenda compartida no ha cargado:
             ofrecería agendar algo que quizá ya está agendado) */}
         {loading || loadError ? null : cw === undefined ? (
-          <p className="text-sm leading-snug text-stone-600 dark:text-[#a6a1b2]">
+          <p className="text-meta text-ink-muted">
             {/* Semana confirmada pero menor de 4: pedir que la confirme sería un callejón sin salida. */}
             {!profile.weekUnknown && typeof profile.week === "number" && profile.week >= 1 && profile.week < 4
               ? "Desde la semana 4 verás aquí qué estudios suelen tocar."
@@ -1756,88 +1769,97 @@ export function AgendaView({
           </p>
         ) : (
           suggestions.length > 0 && (
-            <section aria-labelledby={ids.suggestions}>
-              <h3 id={ids.suggestions} className="text-lg font-bold text-stone-900 dark:text-[#eae6e1]">
-                {profile.role === "papa" ? `Para la semana ${cw}` : `Para tu semana ${cw}`}
-              </h3>
-              <p className="mt-0.5 text-sm text-stone-600 dark:text-[#a6a1b2]">
-                {profile.role === "papa" ? "Guía general: su obstetra define las fechas exactas." : "Guía general: tu obstetra define las fechas exactas."}
-              </p>
-              <ul className="mt-3 rounded-2xl border border-stone-200/80 dark:border-white/[0.08] bg-white dark:bg-[#221d2d] divide-y divide-stone-200/80 dark:divide-white/[0.08]">
+            <Section
+              as="h3"
+              size="md"
+              headingId={ids.suggestions}
+              title={profile.role === "papa" ? `Para la semana ${cw}` : `Para tu semana ${cw}`}
+              description={profile.role === "papa" ? "Guía general: su obstetra define las fechas exactas." : "Guía general: tu obstetra define las fechas exactas."}
+            >
+              <ListGroup>
                 {suggestions.map((s) => {
                   const Icon = TYPE_META[s.type].Icon;
                   return (
-                    <li key={s.id} className="flex items-start gap-3 pl-4 pr-1.5 py-3">
-                      <Icon size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-sage-ink" />
-                      <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-stone-900 dark:text-[#eae6e1] leading-snug">{s.title}</p>
-                        <p className="mt-0.5 text-sm leading-snug text-stone-600 dark:text-[#a6a1b2]">
-                          {s.detail}
-                          {profile.role === "papa" ? " Reserva ese día para acompañarla." : ""}
-                        </p>
+                    <li key={s.id} className="relative flex items-stretch ps-[var(--gutter)]">
+                      <span aria-hidden="true" className="flex shrink-0 items-start pt-3.5 pe-3 text-ink-muted">
+                        <Icon size={20} strokeWidth={1.75} />
+                      </span>
+                      <div className="pj-row-body min-w-0 flex-1 pt-3 pb-1.5 pe-[calc(var(--gutter)-0.75rem)]">
+                        <div className="flex items-start gap-1">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-body font-bold text-ink">{s.title}</p>
+                            <p className="mt-0.5 text-meta text-ink-muted">
+                              {s.detail}
+                              {profile.role === "papa" ? " Reserva ese día para acompañarla." : ""}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => dismissSuggestion(s.id)}
+                            aria-label={`Descartar sugerencia: ${s.title}`}
+                            className={`-mt-1.5 shrink-0 w-11 h-11 inline-flex items-center justify-center rounded-full text-ink-subtle hover:bg-surface-hover hover:text-ink transition-colors ${focusRing}`}
+                          >
+                            <X size={18} aria-hidden="true" />
+                          </button>
+                        </div>
                         <button
                           type="button"
                           onClick={() => openNew({ title: s.eventTitle, type: s.type })}
                           aria-haspopup="dialog"
-                          className={`mt-1 -ml-2 min-h-[44px] px-2 rounded-lg inline-flex items-center gap-1.5 text-sm font-bold text-terracotta-ink hover:bg-terracotta/10 transition-colors ${focusRing}`}
+                          className={`mt-0.5 -ms-2 ${textActionClass}`}
                         >
                           <CalendarPlus size={16} aria-hidden="true" /> Agendar
                         </button>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => dismissSuggestion(s.id)}
-                        aria-label={`Descartar sugerencia: ${s.title}`}
-                        className={`shrink-0 w-11 h-11 inline-flex items-center justify-center rounded-full text-stone-500 dark:text-[#a6a1b2] hover:bg-stone-100 dark:hover:bg-white/10 hover:text-stone-800 dark:hover:text-[#eae6e1] transition-colors ${focusRing}`}
-                      >
-                        <X size={18} aria-hidden="true" />
-                      </button>
                     </li>
                   );
                 })}
-              </ul>
-            </section>
+              </ListGroup>
+            </Section>
           )
         )}
 
-        {/* Pasadas: plegadas y atenuadas */}
+        {/* Pasadas: plegadas y atenuadas. -mt-3 compensa el relleno del botón de 48px para que el aire
+            sobre este título sea el mismo que sobre los demás. */}
         {past.length > 0 && (
-          <section aria-labelledby={ids.past}>
-            <h3 id={ids.past}>
+          <section aria-labelledby={ids.past} className="-mt-3">
+            <h3 id={ids.past} className="-mx-[var(--gutter)]">
               <button
                 ref={pastToggleRef}
                 type="button"
                 aria-expanded={showPast}
                 aria-controls={ids.pastList}
                 onClick={() => setShowPast((v) => !v)}
-                className={`w-full min-h-[48px] -mx-1 px-1 rounded-xl flex items-center justify-between gap-3 text-left ${focusRing}`}
+                className={`w-full min-h-12 px-[var(--gutter)] flex items-center justify-between gap-3 text-left transition-colors hover:bg-surface-hover ${focusInset}`}
               >
-                <span className="text-base font-bold text-stone-700 dark:text-[#cfcad6]">
-                  Pasadas <span className="font-medium text-stone-600 dark:text-[#a6a1b2] tabular-nums">({past.length})</span>
+                <span className="font-display text-subtitle text-ink">
+                  Pasadas <span className="font-sans text-meta font-medium text-ink-subtle tabular-nums">({past.length})</span>
                 </span>
                 <ChevronDown
                   size={18}
                   aria-hidden="true"
-                  className={`text-stone-500 dark:text-[#a6a1b2] transition-transform duration-200 motion-reduce:transition-none ${showPast ? "rotate-180" : ""}`}
+                  className={`text-ink-subtle transition-transform duration-200 motion-reduce:transition-none ${showPast ? "rotate-180" : ""}`}
                 />
               </button>
             </h3>
             {showPast && (
-              <ol id={ids.pastList} className="mt-2 space-y-2">
-                {past.map((d) => (
-                  <EventRow
-                    key={d.key}
-                    item={d}
-                    now={now}
-                    variant="past"
-                    authorRole={roleOf(d.ev.createdBy)}
-                    showAuthor={!!pregnancyId}
-                    onOpenPrep={onOpenPrep}
-                    onEdit={openEdit}
-                    onDelete={(ev) => handleDelete(ev, "past")}
-                  />
-                ))}
-              </ol>
+              <div id={ids.pastList}>
+                <ListGroup>
+                  {past.map((d) => (
+                    <EventRow
+                      key={d.key}
+                      item={d}
+                      now={now}
+                      variant="past"
+                      authorRole={roleOf(d.ev.createdBy)}
+                      showAuthor={!!pregnancyId}
+                      onOpenPrep={onOpenPrep}
+                      onEdit={openEdit}
+                      onDelete={(ev) => handleDelete(ev, "past")}
+                    />
+                  ))}
+                </ListGroup>
+              </div>
             )}
           </section>
         )}
@@ -1845,8 +1867,8 @@ export function AgendaView({
 
       {/* Hoja: nueva cita / editar cita */}
       <Sheet open={formOpen} onClose={closeForm} labelledBy={ids.formTitle} initialFocusRef={titleRef}>
-        <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-4 border-b border-stone-200/70 dark:border-white/[0.06] shrink-0">
-          <h2 id={ids.formTitle} className="text-xl font-black leading-tight">
+        <div className={sheetHeadClass}>
+          <h2 id={ids.formTitle} className={sheetTitleClass}>
             {editing ? "Editar cita" : "Nueva cita"}
           </h2>
           <button type="button" onClick={closeForm} className={closeButtonClass} aria-label="Cerrar sin guardar">
@@ -1858,7 +1880,7 @@ export function AgendaView({
           onSubmit={onSubmit}
           noValidate
           aria-busy={saving}
-          className="overflow-y-auto overscroll-contain px-5 pt-4 pb-[calc(1.25rem+var(--safe-bottom))] flex flex-col gap-5"
+          className="overflow-y-auto overscroll-contain px-5 pt-5 pb-[calc(1.25rem+var(--safe-bottom))] flex flex-col gap-6"
         >
           <fieldset aria-describedby={autoTyped ? `${ids.type}-help` : undefined}>
             <legend className={labelClass}>Tipo de cita</legend>
@@ -1868,10 +1890,10 @@ export function AgendaView({
                 return (
                   <label
                     key={value}
-                    className={`min-h-[44px] px-3.5 rounded-xl border inline-flex items-center gap-1.5 text-sm font-semibold cursor-pointer select-none transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-terracotta-ink ${
+                    className={`min-h-[44px] px-3.5 rounded-full border inline-flex items-center gap-1.5 text-meta font-bold cursor-pointer select-none transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-terracotta-ink ${
                       selected
-                        ? "bg-sage-ink border-transparent text-white"
-                        : "bg-white dark:bg-[#181520] border-stone-300 dark:border-white/15 text-stone-800 dark:text-[#eae6e1] hover:border-stone-400 dark:hover:border-white/30"
+                        ? "bg-sage-ink border-transparent text-on-accent"
+                        : "bg-surface-raised border-line-control text-ink hover:bg-surface-hover"
                     }`}
                   >
                     <input
@@ -1883,7 +1905,7 @@ export function AgendaView({
                       disabled={saving}
                       className="sr-only"
                     />
-                    <Icon size={16} aria-hidden="true" />
+                    <Icon size={16} strokeWidth={1.75} aria-hidden="true" />
                     {label}
                   </label>
                 );
@@ -1939,12 +1961,12 @@ export function AgendaView({
                 aria-invalid={!!showDateError}
                 aria-describedby={showDateError ? `${ids.date}-error` : dateIsPast ? `${ids.date}-help` : undefined}
                 disabled={saving}
-                className={inputClass}
+                className={`${inputClass} tabular-nums`}
               />
             </div>
             <div className="min-w-0">
               <label htmlFor={ids.time} className={labelClass}>
-                Hora <span className="font-normal text-stone-600 dark:text-[#a6a1b2]">(opcional)</span>
+                Hora <span className={optionalClass}>(opcional)</span>
               </label>
               <input
                 id={ids.time}
@@ -1952,7 +1974,7 @@ export function AgendaView({
                 value={form.time}
                 onChange={(e) => updateField({ time: e.target.value })}
                 disabled={saving}
-                className={inputClass}
+                className={`${inputClass} tabular-nums`}
               />
             </div>
             {showDateError && (
@@ -1969,7 +1991,7 @@ export function AgendaView({
 
           <div>
             <label htmlFor={ids.doctor} className={labelClass}>
-              Médico o clínica <span className="font-normal text-stone-600 dark:text-[#a6a1b2]">(opcional)</span>
+              Médico o clínica <span className={optionalClass}>(opcional)</span>
             </label>
             <input
               id={ids.doctor}
@@ -1986,7 +2008,7 @@ export function AgendaView({
           </div>
 
           {saveState === "error" && saveError && (
-            <div role="alert" className="flex items-start gap-2 rounded-xl bg-terracotta/10 dark:bg-terracotta/[0.12] p-3 text-sm text-stone-800 dark:text-[#eae6e1]">
+            <div role="alert" className={alertClass}>
               <CircleAlert size={16} aria-hidden="true" className="text-terracotta-ink shrink-0 mt-0.5" />
               <p>{saveError}</p>
             </div>
@@ -1995,7 +2017,7 @@ export function AgendaView({
           <button
             type="submit"
             disabled={saving || saveState === "success"}
-            className={`w-full min-h-[52px] rounded-xl font-bold text-base text-white inline-flex items-center justify-center gap-2 transition-colors active:scale-[0.99] disabled:cursor-default ${focusRing} ${
+            className={`w-full min-h-[52px] rounded-2xl font-bold text-body text-on-accent inline-flex items-center justify-center gap-2 transition-colors active:scale-[0.99] disabled:cursor-default ${focusRing} ${
               saveState === "success" ? "bg-sage-ink" : "bg-terracotta-ink hover:bg-terracotta-ink-hover disabled:hover:bg-terracotta-ink"
             }`}
           >
@@ -2027,7 +2049,7 @@ export function AgendaView({
 }
 
 // =====================================================================================
-// Fila de cita
+// Fila de cita (una fila de ListGroup: fecha tipográfica a la izquierda, divisor tras ella)
 // =====================================================================================
 
 function EventRow({
@@ -2061,99 +2083,114 @@ function EventRow({
         return k === "ecografia" || k === "laboratorio" || k === "vacuna" ? k : null;
       })();
   const typeMeta = shownKind ? TYPE_META[shownKind] : null;
+  // El tipo no se repite si ya es el título ("Control prenatal · Control prenatal") ni se muestra "Otro".
+  const typeLabel =
+    typeMeta && shownKind !== "otro" && normalize(typeMeta.label) !== normalize(title) ? typeMeta.label : null;
   const featured = variant === "featured";
   const muted = variant === "past";
   const countdown = !muted && date ? countdownLabel(date, now) : null;
   const author = showAuthor ? cleanStr(ev.createdByName) : "";
 
-  const rowTone = featured
-    ? "bg-terracotta/10 dark:bg-terracotta/[0.12] border-terracotta/30 dark:border-terracotta/25"
-    : muted
-      ? "bg-stone-100/60 dark:bg-white/[0.03] border-stone-200/70 dark:border-white/[0.06]"
-      : "bg-white dark:bg-[#221d2d] border-stone-200/80 dark:border-white/[0.08]";
-  const dateTone = featured
-    ? "bg-white/80 dark:bg-black/20 text-terracotta-ink"
-    : muted
-      ? "bg-stone-200/60 dark:bg-white/[0.06] text-stone-600 dark:text-[#a6a1b2]"
-      : "bg-sage/10 dark:bg-sage/[0.14] text-sage-ink";
-  const iconButton = `w-11 h-11 shrink-0 inline-flex items-center justify-center rounded-xl text-stone-600 dark:text-[#a6a1b2] hover:bg-stone-900/5 dark:hover:bg-white/10 hover:text-stone-900 dark:hover:text-[#eae6e1] transition-colors ${focusRing}`;
+  // La fecha es la columna de la fila: el día en Alegreya, el mes debajo. Tinta para la próxima, ink-muted para
+  // las siguientes, atenuada en las pasadas: la urgencia la lleva la cuenta atrás ("Es hoy", "Es mañana").
+  const dateTone = featured ? "text-ink" : muted ? "text-ink-subtle" : "text-ink-muted";
+  const iconButton = `w-11 h-11 shrink-0 inline-flex items-center justify-center rounded-full text-ink-subtle hover:bg-surface-hover hover:text-ink transition-colors ${focusRing}`;
+
+  // Línea de datos: "En 2 días · Laboratorio · 10:30" (en las pasadas, sin cuenta atrás).
+  const metaParts: React.ReactNode[] = [];
+  if (countdown) {
+    metaParts.push(
+      <span className={`font-bold ${countdown.soon ? "text-terracotta-ink" : "text-ink"}`}>{countdown.text}</span>
+    );
+  }
+  if (!date) metaParts.push(<span className="font-bold text-ink">Fecha sin confirmar</span>);
+  if (typeLabel) metaParts.push(typeLabel);
+  metaParts.push(<span className="tabular-nums">{timeLabel(ev)}</span>);
+
+  const editDelete = (
+    <div className="flex shrink-0 items-center">
+      <button type="button" onClick={() => onEdit(ev)} aria-label={`Editar cita: ${title}`} aria-haspopup="dialog" className={iconButton}>
+        <Pencil size={17} aria-hidden="true" />
+      </button>
+      <button type="button" onClick={() => onDelete(ev)} aria-label={`Eliminar cita: ${title}`} className={iconButton}>
+        <Trash2 size={17} aria-hidden="true" />
+      </button>
+    </div>
+  );
+
+  const text = (
+    <>
+      <div className="flex items-start justify-between gap-2 pe-3">
+        <h4 className={`text-body font-bold break-words ${muted ? "text-ink-muted" : "text-ink"}`}>
+          <span className="sr-only">{date ? `${formatDateLong(date)}: ` : ""}</span>
+          {title}
+        </h4>
+        {author && (
+          <span className="mt-0.5 shrink-0">
+            <AuthorChip name={author} role={authorRole} size="xs" title={`Agendada por ${author}`} />
+          </span>
+        )}
+      </div>
+      <p className="mt-0.5 pe-3 text-meta text-ink-muted">
+        {metaParts.map((part, i) => (
+          <React.Fragment key={i}>
+            {i > 0 && " · "}
+            {part}
+          </React.Fragment>
+        ))}
+      </p>
+      {doctor && <p className="pe-3 text-meta text-ink-muted break-words">{doctor}</p>}
+    </>
+  );
 
   return (
-    <li className={`rounded-2xl border p-4 ${rowTone}`}>
-      <div className="flex gap-3.5">
-        <div
-          className={`w-14 min-h-[56px] shrink-0 self-start rounded-xl py-2 flex flex-col items-center justify-center ${dateTone}`}
-          aria-hidden="true"
-        >
-          {date ? (
-            <>
-              <span className="text-xs font-bold uppercase tracking-wide">{MONTHS_SHORT[date.getMonth()]}</span>
-              <span className="text-2xl font-black leading-none tabular-nums">{date.getDate()}</span>
-            </>
-          ) : (
-            <CalendarDays size={22} />
-          )}
-        </div>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-2">
-            <h4
-              className={`text-base font-bold leading-snug break-words ${
-                muted ? "text-stone-700 dark:text-[#cfcad6]" : "text-stone-900 dark:text-[#eae6e1]"
-              }`}
-            >
-              <span className="sr-only">{date ? `${formatDateLong(date)}: ` : ""}</span>
-              {title}
-            </h4>
-            {author && <AuthorChip name={author} role={authorRole} size="xs" title={`Agendada por ${author}`} />}
-          </div>
-
-          <p className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-sm text-stone-600 dark:text-[#a6a1b2]">
-            {countdown && (
-              <span className={`font-semibold ${countdown.soon || featured ? "text-terracotta-ink" : "text-stone-700 dark:text-[#cfcad6]"}`}>
-                {countdown.text}
-              </span>
-            )}
-            {!date && <span className="font-semibold text-stone-700 dark:text-[#cfcad6]">Fecha sin confirmar</span>}
-            {typeMeta && (
-              <span className="inline-flex items-center gap-1">
-                <typeMeta.Icon size={14} aria-hidden="true" className="shrink-0" /> {typeMeta.label}
-              </span>
-            )}
-            <span className="inline-flex items-center gap-1">
-              <Clock size={14} aria-hidden="true" className="shrink-0" /> {timeLabel(ev)}
-            </span>
-          </p>
-          {doctor && <p className="mt-0.5 text-sm text-stone-600 dark:text-[#a6a1b2] break-words">{doctor}</p>}
-        </div>
-      </div>
-
-      <div className="mt-3 flex items-center gap-2">
-        {!muted && (
-          <button
-            type="button"
-            onClick={() => onOpenPrep(ev)}
-            // Nombre único por fila (hay uno por cita); empieza por el texto visible (2.5.3).
-            aria-label={`Qué llevar y preguntar: ${title}`}
-            aria-haspopup="dialog"
-            className={`min-h-[44px] px-3.5 rounded-xl text-sm font-bold inline-flex items-center gap-1.5 transition-colors active:scale-[0.98] ${focusRing} ${
-              featured
-                ? "bg-terracotta-ink hover:bg-terracotta-ink-hover text-white"
-                : "border border-stone-300 dark:border-white/15 text-stone-800 dark:text-[#eae6e1] hover:bg-stone-50 dark:hover:bg-white/5"
-            }`}
-          >
-            <ClipboardList size={16} aria-hidden="true" /> Qué llevar y preguntar
-          </button>
+    <li className="relative flex items-stretch ps-[var(--gutter)]">
+      <div aria-hidden="true" className={`w-11 shrink-0 me-3 pt-3.5 flex flex-col items-center text-center ${dateTone}`}>
+        {date ? (
+          <>
+            <span className="font-display text-title tabular-nums">{date.getDate()}</span>
+            <span className="text-micro font-bold">{MONTHS_SHORT[date.getMonth()]}</span>
+          </>
+        ) : (
+          <CalendarDays size={22} strokeWidth={1.75} className="mt-1" />
         )}
-        <div className="ml-auto -mr-2 flex items-center">
-          <button type="button" onClick={() => onEdit(ev)} aria-label={`Editar cita: ${title}`} aria-haspopup="dialog" className={iconButton}>
-            <Pencil size={17} aria-hidden="true" />
-          </button>
-          <button type="button" onClick={() => onDelete(ev)} aria-label={`Eliminar cita: ${title}`} className={iconButton}>
-            <Trash2 size={17} aria-hidden="true" />
-          </button>
-        </div>
       </div>
+
+      {muted ? (
+        // Pasada: sin preparación; editar y borrar quedan al lado del texto (sin una línea solo para ellos).
+        <div className="pj-row-body min-w-0 flex-1 flex items-center gap-1 py-3.5 pe-[calc(var(--gutter)-0.75rem)]">
+          <div className="min-w-0 flex-1">{text}</div>
+          {editDelete}
+        </div>
+      ) : (
+        <div className="pj-row-body min-w-0 flex-1 pt-3.5 pb-2 pe-[calc(var(--gutter)-0.75rem)]">
+          {text}
+          <div className="mt-2 flex items-center gap-2">
+            {featured ? (
+              <RowButton
+                tone="primary"
+                onClick={() => onOpenPrep(ev)}
+                // Nombre único por fila (hay uno por cita); empieza por el texto visible (2.5.3).
+                aria-label={`Qué llevar y preguntar: ${title}`}
+                aria-haspopup="dialog"
+              >
+                <ClipboardList size={16} aria-hidden="true" /> Qué llevar y preguntar
+              </RowButton>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onOpenPrep(ev)}
+                aria-label={`Qué llevar y preguntar: ${title}`}
+                aria-haspopup="dialog"
+                className={`-ms-2 ${textActionClass}`}
+              >
+                <ClipboardList size={16} aria-hidden="true" /> Qué llevar y preguntar
+              </button>
+            )}
+            <div className="ms-auto">{editDelete}</div>
+          </div>
+        </div>
+      )}
     </li>
   );
 }

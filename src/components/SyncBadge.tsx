@@ -131,7 +131,8 @@ export function SyncBadge({
   const partner = usePartner(partnerName === undefined);
   const now = useMinuteTick(!!lastSyncedAt);
 
-  const base = "inline-flex min-w-0 max-w-full items-center gap-1.5 text-[13px] leading-5";
+  // Rol micro (13px, peso 500) con caja de 20px: la misma altura que la línea reservada antes de hidratar.
+  const base = "inline-flex min-w-0 max-w-full items-center gap-1.5 text-micro font-medium leading-5";
 
   // Antes de hidratar el perfil no sabemos si hay vínculo: reservamos la línea sin texto.
   if (!hasHydrated) {
@@ -140,7 +141,7 @@ export function SyncBadge({
 
   let Icon = Smartphone;
   let text = "Solo en este teléfono";
-  let tone = "text-stone-600 dark:text-[#a6a1b2]";
+  let tone = "text-ink-subtle";
   let relative = "";
 
   if (pregnancyId) {
@@ -149,11 +150,11 @@ export function SyncBadge({
     if (partner.removed) {
       Icon = CloudOff;
       text = "Sin acceso a lo compartido";
-      tone = "text-amber-800 dark:text-amber-300";
+      tone = "text-amber-ink"; // aviso no crítico: ámbar (tinta accesible en los dos temas)
     } else if (!online) {
       Icon = CloudOff;
       text = "Sin conexión: no cierres la app hasta enviar";
-      tone = "text-amber-800 dark:text-amber-300";
+      tone = "text-amber-ink"; // aviso no crítico: ámbar (tinta accesible en los dos temas)
     } else if (waiting || (ownListener && !partner.loaded)) {
       Icon = LoaderCircle;
       text = "Conectando con lo compartido…";

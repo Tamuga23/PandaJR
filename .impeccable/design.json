@@ -1,45 +1,163 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-23T05:25:00Z",
+  "generatedAt": "2026-09-29T12:00:00Z",
   "title": "Design System: PandaJR",
   "extensions": {
     "colorMeta": {
-      "primary": { "role": "primary", "displayName": "Teal Reasegurador", "canonical": "#0d9488", "tonalRamp": ["#042f2e", "#115e59", "#0f766e", "#0d9488", "#14b8a6", "#2dd4bf", "#5eead4", "#ccfbf1"] },
-      "secondary": { "role": "secondary", "displayName": "Ámbar Energético", "canonical": "#f59e0b", "tonalRamp": ["#78350f", "#92400e", "#b45309", "#d97706", "#f59e0b", "#fbbf24", "#fcd34d", "#fef3c7"] },
-      "tertiary": { "role": "tertiary", "displayName": "Rosa Urgencia", "canonical": "#f43f5e", "tonalRamp": ["#881337", "#9f1239", "#be123c", "#e11d48", "#f43f5e", "#fb7185", "#fda4af", "#ffe4e6"] }
+      "terracotta-ink": { "role": "primary", "displayName": "Terracota tinta", "canonical": "oklch(51.9% 0.128 34.1)", "tonalRamp": ["#280000", "#4c0000", "#731c07", "#983c28", "#c0604a", "#e8866e", "#ffb09a", "#ffd8c4"] },
+      "terracotta": { "role": "primary", "displayName": "Terracota tono (relleno, no texto)" },
+      "terracotta-wash": { "role": "primary", "displayName": "Lavado terracota (alarma en calma)" },
+      "sage-ink": { "role": "secondary", "displayName": "Sage tinta", "canonical": "oklch(48.8% 0.049 167.0)", "tonalRamp": ["#001107", "#042b1f", "#24483a", "#426758", "#648a7a", "#88af9e", "#add5c4", "#d0fae8"] },
+      "sage": { "role": "secondary", "displayName": "Sage tono (hojas, no texto)" },
+      "sage-wash": { "role": "secondary", "displayName": "Lavado sage (completado)" },
+      "amber-ink": { "role": "tertiary", "displayName": "Ámbar logístico", "canonical": "oklch(50.2% 0.106 69.5)", "tonalRamp": ["#1f0100", "#401700", "#623200", "#835100", "#a97430", "#d09857", "#f3c085", "#ffe5b2"] },
+      "amber-wash": { "role": "tertiary", "displayName": "Lavado ámbar (aviso logístico)" },
+      "ground": { "role": "neutral", "displayName": "Alabastro", "canonical": "oklch(98.2% 0.005 95.1)", "tonalRamp": ["#0c0b09", "#252421", "#40403d", "#5e5e5a", "#81807d", "#a5a5a1", "#cbcac7", "#efeeea"] },
+      "ink": { "role": "neutral", "displayName": "Tinta cálida", "canonical": "oklch(28.7% 0.008 75.2)", "tonalRamp": ["#0d0b07", "#262320", "#423f3b", "#605d58", "#83807b", "#a8a49f", "#cecac5", "#f2eee8"] },
+      "ground-dark": { "role": "neutral", "displayName": "Obsidiana violeta", "canonical": "oklch(20.5% 0.022 296.9)", "tonalRamp": ["#0c0913", "#25222e", "#413d4a", "#5f5b69", "#817e8c", "#a6a2b1", "#ccc8d8", "#f0ecfc"] },
+      "line-control": { "role": "neutral", "displayName": "Borde de control (≥3:1)" }
     },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "La semana en la Guía, héroes. Alegreya 700." },
+      "title": { "displayName": "Title", "purpose": "Título de pantalla o de diálogo; «Hoy»." },
+      "subtitle": { "displayName": "Subtitle", "purpose": "Título de Section (h2)." },
+      "body": { "displayName": "Body", "purpose": "Cuerpo; cifras de caja alta (lining-nums)." },
+      "row-title": { "displayName": "Título de fila", "purpose": "Título de ListRow; 500 en listas largas y tranquilas." },
+      "meta": { "displayName": "Meta", "purpose": "Línea secundaria, descripciones, botones compactos; ink-muted." },
+      "micro": { "displayName": "Micro", "purpose": "Horas, autores, contadores, etiquetas de la barra; ink-subtle. Suelo de la escala (13px)." },
+      "wordmark": { "displayName": "Wordmark", "purpose": "«PandaJR» en Alegreya 800; «JR» en terracotta-ink." }
+    },
+    "shadows": [
+      { "name": "sheet", "value": "0 -8px 32px -8px rgba(24,21,32,0.28)", "purpose": "Hojas que suben desde abajo." },
+      { "name": "dialog", "value": "0 16px 48px -16px rgba(24,21,32,0.35)", "purpose": "Diálogos centrados." },
+      { "name": "toast", "value": "0 12px 32px -12px rgba(24,21,32,0.5)", "purpose": "Aviso invertido (bg-ink)." },
+      { "name": "emergency-halo", "value": "0 3px 10px -3px color-mix(in srgb, var(--terracotta-ink-fill) 55%, transparent)", "purpose": "Solo el botón Emergencias." },
+      { "name": "tool-piece", "value": "0 18px 40px -20px rgb(45 42 38 / 0.6)", "purpose": "Grandes botones táctiles de conteo." }
+    ],
+    "motion": [
+      { "name": "plant-grow", "value": "600ms cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Única animación de autor: la planta al avanzar de semana. Desactivada con prefers-reduced-motion." },
+      { "name": "state-color", "value": "color/background-color 200ms", "purpose": "Cambios de estado por color y opacidad; se conservan con movimiento reducido." },
+      { "name": "press", "value": "scale(0.98)", "purpose": "Pressed de los botones de llamada; anulado con movimiento reducido." }
+    ],
     "breakpoints": [
-      { "name": "md", "value": "768px" }
-    ]
+      { "name": "sm", "value": "640px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ],
+    "layers": [
+      { "name": "header", "value": "40" },
+      { "name": "nav", "value": "50" },
+      { "name": "sheet/dialog", "value": "60" },
+      { "name": "careTeam", "value": "70" },
+      { "name": "toast", "value": "80" }
+    ],
+    "focus": { "value": "outline: 2px solid var(--terracotta-ink); outline-offset: 2px", "purpose": "Anillo de foco global; en filas, contorno interior (offset -2px)." }
   },
   "components": [
     {
-      "name": "Checklist Button",
+      "name": "Botón principal (RowButton primary)",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "Botón de tarea accesible con estado completado.",
-      "html": "<button class=\"ds-task\" aria-checked=\"false\">Hacer la maleta</button>",
-      "css": ".ds-task { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px; background: #ffffff; border: 1px solid #f3f4f6; border-radius: 16px; cursor: pointer; transition: border-color 0.2s; font-family: system-ui; font-size: 14px; color: #374151; } .ds-task:hover { border-color: #99f6e4; } .ds-task[aria-checked=\"true\"] { color: #9ca3af; text-decoration: line-through; border-color: #e5e7eb; }"
+      "description": "Acción principal de una fila o sección; una por vista.",
+      "html": "<button class=\"ds-btn-primary\">Guardar</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; border: 0; border-radius: 9999px; background: var(--terracotta-ink-fill, #a54833); color: var(--on-accent, #fff); font: 700 0.875rem/1.45 'Alegreya Sans', system-ui, sans-serif; transition: background-color .15s; cursor: pointer; } .ds-btn-primary:hover { background: var(--terracotta-ink-hover, #8f3c2a); } .ds-btn-primary:focus-visible { outline: 2px solid var(--terracotta-ink, #a54833); outline-offset: 2px; }"
+    },
+    {
+      "name": "Botón contorno (RowButton default)",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Acción secundaria en el trailing de una fila estática («Preparar»).",
+      "html": "<button class=\"ds-btn-outline\">Preparar</button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border: 1px solid var(--line-control, #8c8479); border-radius: 9999px; background: transparent; color: var(--ink, #2d2a26); font: 700 0.875rem/1.45 'Alegreya Sans', system-ui, sans-serif; transition: background-color .15s; cursor: pointer; } .ds-btn-outline:hover { background: var(--surface-hover, rgb(45 42 38 / .05)); } .ds-btn-outline:focus-visible { outline: 2px solid var(--terracotta-ink, #a54833); outline-offset: 2px; }"
+    },
+    {
+      "name": "Fila de lista (ListRow en ListGroup)",
+      "kind": "custom",
+      "refersTo": "list-row",
+      "description": "La unidad estructural de la app: filas ≥48px con divisores que empiezan tras el icono.",
+      "html": "<ul class=\"ds-list\"><li><button class=\"ds-row\"><span class=\"ds-row-icon\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\"><circle cx=\"12\" cy=\"12\" r=\"9\"/></svg></span><span class=\"ds-row-body\"><span><span class=\"ds-row-title\">Prueba de glucosa</span><span class=\"ds-row-meta\">Tú · semanas 24–28</span></span></span></button></li><li><button class=\"ds-row\"><span class=\"ds-row-icon\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\"><circle cx=\"12\" cy=\"12\" r=\"9\"/></svg></span><span class=\"ds-row-body\"><span><span class=\"ds-row-title\">Vacuna de la influenza</span><span class=\"ds-row-meta\">Papá</span></span></span></button></li></ul>",
+      "css": ".ds-list { list-style: none; margin: 0; padding: 0; } .ds-list > li + li .ds-row-body { border-top: 1px solid var(--line, #e8e2d7); } .ds-row { display: flex; width: 100%; min-height: 48px; align-items: stretch; padding: 0 0 0 16px; border: 0; background: transparent; text-align: left; color: var(--ink, #2d2a26); cursor: pointer; transition: background-color .15s; } .ds-row:hover { background: var(--surface-hover, rgb(45 42 38 / .05)); } .ds-row:focus-visible { outline: 2px solid var(--terracotta-ink, #a54833); outline-offset: -2px; } .ds-row-icon { display: flex; align-items: center; padding-right: 12px; color: var(--ink-muted, #5c554d); } .ds-row-body { display: flex; flex: 1; align-items: center; padding: 10px 16px 10px 0; } .ds-row-title { display: block; font: 700 1rem/1.5 'Alegreya Sans', system-ui, sans-serif; } .ds-row-meta { display: block; margin-top: 2px; font: 400 0.875rem/1.45 'Alegreya Sans', system-ui, sans-serif; color: var(--ink-muted, #5c554d); }"
+    },
+    {
+      "name": "Llamada de emergencia (CallActions)",
+      "kind": "button",
+      "refersTo": "call-emergency",
+      "description": "Siempre la acción más fuerte de la pantalla: relleno terracota, ≥56px, halo.",
+      "html": "<a class=\"ds-call-sos\" href=\"tel:911\"><span class=\"ds-call-well\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z\"/></svg></span><span class=\"ds-call-label\">Emergencias · 911</span></a>",
+      "css": ".ds-call-sos { display: flex; width: 100%; min-height: 56px; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 16px; background: var(--terracotta-ink-fill, #a54833); color: var(--on-accent, #fff); text-decoration: none; box-shadow: 0 3px 10px -3px color-mix(in srgb, var(--terracotta-ink-fill, #a54833) 55%, transparent); transition: background-color .15s, transform .15s; } .ds-call-sos:hover { background: var(--terracotta-ink-hover, #8f3c2a); } .ds-call-sos:active { transform: scale(.98); } .ds-call-sos:focus-visible { outline: 2px solid var(--terracotta-ink, #a54833); outline-offset: 2px; } .ds-call-well { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 9999px; background: rgb(255 255 255 / .15); } .ds-call-label { font: 700 1.125rem/1.25 'Alegreya Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Destino de navegación (barra / riel)",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "Cuatro destinos; activo con pozo terracota-wash y tinta terracota.",
+      "html": "<nav class=\"ds-nav\"><button class=\"ds-nav-item is-active\" aria-current=\"page\"><span class=\"ds-nav-well\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m15.5 8.5-2 5-5 2 2-5z\"/></svg></span><span>Guía</span></button><button class=\"ds-nav-item\"><span class=\"ds-nav-well\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\"><rect x=\"4\" y=\"5\" width=\"16\" height=\"15\" rx=\"2\"/><path d=\"M4 10h16M9 3v4M15 3v4\"/></svg></span><span>Agenda</span></button></nav>",
+      "css": ".ds-nav { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; padding: 6px 8px; background: var(--ground, #faf9f5); border-top: 1px solid var(--line, #e8e2d7); } .ds-nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px; padding: 6px 0; border: 0; border-radius: 12px; background: transparent; color: var(--ink-muted, #5c554d); font: 500 0.8125rem/1.35 'Alegreya Sans', system-ui, sans-serif; cursor: pointer; transition: color .2s; } .ds-nav-item:hover { color: var(--ink, #2d2a26); } .ds-nav-item:focus-visible { outline: 2px solid var(--terracotta-ink, #a54833); outline-offset: -2px; } .ds-nav-well { display: grid; place-items: center; width: 56px; height: 32px; border-radius: 9999px; transition: background-color .2s; } .ds-nav-item:hover .ds-nav-well { background: var(--surface-hover, rgb(45 42 38 / .05)); } .ds-nav-item.is-active { color: var(--terracotta-ink, #a54833); font-weight: 700; } .ds-nav-item.is-active .ds-nav-well { background: var(--terracotta-wash, #f6e6df); }"
+    },
+    {
+      "name": "Campo de texto",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Campo sobre surface-raised con borde de control ≥3:1.",
+      "html": "<input class=\"ds-field\" placeholder=\"Nombre de tu obstetra\" />",
+      "css": ".ds-field { width: 100%; min-height: 48px; padding: 10px 14px; border: 1px solid var(--line-control, #8c8479); border-radius: 16px; background: var(--surface-raised, #fffefb); color: var(--ink, #2d2a26); font: 400 1rem/1.5 'Alegreya Sans', system-ui, sans-serif; caret-color: var(--terracotta-ink, #a54833); } .ds-field::placeholder { color: var(--placeholder, #6f6964); opacity: 1; } .ds-field:focus-visible { outline: 2px solid var(--terracotta-ink, #a54833); outline-offset: 2px; }"
+    },
+    {
+      "name": "Grupo inset (ListGroup inset)",
+      "kind": "card",
+      "refersTo": "list-group-inset",
+      "description": "La única caja del sistema: agrupa filas dentro de un fondo largo; nunca anidada.",
+      "html": "<ul class=\"ds-inset\"><li class=\"ds-inset-row\">Tema · Sistema</li><li class=\"ds-inset-row\">Equipo de salud</li></ul>",
+      "css": ".ds-inset { list-style: none; margin: 0; padding: 0; overflow: hidden; border: 1px solid var(--line-strong, #d8d0c1); border-radius: 16px; background: var(--surface, #fdfbf7); } .ds-inset-row { min-height: 48px; display: flex; align-items: center; padding: 0 16px; font: 700 1rem/1.5 'Alegreya Sans', system-ui, sans-serif; color: var(--ink, #2d2a26); } .ds-inset-row + .ds-inset-row { border-top: 1px solid var(--line, #e8e2d7); }"
+    },
+    {
+      "name": "Separador botánico (BotanicalRule)",
+      "kind": "custom",
+      "refersTo": "botanical-rule",
+      "description": "Filete con un ramito en trazo sage-ink de 1.5px; máximo uno por pantalla.",
+      "html": "<div class=\"ds-rule\" aria-hidden=\"true\"><span></span><svg width=\"30\" height=\"14\" viewBox=\"0 0 30 14\" fill=\"none\"><path d=\"M3 11.5 C9 11.5 15 10 27 4.5\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\"/><path d=\"M11 10.6 C10.4 7.6 12.4 5.4 15.2 5.2 C15.4 8 13.6 10.2 11 10.6Z\" fill=\"#6c9a84\" fill-opacity=\"0.25\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linejoin=\"round\"/><path d=\"M18.6 8.6 C19.8 10.8 22.6 11.4 24.6 10.2 C23.4 8 20.8 7.4 18.6 8.6Z\" fill=\"#6c9a84\" fill-opacity=\"0.25\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linejoin=\"round\"/></svg><span></span></div>",
+      "css": ".ds-rule { display: flex; align-items: center; gap: 12px; color: var(--sage-ink, #44695a); } .ds-rule > span { flex: 1; height: 1px; background: var(--line-strong, #d8d0c1); }"
     }
   ],
   "narrative": {
-    "northStar": "El Copiloto del Papá Primerizo",
-    "overview": "El diseño de PandaJR es empático, tranquilizador y altamente funcional. Prioriza la claridad, los toques lúdicos y la reducción de carga cognitiva.",
+    "northStar": "Warm Botanical Sanctuary: la Guía es un jardín compartido",
+    "overview": "PandaJR es un santuario cálido para una pareja que atraviesa un embarazo, a menudo de noche, con una mano y bajo estrés. Rechaza la estética clínica (azul hospital, gris frío, interfaces estériles) y los tropos visuales de la IA (neón, degradados púrpura, botones brillantes). El suelo es alabastro de día y obsidiana violeta de noche; la tinta es marrón cálido; hay dos acentos con oficio fijo: terracota para actuar y alarmar, sage para crecer y completar.\n\nLa ampliación de la fase 6 (2026-09-27) no reemplaza el mundo: lo lee como un jardín. El embarazo es una planta que crece semana a semana (la firma, `GrowingPlant`), la tipografía es Alegreya caligráfica para títulos y Alegreya Sans para la UI, y la estructura es de secciones con título y listas con divisores, no de tarjetas. Se rechaza la ficha fetal de categoría (número gigante, fruta, tarjetas apiladas) y la sopa de tarjetas.\n\nLa densidad es de lista tranquila: filas de 48px mínimo, texto de 16px, secundarias de 14px, divisores finos, mucho suelo entre secciones (40px). Lo urgente no se decora: sube arriba y se vuelve el botón más fuerte de la pantalla.",
     "keyCharacteristics": [
-      "Interfaces amigables con bordes muy redondeados.",
-      "Uso del color para agrupar semánticamente (Teal para progreso, Amber para compras, Rose para urgencias).",
-      "Interacciones táctiles grandes (Mobile-First)."
+      "Suelo cálido (nunca blanco puro en fondos largos) y modo oscuro violeta que sube en luminosidad, no invierte el claro.",
+      "Terracota = acción y alarma; sage = crecimiento y completado; amber = solo avisos logísticos.",
+      "Alegreya (títulos) + Alegreya Sans (UI), cifras de caja alta en toda la app.",
+      "Secciones y listas con divisores; una sola caja `inset` como máximo por grupo, nunca anidada.",
+      "Una sola animación de autor: la planta al avanzar de semana.",
+      "Contraste de texto ≥4.5:1 en los dos temas; objetivos ≥44px, llamadas ≥56px."
     ],
     "rules": [
-      { "name": "The Color-Coding Rule", "body": "El color no es decorativo, es semántico. Hospital=Rosa, Compras=Ámbar, Guía=Teal.", "section": "colors" }
+      { "name": "The Two Voices Rule", "body": "Terracota es acción y alarma; sage es crecimiento y completado; amber es solo logística. Un color no cambia de oficio. La única excepción es el monograma de autor (`AuthorChip`): terracota para la mamá, sage para el papá, y vive solo ahí.", "section": "colors" },
+      { "name": "The Ink-For-Text Rule", "body": "Los tonos (`terracotta`, `sage`, `amber`) no llegan a 4.5:1: son relleno y decoración. Todo texto de color usa la tinta (`*-ink`); en oscuro la tinta de texto y la de relleno se separan (`--*-ink-fill`).", "section": "colors" },
+      { "name": "The Warm Ground Rule", "body": "Nunca `#ffffff` como fondo largo; el blanco puro solo es texto sobre relleno (`on-accent`). Ningún color fuera de la paleta (sky, emerald, blue, indigo, rose, stone…).", "section": "colors" },
+      { "name": "The Lining Figures Rule", "body": "Las dos Alegreya traen cifras de estilo antiguo; el body fija `lining-nums` y todo contador u hora que cambia añade `tabular-nums`.", "section": "typography" },
+      { "name": "The Thirteen Floor Rule", "body": "Nada por debajo de 13px. La escala de títulos sube en pasos ≥1.2 (16 → 20 → 24 → 30); títulos con `text-wrap: balance`, párrafos con `pretty`.", "section": "typography" },
+      { "name": "The Title Speaks Alone Rule", "body": "Sin eyebrows ni kickers en mayúsculas sobre un título; sin mayúsculas forzadas ni tracking amplio en etiquetas. Una etiqueta de estado va en `text-micro font-bold` con su tinta sobre su lavado, dentro de la fila. (Solo los códigos en mono llevan tracking.)", "section": "typography" },
+      { "name": "The Flat Ground Rule", "body": "Nada que viva en el flujo de la página lleva sombra; una sombra significa \"esto flota sobre la app\" o \"esta es la llamada de emergencia\".", "section": "elevation" }
     ],
     "dos": [
-      "Do usar botones masivos para acciones que pueden ocurrir bajo estrés.",
-      "Do mantener el feedback visual inmediato en cada interacción."
+      "**Do** estructurar cada vista en `Section` + `ListGroup` + `ListRow`; usar `inset` solo para agrupar dentro de un fondo largo.",
+      "**Do** usar `terracotta-ink` para la acción principal y la alarma, `sage-ink` para lo completado y lo que crece, `amber-ink` sobre `amber-wash` solo para avisos logísticos.",
+      "**Do** mantener todo texto ≥4.5:1 y todo borde de control ≥3:1 en claro y en oscuro; medir antes de añadir un par nuevo.",
+      "**Do** dar a cada objetivo táctil ≥44px de alto (filas ≥48px, llamadas ≥56px) y un foco visible `terracotta-ink` de 2px.",
+      "**Do** dejar \"Emergencias\" como el botón más fuerte de cualquier pantalla donde aparece.",
+      "**Do** montar todo diálogo con `ModalPortal` + `useModalDialog` y su capa de `layers.ts`.",
+      "**Do** usar iconos lucide con trazo 1.75 y `tabular-nums` en contadores y horas.",
+      "**Do** regenerar los rasters de marca con `scripts/brand/` cuando cambie un token del panda o del suelo."
     ],
     "donts": [
-      "Don't usar colores vibrantes sin propósito.",
-      "Don't introducir fuentes serif o elementos corporativos."
+      "**Don't** apilar tarjetas como estructura de contenido ni anidar una caja dentro de otra (nada de tarjeta en tarjeta, ni `ListGroup` en `ListGroup`).",
+      "**Don't** poner eyebrows o kickers en mayúsculas sobre un título (\"TAMAÑO COMPARATIVO\", \"HITO DE LA SEMANA\").",
+      "**Don't** usar emoji ni glifos como iconos; un emoji guardado como dato (el estado de ánimo) se muestra por su nombre.",
+      "**Don't** usar colores fuera de la paleta (sky, emerald, blue, indigo, rose, stone…), degradados de texto ni glassmorphism decorativo.",
+      "**Don't** marcar estado con un `border-left` de color.",
+      "**Don't** añadir animaciones de entrada deslizantes ni otra animación de autor: los cambios de estado se marcan con color y opacidad; las utilidades `animate-in`/`slide-in-from-*` de `globals.css` son heredadas y no se usan.",
+      "**Don't** reintroducir la ficha fetal de categoría (número gigante, fruta como héroe, tarjetas apiladas).",
+      "**Don't** usar los alias de compatibilidad (`--background`, `--foreground`, `--surface-card`, `--surface-muted`, `--border-subtle`) en código nuevo."
     ]
   }
 }

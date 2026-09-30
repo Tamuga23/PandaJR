@@ -31,16 +31,18 @@ function phoneProblem(value: string, minDigits: number): string | null {
 }
 
 const inputClass =
-  "w-full min-h-[48px] rounded-xl border bg-white dark:bg-[#181520] px-4 py-2.5 text-base text-stone-900 dark:text-[#eae6e1] " +
-  // Borde ≥3:1 con el fondo de la hoja (1.4.11): stone-500 4.63:1 sobre #fdfbf7 · white/40 3.73:1 sobre #221d2d.
-  "placeholder:text-stone-500 dark:placeholder:text-[#948fa1] border-stone-500 dark:border-white/40 " +
+  // Campo = pozo (surface-sunken) sobre el panel de la hoja (surface-raised), como en la Agenda.
+  "w-full min-h-[48px] rounded-xl border bg-surface-sunken px-4 py-2.5 text-body text-ink " +
+  // Borde ≥3:1 con el panel (1.4.11): line-control 3.6:1 sobre raised claro · 3.7:1 sobre raised oscuro.
+  // El placeholder usa --placeholder (globals.css, ≥4.5:1 sobre los pozos de los dos temas).
+  "border-line-control " +
   // Foco: anillo de tinta de 2px con separación (visible también en modo de alto contraste).
   "transition-colors focus:border-terracotta-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink " +
   "aria-[invalid=true]:border-terracotta-ink disabled:opacity-60";
 
-const labelClass = "block text-sm font-semibold text-stone-800 dark:text-[#eae6e1] mb-1.5";
-const helpClass = "mt-1.5 text-sm leading-snug text-stone-600 dark:text-[#a6a1b2]";
-const errorClass = "mt-1.5 flex items-start gap-1.5 text-sm leading-snug font-medium text-terracotta-ink";
+const labelClass = "block text-meta font-bold text-ink mb-1.5";
+const helpClass = "mt-1.5 text-meta text-ink-muted";
+const errorClass = "mt-1.5 flex items-start gap-1.5 text-meta font-medium text-terracotta-ink";
 
 export function CareTeamForm({ onSaved, onCancel }: { onSaved?: () => void; onCancel?: () => void }) {
   const { careTeam, save, saving, error } = useCareTeam();
@@ -127,7 +129,7 @@ export function CareTeamForm({ onSaved, onCancel }: { onSaved?: () => void; onCa
 
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-6" aria-busy={saving}>
-      <p className="text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
+      <p className="text-meta text-ink-muted">
         {pregnancyId
           ? "Se comparte con tu pareja para que los dos tengan los mismos números a mano."
           : "Se guarda en este teléfono."}{" "}
@@ -194,7 +196,7 @@ export function CareTeamForm({ onSaved, onCancel }: { onSaved?: () => void; onCa
         </div>
         <div>
           <label htmlFor={ids.hospitalAddress} className={labelClass}>
-            Dirección <span className="font-normal text-stone-600 dark:text-[#a6a1b2]">(opcional)</span>
+            Dirección <span className="font-normal text-ink-muted">(opcional)</span>
           </label>
           <input
             id={ids.hospitalAddress}
@@ -242,8 +244,8 @@ export function CareTeamForm({ onSaved, onCancel }: { onSaved?: () => void; onCa
       </div>
 
       {error && (
-        <div role="alert" className="flex flex-col gap-2 rounded-2xl bg-terracotta/10 dark:bg-terracotta/15 p-4">
-          <p className="flex items-start gap-2 text-sm leading-snug text-stone-800 dark:text-[#eae6e1]">
+        <div role="alert" className="flex flex-col gap-2 rounded-2xl bg-terracotta-wash p-4">
+          <p className="flex items-start gap-2 text-meta text-ink">
             <CircleAlert size={18} className="mt-0.5 shrink-0 text-terracotta-ink" aria-hidden="true" />
             {error}
           </p>
@@ -251,7 +253,7 @@ export function CareTeamForm({ onSaved, onCancel }: { onSaved?: () => void; onCa
             type="button"
             onClick={() => void submit()}
             disabled={saving}
-            className="self-start inline-flex items-center gap-1.5 min-h-[44px] px-3 -ml-1 rounded-xl text-sm font-bold text-terracotta-ink hover:bg-terracotta/10 disabled:opacity-60 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+            className="self-start inline-flex items-center gap-1.5 min-h-[44px] px-3 -ml-1 rounded-xl text-meta font-bold text-terracotta-ink hover:bg-surface-hover disabled:opacity-60 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
           >
             <RotateCw size={16} aria-hidden="true" />
             Reintentar
@@ -263,7 +265,7 @@ export function CareTeamForm({ onSaved, onCancel }: { onSaved?: () => void; onCa
         <button
           type="submit"
           disabled={saving}
-          className="w-full min-h-[52px] inline-flex items-center justify-center gap-2 rounded-2xl bg-terracotta-ink hover:bg-terracotta-ink-hover text-white text-base font-bold shadow-[0_2px_8px_-2px_rgba(165,72,51,0.4)] transition-[background-color,transform] active:scale-[0.98] motion-reduce:active:scale-100 disabled:opacity-70 disabled:cursor-not-allowed disabled:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+          className="w-full min-h-[52px] inline-flex items-center justify-center gap-2 rounded-2xl bg-terracotta-ink hover:bg-terracotta-ink-hover text-on-accent text-body font-bold shadow-[0_2px_8px_-2px_color-mix(in_srgb,var(--terracotta-ink-fill)_40%,transparent)] transition-[background-color,transform] active:scale-[0.98] motion-reduce:active:scale-100 disabled:opacity-70 disabled:cursor-not-allowed disabled:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
         >
           {saving ? (
             <>
@@ -279,12 +281,12 @@ export function CareTeamForm({ onSaved, onCancel }: { onSaved?: () => void; onCa
             type="button"
             onClick={onCancel}
             disabled={saving}
-            className="w-full min-h-[48px] rounded-2xl text-base font-semibold text-stone-700 dark:text-[#d9d4de] hover:bg-stone-100 dark:hover:bg-white/5 disabled:opacity-60 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+            className="w-full min-h-[48px] rounded-2xl text-body font-bold text-ink-muted hover:bg-surface-hover disabled:opacity-60 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
           >
             Cancelar
           </button>
         )}
-        <p role="status" className="min-h-0 text-sm font-semibold text-sage-ink">
+        <p role="status" className="min-h-0 text-meta font-bold text-sage-ink">
           {savedOk && !onSaved ? (
             <span className="inline-flex items-center gap-1.5">
               <Check size={16} aria-hidden="true" /> Guardado.
@@ -331,19 +333,19 @@ export function CareTeamSheet({
     <ModalPortal>
       <div className={`fixed inset-0 ${Z_CLASS.careTeam} flex items-end sm:items-center justify-center sm:p-4`}>
         <div
-          className="absolute inset-0 bg-black/50 dark:bg-black/70 animate-in fade-in duration-200 motion-reduce:animate-none"
+          className="absolute inset-0 bg-black/50 dark:bg-black/70"
           onClick={onClose}
           aria-hidden="true"
         />
         <div
           ref={setPanel}
           {...dialogRest}
-          className="relative w-full max-w-md max-h-[92dvh] flex flex-col bg-[#fdfbf7] dark:bg-[#221d2d] text-stone-900 dark:text-[#eae6e1] rounded-t-3xl sm:rounded-3xl border border-stone-200/80 dark:border-white/[0.08] shadow-[0_-8px_32px_-8px_rgba(24,21,32,0.28)] outline-none animate-in slide-in-from-bottom-4 duration-300 motion-reduce:animate-none"
+          className="relative w-full max-w-md max-h-[92dvh] flex flex-col bg-surface-raised text-ink rounded-t-3xl sm:rounded-3xl border border-line shadow-[0_-8px_32px_-8px_rgba(24,21,32,0.28)] outline-none"
         >
-          <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-4 border-b border-stone-200/70 dark:border-white/[0.06]">
+          <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-4 border-b border-line">
             <div className="min-w-0">
-              <h2 id={titleId} className="text-xl font-black leading-tight text-balance">Tu equipo de salud</h2>
-              <p id={descId} className="mt-1 text-sm leading-snug text-stone-600 dark:text-[#a6a1b2]">
+              <h2 id={titleId} className="font-display text-title text-ink text-balance">Tu equipo de salud</h2>
+              <p id={descId} className="mt-1 text-meta text-ink-muted">
                 A quién llamar y a dónde ir, a un toque de distancia.
               </p>
             </div>
@@ -351,7 +353,7 @@ export function CareTeamSheet({
               type="button"
               onClick={onClose}
               aria-label="Cerrar"
-              className="shrink-0 -mr-1 w-11 h-11 inline-flex items-center justify-center rounded-full text-stone-600 dark:text-[#a6a1b2] hover:bg-stone-100 dark:hover:bg-white/10 hover:text-stone-900 dark:hover:text-[#eae6e1] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+              className="shrink-0 -mr-1 w-11 h-11 inline-flex items-center justify-center rounded-full text-ink-muted hover:bg-surface-hover hover:text-ink transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
             >
               <X size={20} aria-hidden="true" />
             </button>

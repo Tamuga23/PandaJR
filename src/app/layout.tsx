@@ -1,16 +1,30 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Alegreya, Alegreya_Sans } from "next/font/google";
 import "./globals.css";
 import { ThemeSync } from "@/components/ThemeSync";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+/**
+ * Tipografía (fase 6, Huerta Tipográfica): Alegreya para títulos (font-display) y Alegreya Sans para la
+ * UI (font-sans, la del body). Self-hosted por next/font: sin peticiones a Google en el navegador.
+ * - Alegreya es variable (wght 400–900): un archivo cubre los pesos de título que se usan (500, 700, 800).
+ * - Alegreya Sans no es variable: solo los pesos que la UI usa (400 cuerpo, 500 meta, 700 filas y
+ *   botones, 800 cifras destacadas). font-semibold (600) resuelve a 700 y font-black (900) a 800.
+ * Las variables crudas se llaman --font-alegreya(-sans); globals.css las expone como --font-display y
+ * --font-sans (@theme) para no crear una variable que se referencie a sí misma.
+ */
+const alegreya = Alegreya({
+  variable: "--font-alegreya",
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
+  fallback: ["Georgia", "Times New Roman", "serif"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const alegreyaSans = Alegreya_Sans({
+  variable: "--font-alegreya-sans",
+  weight: ["400", "500", "700", "800"],
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
+  fallback: ["system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
 });
 
 export const viewport: Viewport = {
@@ -18,7 +32,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#fdfbf7" }, { media: "(prefers-color-scheme: dark)", color: "#181520" }],
+  // = --ground de globals.css (alabastro / obsidiana): la barra del sistema continúa el fondo de la app.
+  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#faf9f5" }, { media: "(prefers-color-scheme: dark)", color: "#181520" }],
 };
 
 export const metadata: Metadata = {
@@ -39,35 +54,17 @@ export const metadata: Metadata = {
     description: "Guía semanal del embarazo para la mamá y su pareja: tareas compartidas, citas con el obstetra, contador de contracciones y a quién llamar si algo es urgente.",
     url: "https://panda-jr.vercel.app",
     siteName: "PandaJR",
-    images: [
-      {
-        url: "/og-image.jpg",
-        width: 1001,
-        height: 1024,
-        alt: "Logo de PandaJR: una mamá panda con su bebé",
-        type: "image/jpeg",
-      },
-    ],
     locale: "es_LA",
     type: "website",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "PandaJR: el embarazo en pareja, semana a semana",
     description: "Guía semanal del embarazo para la mamá y su pareja: tareas compartidas, citas con el obstetra, contador de contracciones y a quién llamar si algo es urgente.",
-    images: ["/og-image.jpg"],
   },
-  icons: {
-    icon: [
-      { url: "/app-icon.jpg" },
-      { url: "/og-image.jpg" },
-    ],
-    shortcut: "/app-icon.jpg",
-    apple: [
-      { url: "/app-icon.jpg" },
-      { url: "/og-image.jpg" },
-    ],
-  },
+  // Iconos e imágenes para compartir: convenciones de archivo de app/ (tienen prioridad sobre este objeto):
+  // icon.svg (favicon vectorial), apple-icon.png (180), opengraph-image.png y twitter-image.png (1200×630,
+  // con su .alt.txt). Los PNG del manifiesto viven en public/icons/. Procedencia: DESIGN.md §4.2.
 };
 
 /**
@@ -88,7 +85,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="es"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${alegreya.variable} ${alegreyaSans.variable} h-full antialiased`}
     >
       <head>
         {/* Síncrono en <head>: pone la clase .dark ANTES del primer pintado (next/script
@@ -96,7 +93,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             resolveTheme/migrateThemePreference de usePandaStore; ThemeSync la mantiene después. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
       </head>
-      <body className="min-h-full flex flex-col bg-[#faf9f5] dark:bg-[#181520] text-stone-900 dark:text-[#eae6e1] w-full overflow-x-hidden transition-colors duration-200">
+      <body className="min-h-full flex flex-col bg-ground text-ink font-sans w-full overflow-x-hidden transition-colors duration-200">
         <ThemeSync />
         {children}
       </body>

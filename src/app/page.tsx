@@ -39,8 +39,7 @@ import { SyncBadge, useOnline, usePartner, type PartnerInfo } from "@/components
 import { AuthorChip } from "@/components/AuthorChip";
 import { formatDateShort, formatRelative, repairMojibake } from "@/lib/format";
 import { isLegacySeedEvent, linkedFromLocalKey, localToSharedFlag } from "@/lib/seeds";
-import Image from "next/image";
-import { Compass, Calendar, Bot, Send, CheckCircle2, ChevronRight, ChevronLeft, HeartPulse, Baby, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Users, AlertTriangle, AlertCircle, FileText, Settings, Paperclip, Share2, Bell, RotateCcw, RotateCw, Stethoscope, PhoneCall, Check, Copy, Edit3, Sun, Moon, SunMoon, RefreshCw, UserMinus, Lightbulb, CalendarCheck, CalendarClock, CalendarX, Smartphone, MessageCircle } from "lucide-react";
+import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, ChevronRight, ChevronLeft, HeartPulse, Baby, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Users, AlertTriangle, AlertCircle, FileText, Settings, Paperclip, Share2, Bell, RotateCcw, RotateCw, Stethoscope, PhoneCall, Check, Copy, Edit3, Sun, Moon, SunMoon, RefreshCw, UserMinus, Lightbulb, CalendarCheck, CalendarClock, CalendarX, Smartphone } from "lucide-react";
 import { CallActions, EmergencyCallLink } from "@/components/CallActions";
 import { CareTeamSheet } from "@/components/CareTeamForm";
 import { clinicalWeek, detectAlarm, type AlarmSign } from "@/lib/urgency";
@@ -99,6 +98,10 @@ import {
   type TodayGroup,
   type TrimesterModel,
 } from "@/components/GuiaBlocks";
+import { GrowingPlant } from "@/components/GrowingPlant";
+import { Wordmark } from "@/components/Wordmark";
+import { PandaMark } from "@/components/PandaMark";
+import { BotanicalRule, ListGroup, ListRow, RowButton, Section } from "@/components/ui/List";
 
 type Tab = "planificacion" | "agenda" | "herramientas" | "pandaia";
 
@@ -379,6 +382,26 @@ async function copyText(text: string): Promise<boolean> {
 const ROLE_LABEL: Record<"mama" | "papa", string> = { mama: "Mamá", papa: "Copiloto" };
 const PERSON_LABEL: Record<"mama" | "papa", string> = { mama: "Mamá", papa: "Papá" };
 
+// Fase 6: clases compartidas de la página. Solo tokens de globals.css (sin hex ni variantes dark:,
+// que los tokens resuelven solos). Reglas: DESIGN.md › Components.
+const FOCUS_RING = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink";
+/** Botón de icono (cabecera, cierre de diálogo): ≥44px, fantasma. */
+const ICON_BUTTON = `inline-flex size-11 shrink-0 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-surface-hover hover:text-ink ${FOCUS_RING}`;
+/** Botón a lo ancho (diálogos y bienvenida). Se combina con un relleno: TERRA_FILL, SAGE_FILL o INK_FILL. */
+const WIDE_BUTTON = `flex w-full min-h-12 items-center justify-center gap-2 rounded-full px-5 text-body font-bold transition-colors disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-ink-disabled disabled:hover:bg-surface-sunken ${FOCUS_RING}`;
+const TERRA_FILL = "bg-terracotta-ink text-on-accent hover:bg-terracotta-ink-hover";
+const SAGE_FILL = "bg-sage-ink text-on-accent hover:bg-sage-ink-hover";
+/** Neutro (tinta sobre alabastro; en oscuro, alabastro sobre obsidiana). */
+const INK_FILL = "bg-ink text-ground hover:bg-ink-muted";
+/** Contorno neutro a lo ancho. */
+const OUTLINE_FILL = "border border-line-control text-ink hover:bg-surface-hover";
+/** Acción de texto terracota con objetivo ≥44px. */
+const TEXT_ACTION = `-mx-2 inline-flex min-h-11 items-center gap-1.5 rounded-full px-2 text-meta font-bold text-terracotta-ink underline-offset-4 hover:underline ${FOCUS_RING}`;
+/** Campo de texto: borde ≥3:1 (1.4.11) y foco en tinta. */
+const FIELD = "w-full min-h-12 rounded-xl border border-line-control bg-surface-sunken px-4 py-3 text-body text-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-terracotta-ink";
+/** Velo de diálogo: sólido, sin desenfoque decorativo. */
+const SCRIM = "bg-black/45 dark:bg-black/65";
+
 /**
  * Confirmación destructiva modal (alertdialog) que se abre sobre Ajustes: el foco va a la opción
  * segura ("Cancelar"), Escape o tocar fuera cancelan y el resto de la app queda inerte. Mientras
@@ -424,23 +447,23 @@ function ConfirmDialog({
   return (
     <ModalPortal>
       <div
-        className={`fixed inset-0 ${Z_CLASS.careTeam} flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-150`}
+        className={`fixed inset-0 ${Z_CLASS.careTeam} flex items-center justify-center ${SCRIM} p-4`}
         onClick={(e) => { if (e.target === e.currentTarget) cancel(); }}
       >
         <div
           {...dialogProps}
-          className="w-full max-w-sm rounded-3xl border border-terracotta-ink/30 bg-white dark:bg-[#221d2d] p-5 shadow-xl outline-none animate-in zoom-in-95 duration-200"
+          className="w-full max-w-sm rounded-3xl border border-line bg-surface-raised p-5 shadow-[0_16px_48px_-16px_rgba(24,21,32,0.35)] outline-none"
         >
-          <h2 id={titleId} className="text-base font-bold leading-snug text-stone-900 dark:text-[#eae6e1] text-balance">{title}</h2>
-          <div id={descId} className="mt-1.5 space-y-1.5 text-sm leading-snug text-stone-700 dark:text-[#d9d4de]">{children}</div>
-          {error && <p role="alert" className="mt-2 text-sm font-semibold leading-snug text-terracotta-ink">{error}</p>}
-          <div className="mt-4 flex gap-2">
+          <h2 id={titleId} className="font-display text-title text-ink">{title}</h2>
+          <div id={descId} className="mt-2 space-y-2 text-body text-ink-muted">{children}</div>
+          {error && <p role="alert" className="mt-2 text-meta font-bold text-terracotta-ink">{error}</p>}
+          <div className="mt-5 flex gap-2">
             <button
               ref={cancelRef}
               type="button"
               onClick={cancel}
               disabled={busy}
-              className="flex-1 min-h-[44px] rounded-xl border border-stone-300 dark:border-white/15 bg-white dark:bg-[#2d273a] text-sm font-bold text-stone-800 dark:text-[#eae6e1] hover:bg-stone-50 dark:hover:bg-[#352e44] transition-colors disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+              className={`flex-1 min-h-11 rounded-full ${OUTLINE_FILL} text-meta font-bold transition-colors disabled:opacity-60 ${FOCUS_RING}`}
             >
               Cancelar
             </button>
@@ -448,7 +471,7 @@ function ConfirmDialog({
               type="button"
               onClick={onConfirm}
               disabled={busy}
-              className="flex-1 min-h-[44px] rounded-xl bg-terracotta-ink hover:bg-terracotta-ink-hover text-white text-sm font-bold transition-colors disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+              className={`flex-1 min-h-11 rounded-full ${TERRA_FILL} text-meta font-bold transition-colors disabled:opacity-60 ${FOCUS_RING}`}
             >
               {busy ? busyLabel : confirmLabel}
             </button>
@@ -533,38 +556,29 @@ function InviteCodePanel({
     }
   };
 
+  // Sin caja: el código es la línea fuerte (mono), el estado va debajo y las acciones al lado y al pie.
   return (
-    <div className="bg-stone-900 dark:bg-[#2d273a] text-white p-4 rounded-2xl">
+    <div className="mt-4">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs text-stone-300 font-bold mb-0.5">Código para tu pareja</p>
-          <p className="font-mono font-bold tracking-wide text-base whitespace-nowrap">{code || "Sin código"}</p>
+          <p className="text-meta text-ink-muted">Código para tu pareja</p>
+          <p className="mt-0.5 font-mono text-subtitle font-bold tracking-wide whitespace-nowrap text-ink">{code || "Sin código"}</p>
         </div>
         {code && (
-          <button
-            type="button"
-            onClick={copy}
-            className="shrink-0 min-w-[44px] min-h-[44px] px-3 flex items-center justify-center gap-1.5 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-            aria-label={copied ? "Código copiado" : "Copiar código"}
-          >
-            {copied ? <Check size={18} aria-hidden="true" /> : <Copy size={18} aria-hidden="true" />}
+          <RowButton onClick={copy} aria-label={copied ? "Código copiado" : "Copiar código"} className="shrink-0">
+            {copied ? <Check size={18} strokeWidth={1.75} className="text-sage-ink" aria-hidden="true" /> : <Copy size={18} strokeWidth={1.75} aria-hidden="true" />}
             <span>{copied ? "Copiado" : "Copiar"}</span>
-          </button>
+          </RowButton>
         )}
       </div>
-      <p className="text-xs text-stone-300 mt-2 leading-snug" aria-live="polite">
+      <p className="mt-1.5 text-meta text-ink-muted" aria-live="polite">
         {copyFailed ? "No pudimos copiarlo: mantén presionado el código para copiarlo a mano." : status}
       </p>
-      <button
-        type="button"
-        onClick={regenerate}
-        disabled={busy}
-        className={`mt-3 w-full min-h-[44px] rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${needsNew ? "bg-terracotta-ink hover:bg-terracotta-ink-hover text-white" : "bg-white/10 hover:bg-white/20 text-white"}`}
-      >
-        <RefreshCw size={16} className={busy ? "animate-spin motion-reduce:animate-none" : ""} aria-hidden="true" />
+      <RowButton tone={needsNew ? "primary" : "default"} onClick={regenerate} disabled={busy} className="mt-3">
+        <RefreshCw size={16} strokeWidth={1.75} className={busy ? "animate-spin motion-reduce:animate-none" : ""} aria-hidden="true" />
         {busy ? "Generando…" : "Generar código nuevo"}
-      </button>
-      {error && <p role="alert" className="mt-2 text-xs font-semibold text-[#f6c3b4] leading-snug">{error}</p>}
+      </RowButton>
+      {error && <p role="alert" className="mt-2 text-meta font-bold text-terracotta-ink">{error}</p>}
     </div>
   );
 }
@@ -593,12 +607,12 @@ function AccessSection({
     const last = profile.role === "mama" ? readStored<LastPregnancy | null>(LS_LAST_PREGNANCY, null) : null;
     const guest = profile.name === "Invitado";
     return (
-      <div className="bg-stone-50 dark:bg-[#1a1724] border border-stone-200 dark:border-white/[0.06] rounded-2xl p-4">
-        <p className="flex items-center gap-2 text-sm font-bold text-stone-800 dark:text-[#eae6e1]">
-          <Smartphone size={16} className="shrink-0 text-stone-600 dark:text-[#a6a1b2]" aria-hidden="true" />
+      <div>
+        <p className="flex items-center gap-2 text-body font-bold text-ink">
+          <Smartphone size={20} strokeWidth={1.75} className="shrink-0 text-sage-ink" aria-hidden="true" />
           {guest ? "Estás explorando como invitado" : "Solo en este teléfono"}
         </p>
-        <p className="mt-1 text-xs leading-snug text-stone-600 dark:text-[#a6a1b2]">
+        <p className="mt-1 text-meta text-ink-muted">
           {guest
             ? "Elige tu rol: crea el embarazo compartido o únete al de tu pareja con su código. Lo que anotes mientras tanto queda en este teléfono y se comparte al vincularte."
             : "Nadie más ve lo que registras. Al vincularte, lo que ya anotaste aquí (citas, tareas, patadas, contracciones, presupuesto, nombres, diario y plan de parto) pasa a compartirse con tu pareja."}
@@ -611,16 +625,12 @@ function AccessSection({
               try { window.localStorage.removeItem(LS_LAST_PREGNANCY); } catch { /* sin almacenamiento */ }
               showToast("Este teléfono volvió a tu embarazo compartido");
             }}
-            className="mt-3 w-full min-h-[44px] rounded-xl border border-sage-ink/40 bg-white dark:bg-[#2d273a] text-sage-ink text-sm font-bold transition-colors hover:bg-sage/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
+            className={`mt-4 ${WIDE_BUTTON} ${OUTLINE_FILL}`}
           >
             Volver a mi embarazo compartido
           </button>
         )}
-        <button
-          type="button"
-          onClick={onStartLink}
-          className="mt-3 w-full min-h-[44px] rounded-xl bg-sage-ink hover:bg-sage-ink-hover text-white text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
-        >
+        <button type="button" onClick={onStartLink} className={`${last?.pid ? "mt-2" : "mt-4"} ${WIDE_BUTTON} ${SAGE_FILL}`}>
           {guest ? "Crear o unirme a un embarazo" : "Vincular con mi pareja"}
         </button>
       </div>
@@ -646,52 +656,49 @@ function AccessSection({
   const others = partner.members.filter((m) => m.uid !== myUid);
 
   return (
-    <div className="space-y-3">
-      <ul className="rounded-2xl border border-stone-200 dark:border-white/[0.06] bg-stone-50 dark:bg-[#1a1724] divide-y divide-stone-200 dark:divide-white/[0.06]">
-        {!partner.loaded && (
-          <li className="p-3 text-xs text-stone-600 dark:text-[#a6a1b2]" aria-live="polite">Cargando quién tiene acceso…</li>
-        )}
-        {partner.loaded && partner.members.length === 0 && (
-          <li className="p-3 text-xs leading-snug text-stone-600 dark:text-[#a6a1b2]">
-            Aún no vemos la lista de personas vinculadas. Aparecerá cuando este teléfono termine de conectarse.
-          </li>
-        )}
-        {partner.members.map((m) => {
-          const isMe = m.uid === myUid;
-          const who = m.name || PERSON_LABEL[m.role];
-          return (
-            <li key={m.uid} className="flex items-center gap-3 p-3">
-              <AuthorChip name={m.name} role={m.role} title={who} decorative />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-stone-800 dark:text-[#eae6e1] truncate">
-                  {who}
-                  {isMe && <span className="font-normal text-stone-600 dark:text-[#a6a1b2]"> (tú)</span>}
-                </p>
-                <p className="text-xs text-stone-600 dark:text-[#a6a1b2]">
-                  {ROLE_LABEL[m.role]}
-                  {m.joinedAt ? ` · desde el ${formatDateShort(m.joinedAt)}` : ""}
-                </p>
-              </div>
-              {iAmMama && !isMe && (
-                <button
-                  type="button"
-                  onClick={() => { setRemoveError(""); setConfirming(m); }}
-                  aria-haspopup="dialog"
-                  className="shrink-0 min-h-[44px] px-3 inline-flex items-center gap-1.5 rounded-xl text-xs font-bold text-terracotta-ink hover:bg-terracotta/10 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
-                >
-                  <UserMinus size={16} aria-hidden="true" />
-                  Quitar acceso
-                </button>
-              )}
-            </li>
-          );
-        })}
-        {partner.loaded && partner.members.length > 0 && others.length === 0 && (
-          <li className="p-3 text-xs leading-snug text-stone-600 dark:text-[#a6a1b2]">
-            {iAmMama ? "Tu pareja aún no se une. Compártele tu código." : "Tu pareja aparecerá aquí cuando se conecte."}
-          </li>
-        )}
-      </ul>
+    <div>
+      {!partner.loaded && (
+        <p className="text-meta text-ink-muted" aria-live="polite">Cargando quién tiene acceso…</p>
+      )}
+      {partner.loaded && partner.members.length === 0 && (
+        <p className="text-meta text-ink-muted">
+          Aún no vemos la lista de personas vinculadas. Aparecerá cuando este teléfono termine de conectarse.
+        </p>
+      )}
+      {partner.members.length > 0 && (
+        <ListGroup>
+          {partner.members.map((m) => {
+            const isMe = m.uid === myUid;
+            const who = m.name || PERSON_LABEL[m.role];
+            return (
+              <ListRow
+                key={m.uid}
+                leading={<AuthorChip name={m.name} role={m.role} title={who} decorative />}
+                title={
+                  <>
+                    {who}
+                    {isMe && <span className="font-normal text-ink-muted"> (tú)</span>}
+                  </>
+                }
+                meta={`${ROLE_LABEL[m.role]}${m.joinedAt ? ` · desde el ${formatDateShort(m.joinedAt)}` : ""}`}
+                trailing={
+                  iAmMama && !isMe ? (
+                    <RowButton tone="danger" onClick={() => { setRemoveError(""); setConfirming(m); }} aria-haspopup="dialog">
+                      <UserMinus size={16} strokeWidth={1.75} aria-hidden="true" />
+                      Quitar acceso
+                    </RowButton>
+                  ) : undefined
+                }
+              />
+            );
+          })}
+        </ListGroup>
+      )}
+      {partner.loaded && partner.members.length > 0 && others.length === 0 && (
+        <p className="mt-2 text-meta text-ink-muted">
+          {iAmMama ? "Tu pareja aún no se une. Compártele tu código." : "Tu pareja aparecerá aquí cuando se conecte."}
+        </p>
+      )}
 
       {confirming && (
         <ConfirmDialog
@@ -713,8 +720,7 @@ function AccessSection({
 }
 
 /** Campos de Ajustes: borde ≥3:1 con el fondo (claro y oscuro) y foco con la tinta. */
-const SETTINGS_INPUT =
-  "w-full px-4 py-3 rounded-xl border border-stone-500 dark:border-white/40 bg-stone-50 dark:bg-[#1a1724] text-stone-900 dark:text-[#eae6e1] text-base sm:text-sm focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-terracotta-ink";
+const SETTINGS_INPUT = FIELD;
 
 const THEME_OPTIONS: { value: ThemePreference; label: string; Icon: typeof Sun }[] = [
   { value: "system", label: "Sistema", Icon: SunMoon },
@@ -752,23 +758,18 @@ function ThemeChoice({
   const hint = preference === "system"
     ? `Sigue el modo de tu teléfono (ahora, ${resolved === "dark" ? "oscuro" : "claro"}).`
     : "El modo oscuro es más cómodo de noche.";
+  // Sección de Ajustes (h3 en Alegreya): la pista de segmentado es el único pozo; la opción elegida
+  // en sage-ink (seleccionado), con contraste ≥3:1 contra la pista.
   return (
-    <div className="p-4 bg-stone-50 dark:bg-[#1a1724] rounded-2xl border border-stone-200/80 dark:border-white/[0.04]">
-      <div className="flex items-center gap-3">
-        <div className="bg-stone-200 dark:bg-[#2d273a] p-2 rounded-xl text-stone-600 dark:text-[#a6a1b2]" aria-hidden="true">
-          {resolved === "dark" ? <Moon size={18} /> : <Sun size={18} />}
-        </div>
-        <div className="min-w-0 text-left">
-          <p id="theme-choice-label" className="text-sm font-bold text-stone-800 dark:text-[#eae6e1]">Apariencia</p>
-          <p id="theme-choice-hint" className="text-xs text-stone-600 dark:text-[#a6a1b2]">{hint}</p>
-        </div>
-      </div>
+    <section aria-labelledby="theme-choice-label">
+      <h3 id="theme-choice-label" className="font-display text-body font-bold text-ink">Apariencia</h3>
+      <p id="theme-choice-hint" className="mt-0.5 text-meta text-ink-muted">{hint}</p>
       <div
         role="radiogroup"
         aria-labelledby="theme-choice-label"
         aria-describedby="theme-choice-hint"
         onKeyDown={onKeyDown}
-        className="mt-3 flex flex-wrap gap-1 rounded-xl bg-stone-200/80 dark:bg-[#2d273a] p-1"
+        className="mt-2 flex flex-wrap gap-1 rounded-full bg-surface-sunken p-1"
       >
         {/* flex-1 sin min-w-0: las tres opciones comparten la fila mientras quepan sus etiquetas (por
             debajo de 380px sin el icono decorativo, para que quepan en 320-360px); con zoom o texto
@@ -784,19 +785,17 @@ function ThemeChoice({
               aria-checked={checked}
               tabIndex={checked ? 0 : -1}
               onClick={() => onChange(o.value)}
-              className={`flex-1 min-h-[44px] rounded-lg px-1.5 flex items-center justify-center gap-1 whitespace-nowrap text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink ${
-                checked
-                  ? "bg-terracotta-ink text-white dark:bg-[var(--terracotta-ink)] dark:text-stone-900 shadow-sm"
-                  : "text-stone-700 dark:text-[#d9d4de] hover:bg-white/70 dark:hover:bg-white/[0.06]"
+              className={`flex-1 min-h-11 rounded-full px-1.5 flex items-center justify-center gap-1.5 whitespace-nowrap text-meta font-bold transition-colors ${FOCUS_RING} ${
+                checked ? SAGE_FILL : "text-ink-muted hover:bg-surface-hover hover:text-ink"
               }`}
             >
-              <o.Icon size={16} className="shrink-0 max-[380px]:hidden" aria-hidden="true" />
+              <o.Icon size={16} strokeWidth={1.75} className="shrink-0 max-[380px]:hidden" aria-hidden="true" />
               {o.label}
             </button>
           );
         })}
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -895,59 +894,68 @@ function ProfileModal({
     }
   };
   const partnerLabelForUnlink = partner.partnerName || (profile.role === "mama" ? "papá" : "tu pareja");
+  const isMamaForm = form.role === "mama";
+  const geek = form.comparisonTheme === "geek";
 
+  // Fase 6: el diálogo es la única caja; dentro, secciones (h3 en Alegreya) y listas con divisores.
   return (
     <ModalPortal>
-    <div className={`fixed inset-0 bg-black/40 backdrop-blur-sm ${Z_CLASS.dialog} flex items-center justify-center p-4 animate-in fade-in`}>
+    <div className={`fixed inset-0 ${SCRIM} ${Z_CLASS.dialog} flex items-center justify-center p-4`}>
       <div
         {...dialogProps}
-        className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200 border border-stone-200/80 dark:border-white/[0.08] flex flex-col max-h-[85dvh] outline-none"
+        className="bg-surface-raised text-ink rounded-3xl shadow-[0_16px_48px_-16px_rgba(24,21,32,0.35)] w-full max-w-sm overflow-hidden border border-line flex flex-col max-h-[85dvh] outline-none"
       >
-
-        {/* Header */}
-        <div className="bg-stone-50 dark:bg-[#1a1724] p-4 flex justify-between items-center border-b border-stone-100 dark:border-white/[0.04]">
-          <h2 id="profile-modal-title" className="font-bold text-stone-800 dark:text-[#eae6e1] flex items-center gap-2">
-            <Settings size={18} className="text-stone-600 dark:text-[#a6a1b2]" aria-hidden="true" /> Ajustes
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-xl text-stone-600 dark:text-[#a6a1b2] hover:text-stone-900 dark:hover:text-[#eae6e1] bg-white dark:bg-[#2d273a] shadow-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
-            aria-label="Cerrar ventana de ajustes"
-          >
-            <X size={20} aria-hidden="true" />
+        <div className="flex items-center justify-between gap-3 border-b border-line py-2 ps-5 pe-2">
+          <h2 id="profile-modal-title" className="font-display text-title text-ink">Ajustes</h2>
+          <button type="button" onClick={onClose} className={ICON_BUTTON} aria-label="Cerrar ventana de ajustes">
+            <X size={22} strokeWidth={1.75} aria-hidden="true" />
           </button>
         </div>
 
-        {/* Body */}
-        <div className="p-5 space-y-6 overflow-y-auto flex-1">
-
-          {/* Vínculo Familiar */}
-          <div className="space-y-3">
-            <h3 className="text-xs font-bold text-stone-500 dark:text-[#a6a1b2] uppercase tracking-wider">Familia</h3>
-            <div className="bg-stone-50 dark:bg-[#1a1724] border border-stone-200 dark:border-white/[0.04] rounded-2xl p-4 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className={`p-2 rounded-xl shrink-0 ${form.role === 'mama' ? 'bg-terracotta/10 text-terracotta-ink' : 'bg-sage/10 text-sage-ink'}`} aria-hidden="true">
-                  {form.role === 'mama' ? <Baby size={20} /> : <Users size={20} />}
-                </div>
-                <div className="min-w-0">
-                  <p className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm">
-                    {form.role === 'mama' ? 'Modo mamá' : 'Modo copiloto'}
-                  </p>
-                  <p className="text-xs text-stone-600 dark:text-[#a6a1b2] truncate">{form.name}</p>
-                </div>
-              </div>
-              {profile.pregnancyId && (
-                <button
-                  type="button"
-                  onClick={() => setConfirmUnlink(true)}
-                  aria-haspopup="dialog"
-                  className="shrink-0 text-xs font-bold min-h-[44px] min-w-[44px] px-4 rounded-lg shadow-sm transition-colors text-stone-600 dark:text-[#a6a1b2] hover:text-stone-900 dark:hover:text-[#eae6e1] bg-white dark:bg-[#2d273a] border border-stone-200 dark:border-white/[0.06] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
-                >
-                  Desvincular
-                </button>
+        {/* El gutter es el padding del cuerpo: las filas llegan al borde del panel. */}
+        <div className="flex flex-1 flex-col gap-8 overflow-y-auto px-5 pt-4 pb-6 [--gutter:1.25rem]">
+          <Section as="h3" title="Familia">
+            <ListGroup>
+              <ListRow
+                leading={isMamaForm ? <Baby size={20} strokeWidth={1.75} /> : <Users size={20} strokeWidth={1.75} />}
+                title={isMamaForm ? "Modo mamá" : "Modo copiloto"}
+                meta={form.name}
+                trailing={
+                  profile.pregnancyId ? (
+                    <RowButton onClick={() => setConfirmUnlink(true)} aria-haspopup="dialog">
+                      Desvincular
+                    </RowButton>
+                  ) : undefined
+                }
+              />
+              {form.role === "papa" && (
+                <ListRow
+                  leading={<Sparkles size={20} strokeWidth={1.75} />}
+                  title="Comparación de tamaño"
+                  meta="Con frutas o con objetos de tecnología y juegos"
+                  trailing={
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={geek}
+                      aria-label="Comparar con objetos de tecnología y juegos en lugar de frutas"
+                      onClick={() => setForm({ ...form, comparisonTheme: geek ? "frutas" : "geek" })}
+                      className={`-me-1.5 grid size-11 shrink-0 place-items-center rounded-full ${FOCUS_RING}`}
+                    >
+                      {/* Mismo dibujo que el switch de ListRow: pista con borde ≥3:1 apagada, sage-ink encendida. */}
+                      <span
+                        aria-hidden="true"
+                        className={`relative inline-flex h-6 w-10 items-center rounded-full border transition-colors ${geek ? "border-transparent bg-[var(--sage-ink)]" : "border-line-control bg-surface-sunken"}`}
+                      >
+                        <span
+                          className={`absolute left-[3px] size-4 rounded-full transition-transform duration-200 ${geek ? "translate-x-4 bg-[var(--ground)]" : "translate-x-0 bg-[var(--line-control)]"}`}
+                        />
+                      </span>
+                    </button>
+                  }
+                />
               )}
-            </div>
+            </ListGroup>
 
             {confirmUnlink && profile.pregnancyId && (
               <ConfirmDialog
@@ -972,33 +980,7 @@ function ProfileModal({
               </ConfirmDialog>
             )}
 
-            {form.role === 'papa' && (
-              <div className="bg-stone-50 dark:bg-white/[0.02] p-4 rounded-2xl flex items-center justify-between border border-stone-100 dark:border-white/[0.05]">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-sage/20 dark:bg-sage/10 flex items-center justify-center text-sage-ink" aria-hidden="true">
-                    <Sparkles size={16} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-stone-800 dark:text-white mb-0.5">Comparación de tamaño</p>
-                    <p className="text-xs text-stone-600 dark:text-[#a6a1b2]">Con frutas o con objetos de tecnología y juegos</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={form.comparisonTheme === 'geek'}
-                  aria-label="Comparar con objetos de tecnología y juegos en lugar de frutas"
-                  onClick={() => setForm({...form, comparisonTheme: form.comparisonTheme === 'geek' ? 'frutas' : 'geek'})}
-                  className="shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
-                >
-                  <span aria-hidden="true" className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.comparisonTheme === 'geek' ? 'bg-sage-ink' : 'bg-stone-500 dark:bg-[#756e86]'}`}>
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${form.comparisonTheme === 'geek' ? 'translate-x-6' : 'translate-x-1'}`} />
-                  </span>
-                </button>
-              </div>
-            )}
-
-            {form.role === 'mama' && profile.pregnancyId && (
+            {isMamaForm && profile.pregnancyId && (
               <InviteCodePanel
                 pregnancyId={profile.pregnancyId}
                 code={form.inviteCode}
@@ -1011,54 +993,45 @@ function ProfileModal({
                 }}
               />
             )}
-          </div>
+          </Section>
 
           {/* Personas con acceso a los datos compartidos */}
-          <div className="space-y-3">
-            <h3 className="text-xs font-bold text-stone-500 dark:text-[#a6a1b2] uppercase tracking-wider">Personas con acceso</h3>
+          <Section as="h3" title="Personas con acceso">
             <AccessSection profile={profile} partner={partner} showToast={showToast} onStartLink={onStartLink} />
-          </div>
+          </Section>
 
-          {/* Preferencias Médicas */}
-          <div className="space-y-3">
-            <h3 className="text-xs font-bold text-stone-500 dark:text-[#a6a1b2] uppercase tracking-wider">Embarazo</h3>
-
-            {/* Equipo de salud: a quién llamar y a dónde ir (compartido con la pareja) */}
-            <button
-              type="button"
-              onClick={() => setCareTeamOpen(true)}
-              aria-haspopup="dialog"
-              className="w-full min-h-[56px] flex items-center gap-3 p-3.5 text-left bg-stone-50 dark:bg-[#1a1724] rounded-2xl border border-stone-200/80 dark:border-white/[0.06] hover:bg-stone-100 dark:hover:bg-[#2d273a] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
-            >
-              <span className="grid place-items-center w-9 h-9 shrink-0 rounded-xl bg-sage/15 text-sage-ink">
-                <Stethoscope size={18} aria-hidden="true" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-bold text-stone-800 dark:text-[#eae6e1]">Equipo de salud</span>
-                <span className="block truncate text-xs text-stone-600 dark:text-[#a6a1b2]">{careTeamSummary}</span>
-              </span>
-              <ChevronRight size={18} className="shrink-0 text-stone-500 dark:text-[#a6a1b2]" aria-hidden="true" />
-            </button>
-
+          <Section as="h3" title="Embarazo">
+            {/* Equipo de salud (compartido con la pareja) y fecha: una lista; el editor de fecha se abre debajo. */}
             <div ref={datingRef} className="scroll-mt-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-stone-800 dark:text-[#eae6e1]">{currentGa.label}</p>
-                  <p className="mt-0.5 text-xs leading-snug text-stone-600 dark:text-[#a6a1b2]">{datingSourceText}</p>
-                  <p className="mt-0.5 text-xs text-stone-600 dark:text-[#a6a1b2]">
-                    {profile.pregnancyId ? `Se comparte con ${partner.partnerName || "tu pareja"}` : "Solo en este teléfono"}
-                  </p>
-                </div>
-                {!datingOpen && (
-                  <button
-                    type="button"
-                    onClick={() => { setDatingDraft(draftFromProfile(profile)); setDatingOpen(true); }}
-                    className="shrink-0 min-h-[44px] rounded-xl border border-stone-300 dark:border-white/15 bg-white dark:bg-[#2d273a] px-3 text-xs font-bold text-stone-800 dark:text-[#eae6e1] hover:bg-stone-100 dark:hover:bg-[#352e44] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
-                  >
-                    {currentGa.source === "unknown" ? "Confirmar fecha" : "Cambiar fecha"}
-                  </button>
-                )}
-              </div>
+              <ListGroup>
+                <ListRow
+                  leading={<Stethoscope size={20} strokeWidth={1.75} />}
+                  title="Equipo de salud"
+                  meta={careTeamSummary}
+                  onClick={() => setCareTeamOpen(true)}
+                  aria-haspopup="dialog"
+                  trailing="chevron"
+                />
+                <ListRow
+                  leading={<CalendarClock size={20} strokeWidth={1.75} />}
+                  title={currentGa.label}
+                  meta={
+                    <>
+                      {datingSourceText}
+                      <span className="mt-0.5 block text-ink-subtle">
+                        {profile.pregnancyId ? `Se comparte con ${partner.partnerName || "tu pareja"}` : "Solo en este teléfono"}
+                      </span>
+                    </>
+                  }
+                  trailing={
+                    !datingOpen ? (
+                      <RowButton onClick={() => { setDatingDraft(draftFromProfile(profile)); setDatingOpen(true); }}>
+                        {currentGa.source === "unknown" ? "Confirmar fecha" : "Cambiar fecha"}
+                      </RowButton>
+                    ) : undefined
+                  }
+                />
+              </ListGroup>
               {datingOpen && (
                 <div className="mt-4">
                   <DatingPicker
@@ -1072,7 +1045,7 @@ function ProfileModal({
                   <button
                     type="button"
                     onClick={() => { setDatingOpen(false); setDatingDraft(draftFromProfile(profile)); }}
-                    className="mt-2 -ml-1 min-h-[44px] rounded-lg px-1 text-sm font-bold text-stone-700 dark:text-[#d9d4de] underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+                    className={`mt-2 -ms-1 inline-flex min-h-11 items-center rounded-full px-1 text-meta font-bold text-ink underline underline-offset-4 ${FOCUS_RING}`}
                   >
                     Dejar la fecha como estaba
                   </button>
@@ -1080,8 +1053,8 @@ function ProfileModal({
               )}
             </div>
 
-            <div>
-              <label htmlFor="settings-location" className="text-sm font-bold text-stone-700 dark:text-[#eae6e1] block mb-1">Ciudad o país</label>
+            <div className="mt-5">
+              <label htmlFor="settings-location" className="mb-1 block text-meta font-bold text-ink">Ciudad o país</label>
               <input
                 id="settings-location"
                 type="text"
@@ -1092,8 +1065,8 @@ function ProfileModal({
               />
             </div>
 
-            <div>
-              <label htmlFor="settings-notes" className="text-sm font-bold text-stone-700 dark:text-[#eae6e1] block mb-1">Notas de rutina</label>
+            <div className="mt-4">
+              <label htmlFor="settings-notes" className="mb-1 block text-meta font-bold text-ink">Notas de rutina</label>
               <textarea
                 id="settings-notes"
                 value={form.notes || ""}
@@ -1103,11 +1076,11 @@ function ProfileModal({
                 aria-describedby="settings-local-hint"
                 className={`${SETTINGS_INPUT} resize-none`}
               />
-              <p id="settings-local-hint" className="mt-1 text-xs leading-snug text-stone-600 dark:text-[#a6a1b2]">
+              <p id="settings-local-hint" className="mt-1 text-micro font-medium text-ink-subtle">
                 La ciudad y las notas se guardan solo en este teléfono. Por ahora la app no las usa.
               </p>
             </div>
-          </div>
+          </Section>
 
           {/* Tema: sistema (sigue al teléfono), claro u oscuro */}
           <ThemeChoice
@@ -1121,10 +1094,9 @@ function ProfileModal({
           />
         </div>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-stone-100 dark:border-white/[0.04] bg-white dark:bg-[#221d2d]">
+        <div className="border-t border-line p-4">
           {datingBlocked && (
-            <p className="mb-2 text-xs leading-snug text-stone-700 dark:text-[#d9d4de]" aria-live="polite">
+            <p className="mb-2 text-meta text-ink-muted" aria-live="polite">
               Completa la fecha o toca «Dejar la fecha como estaba» para guardar.
             </p>
           )}
@@ -1132,7 +1104,7 @@ function ProfileModal({
             type="button"
             onClick={() => onSave(form, pendingDating)}
             disabled={datingBlocked}
-            className="w-full min-h-[44px] bg-stone-900 hover:bg-stone-800 dark:bg-[#eae6e1] dark:hover:bg-white dark:text-stone-900 text-white rounded-xl py-3 text-sm font-bold shadow-sm transition-colors flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-500 disabled:shadow-none dark:disabled:bg-white/[0.06] dark:disabled:text-[#a6a1b2]"
+            className={`${WIDE_BUTTON} ${TERRA_FILL}`}
           >
             Guardar cambios
           </button>
@@ -1169,14 +1141,12 @@ const ONB_STEPS: Record<"mama" | "papa", OnbStep[]> = {
   papa: ["name", "code", "confirm"],
 };
 
-const ONB_CTA =
-  "w-full min-h-[48px] rounded-xl py-3.5 font-bold transition-colors flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-500 disabled:shadow-none dark:disabled:bg-white/[0.06] dark:disabled:text-[#a6a1b2]";
-const ONB_CTA_MAMA = `${ONB_CTA} bg-terracotta-ink hover:bg-terracotta-ink-hover text-white focus-visible:outline-terracotta-ink`;
-const ONB_CTA_PAPA = `${ONB_CTA} bg-sage-ink hover:bg-sage-ink-hover text-white focus-visible:outline-sage-ink`;
-// Anillo en tinta terracota: stone-900 desaparecía sobre el panel oscuro (1.07:1).
-const ONB_CTA_NEUTRAL = `${ONB_CTA} bg-stone-900 hover:bg-stone-800 dark:bg-[#eae6e1] dark:hover:bg-white dark:text-stone-900 text-white focus-visible:outline-terracotta-ink`;
-const ONB_INPUT =
-  "w-full min-h-[48px] px-4 py-3 rounded-xl border border-stone-500 dark:border-white/40 bg-white dark:bg-[#1a1724] text-stone-900 dark:text-[#eae6e1] text-base focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-terracotta-ink";
+// Deshabilitado discreto (pozo + tinta de deshabilitado) y anillo de foco en tinta terracota en todos.
+const ONB_CTA = WIDE_BUTTON;
+const ONB_CTA_MAMA = `${ONB_CTA} ${TERRA_FILL}`;
+const ONB_CTA_PAPA = `${ONB_CTA} ${SAGE_FILL}`;
+const ONB_CTA_NEUTRAL = `${ONB_CTA} ${INK_FILL}`;
+const ONB_INPUT = FIELD;
 
 /** Perfil local de la datación que eligió la mamá (la desconocida conserva un número de relleno). */
 /**
@@ -1384,36 +1354,63 @@ function OnboardingModal({
 
   const accent = role === "papa" ? "bg-sage-ink" : "bg-terracotta-ink";
   const cta = role === "papa" ? ONB_CTA_PAPA : ONB_CTA_MAMA;
-  const spinner = <span aria-hidden="true" className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin motion-reduce:animate-none" />;
-  const headingClass = "text-2xl font-black text-stone-900 dark:text-[#eae6e1] text-balance outline-none";
-  const subClass = "mt-1 text-sm leading-snug text-stone-600 dark:text-[#a6a1b2]";
+  const spinner = <span aria-hidden="true" className="w-4 h-4 border-2 border-on-accent/30 border-t-on-accent rounded-full animate-spin motion-reduce:animate-none" />;
+  const headingClass = "font-display text-title text-ink outline-none";
+  const subClass = "mt-1.5 text-body text-ink-muted";
+  const fieldLabel = "mb-1 block text-meta font-bold text-ink";
   const errorBox = errorMsg ? (
-    <div role="alert" className="mt-4 text-sm leading-snug text-terracotta-ink bg-terracotta/10 p-3 rounded-xl border border-terracotta-ink/25">{errorMsg}</div>
+    <div role="alert" className="mt-4 rounded-xl bg-terracotta-wash p-3 text-meta font-bold text-terracotta-ink">{errorMsg}</div>
   ) : null;
+  // La planta de su semana (la que acaba de guardar) recibe a la mamá al terminar; sin semana, un brote.
+  const planted = savedChoice ? datingPatch(savedChoice) : null;
+  const plantWeek = planted && !planted.weekUnknown ? planted.week : undefined;
+  /** Opción de rol: fila de una lista (el texto es el primer <span>, con la tinta del rol al elegirla). */
+  const roleOption = (value: "mama" | "papa", label: string, Icon: typeof Baby) => {
+    const on = role === value;
+    const ink = value === "mama" ? "text-terracotta-ink" : "text-sage-ink";
+    return (
+      <button
+        type="button"
+        aria-pressed={on}
+        onClick={() => setRole(value)}
+        className={`flex w-full min-h-16 items-center gap-3 px-[var(--gutter)] py-3 text-left transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-terracotta-ink ${
+          on ? (value === "mama" ? "bg-terracotta-wash" : "bg-sage-wash") : "hover:bg-surface-hover"
+        }`}
+      >
+        <Icon size={24} strokeWidth={1.75} aria-hidden="true" className={`shrink-0 ${on ? ink : "text-ink-subtle"}`} />
+        <span className={`min-w-0 flex-1 text-body font-bold ${on ? ink : "text-ink"}`}>{label}</span>
+        {on ? (
+          <CheckCircle2 size={22} strokeWidth={1.75} aria-hidden="true" className={`shrink-0 ${ink}`} />
+        ) : (
+          <Circle size={22} strokeWidth={1.75} aria-hidden="true" className="shrink-0 text-line-control" />
+        )}
+      </button>
+    );
+  };
 
+  // Fase 6: pantalla completa en alabastro y una columna sin tarjeta; las opciones (rol, fecha) son
+  // listas con divisores que llegan al borde (--gutter = padding de la columna).
   return (
     <ModalPortal>
-    <div className={`fixed inset-0 bg-stone-50 dark:bg-[#181520] ${Z_CLASS.dialog} flex items-center justify-center p-4 animate-in fade-in duration-300`}>
-      <div
-        {...dialogProps}
-        className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-xl w-full max-w-sm overflow-y-auto max-h-full animate-in zoom-in-95 duration-500 border border-stone-200/80 dark:border-white/[0.08] p-6 outline-none"
-      >
+    <div className={`fixed inset-0 bg-ground ${Z_CLASS.dialog} overflow-y-auto`}>
+      <div className="flex min-h-full items-center justify-center px-5 pt-[max(2rem,var(--safe-top))] pb-[max(2rem,var(--safe-bottom))]">
+      <div {...dialogProps} className="w-full max-w-sm outline-none [--gutter:1.25rem]">
         {step !== "role" && role && (
-          <div className="mb-5 flex items-center justify-between gap-3">
+          <div className="mb-6 flex items-center justify-between gap-3">
             <button
               type="button"
               onClick={back}
               aria-disabled={isLoading || undefined}
-              className="-ml-2 inline-flex min-h-[44px] items-center gap-1 rounded-xl px-2 text-sm font-bold text-stone-700 dark:text-[#d9d4de] hover:bg-stone-100 dark:hover:bg-[#2d273a] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+              className={`-ms-2 inline-flex min-h-11 items-center gap-1 rounded-full px-2 text-meta font-bold text-ink-muted transition-colors hover:bg-surface-hover hover:text-ink ${FOCUS_RING}`}
             >
-              <ChevronLeft size={18} aria-hidden="true" />
+              <ChevronLeft size={18} strokeWidth={1.75} aria-hidden="true" />
               Atrás
             </button>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-stone-600 dark:text-[#a6a1b2]">Paso {stepIndex + 1} de {steps.length}</span>
+              <span className="text-micro font-medium text-ink-subtle tabular-nums">Paso {stepIndex + 1} de {steps.length}</span>
               <span aria-hidden="true" className="flex gap-1">
                 {steps.map((s, i) => (
-                  <span key={s} className={`h-1.5 w-5 rounded-full ${i <= stepIndex ? accent : "bg-stone-200 dark:bg-white/10"}`} />
+                  <span key={s} className={`h-1.5 w-5 rounded-full ${i <= stepIndex ? accent : "bg-line-strong"}`} />
                 ))}
               </span>
             </div>
@@ -1422,31 +1419,14 @@ function OnboardingModal({
 
         {step === "role" && (
           <div className="text-center">
-            <div className="w-24 h-24 rounded-3xl overflow-hidden mx-auto mb-5 border border-stone-200 dark:border-white/[0.08] shadow-sm">
-              <Image src="/panda-icon.jpg" alt="" width={96} height={96} className="w-full h-full object-cover" priority />
-            </div>
+            {/* El panda trazado, sobre el alabastro (sin azulejo). */}
+            <PandaMark size={88} className="mx-auto mb-5" />
             <h2 id="onb-title" ref={headingRef} tabIndex={-1} className={headingClass}>Te damos la bienvenida a PandaJR</h2>
             <p className={subClass}>Cuéntanos quién eres para acompañarte mejor.</p>
 
-            <div className="space-y-3 mt-6">
-              <button
-                type="button"
-                aria-pressed={role === "mama"}
-                onClick={() => setRole("mama")}
-                className={`w-full min-h-[64px] p-4 rounded-2xl border-2 transition-colors flex flex-col items-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink ${role === "mama" ? "border-terracotta bg-terracotta/5" : "border-stone-200 dark:border-white/[0.08] hover:border-stone-300 dark:hover:border-white/[0.14]"}`}
-              >
-                <Baby size={28} aria-hidden="true" className={role === "mama" ? "text-terracotta-ink" : "text-stone-500 dark:text-[#a6a1b2]"} />
-                <span className={`font-bold ${role === "mama" ? "text-terracotta-ink" : "text-stone-700 dark:text-[#d9d4de]"}`}>Soy la futura mamá</span>
-              </button>
-              <button
-                type="button"
-                aria-pressed={role === "papa"}
-                onClick={() => setRole("papa")}
-                className={`w-full min-h-[64px] p-4 rounded-2xl border-2 transition-colors flex flex-col items-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink ${role === "papa" ? "border-sage bg-sage/5" : "border-stone-200 dark:border-white/[0.08] hover:border-stone-300 dark:hover:border-white/[0.14]"}`}
-              >
-                <Users size={28} aria-hidden="true" className={role === "papa" ? "text-sage-ink" : "text-stone-500 dark:text-[#a6a1b2]"} />
-                <span className={`font-bold ${role === "papa" ? "text-sage-ink" : "text-stone-700 dark:text-[#d9d4de]"}`}>Soy el copiloto (pareja)</span>
-              </button>
+            <div className="-mx-[var(--gutter)] mt-6 divide-y divide-line border-y border-line">
+              {roleOption("mama", "Soy la futura mamá", Baby)}
+              {roleOption("papa", "Soy el copiloto (pareja)", Users)}
             </div>
 
             <button type="button" onClick={() => role && setStep("name")} disabled={!role} className={`${ONB_CTA_NEUTRAL} mt-6`}>
@@ -1456,7 +1436,7 @@ function OnboardingModal({
               <button
                 type="button"
                 onClick={onCancel}
-                className="w-full mt-2 min-h-[44px] rounded-xl text-sm font-bold text-stone-600 hover:text-stone-900 dark:text-[#a6a1b2] dark:hover:text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+                className={`mt-2 w-full min-h-11 rounded-full text-meta font-bold text-ink-muted transition-colors hover:text-ink ${FOCUS_RING}`}
               >
                 Ahora no
               </button>
@@ -1464,7 +1444,7 @@ function OnboardingModal({
               <button
                 type="button"
                 onClick={() => onSkip?.(role)}
-                className="w-full mt-2 min-h-[44px] rounded-xl text-sm font-bold text-stone-600 underline-offset-4 hover:underline hover:text-stone-900 dark:text-[#a6a1b2] dark:hover:text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+                className={`mt-2 w-full min-h-11 rounded-full text-meta font-bold text-ink-muted underline-offset-4 transition-colors hover:text-ink hover:underline ${FOCUS_RING}`}
               >
                 Explorar como invitado
               </button>
@@ -1478,7 +1458,7 @@ function OnboardingModal({
             <p className={subClass}>Así te verá tu pareja en PandaJR.</p>
             {errorBox}
             <div className="mt-5">
-              <label htmlFor={role === "mama" ? "onb-mama-name" : "onb-papa-name"} className="text-xs font-bold text-stone-700 dark:text-[#d9d4de] mb-1 block">Tu nombre</label>
+              <label htmlFor={role === "mama" ? "onb-mama-name" : "onb-papa-name"} className={fieldLabel}>Tu nombre</label>
               <input
                 id={role === "mama" ? "onb-mama-name" : "onb-papa-name"}
                 type="text"
@@ -1513,33 +1493,31 @@ function OnboardingModal({
 
         {step === "share" && role === "mama" && (
           <div>
-            <div className="bg-sage/10 dark:bg-sage/20 w-14 h-14 rounded-full flex items-center justify-center mb-3">
-              <CheckCircle2 className="text-sage-ink" size={28} aria-hidden="true" />
-            </div>
+            <GrowingPlant week={plantWeek} size={88} title="" className="-ms-3 mb-1" animate={false} />
             <h2 id="onb-title" ref={headingRef} tabIndex={-1} className={headingClass}>Tu espacio está listo</h2>
             <p className={subClass}>Comparte este código con tu pareja para que se vincule a tu embarazo. Vale por 14 días y sirve para una sola persona.</p>
 
-            <div className="mt-5 bg-stone-50 dark:bg-[#1a1724] p-4 rounded-2xl border border-stone-200 dark:border-white/[0.1] text-center">
-              <p className="font-mono text-xl font-black tracking-wider text-terracotta-ink break-all">{generatedCode}</p>
+            <div className="mt-5 rounded-2xl bg-surface-sunken p-4 text-center">
+              <p className="font-mono text-subtitle font-extrabold tracking-wider text-terracotta-ink break-all">{generatedCode}</p>
               <button
                 type="button"
                 onClick={copyGenerated}
-                className="mt-2 inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-3 text-sm font-bold text-stone-700 dark:text-[#d9d4de] hover:bg-stone-100 dark:hover:bg-[#2d273a] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+                className={`mt-2 inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-meta font-bold text-ink transition-colors hover:bg-surface-hover ${FOCUS_RING}`}
               >
-                {codeCopied ? <Check size={16} className="text-sage-ink" aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
+                {codeCopied ? <Check size={16} strokeWidth={1.75} className="text-sage-ink" aria-hidden="true" /> : <Copy size={16} strokeWidth={1.75} aria-hidden="true" />}
                 <span aria-live="polite">{codeCopied ? "Copiado" : "Copiar código"}</span>
               </button>
             </div>
-            {errorMsg && <p role="alert" className="mt-2 text-xs text-terracotta-ink">{errorMsg}</p>}
+            {errorMsg && <p role="alert" className="mt-2 text-meta font-bold text-terracotta-ink">{errorMsg}</p>}
 
             <button
               type="button"
               onClick={() => {
                 window.open(`https://wa.me/?text=${encodeURIComponent(inviteShareText(generatedCode))}`, "_blank", "noopener,noreferrer");
               }}
-              className={`${ONB_CTA_PAPA} mt-5 shadow-sm`}
+              className={`${ONB_CTA_PAPA} mt-5`}
             >
-              <Share2 size={20} aria-hidden="true" />
+              <Share2 size={20} strokeWidth={1.75} aria-hidden="true" />
               Compartir por WhatsApp
             </button>
             <button type="button" onClick={finishMama} className={`${ONB_CTA_NEUTRAL} mt-3`}>
@@ -1554,7 +1532,7 @@ function OnboardingModal({
             <p className={subClass}>Pídele el código que aparece en su PandaJR, en Ajustes.</p>
             {errorBox}
             <div className="mt-5">
-              <label htmlFor="onb-papa-code" className="text-xs font-bold text-stone-700 dark:text-[#d9d4de] mb-1 block">Código de invitación</label>
+              <label htmlFor="onb-papa-code" className={fieldLabel}>Código de invitación</label>
               <input
                 id="onb-papa-code"
                 type="text"
@@ -1567,9 +1545,9 @@ function OnboardingModal({
                 autoCorrect="off"
                 spellCheck={false}
                 aria-describedby="onb-code-hint"
-                className={`${ONB_INPUT} text-center font-mono font-bold tracking-widest text-lg uppercase`}
+                className={`${ONB_INPUT} text-center font-mono font-bold tracking-widest text-subtitle! uppercase`}
               />
-              <p id="onb-code-hint" className="mt-1.5 text-xs text-stone-600 dark:text-[#a6a1b2] text-center">
+              <p id="onb-code-hint" className="mt-1.5 text-center text-meta text-ink-muted">
                 {code.trim() && !normalizedCode ? "Revisa el código: se ve así, PANDA-XXXX-XXXX." : "Puedes escribirlo con o sin guiones."}
               </p>
             </div>
@@ -1584,31 +1562,31 @@ function OnboardingModal({
           <div>
             <h2 id="onb-title" ref={headingRef} tabIndex={-1} className={headingClass}>¿Te unes al embarazo de {partnerLabel}?</h2>
             {errorBox}
-            <dl className="mt-4 text-sm border-y border-stone-200 dark:border-white/[0.08] divide-y divide-stone-200 dark:divide-white/[0.06]">
+            <dl className="mt-4 border-y border-line divide-y divide-line text-body">
               {!preview.legacy && preview.babyName && (
-                <div className="flex justify-between gap-3 px-1 py-2.5">
-                  <dt className="text-stone-600 dark:text-[#a6a1b2]">Bebé</dt>
-                  <dd className="font-bold text-stone-800 dark:text-[#eae6e1] text-right">{preview.babyName}</dd>
+                <div className="flex justify-between gap-3 py-2.5">
+                  <dt className="text-ink-muted">Bebé</dt>
+                  <dd className="text-right font-bold text-ink">{preview.babyName}</dd>
                 </div>
               )}
-              <div className="flex justify-between gap-3 px-1 py-2.5">
-                <dt className="text-stone-600 dark:text-[#a6a1b2]">Semana</dt>
-                <dd className="font-bold text-stone-800 dark:text-[#eae6e1] text-right">
+              <div className="flex justify-between gap-3 py-2.5">
+                <dt className="text-ink-muted">Semana</dt>
+                <dd className="text-right font-bold text-ink">
                   {previewWeekLabel(preview)}
                 </dd>
               </div>
               {preview.dueDate && (
-                <div className="flex justify-between gap-3 px-1 py-2.5">
-                  <dt className="text-stone-600 dark:text-[#a6a1b2]">Fecha probable</dt>
-                  <dd className="font-bold text-stone-800 dark:text-[#eae6e1] text-right">{formatDateLong(parseISODate(preview.dueDate) ?? new Date())}</dd>
+                <div className="flex justify-between gap-3 py-2.5">
+                  <dt className="text-ink-muted">Fecha probable</dt>
+                  <dd className="text-right font-bold text-ink">{formatDateLong(parseISODate(preview.dueDate) ?? new Date())}</dd>
                 </div>
               )}
-              <div className="flex justify-between gap-3 px-1 py-2.5">
-                <dt className="text-stone-600 dark:text-[#a6a1b2]">Código</dt>
-                <dd className="font-mono font-bold text-stone-800 dark:text-[#eae6e1] text-right">{normalizedCode?.code}</dd>
+              <div className="flex justify-between gap-3 py-2.5">
+                <dt className="text-ink-muted">Código</dt>
+                <dd className="text-right font-mono font-bold text-ink">{normalizedCode?.code}</dd>
               </div>
             </dl>
-            <p className="mt-4 text-sm text-stone-600 dark:text-[#a6a1b2]">Verán y editarán juntos la agenda, las tareas y el estado de ánimo. La semana se toma de su embarazo.</p>
+            <p className="mt-4 text-body text-ink-muted">Verán y editarán juntos la agenda, las tareas y el estado de ánimo. La semana se toma de su embarazo.</p>
             <div className="mt-5 space-y-3">
               <button type="button" onClick={() => { void confirmJoin(); }} aria-disabled={isLoading || undefined} className={ONB_CTA_PAPA}>
                 {isLoading && spinner}
@@ -1617,13 +1595,14 @@ function OnboardingModal({
               <button
                 type="button"
                 onClick={() => { if (isLoading) return; setPreview(null); setCode(""); setErrorMsg(""); setStep("code"); }}
-                className="w-full min-h-[44px] rounded-xl py-3 font-bold text-stone-700 dark:text-[#d9d4de] border border-stone-300 dark:border-white/15 hover:bg-stone-50 dark:hover:bg-[#2d273a] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
+                className={`${WIDE_BUTTON} ${OUTLINE_FILL}`}
               >
                 No es este
               </button>
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
     </ModalPortal>
@@ -1668,17 +1647,17 @@ function HeaderBell({ events, onOpen }: { events: AgendaEvent[]; onOpen: (ev: Ag
     <button
       type="button"
       onClick={() => onOpen(next.ev)}
-      className={`min-w-[44px] min-h-[44px] p-2.5 rounded-full border transition-colors active:scale-95 motion-reduce:active:scale-100 relative flex items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink ${
+      className={`relative inline-flex size-11 shrink-0 items-center justify-center rounded-full border transition-colors ${FOCUS_RING} ${
         soon
-          ? "bg-terracotta/10 dark:bg-terracotta/15 border-terracotta-ink/30 text-terracotta-ink hover:bg-terracotta/20"
-          : "bg-white dark:bg-[#221d2d] border-stone-300 dark:border-white/15 text-stone-700 dark:text-[#d9d4de] hover:bg-stone-50 dark:hover:bg-[#2d273a]"
+          ? "border-transparent bg-terracotta-wash text-terracotta-ink hover:bg-terracotta-wash/80"
+          : "border-line-strong text-ink-muted hover:bg-surface-hover hover:text-ink"
       }`}
       title={label}
       aria-label={label}
     >
-      <Bell size={16} aria-hidden="true" />
+      <Bell size={18} strokeWidth={1.75} aria-hidden="true" />
       {soon && (
-        <span aria-hidden="true" className="absolute top-2 right-2 w-2 h-2 bg-terracotta-ink rounded-full ring-2 ring-white dark:ring-[#181520]"></span>
+        <span aria-hidden="true" className="absolute top-2 right-2 size-2 rounded-full bg-terracotta-ink ring-2 ring-ground"></span>
       )}
     </button>
   );
@@ -2250,61 +2229,66 @@ export default function PandaJRApp() {
 
   if (!hasHydrated) return null;
 
+  // Ancho de la columna de contenido. Móvil: la columna de siempre (max-w-md). Escritorio (≥1024px):
+  // una columna cómoda de 720px junto al riel de navegación; la Guía a ≥1280px se abre a dos columnas.
+  const columnWidth = activeTab === "planificacion" ? "lg:max-w-[45rem] xl:max-w-[70rem]" : "lg:max-w-[45rem]";
+
   return (
     // overflow-x-clip (no hidden): hidden crea un contenedor de scroll y anula el sticky del header.
-    <div className={`flex flex-col ${activeTab === "pandaia" ? "h-dvh overflow-hidden" : "min-h-dvh pb-[calc(3.5rem+var(--safe-bottom))]"} w-full max-w-md mx-auto bg-[#faf9f5] dark:bg-[#181520] text-stone-900 dark:text-[#eae6e1] font-sans relative shadow-2xl overflow-x-clip transition-colors duration-200 border-x border-stone-200/60 dark:border-white/[0.08]`}>
-      {/* Header con Logo, Switch Modo Oscuro, Alerta de Cita y Selector Global de Perfil */}
-      <header className={`bg-white/95 dark:bg-[#181520]/95 backdrop-blur-md px-3 sm:px-4 pt-[var(--safe-top)] pb-2.5 shadow-xs border-b border-stone-200/70 dark:border-white/[0.08] sticky top-0 [@media(max-height:500px)]:static ${Z_CLASS.header} w-full flex items-center justify-between shrink-0 transition-colors`}>
-        <div className="flex items-center min-w-0 shrink">
-          <h1 className="sr-only">PandaJR</h1>
-          <Image
-            src="/logo.png"
-            alt="PandaJR"
-            width={136}
-            height={36}
-            priority
-            className="h-7 min-[400px]:h-8 sm:h-9 w-auto max-w-full object-contain object-left dark:brightness-110"
-          />
-        </div>
+    // Orden del DOM (y del foco) igual en todos los tamaños: cabecera → contenido → navegación.
+    <div className={`relative mx-auto flex w-full max-w-md flex-col overflow-x-clip bg-ground text-ink sm:border-x sm:border-line lg:max-w-none lg:border-x-0 lg:ps-24 ${activeTab === "pandaia" ? "h-dvh overflow-hidden" : "min-h-dvh pb-[calc(3.5rem+var(--safe-bottom))] lg:pb-0"}`}>
+      {/* Cabecera: marca en Alegreya, Síntomas, cita próxima y Ajustes. Fondo sólido (sin desenfoque); su
+          altura (3.4375rem + zona segura) la usan las cabeceras de herramienta y el scroll-padding. */}
+      <header className={`sticky top-0 [@media(max-height:500px)]:static ${Z_CLASS.header} w-full shrink-0 border-b border-line bg-ground px-3 pt-[var(--safe-top)] pb-2.5 sm:px-4 lg:px-0`}>
+        {/* Escritorio: el padding va dentro de la columna, así la marca se alinea con el contenido. */}
+        <div className={`mx-auto flex w-full items-center justify-between gap-2 lg:px-8 ${columnWidth}`}>
+          <h1 className="min-w-0">
+            {/* Por debajo de 380px la marca compacta deja sitio a Síntomas, la campana y Ajustes; por debajo
+                de 360px (o con zoom) solo el panda, y "PandaJR" sigue siendo el nombre del h1 (sr-only). */}
+            <Wordmark responsive />
+          </h1>
 
-        <div className="flex items-center gap-1 min-[400px]:gap-1.5 sm:gap-2 shrink-0">
-          {/* Acceso a síntomas de alarma desde cualquier pestaña */}
-          <button
-            type="button"
-            onClick={openSymptoms}
-            aria-label="Síntomas: señales de alarma y a quién llamar"
-            className="inline-flex items-center gap-1.5 min-h-[44px] px-3 rounded-full border border-stone-300 dark:border-white/15 bg-white dark:bg-[#221d2d] text-stone-800 dark:text-[#eae6e1] text-xs font-bold hover:bg-stone-50 dark:hover:bg-[#2d273a] active:scale-95 motion-reduce:active:scale-100 transition-[background-color,transform] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
-          >
-            <HeartPulse size={16} className="shrink-0 text-terracotta-ink" aria-hidden="true" />
-            <span>Síntomas</span>
-          </button>
+          <div className="flex shrink-0 items-center gap-1 min-[400px]:gap-1.5 sm:gap-2">
+            {/* Acceso a síntomas de alarma desde cualquier pestaña */}
+            <button
+              type="button"
+              onClick={openSymptoms}
+              aria-label="Síntomas: señales de alarma y a quién llamar"
+              className={`inline-flex min-h-11 items-center gap-1.5 rounded-full border border-line-strong px-3.5 text-meta font-bold text-ink transition-colors hover:bg-surface-hover ${FOCUS_RING}`}
+            >
+              <HeartPulse size={18} strokeWidth={1.75} className="shrink-0 text-terracotta-ink" aria-hidden="true" />
+              <span>Síntomas</span>
+            </button>
 
-          <HeaderBell events={events} onOpen={(ev) => setSelectedPrepEvent(ev)} />
+            <HeaderBell events={events} onOpen={(ev) => setSelectedPrepEvent(ev)} />
 
-          {/* Botón Global de Perfil / Switcher */}
-          {/* Solo icono: con el acceso a Síntomas, nombre y emoji ya no caben en un teléfono de 360-430px */}
-          <button
-            ref={settingsButtonRef}
-            type="button"
-            onClick={() => setIsProfileModalOpen(true)}
-            aria-haspopup="dialog"
-            aria-label={`Ajustes y perfil${profile.name ? ` de ${profile.name}` : ""}`}
-            className="inline-flex items-center justify-center w-11 h-11 shrink-0 rounded-full border border-stone-300 dark:border-white/15 bg-white dark:bg-[#221d2d] text-stone-700 dark:text-[#d9d4de] hover:bg-stone-50 dark:hover:bg-[#2d273a] hover:text-stone-900 dark:hover:text-[#eae6e1] active:scale-95 motion-reduce:active:scale-100 transition-[background-color,color,transform] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
-            title="Ajustes y perfil"
-          >
-            <Settings size={18} aria-hidden="true" />
-          </button>
+            {/* Solo icono: con el acceso a Síntomas, nombre y emoji ya no caben en un teléfono de 360-430px */}
+            <button
+              ref={settingsButtonRef}
+              type="button"
+              onClick={() => setIsProfileModalOpen(true)}
+              aria-haspopup="dialog"
+              aria-label={`Ajustes y perfil${profile.name ? ` de ${profile.name}` : ""}`}
+              className={`${ICON_BUTTON} border border-line-strong`}
+              title="Ajustes y perfil"
+            >
+              <Settings size={18} strokeWidth={1.75} aria-hidden="true" />
+            </button>
+          </div>
         </div>
       </header>
 
       {/* Main Content Area */}
       {/* Sin overflow en las pestañas con scroll de documento (el sticky de las herramientas depende de ello).
-          En PandaIA, el espacio inferior es la altura real de la nav fija (84px) más el área segura. */}
-      <main className={`flex-1 w-full ${activeTab === "pandaia" ? "overflow-hidden flex flex-col pb-[calc(5.25rem+var(--safe-bottom))]" : "pb-6"}`}>
+          En PandaIA, el espacio inferior es la altura real de la nav fija (84px) más el área segura; con el
+          riel de escritorio no hay barra inferior.
+          Desde 1024px --gutter = 0: las listas no sangran fuera de la columna (divisores = ancho del texto,
+          alineados con la cabecera); cada vista pone su padding lg:px-8. */}
+      <main className={`mx-auto w-full flex-1 lg:[--gutter:0px] ${columnWidth} ${activeTab === "pandaia" ? "flex flex-col overflow-hidden pb-[calc(5.25rem+var(--safe-bottom))] lg:pb-0" : "pb-6 lg:pb-12"}`}>
         {accessLost && (
-          <div role="alert" className="mx-4 mt-3 rounded-2xl border border-amber-700/30 bg-amber-50 dark:border-amber-300/25 dark:bg-amber-300/[0.08] p-3">
-            <p className="flex items-start gap-2 text-sm leading-snug text-stone-800 dark:text-[#eae6e1]">
-              <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-800 dark:text-amber-300" aria-hidden="true" />
+          <div role="alert" className="mx-4 mt-3 rounded-2xl bg-amber-wash p-3 lg:mx-8">
+            <p className="flex items-start gap-2 text-meta text-ink">
+              <AlertTriangle size={18} strokeWidth={1.75} className="mt-0.5 shrink-0 text-amber-ink" aria-hidden="true" />
               <span>
                 {profile.role === "mama"
                   ? "Este teléfono ya no tiene acceso a lo que comparten (su sesión cambió o se quitó su acceso). Lo que anotes aquí no le llegará a tu pareja."
@@ -2319,7 +2303,7 @@ export default function PandaJRApp() {
                   setProfile({ pregnancyId: "", inviteCode: "" });
                   startLinkFlow();
                 }}
-                className="mt-2 min-h-[44px] px-3 rounded-xl bg-sage-ink hover:bg-sage-ink-hover text-white text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
+                className={`mt-2 inline-flex min-h-11 items-center rounded-full px-4 text-meta font-bold transition-colors ${SAGE_FILL} ${FOCUS_RING}`}
               >
                 Vincular con un código nuevo
               </button>
@@ -2433,26 +2417,27 @@ export default function PandaJRApp() {
       )}
 
       {/* Toast global: la región viva existe siempre para que el lector de pantalla anuncie cada mensaje.
-          Exenta de inert y por encima de los diálogos: "Deshacer"/"Reintentar" se anuncian y se tocan con uno abierto. */}
+          Exenta de inert y por encima de los diálogos: "Deshacer"/"Reintentar" se anuncian y se tocan con uno abierto.
+          Superficie inversa (tinta con texto alabastro; en oscuro, al revés): se lee sobre cualquier pantalla. */}
       <div
         ref={toastRegionRef}
         role="status"
         aria-live="polite"
         aria-atomic="true"
         data-inert-exempt=""
-        className={`fixed bottom-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.5rem))] left-4 right-4 max-w-[calc(28rem-2rem)] mx-auto ${Z_CLASS.toast} pointer-events-none`}
+        className={`fixed bottom-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.5rem))] left-4 right-4 max-w-[calc(28rem-2rem)] mx-auto lg:bottom-6 lg:left-28 lg:right-4 ${Z_CLASS.toast} pointer-events-none`}
       >
         {toast && (
           <div
             key={toast.id}
-            className="pointer-events-auto bg-stone-900/95 text-white pl-4 pr-2 py-2 min-h-[52px] rounded-2xl shadow-2xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-3 duration-200 motion-reduce:animate-none backdrop-blur-sm border border-stone-800"
+            className="pointer-events-auto flex min-h-13 items-center justify-between gap-3 rounded-2xl bg-ink py-2 ps-4 pe-2 text-ground shadow-[0_12px_32px_-12px_rgba(24,21,32,0.5)]"
           >
-            <span className="text-sm font-medium leading-snug min-w-0 py-1">{toast.message}</span>
+            <span className="min-w-0 py-1 text-meta font-medium">{toast.message}</span>
             {toast.onAction && (
               <button
                 type="button"
                 onClick={() => { const action = toast.onAction; dismissToast(); action?.(); }}
-                className="shrink-0 min-h-[44px] px-3 rounded-xl bg-white/10 hover:bg-white/20 text-[#b5dcc6] text-sm font-bold active:scale-95 motion-reduce:active:scale-100 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                className="shrink-0 min-h-11 rounded-full bg-ground px-4 text-meta font-bold text-ink transition-colors hover:bg-surface-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ground"
               >
                 {toast.actionLabel}
               </button>
@@ -2461,28 +2446,34 @@ export default function PandaJRApp() {
         )}
       </div>
 
-      {/* Bottom Navigation */}
-      <nav aria-label="Navegación principal" className={`fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 dark:bg-[#181520]/95 backdrop-blur-md border-t border-stone-200/80 dark:border-white/[0.08] grid grid-cols-4 items-center px-2 pt-2 pb-[var(--safe-bottom)] ${Z_CLASS.nav} transition-colors`}>
+      {/* Navegación: barra inferior en móvil; riel vertical a la izquierda desde 1024px (mismo lugar en el
+          DOM, así el orden del foco no cambia). Fondo sólido, sin desenfoque. */}
+      <nav
+        aria-label="Navegación principal"
+        className={`fixed inset-x-0 bottom-0 mx-auto grid max-w-md grid-cols-4 items-stretch gap-1 border-t border-line bg-ground px-2 pt-1.5 pb-[var(--safe-bottom)] ${Z_CLASS.nav} lg:inset-y-0 lg:right-auto lg:mx-0 lg:flex lg:w-24 lg:max-w-none lg:flex-col lg:justify-start lg:gap-2 lg:border-t-0 lg:border-e lg:px-2 lg:pt-[calc(var(--safe-top)+4.5rem)] lg:pb-6`}
+      >
+        {/* Riel: el filete de la cabecera continúa hasta el borde de la ventana. */}
+        <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 hidden h-[calc(3.4375rem+var(--safe-top))] border-b border-line lg:block" />
         <NavItem
-          icon={<Compass size={24} />}
+          icon={<Compass size={22} strokeWidth={1.75} />}
           label="Guía"
           isActive={activeTab === "planificacion"}
           onClick={() => setActiveTab("planificacion")}
         />
         <NavItem
-          icon={<Calendar size={24} />}
+          icon={<Calendar size={22} strokeWidth={1.75} />}
           label="Agenda"
           isActive={activeTab === "agenda"}
           onClick={() => setActiveTab("agenda")}
         />
         <NavItem
-          icon={<Activity size={24} />}
+          icon={<Activity size={22} strokeWidth={1.75} />}
           label="Herramientas"
           isActive={activeTab === "herramientas"}
           onClick={() => setActiveTab("herramientas")}
         />
         <NavItem
-          icon={<Bot size={24} />}
+          icon={<Bot size={22} strokeWidth={1.75} />}
           label="PandaIA"
           isActive={activeTab === "pandaia"}
           onClick={() => setActiveTab("pandaia")}
@@ -2493,19 +2484,25 @@ export default function PandaJRApp() {
 }
 
 function NavItem({ icon, label, isActive, onClick }: { icon: React.ReactNode, label: string, isActive: boolean, onClick: () => void }) {
+  // Activa: tinta terracota + pastilla de lavado tras el icono + negrita (el estado no depende solo del color).
   return (
     <button
       type="button"
       onClick={onClick}
       aria-current={isActive ? "page" : undefined}
-      className={`flex flex-col items-center justify-center gap-1 w-full min-w-0 min-h-[48px] p-2 rounded-xl transition-colors duration-200 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-terracotta-ink ${
-        isActive ? "text-terracotta-ink dark:text-sage-ink font-semibold" : "text-stone-600 hover:text-stone-800 dark:text-[#a6a1b2] dark:hover:text-[#eae6e1]"
+      className={`group flex w-full min-w-0 min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl py-1.5 transition-colors duration-200 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-terracotta-ink lg:py-2 ${
+        isActive ? "text-terracotta-ink font-bold" : "text-ink-muted font-medium hover:text-ink"
       }`}
     >
-      {icon}
+      <span
+        aria-hidden="true"
+        className={`grid h-8 w-14 place-items-center rounded-full transition-colors ${isActive ? "bg-terracotta-wash" : "group-hover:bg-surface-hover"}`}
+      >
+        {icon}
+      </span>
       {/* Por debajo de 300px (zoom del 200% en un teléfono) no caben cuatro etiquetas: el icono queda
           visible y la etiqueta sigue siendo el nombre accesible del botón. */}
-      <span className="text-xs font-medium max-[300px]:sr-only">{label}</span>
+      <span className="text-micro max-[300px]:sr-only">{label}</span>
     </button>
   );
 }
@@ -2636,32 +2633,38 @@ function MomStatusCard({
         ? `Cuéntale a ${partnerLabel} cómo te sientes hoy.`
         : "Aún no ha compartido cómo se siente.";
 
-  const momInitial = isMama
-    ? (profile.name ? profile.name.charAt(0).toUpperCase() : "M")
-    : (partner.partnerName ? partner.partnerName.charAt(0).toUpperCase() : "M");
+  // El emoji es el dato que se guarda y comparte; en pantalla se muestra su nombre (sin emoji como icono).
+  const mood = status?.emoji ? (moodLabel(status.emoji) ?? status.emoji) : null;
 
+  // Fase 6: una sección de la Guía (h2 en Alegreya), sin tarjeta ni degradado. La frase de mamá se lee
+  // en Alegreya itálica: es su voz.
   if (isEditing) {
     return (
-      <div className="bg-gradient-to-br from-terracotta/10 to-white dark:from-[#2a222f] dark:to-[#1a1724] rounded-3xl shadow-sm border border-terracotta/20 dark:border-terracotta/10 p-6 animate-in fade-in transition-colors">
-        <h3 className="text-base font-black text-stone-800 dark:text-[#eae6e1]">¿Cómo te sientes hoy?</h3>
-        <p className="text-xs text-stone-600 dark:text-[#a6a1b2] mt-1 mb-3">
+      <section aria-labelledby="guia-mom-title">
+        <h2 id="guia-mom-title" className="font-display text-subtitle text-ink">¿Cómo te sientes hoy?</h2>
+        <p className="mt-0.5 text-meta text-ink-muted">
           {linked ? `Lo verá ${partnerLabel}.` : "Se guarda solo en este teléfono."}
         </p>
 
-        <div className="flex flex-wrap gap-2 mb-4" role="group" aria-label="Elige cómo te sientes">
-          {MOOD_OPTIONS.map(m => (
-            <button
-              key={m.emoji}
-              type="button"
-              aria-pressed={emoji === m.emoji}
-              aria-label={m.label}
-              title={m.label}
-              onClick={() => setEmoji(m.emoji)}
-              className={`text-2xl min-w-[44px] min-h-[44px] p-2 rounded-xl transition-all motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink ${emoji === m.emoji ? 'bg-terracotta/20 ring-2 ring-inset ring-terracotta-ink scale-110 motion-reduce:scale-100' : 'hover:bg-stone-100 dark:hover:bg-white/5 opacity-60 hover:opacity-100'}`}
-            >
-              <span aria-hidden="true">{m.emoji}</span>
-            </button>
-          ))}
+        <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Elige cómo te sientes">
+          {MOOD_OPTIONS.map(m => {
+            const on = emoji === m.emoji;
+            return (
+              <button
+                key={m.emoji}
+                type="button"
+                aria-pressed={on}
+                aria-label={m.label}
+                onClick={() => setEmoji(m.emoji)}
+                className={`inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3.5 text-meta font-bold transition-colors ${FOCUS_RING} ${
+                  on ? "border-sage-ink bg-sage-wash text-sage-ink" : "border-line-control text-ink hover:bg-surface-hover"
+                }`}
+              >
+                {on && <Check size={16} strokeWidth={2} aria-hidden="true" />}
+                {m.label}
+              </button>
+            );
+          })}
         </div>
 
         <textarea
@@ -2669,80 +2672,67 @@ function MomStatusCard({
           onChange={(e) => setText(e.target.value)}
           aria-label="Mensaje sobre cómo te sientes"
           placeholder={linked ? `Escribe un mensaje breve para ${partnerLabel}…` : "Escribe cómo te sientes…"}
-          className="w-full bg-stone-50 dark:bg-[#1a1724] rounded-xl p-3 text-base sm:text-sm border border-stone-500 dark:border-white/40 text-stone-900 dark:text-white mb-4 resize-none h-24 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-terracotta-ink"
+          className={`${FIELD} mt-4 h-24 resize-none`}
         />
 
-        <div className="flex gap-2">
-          <button type="button" onClick={() => setIsEditing(false)} className="flex-1 min-h-[44px] bg-stone-100 dark:bg-white/5 hover:bg-stone-200 dark:hover:bg-white/10 text-stone-700 dark:text-stone-300 font-bold py-2.5 rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink">Cancelar</button>
-          <button type="button" onClick={handleSave} className="flex-1 min-h-[44px] bg-terracotta-ink hover:bg-terracotta-ink-hover text-white font-bold py-2.5 rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink">{linked ? "Compartir estado" : "Guardar estado"}</button>
+        <div className="mt-3 flex gap-2">
+          <button type="button" onClick={() => setIsEditing(false)} className={`flex-1 min-h-11 rounded-full ${OUTLINE_FILL} text-meta font-bold transition-colors ${FOCUS_RING}`}>
+            Cancelar
+          </button>
+          <button type="button" onClick={handleSave} className={`flex-1 min-h-11 rounded-full ${TERRA_FILL} text-meta font-bold transition-colors ${FOCUS_RING}`}>
+            {linked ? "Compartir estado" : "Guardar estado"}
+          </button>
         </div>
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="bg-gradient-to-br from-terracotta/10 to-white dark:from-[#2a222f] dark:to-[#1a1724] rounded-3xl shadow-sm border border-terracotta/20 dark:border-terracotta/10 p-6 animate-in fade-in transition-colors">
-      <div className="flex items-center justify-between gap-3 mb-4">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-full overflow-hidden bg-stone-100 dark:bg-[#2d273a] border border-stone-200 dark:border-white/[0.06] shrink-0">
-            <div className="w-full h-full bg-terracotta/20 flex items-center justify-center text-terracotta-ink-hover dark:text-terracotta-ink font-bold text-lg" aria-hidden="true">
-              {momInitial}
-            </div>
-          </div>
-          <div className="min-w-0">
-            <h3 className="text-base font-black text-stone-800 dark:text-[#eae6e1] tracking-tight leading-tight">
-              {isMama ? "¿Cómo te sientes hoy?" : `Estado de ${partner.partnerName || "mamá"}`}
-            </h3>
-            <p className="text-xs text-stone-600 dark:text-[#a6a1b2] mt-0.5">{subtitle}</p>
-          </div>
-        </div>
-        <div className="flex items-center justify-center min-w-[44px] h-11 bg-terracotta/10 dark:bg-[#2d273a] px-3 rounded-full border border-terracotta/20 dark:border-white/[0.06] shrink-0">
-          {status?.emoji
-            ? <span className="text-xl" role="img" aria-label={`Estado de ánimo: ${moodLabel(status.emoji) ?? status.emoji}`}>{status.emoji}</span>
-            : <MessageCircle size={18} className="text-stone-500 dark:text-[#a6a1b2]" aria-hidden="true" />}
-        </div>
+    <section aria-labelledby="guia-mom-title">
+      {/* Sin avatar ni píldora de ánimo (no se tocan): título, línea de datos y el ánimo como texto. */}
+      <div className="min-w-0">
+        <h2 id="guia-mom-title" className="font-display text-subtitle text-ink">
+          {isMama ? "¿Cómo te sientes hoy?" : `Estado de ${partner.partnerName || "mamá"}`}
+        </h2>
+        <p className="text-meta text-ink-subtle">{subtitle}</p>
       </div>
 
-      <div className="bg-stone-50 dark:bg-[#1a1724] rounded-2xl p-4 mb-4 border border-stone-100 dark:border-white/[0.04] relative">
-        <p className={`text-sm text-stone-700 dark:text-[#eae6e1]/90 ${status ? "italic" : ""}`}>
-          {body}
+      {mood && (
+        <p className="mt-3 text-meta font-bold text-ink">
+          <span className="sr-only">Estado de ánimo: </span>
+          {mood}
         </p>
-      </div>
+      )}
+      <p className={status ? "mt-2 font-display text-subtitle font-normal italic text-ink" : "mt-3 text-body text-ink-muted"}>
+        {body}
+      </p>
 
       {isMama ? (
-        <button
-          type="button"
+        <RowButton
           onClick={() => {
             setText(status?.text || "");
             setEmoji(status?.emoji || "😊");
             setIsEditing(true);
           }}
-          className="w-full min-h-[44px] bg-terracotta/10 hover:bg-terracotta/20 dark:bg-terracotta/20 dark:hover:bg-terracotta/30 text-terracotta-ink border border-terracotta/20 rounded-xl py-2.5 text-sm font-bold transition-colors flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+          className="mt-4"
         >
-          <Edit3 size={16} aria-hidden="true" />
+          <Edit3 size={16} strokeWidth={1.75} aria-hidden="true" />
           Actualizar mi estado
-        </button>
+        </RowButton>
       ) : linked ? (
-        <button
-          type="button"
-          onClick={sendHug}
-          disabled={hugSent}
-          className="w-full min-h-[44px] bg-sage/10 hover:bg-sage/20 dark:bg-sage/20 dark:hover:bg-sage/30 text-sage-ink border border-sage/25 rounded-xl py-2.5 text-sm font-bold transition-colors flex items-center justify-center gap-2 disabled:cursor-default disabled:hover:bg-sage/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
-        >
-          {hugSent ? <Check size={16} aria-hidden="true" /> : <Heart size={16} aria-hidden="true" />}
+        <RowButton onClick={sendHug} disabled={hugSent} className="mt-4 disabled:cursor-default disabled:opacity-100!">
+          {hugSent
+            ? <Check size={16} strokeWidth={2} className="text-sage-ink" aria-hidden="true" />
+            : <Heart size={16} strokeWidth={1.75} className="text-terracotta-ink" aria-hidden="true" />}
           {hugSent ? `Abrazo enviado a ${partner.partnerName || "tu pareja"}` : "Mandar un abrazo"}
-        </button>
+        </RowButton>
       ) : (
-        <button
-          type="button"
-          onClick={onRequestLink}
-          className="w-full min-h-[44px] bg-sage/10 hover:bg-sage/20 dark:bg-sage/20 dark:hover:bg-sage/30 text-sage-ink border border-sage/25 rounded-xl py-2.5 text-sm font-bold transition-colors flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
-        >
-          <Users size={16} aria-hidden="true" />
+        <RowButton onClick={onRequestLink} className="mt-4">
+          <Users size={16} strokeWidth={1.75} className="text-sage-ink" aria-hidden="true" />
           Vincular con mi pareja
-        </button>
+        </RowButton>
       )}
-    </div>
+    </section>
   );
 }
 
@@ -3050,81 +3040,104 @@ function GuiaPapaView({
   const loadingText = isOffline() ? "Sin conexión: no podemos mostrar el progreso compartido ahora." : "Cargando el progreso compartido…";
   const laborReady = ga.source !== "unknown" && typeof ga.weeks === "number" && ga.weeks >= 36;
 
+  // Composición (fase 6). Móvil: una columna, 40px entre secciones y más aire sobre cada título que
+  // debajo. ≥1280px: dos columnas en rejilla (semana + ficha + checklists a la izquierda, «Hoy» y el
+  // estado de mamá a la derecha) SIN cambiar el orden del DOM: labor → semana → hoy → ficha, igual
+  // que en el teléfono. La fila flexible (1fr) absorbe la altura de la columna derecha, así que la
+  // ficha arranca justo bajo la semana. «¿Es la hora?» ocupa las dos columnas arriba.
+  // 36+ en el teléfono: el ritmo se aprieta (32px entre secciones, 16px bajo la cabecera) para que la primera
+  // pantalla (390×844, sobre la barra de 82px) muestre «¿Es la hora?», las llamadas, la planta, la semana y
+  // el título «Hoy».
+  const rhythm = laborReady ? { stack: "gap-8 pt-4", rule: "mt-5" } : { stack: "gap-10 pt-6", rule: "mt-8" };
+  const rows = laborReady
+    ? { grid: "xl:grid-rows-[auto_auto_1fr]", week: "xl:row-start-2", today: "xl:row-start-2 xl:row-span-2", ficha: "xl:row-start-3" }
+    : { grid: "xl:grid-rows-[auto_1fr]", week: "xl:row-start-1", today: "xl:row-start-1 xl:row-span-2", ficha: "xl:row-start-2" };
+
   return (
-    <div className="p-5 space-y-9 animate-in fade-in slide-in-from-bottom-4 duration-300">
+    <div className={`flex flex-col ${rhythm.stack} px-[var(--gutter)] pb-10 lg:px-8 lg:pt-10 xl:grid xl:grid-cols-2 xl:items-start xl:gap-x-16 xl:gap-y-12 ${rows.grid}`}>
       {laborReady && (
-        <LaborReadyBlock
-          weeks={ga.weeks!}
-          totalDays={ga.totalDays}
-          reader={reader}
-          partnerName={partnerName}
-          onOpenTool={onOpenTool}
-          onReviewDate={onConfirmDate}
-        />
+        <div className="xl:col-span-2 xl:row-start-1">
+          <LaborReadyBlock
+            weeks={ga.weeks!}
+            totalDays={ga.totalDays}
+            reader={reader}
+            partnerName={partnerName}
+            onReviewDate={onConfirmDate}
+          />
+        </div>
       )}
 
-      <WeekHeader ga={ga} reader={reader} onConfirmDate={onConfirmDate} needsReview={dueDateNeedsReview} />
+      {/* Bloque de semana: la planta y la semana en Alegreya; el ramito cierra el bloque. */}
+      <div className={`xl:col-start-1 ${rows.week}`}>
+        <WeekHeader ga={ga} reader={reader} onConfirmDate={onConfirmDate} needsReview={dueDateNeedsReview} />
+        <BotanicalRule className={rhythm.rule} />
+      </div>
 
-      <TodayBlock
-        weekKnown={realWeek !== undefined}
-        reader={reader}
-        groups={todayGroups}
-        ownerLabels={ownerLabels}
-        loading={!checklistLoaded}
-        loadingText={loadingText}
-        disabled={!checklistLoaded}
-        onToggleDone={toggleTask}
-        onAssign={(row, o) => assignTask(row, o)}
-        nextEvent={nextEventInfo}
-        eventsLoading={eventsLoading}
-        onOpenPrep={() => { if (nextEvent) onOpenPrep(nextEvent.ev); }}
-        onGoToAgenda={onGoToAgenda}
-        sinceLastVisit={sinceLastVisit}
-      />
-
-      <MomStatusCard
-        profile={profile}
-        remoteMomStatus={remoteMomStatus}
-        remoteLoaded={momStatusLoaded}
-        partner={partner}
-        showToast={showToast}
-        onRequestLink={onRequestLink}
-      />
-
-      <FetalCard
-        realWeek={realWeek}
-        fallbackWeek={12}
-        theme={profile.comparisonTheme || "frutas"}
-        reader={reader}
-        partnerName={partnerName}
-      />
-
-      <section aria-labelledby="guia-check-title">
-        <div className="flex items-baseline justify-between gap-3">
-          <h2 id="guia-check-title" className="text-2xl font-black tracking-tight text-stone-900 dark:text-[#eae6e1]">
-            Tareas por trimestre
-          </h2>
-          <span className="shrink-0 text-sm font-bold text-stone-600 dark:text-[#a6a1b2] tabular-nums">
-            {checklistLoaded ? `${doneCount} de ${allRows.length}` : "—"}
-          </span>
-        </div>
-        {/* Dónde vive este progreso: solo aquí o compartido con la pareja. */}
-        <SyncBadge partnerName={partner.partnerName} lastSyncedAt={lastChecklistChange} waiting={!checklistLoaded} className="mt-1" />
-        {!checklistLoaded && (
-          <p className="mt-1 text-xs text-stone-600 dark:text-[#a6a1b2]" aria-live="polite">{loadingText}</p>
-        )}
-        <p className="mt-2 mb-3 text-sm leading-snug text-stone-600 dark:text-[#a6a1b2]">
-          Toca una tarea para ver por qué importa y a quién le toca.
-        </p>
-        <TrimesterChecklists
-          trimesters={trimesters}
-          currentTrimester={realWeek !== undefined ? ga.trimester : undefined}
+      <div className={`flex flex-col gap-10 xl:col-start-2 ${rows.today}`}>
+        <TodayBlock
+          weekKnown={realWeek !== undefined}
+          reader={reader}
+          groups={todayGroups}
           ownerLabels={ownerLabels}
+          loading={!checklistLoaded}
+          loadingText={loadingText}
           disabled={!checklistLoaded}
           onToggleDone={toggleTask}
           onAssign={(row, o) => assignTask(row, o)}
+          nextEvent={nextEventInfo}
+          eventsLoading={eventsLoading}
+          onOpenPrep={() => { if (nextEvent) onOpenPrep(nextEvent.ev); }}
+          onGoToAgenda={onGoToAgenda}
+          sinceLastVisit={sinceLastVisit}
+          onOpenTool={laborReady ? onOpenTool : undefined}
         />
-      </section>
+
+        <MomStatusCard
+          profile={profile}
+          remoteMomStatus={remoteMomStatus}
+          remoteLoaded={momStatusLoaded}
+          partner={partner}
+          showToast={showToast}
+          onRequestLink={onRequestLink}
+        />
+      </div>
+
+      <div className={`flex flex-col gap-10 xl:col-start-1 ${rows.ficha}`}>
+        <FetalCard
+          realWeek={realWeek}
+          fallbackWeek={12}
+          theme={profile.comparisonTheme || "frutas"}
+          reader={reader}
+          partnerName={partnerName}
+        />
+
+        <section aria-labelledby="guia-check-title">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 id="guia-check-title" className="font-display text-subtitle text-ink">
+              Tareas por trimestre
+            </h2>
+            <span className="shrink-0 text-meta font-bold text-ink-muted tabular-nums">
+              {checklistLoaded ? `${doneCount} de ${allRows.length}` : "—"}
+            </span>
+          </div>
+          {/* Dónde vive este progreso: solo aquí o compartido con la pareja. */}
+          <SyncBadge partnerName={partner.partnerName} lastSyncedAt={lastChecklistChange} waiting={!checklistLoaded} className="mt-1" />
+          {!checklistLoaded && (
+            <p className="mt-1 text-meta text-ink-muted" aria-live="polite">{loadingText}</p>
+          )}
+          <p className="mt-2 mb-3 text-meta text-ink-muted">
+            Toca una tarea para ver por qué importa y a quién le toca.
+          </p>
+          <TrimesterChecklists
+            trimesters={trimesters}
+            currentTrimester={realWeek !== undefined ? ga.trimester : undefined}
+            ownerLabels={ownerLabels}
+            disabled={!checklistLoaded}
+            onToggleDone={toggleTask}
+            onAssign={(row, o) => assignTask(row, o)}
+          />
+        </section>
+      </div>
     </div>
   );
 }
@@ -3206,17 +3219,18 @@ function ChatUrgencyBubble({ id, matches, reason, live = true, role = "mama" }: 
     <section
       id={id}
       aria-labelledby={titleId}
-      className="w-full shrink-0 scroll-mt-2 overflow-hidden rounded-3xl rounded-bl-none border border-terracotta-ink/40 shadow-[0_4px_16px_-6px_rgba(165,72,51,0.45)] animate-in fade-in slide-in-from-bottom-2 duration-200 motion-reduce:animate-none"
+      className="w-full shrink-0 scroll-mt-2 overflow-hidden rounded-3xl rounded-bl-md border border-terracotta-ink shadow-[0_4px_16px_-6px_color-mix(in_srgb,var(--terracotta-ink-fill)_45%,transparent)]"
     >
-      <div role={live ? "alert" : undefined} className="bg-terracotta-ink text-white px-4 py-3.5">
-        <p id={titleId} className="flex items-start gap-2 text-base font-black leading-snug text-balance">
-          <AlertTriangle size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
+      {/* La burbuja más fuerte del chat: relleno terracota (ninguna otra burbuja lo usa). */}
+      <div role={live ? "alert" : undefined} className="bg-terracotta-ink px-4 py-3.5 text-on-accent">
+        <p id={titleId} className="flex items-start gap-2 font-display text-subtitle">
+          <AlertTriangle size={20} strokeWidth={2} className="mt-1 shrink-0" aria-hidden="true" />
           <span>Si esto está pasando ahora, no esperes</span>
         </p>
-        <p className="mt-1.5 text-sm font-semibold leading-snug">{signLine}</p>
-        <p className="mt-0.5 text-sm leading-snug">{actionLine}</p>
+        <p className="mt-1.5 text-body font-bold">{signLine}</p>
+        <p className="mt-0.5 text-body">{actionLine}</p>
       </div>
-      <div className="bg-[#fdfbf7] dark:bg-[#221d2d] p-3">
+      <div className="bg-surface p-3">
         <CallActions context="chat" />
       </div>
     </section>
@@ -3234,10 +3248,10 @@ function ChatSafetyNote({ id, role }: { id: string; role: "papa" | "mama" }) {
   return (
     <div
       id={id}
-      className="w-full shrink-0 rounded-2xl border border-stone-200 dark:border-white/10 bg-[#fdfbf7] dark:bg-[#221d2d] px-4 py-3 animate-in fade-in duration-200 motion-reduce:animate-none"
+      className="w-full shrink-0 rounded-2xl border border-line bg-surface px-4 py-3"
     >
-      <p className="flex items-start gap-2 text-sm leading-snug text-stone-800 dark:text-[#eae6e1]">
-        <Info size={16} className="mt-0.5 shrink-0 text-terracotta-ink" aria-hidden="true" />
+      <p className="flex items-start gap-2 text-body text-ink">
+        <Info size={18} strokeWidth={1.75} className="mt-0.5 shrink-0 text-terracotta-ink" aria-hidden="true" />
         <span>
           <strong className="font-bold">{role === "papa" ? "Si le está pasando ahora," : "Si te está pasando ahora,"}</strong>{" "}
           no esperes: llama a emergencias o {role === "papa" ? "vayan" : "ve"} a urgencias.
@@ -3248,11 +3262,11 @@ function ChatSafetyNote({ id, role }: { id: string; role: "papa" | "mama" }) {
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen(v => !v)}
-        className="mt-1 -ml-1 inline-flex min-h-[44px] items-center gap-1.5 rounded-lg px-1 text-sm font-bold text-terracotta-ink underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+        className={`mt-1 ${TEXT_ACTION}`}
       >
-        <PhoneCall size={16} aria-hidden="true" />
+        <PhoneCall size={16} strokeWidth={1.75} aria-hidden="true" />
         {open ? "Ocultar a quién llamar" : "Ver a quién llamar"}
-        {open ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
+        {open ? <ChevronUp size={16} strokeWidth={1.75} aria-hidden="true" /> : <ChevronDown size={16} strokeWidth={1.75} aria-hidden="true" />}
       </button>
       <div id={panelId} hidden={!open}>
         {open && <CallActions context="chat" className="mt-2" />}
@@ -3771,29 +3785,28 @@ function PandaIAView({
     return lines.map((line, idx) => {
       const trimmed = line.trim();
 
-      // Encabezados Markdown: ### o ##
+      // Encabezados Markdown: ### o ## (en Alegreya, como el resto de títulos de la app)
       const isHeader = trimmed.startsWith("### ") || trimmed.startsWith("## ");
       if (isHeader) {
         const headerText = trimmed.replace(/^#{2,3}\s+/, "");
         return (
-          <h3 key={idx} className="font-bold text-stone-900 dark:text-[#eae6e1] text-sm mt-3 mb-1.5 first:mt-0 flex items-center gap-1.5">
-            <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-terracotta-ink inline-block shrink-0"></span>
-            <span>{headerText}</span>
+          <h3 key={idx} className="mt-3 mb-1 font-display text-body font-bold text-ink first:mt-0">
+            {headerText}
           </h3>
         );
       }
 
-      // Listas numeradas: 1. , 2. 
+      // Listas numeradas: 1. , 2.
       const numberedMatch = trimmed.match(/^(\d+)\.\s+(.*)$/);
       if (numberedMatch) {
         const num = numberedMatch[1];
         const itemContent = numberedMatch[2];
         const parts = itemContent.split(/(\*\*.*?\*\*)/g);
         return (
-          <div key={idx} className="flex items-start gap-2 my-1 pl-1">
-            <span className="text-xs font-bold text-sage-ink bg-sage/20 dark:bg-[#1a1724] px-1.5 py-0.5 rounded-md shrink-0 mt-0.5 tabular-nums">{num}</span>
-            <span className="flex-1 leading-relaxed text-stone-700 dark:text-[#eae6e1]/90">
-              {parts.map((p, pIdx) => p.startsWith("**") && p.endsWith("**") ? <strong key={pIdx} className="font-bold text-stone-900 dark:text-[#eae6e1]">{p.slice(2, -2)}</strong> : p)}
+          <div key={idx} className="my-1 flex items-start gap-2.5">
+            <span className="mt-0.5 min-w-6 shrink-0 rounded-md bg-sage-wash px-1.5 text-center text-micro font-bold leading-5 text-sage-ink tabular-nums">{num}</span>
+            <span className="flex-1 text-ink">
+              {parts.map((p, pIdx) => p.startsWith("**") && p.endsWith("**") ? <strong key={pIdx} className="font-bold text-ink">{p.slice(2, -2)}</strong> : p)}
             </span>
           </div>
         );
@@ -3805,16 +3818,17 @@ function PandaIAView({
       const parts = cleanLine.split(/(\*\*.*?\*\*)/g);
       const content = parts.map((part, pIdx) => {
         if (part.startsWith("**") && part.endsWith("**")) {
-          return <strong key={pIdx} className="font-bold text-stone-900 dark:text-[#eae6e1]">{part.slice(2, -2)}</strong>;
+          return <strong key={pIdx} className="font-bold text-ink">{part.slice(2, -2)}</strong>;
         }
         return part;
       });
 
       if (isBullet) {
+        // Viñeta dibujada (un punto sage), no un glifo.
         return (
-          <div key={idx} className="flex items-start gap-2 my-1 pl-1">
-            <span aria-hidden="true" className="text-terracotta-ink dark:text-sage-ink font-bold shrink-0 mt-0.5">•</span>
-            <span className="flex-1 leading-relaxed text-stone-700 dark:text-[#eae6e1]/90">{content}</span>
+          <div key={idx} className="my-1 flex items-start gap-2.5">
+            <span aria-hidden="true" className="mt-[0.6rem] size-1.5 shrink-0 rounded-full bg-ink-subtle" />
+            <span className="flex-1 text-ink">{content}</span>
           </div>
         );
       }
@@ -3824,46 +3838,41 @@ function PandaIAView({
       }
 
       return (
-        <p key={idx} className="leading-relaxed mb-1 last:mb-0">
+        <p key={idx} className="mb-1 last:mb-0">
           {content}
         </p>
       );
     });
   };
 
+  // Fase 6: el chat en la paleta. Burbuja de PandaIA en superficie con filete; la tuya en lavado sage
+  // (el relleno terracota queda solo para la burbuja de urgencia, la más fuerte). Sin desenfoques ni
+  // avatares: el lado de la burbuja ya dice quién habla (radios suaves solo en lo que se toca).
+
   return (
-    <div className="flex flex-col flex-1 h-full w-full animate-in fade-in duration-300 bg-[#faf9f5] dark:bg-[#181520] relative overflow-hidden">
-      
-      {/* HEADER CON ESTADO Y ACCIONES */}
-      <div className="px-4 py-2.5 border-b border-stone-200/80 dark:border-white/[0.08] bg-white/95 dark:bg-[#181520]/95 backdrop-blur-sm shadow-xs flex items-center justify-between z-10 shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className="bg-sage/20 dark:bg-[#1a1724] text-sage-ink p-2 rounded-2xl shadow-xs">
-            <Bot size={20} aria-hidden="true" />
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <h2 className="font-bold text-stone-900 dark:text-[#eae6e1] leading-tight text-sm">PandaIA</h2>
-              <span className="text-xs font-bold text-sage-ink bg-sage/10 dark:bg-[#1a1724] border border-sage-ink/25 px-2 py-0.5 rounded-full tracking-tight">
-                Asistente
-              </span>
-            </div>
-            <p className="text-xs font-semibold text-sage-ink">
-              {profile.weekUnknown ? "Semana sin confirmar" : `Semana ${profile.week}`}
-              {!online && <span className="text-amber-800 dark:text-amber-300"> · Sin conexión</span>}
-            </p>
-          </div>
+    <div className="relative flex h-full w-full flex-1 flex-col overflow-hidden bg-ground">
+
+      {/* Cabecera del chat: nombre en Alegreya, semana y estado de conexión */}
+      <div className="z-10 flex shrink-0 items-center justify-between border-b border-line bg-ground px-4 py-2 lg:px-8">
+        {/* Texto plano: sin avatar ni píldora (no se tocan). "Asistente" es la línea de datos. */}
+        <div className="min-w-0">
+          <h2 className="font-display text-subtitle text-ink">PandaIA</h2>
+          <p className="text-meta text-ink-muted">
+            Asistente · {profile.weekUnknown ? "Semana sin confirmar" : `Semana ${profile.week}`}
+            {!online && <span className="font-bold text-amber-ink"> · Sin conexión</span>}
+          </p>
         </div>
 
         <div className="flex items-center gap-1.5">
-          <button 
+          <button
             type="button"
             onClick={clearChat}
             disabled={messages.length <= 1}
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-stone-600 dark:text-[#a6a1b2] hover:text-stone-800 dark:hover:text-[#eae6e1] hover:bg-stone-100 dark:hover:bg-[#2d273a] rounded-xl transition-all active:scale-95 motion-reduce:active:scale-100 disabled:opacity-40 disabled:cursor-default focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+            className={`${ICON_BUTTON} disabled:cursor-default disabled:text-ink-disabled disabled:hover:bg-transparent`}
             title="Reiniciar conversación (el chat se guarda solo en este teléfono)"
             aria-label="Reiniciar conversación"
           >
-            <RotateCcw size={16} aria-hidden="true" />
+            <RotateCcw size={18} strokeWidth={1.75} aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -3873,7 +3882,7 @@ function PandaIAView({
       <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">{announcement}</div>
       <section
         aria-label="Conversación con PandaIA"
-        className="flex-1 p-4 overflow-y-auto space-y-4 flex flex-col no-scrollbar"
+        className="no-scrollbar flex flex-1 flex-col space-y-4 overflow-y-auto p-4 lg:px-8"
       >
         {messages.map((msg, index) => {
           if (msg.kind === "urgency") {
@@ -3899,50 +3908,43 @@ function PandaIAView({
               <div
                 key={msg.id}
                 id={`pandaia-msg-${msg.id}`}
-                className="flex items-end gap-2 max-w-[88%] animate-in fade-in slide-in-from-bottom-2 duration-200 motion-reduce:animate-none"
+                className="flex max-w-[88%] items-end gap-2"
               >
-                <div className="bg-sage/20 dark:bg-[#1a1724] text-sage-ink p-1.5 rounded-xl shrink-0 mb-1 shadow-xs" aria-hidden="true">
-                  <Bot size={16} aria-hidden="true" />
-                </div>
-                <div className="p-4 rounded-3xl rounded-bl-none bg-white dark:bg-[#221d2d] border border-stone-200 dark:border-white/[0.08] text-sm text-stone-800 dark:text-[#eae6e1] shadow-xs">
-                  <p className="flex items-start gap-2 font-semibold leading-snug">
-                    <AlertCircle size={16} className="mt-0.5 shrink-0 text-terracotta-ink" aria-hidden="true" />
+                <div className="rounded-3xl rounded-bl-md border border-line bg-surface p-4 text-body text-ink">
+                  <p className="flex items-start gap-2 font-bold">
+                    <AlertCircle size={18} strokeWidth={1.75} className="mt-0.5 shrink-0 text-terracotta-ink" aria-hidden="true" />
                     <span>{msg.text}</span>
                   </p>
                   {msg.offline && (
-                    <p className="mt-1 leading-snug text-stone-600 dark:text-[#a6a1b2]">Parece que no tienes conexión a internet.</p>
+                    <p className="mt-1 text-ink-muted">Parece que no tienes conexión a internet.</p>
                   )}
                   {msg.hadAlarm ? (
-                    <p className="mt-1 leading-snug font-semibold text-stone-900 dark:text-[#eae6e1]">Usa los botones de llamada de arriba si es urgente.</p>
+                    <p className="mt-1 font-bold text-ink">Usa los botones de llamada de arriba si es urgente.</p>
                   ) : index !== messages.length - 1 ? (
                     // Fallos anteriores: el botón se queda solo en el último, para no repetirlo.
-                    <p className="mt-1 leading-snug text-stone-600 dark:text-[#a6a1b2]">Si es urgente, llama a emergencias.</p>
+                    <p className="mt-1 text-ink-muted">Si es urgente, llama a emergencias.</p>
                   ) : (
                     <div className="mt-3">
-                      <p className="leading-snug font-semibold text-stone-900 dark:text-[#eae6e1]">Si es urgente, no esperes:</p>
+                      <p className="font-bold text-ink">Si es urgente, no esperes:</p>
                       <EmergencyCallLink className="mt-2" withNote compact />
                       {onOpenSymptoms && (
-                        <button
-                          type="button"
-                          onClick={onOpenSymptoms}
-                          className="mt-1 -ml-1 inline-flex min-h-[44px] items-center gap-1 rounded-lg px-1 text-sm font-bold text-terracotta-ink underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
-                        >
+                        <button type="button" onClick={onOpenSymptoms} className={`mt-1 ${TEXT_ACTION}`}>
                           Ver señales de alarma
-                          <ChevronRight size={16} aria-hidden="true" />
+                          <ChevronRight size={16} strokeWidth={1.75} aria-hidden="true" />
                         </button>
                       )}
                     </div>
                   )}
                   {canRetry && (
-                    <button
-                      type="button"
+                    <RowButton
+                      tone="danger"
                       onClick={() => handleSend(msg.retryText as string, { errorId: msg.id, sourceId: msg.sourceId as number }, msg.retrySuggestion ? "suggestion" : undefined)}
                       disabled={isTyping}
-                      className="mt-2 -ml-2 inline-flex items-center gap-1.5 min-h-[44px] px-3 rounded-xl text-sm font-bold text-terracotta-ink hover:bg-terracotta/10 disabled:opacity-60 disabled:cursor-not-allowed transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+                      className="mt-2"
                     >
-                      <RotateCw size={16} aria-hidden="true" />
+                      <RotateCw size={16} strokeWidth={1.75} aria-hidden="true" />
                       Reintentar
-                    </button>
+                    </RowButton>
                   )}
                 </div>
               </div>
@@ -3953,41 +3955,36 @@ function PandaIAView({
           <div
             key={msg.id}
             id={`pandaia-msg-${msg.id}`}
-            className={`flex items-end gap-2 max-w-[88%] animate-in fade-in slide-in-from-bottom-2 duration-200 ${
+            className={`flex max-w-[88%] items-end gap-2 ${
               msg.sender === 'user' ? 'self-end flex-row-reverse' : ''
             }`}
           >
-            {msg.sender === 'ai' && (
-              <div className="bg-sage/20 dark:bg-[#1a1724] text-sage-ink p-1.5 rounded-xl shrink-0 mb-1 shadow-xs" aria-hidden="true">
-                <Bot size={16} />
-              </div>
-            )}
-            
+
             <div className={`flex flex-col gap-2 ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
-              <div className={`p-4 rounded-3xl shadow-xs text-sm relative group ${
-                msg.sender === 'user' 
-                  ? 'bg-terracotta-ink text-white rounded-br-none' 
-                  : 'bg-white dark:bg-[#221d2d] border border-stone-100 dark:border-white/[0.08] text-stone-800 dark:text-[#eae6e1] rounded-bl-none shadow-xs'
+              <div className={`relative rounded-3xl px-4 py-3 text-body ${
+                msg.sender === 'user'
+                  ? 'rounded-br-md bg-sage-wash text-ink'
+                  : 'rounded-bl-md border border-line bg-surface text-ink'
               }`}>
-                {msg.sender === 'ai' ? renderFormattedMessage(msg.text) : <p className="leading-relaxed">{msg.text}</p>}
+                {msg.sender === 'ai' ? renderFormattedMessage(msg.text) : <p>{msg.text}</p>}
 
                 {/* Botón de Copiar para Mensajes del Asistente */}
                 {msg.sender === 'ai' && (
-                  <div className="pt-2 mt-2 border-t border-stone-100 dark:border-white/[0.06] flex justify-end">
+                  <div className="mt-2 flex justify-end border-t border-line pt-2">
                     <button
                       type="button"
                       onClick={() => copyMessage(msg.id, msg.text)}
-                      className="min-h-[44px] -my-2 px-2 text-xs font-bold text-stone-600 dark:text-[#a6a1b2] hover:text-stone-900 dark:hover:text-[#eae6e1] flex items-center gap-1 rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+                      className={`-my-2 flex min-h-11 items-center gap-1 rounded-full px-2 text-meta font-bold text-ink-muted transition-colors hover:text-ink ${FOCUS_RING}`}
                       title="Copiar respuesta"
                     >
                       {copiedId === msg.id ? (
                         <>
-                          <Check size={12} className="text-sage-ink" aria-hidden="true" />
+                          <Check size={14} strokeWidth={2} className="text-sage-ink" aria-hidden="true" />
                           <span className="text-sage-ink">Copiado</span>
                         </>
                       ) : (
                         <>
-                          <Copy size={12} />
+                          <Copy size={14} strokeWidth={1.75} aria-hidden="true" />
                           <span>Copiar</span>
                         </>
                       )}
@@ -3995,35 +3992,35 @@ function PandaIAView({
                   </div>
                 )}
               </div>
-              
+
               {/* Tarjeta bajo la respuesta: cita agregada, fecha pendiente o dato informativo */}
               {msg.card && (() => {
                 const card = msg.card;
                 if (card.kind === "appointment") {
                   const inAgenda = events.some(e => String(e.id) === String(card.eventId));
                   return (
-                    <div className="bg-sage/10 dark:bg-[#1f2622] border border-sage/30 dark:border-sage/25 shadow-xs rounded-2xl p-4 w-full max-w-sm animate-in zoom-in-95 duration-200 motion-reduce:animate-none">
-                      <h3 className="flex items-start gap-1.5 font-bold text-stone-900 dark:text-[#eae6e1] text-sm">
+                    <div className="w-full max-w-sm rounded-2xl bg-sage-wash p-4">
+                      <h3 className="flex items-start gap-2 text-body font-bold text-ink">
                         {inAgenda
-                          ? <CalendarCheck size={16} className="mt-0.5 shrink-0 text-sage-ink" aria-hidden="true" />
-                          : <CalendarX size={16} className="mt-0.5 shrink-0 text-stone-500 dark:text-[#a6a1b2]" aria-hidden="true" />}
+                          ? <CalendarCheck size={18} strokeWidth={1.75} className="mt-0.5 shrink-0 text-sage-ink" aria-hidden="true" />
+                          : <CalendarX size={18} strokeWidth={1.75} className="mt-0.5 shrink-0 text-ink-subtle" aria-hidden="true" />}
                         <span>{card.title}</span>
                       </h3>
-                      <p className="text-xs text-stone-700 dark:text-[#d9d4de] mt-1 leading-relaxed">
+                      <p className="mt-1 text-meta text-ink-muted">
                         {card.when}{card.doctor ? ` · ${card.doctor}` : ""}
                       </p>
-                      <p className={`text-xs font-semibold mt-1 ${inAgenda ? "text-sage-ink" : "text-stone-600 dark:text-[#a6a1b2]"}`}>
+                      <p className={`mt-1 text-meta font-bold ${inAgenda ? "text-sage-ink" : "text-ink-muted"}`}>
                         {inAgenda ? "Está en tu Agenda" : "Ya no está en tu Agenda"}
                       </p>
                       {inAgenda && setActiveTab && (
                         <button
                           type="button"
                           onClick={() => setActiveTab("agenda")}
-                          className="mt-3 w-full min-h-[44px] bg-sage-ink hover:bg-sage-ink-hover active:scale-95 motion-reduce:active:scale-100 text-white text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
+                          className={`mt-3 ${WIDE_BUTTON} min-h-11 text-meta ${SAGE_FILL}`}
                         >
-                          <Calendar size={14} aria-hidden="true" />
+                          <Calendar size={16} strokeWidth={1.75} aria-hidden="true" />
                           <span>Ver en la Agenda</span>
-                          <ChevronRight size={14} aria-hidden="true" />
+                          <ChevronRight size={16} strokeWidth={1.75} aria-hidden="true" />
                         </button>
                       )}
                     </div>
@@ -4031,18 +4028,18 @@ function PandaIAView({
                 }
                 if (card.kind === "pending") {
                   return (
-                    <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-300/70 dark:border-amber-400/25 shadow-xs rounded-2xl p-4 w-full max-w-sm animate-in zoom-in-95 duration-200 motion-reduce:animate-none">
-                      <h3 className="flex items-start gap-1.5 font-bold text-stone-900 dark:text-[#eae6e1] text-sm">
-                        <CalendarClock size={16} className="mt-0.5 shrink-0 text-amber-800 dark:text-amber-300" aria-hidden="true" />
+                    <div className="w-full max-w-sm rounded-2xl bg-amber-wash p-4">
+                      <h3 className="flex items-start gap-2 text-body font-bold text-ink">
+                        <CalendarClock size={18} strokeWidth={1.75} className="mt-0.5 shrink-0 text-amber-ink" aria-hidden="true" />
                         <span>¿Qué día es{card.title ? ` «${card.title}»` : " la cita"}?</span>
                       </h3>
-                      <p className="text-xs text-stone-700 dark:text-[#d9d4de] mt-1 leading-relaxed">
+                      <p className="mt-1 text-meta text-ink-muted">
                         Aún no está en tu Agenda. Dime la fecha (por ejemplo, «el 20 de octubre a las 10:00») y la agrego.
                       </p>
                       <button
                         type="button"
                         onClick={() => prefillInput(`Agenda ${card.title || "la cita"} el día `)}
-                        className="mt-3 w-full min-h-[44px] rounded-xl border border-amber-400/60 dark:border-amber-300/30 bg-white dark:bg-[#221d2d] text-sm font-bold text-stone-800 dark:text-[#eae6e1] hover:bg-amber-100/60 dark:hover:bg-amber-500/15 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700"
+                        className={`mt-3 ${WIDE_BUTTON} min-h-11 text-meta ${OUTLINE_FILL}`}
                       >
                         Escribir la fecha
                       </button>
@@ -4052,13 +4049,13 @@ function PandaIAView({
                 const info = card as { title?: string; desc?: string };
                 if (!info.title) return null;
                 return (
-                  <div className="bg-[#fdfbf7] dark:bg-[#221d2d] border border-stone-200 dark:border-white/[0.08] shadow-xs rounded-2xl p-4 w-full max-w-sm animate-in zoom-in-95 duration-200 motion-reduce:animate-none">
-                    <h3 className="flex items-start gap-1.5 font-bold text-stone-900 dark:text-[#eae6e1] text-sm">
-                      <Lightbulb size={16} className="mt-0.5 shrink-0 text-terracotta-ink" aria-hidden="true" />
+                  <div className="w-full max-w-sm rounded-2xl border border-line bg-surface p-4">
+                    <h3 className="flex items-start gap-2 text-body font-bold text-ink">
+                      <Lightbulb size={18} strokeWidth={1.75} className="mt-0.5 shrink-0 text-sage-ink" aria-hidden="true" />
                       <span>{info.title}</span>
                     </h3>
                     {info.desc && (
-                      <p className="text-xs text-stone-700 dark:text-[#d9d4de] mt-1 leading-relaxed">{info.desc}</p>
+                      <p className="mt-1 text-meta text-ink-muted">{info.desc}</p>
                     )}
                   </div>
                 );
@@ -4069,17 +4066,14 @@ function PandaIAView({
         })}
 
         {isTyping && (
-          <div className="flex items-end gap-2 max-w-[85%] animate-in fade-in duration-150">
-            <div className="bg-sage/20 dark:bg-[#1a1724] text-sage-ink p-1.5 rounded-xl shrink-0 mb-1 shadow-xs" aria-hidden="true">
-              <Bot size={16} />
-            </div>
-            <div className="bg-white dark:bg-[#221d2d] px-4 py-3 rounded-2xl rounded-bl-none shadow-xs border border-stone-100 dark:border-white/[0.08] flex gap-2 items-center">
-              <div className="flex gap-1 items-center">
-                <div className="w-2 h-2 bg-terracotta rounded-full animate-pulse"></div>
-                <div className="w-2 h-2 bg-terracotta rounded-full animate-pulse" style={{ animationDelay: "0.15s" }}></div>
-                <div className="w-2 h-2 bg-terracotta rounded-full animate-pulse" style={{ animationDelay: "0.3s" }}></div>
+          <div className="flex max-w-[85%] items-end gap-2">
+            <div className="flex items-center gap-2 rounded-3xl rounded-bl-md border border-line bg-surface px-4 py-3">
+              <div className="flex items-center gap-1" aria-hidden="true">
+                <div className="size-2 rounded-full bg-ink-subtle animate-pulse motion-reduce:animate-none"></div>
+                <div className="size-2 rounded-full bg-ink-subtle animate-pulse motion-reduce:animate-none" style={{ animationDelay: "0.15s" }}></div>
+                <div className="size-2 rounded-full bg-ink-subtle animate-pulse motion-reduce:animate-none" style={{ animationDelay: "0.3s" }}></div>
               </div>
-              <span className="text-xs text-stone-600 dark:text-[#a6a1b2] font-medium">PandaIA está respondiendo…</span>
+              <span className="text-meta font-medium text-ink-muted">PandaIA está respondiendo…</span>
             </div>
           </div>
         )}
@@ -4087,10 +4081,10 @@ function PandaIAView({
         <div ref={messagesEndRef} />
       </section>
 
-      {/* INPUT AREA CON SMART CHIPS CONTEXTUALES */}
-      <div className="bg-white dark:bg-[#221d2d] border-t border-stone-200 dark:border-white/[0.08] shrink-0">
+      {/* Entrada: sugerencias por trimestre y campo de pregunta */}
+      <div className="shrink-0 border-t border-line bg-ground">
         {/* Smart Chips Dinámicos por Trimestre */}
-        <div className="flex overflow-x-auto gap-2 p-2.5 no-scrollbar border-b border-stone-100 dark:border-white/[0.06]">
+        <div className="no-scrollbar flex gap-2 overflow-x-auto border-b border-line p-2.5 lg:px-8">
           {smartChips.map((chip, idx) => {
             const schedule = isScheduleChip(chip);
             return (
@@ -4106,9 +4100,9 @@ function PandaIAView({
                 }
               }}
               title={schedule ? "Escribe el día de la cita para agendarla" : undefined}
-              className="whitespace-nowrap inline-flex items-center gap-1.5 bg-sage/10 dark:bg-[#2d273a] border border-sage/30 dark:border-white/10 text-sage-ink text-xs font-semibold px-3.5 py-2 min-h-[44px] rounded-full hover:bg-sage/20 dark:hover:bg-[#383147] active:scale-95 motion-reduce:active:scale-100 transition-all shadow-2xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
+              className={`inline-flex min-h-11 items-center gap-1.5 whitespace-nowrap rounded-full border border-line-control px-3.5 text-meta font-bold text-ink transition-colors hover:bg-surface-hover ${FOCUS_RING}`}
             >
-              {schedule && <CalendarClock size={14} className="shrink-0" aria-hidden="true" />}
+              {schedule && <CalendarClock size={16} strokeWidth={1.75} className="shrink-0 text-ink-muted" aria-hidden="true" />}
               {chip}
             </button>
             );
@@ -4116,19 +4110,19 @@ function PandaIAView({
         </div>
 
         {/* Text Input Ergonómico */}
-        <div className="p-2.5">
+        <div className="p-2.5 lg:px-8">
           {/* El contenedor es el campo visible: borde ≥3:1 y anillo de tinta al escribir (el textarea no lleva el suyo). */}
-          <div className="flex items-end gap-2 bg-stone-50 dark:bg-[#2d273a] border border-stone-500 dark:border-white/40 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-sage-ink focus-within:border-transparent transition-all shadow-xs">
-            <button 
+          <div className="flex items-end gap-2 rounded-3xl border border-line-control bg-surface-raised p-1.5 focus-within:border-transparent focus-within:ring-2 focus-within:ring-sage-ink">
+            <button
               type="button"
               aria-label="Preguntas sobre términos de la ecografía"
               onClick={() => setIsUltrasoundModalOpen(true)}
-              className="min-w-[44px] min-h-[44px] flex items-center justify-center text-stone-600 dark:text-[#a6a1b2] hover:text-sage-ink transition-colors shrink-0 rounded-xl hover:bg-white dark:hover:bg-[#221d2d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
+              className={`${ICON_BUTTON} hover:text-sage-ink`}
               title="Preguntas sobre términos de la ecografía"
             >
-              <Paperclip size={18} aria-hidden="true" />
+              <Paperclip size={18} strokeWidth={1.75} aria-hidden="true" />
             </button>
-            <textarea 
+            <textarea
               ref={textareaRef}
               aria-label="Escribe tu pregunta para PandaIA"
               aria-describedby="pandaia-limits"
@@ -4142,23 +4136,23 @@ function PandaIAView({
                 }
               }}
               placeholder="Escribe tu pregunta…"
-              className="flex-1 bg-transparent border-none focus:outline-none text-base sm:text-sm py-2.5 resize-none max-h-32 min-h-[44px] text-stone-800 dark:text-[#eae6e1] placeholder:text-stone-500 dark:placeholder:text-[#948fa1] overflow-y-auto no-scrollbar"
+              className="no-scrollbar max-h-32 min-h-11 flex-1 resize-none overflow-y-auto border-none bg-transparent py-2.5 text-body text-ink focus:outline-none"
             />
-            <button 
+            <button
               type="button"
               aria-label="Enviar mensaje a PandaIA"
               onClick={() => handleSend(inputText)}
               disabled={!inputText.trim() || isTyping}
-              className={`min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl transition-all shrink-0 active:scale-90 motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink ${
-                inputText.trim() && !isTyping 
-                  ? "bg-terracotta-ink text-white hover:bg-terracotta-ink-hover shadow-xs" 
-                  : "bg-stone-200 dark:bg-[#2a2e37] text-stone-400 dark:text-[#a6a1b2]/60 cursor-not-allowed"
+              className={`grid size-11 shrink-0 place-items-center rounded-full transition-colors ${FOCUS_RING} ${
+                inputText.trim() && !isTyping
+                  ? TERRA_FILL
+                  : "cursor-not-allowed bg-surface-sunken text-ink-disabled"
               }`}
             >
-              <Send size={16} aria-hidden="true" />
+              <Send size={18} strokeWidth={1.75} aria-hidden="true" />
             </button>
           </div>
-          <p id="pandaia-limits" className="mt-1.5 px-1 text-xs leading-snug text-stone-600 dark:text-[#a6a1b2]">
+          <p id="pandaia-limits" className="mt-1.5 px-1 text-micro font-medium text-ink-subtle">
             {profile.role === "papa"
               ? "PandaIA orienta; no diagnostica ni reemplaza al obstetra."
               : "PandaIA orienta; no diagnostica ni reemplaza a tu obstetra."}
@@ -4166,74 +4160,62 @@ function PandaIAView({
         </div>
       </div>
 
-      {/* MODAL / SHEET DECODIFICADOR DE ECOGRAFíAS */}
+      {/* MODAL / SHEET DECODIFICADOR DE ECOGRAFíAS */}
       {isUltrasoundModalOpen && (
         <ModalPortal>
         <div
           onClick={(e) => { if (e.target === e.currentTarget) setIsUltrasoundModalOpen(false); }}
-          className={`fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-xs ${Z_CLASS.dialog} flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150`}
+          className={`fixed inset-0 ${SCRIM} ${Z_CLASS.dialog} flex items-end justify-center p-0 sm:items-center sm:p-4`}
         >
           <div
             {...ultrasoundDialogProps}
-            className="bg-white dark:bg-[#221d2d] rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in slide-in-from-bottom-4 duration-200 border border-stone-100 dark:border-white/[0.08] outline-none"
+            className="w-full max-w-md overflow-hidden rounded-t-3xl border border-line bg-surface-raised text-ink shadow-[0_-8px_32px_-8px_rgba(24,21,32,0.28)] outline-none sm:rounded-3xl"
           >
-            <div className="bg-sage-ink p-4 flex justify-between items-center text-white">
-              <div className="flex items-center gap-2">
-                <div className="bg-white/10 p-2 rounded-xl" aria-hidden="true">
-                  <FileText size={18} />
-                </div>
-                <div>
-                  <h2 id="ultrasound-modal-title" className="font-bold text-base leading-tight">
-                    Decodificador de ecografías
-                  </h2>
-                  <p className="text-xs text-white/90">
-                    Qué significa cada término del informe
-                  </p>
-                </div>
+            <div className="flex items-start justify-between gap-3 border-b border-line py-3 ps-5 pe-2">
+              <div className="min-w-0 pt-1">
+                <h2 id="ultrasound-modal-title" className="font-display text-title text-ink">
+                  Decodificador de ecografías
+                </h2>
+                <p className="mt-0.5 text-meta text-ink-muted">
+                  Qué significa cada término del informe
+                </p>
               </div>
-              <button 
+              <button
                 type="button"
                 onClick={() => setIsUltrasoundModalOpen(false)}
-                className="min-w-[44px] min-h-[44px] flex items-center justify-center text-white/90 hover:text-white hover:bg-white/10 rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                className={ICON_BUTTON}
                 aria-label="Cerrar ventana de ecografías"
               >
-                <X size={20} aria-hidden="true" />
+                <X size={22} strokeWidth={1.75} aria-hidden="true" />
               </button>
             </div>
 
-            <div className="p-4 space-y-2 max-h-[70dvh] overflow-y-auto">
-              <p id="ultrasound-modal-desc" className="text-xs text-stone-600 dark:text-[#a6a1b2] mb-3">
+            <div className="max-h-[70dvh] overflow-y-auto px-5 pt-3 pb-4 [--gutter:1.25rem]">
+              <p id="ultrasound-modal-desc" className="mb-2 text-meta text-ink-muted">
                 {profile.role === "papa"
                   ? "Elige una pregunta y PandaIA te explica el término. Lo que significan los resultados lo explica el obstetra de tu pareja."
                   : "Elige una pregunta y PandaIA te explica el término. Lo que significan tus resultados te lo explica tu obstetra."}
               </p>
 
-              {getUltrasoundItems(chatWeek).map((item, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => handleUltrasoundSelect(item.prompt)}
-                  className="w-full min-h-[44px] text-left p-3.5 rounded-2xl border border-stone-200 dark:border-white/[0.08] bg-stone-50/70 dark:bg-[#2d273a]/60 hover:bg-sage/10 dark:hover:bg-[#2d273a] hover:border-sage-ink/40 dark:hover:border-sage/30 transition-colors flex items-start justify-between gap-3 group active:scale-[0.99] motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
-                >
-                  <div className="flex-1">
-                    <p className="text-xs font-bold text-stone-900 dark:text-[#eae6e1] group-hover:text-sage-ink flex items-center gap-1.5">
-                      <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-terracotta shrink-0"></span>
-                      <span>{item.title}</span>
-                    </p>
-                    <p className="text-xs text-stone-600 dark:text-[#a6a1b2] mt-0.5 leading-snug">
-                      {item.desc}
-                    </p>
-                  </div>
-                  <ChevronRight size={16} className="text-stone-500 dark:text-[#a6a1b2] group-hover:text-terracotta-ink dark:group-hover:text-sage-ink shrink-0 mt-1" aria-hidden="true" />
-                </button>
-              ))}
+              <ListGroup>
+                {getUltrasoundItems(chatWeek).map((item, idx) => (
+                  <ListRow
+                    key={idx}
+                    leading={<FileText size={20} strokeWidth={1.75} />}
+                    title={item.title}
+                    meta={item.desc}
+                    onClick={() => handleUltrasoundSelect(item.prompt)}
+                    trailing="chevron"
+                  />
+                ))}
+              </ListGroup>
             </div>
 
-            <div className="p-3 bg-stone-50 dark:bg-[#221d2d] border-t border-stone-100 dark:border-white/[0.08] flex justify-end">
+            <div className="flex justify-end border-t border-line p-3">
               <button
                 type="button"
                 onClick={() => setIsUltrasoundModalOpen(false)}
-                className="min-h-[44px] px-4 rounded-xl text-sm font-semibold text-stone-600 dark:text-[#a6a1b2] hover:text-stone-900 dark:hover:text-[#eae6e1] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-ink"
+                className={`min-h-11 rounded-full px-4 text-meta font-bold text-ink-muted transition-colors hover:bg-surface-hover hover:text-ink ${FOCUS_RING}`}
               >
                 Cancelar
               </button>

@@ -92,7 +92,12 @@ Todo esto se apoya en contenido clínico alineado con guías públicas (ACOG, se
 
 ## Brand Commitments
 
-- Nombre **PandaJR**, con la mascota panda (mamá con su bebé). Assets: `public/logo.png`, `public/app-icon.jpg`, `public/panda-icon.jpg`.
+- Nombre **PandaJR**, con la mascota panda (mamá con su bebé). Desde la fase visual de 2026-09 la marca es vectorial y está dentro de la paleta:
+  - Mascota: `PandaMark` (`src/components/PandaMark.tsx`, trazos en `src/components/panda-paths.json`).
+  - Wordmark: `src/components/Wordmark.tsx`, «PandaJR» en Alegreya.
+  - Iconos: `src/app/icon.svg`, `src/app/apple-icon.png`, `public/icons/icon-{192,512}.png` e `icon-maskable-{192,512}.png`.
+  - Imágenes para compartir: `src/app/opengraph-image.png` y `twitter-image.png` (1200×630).
+  - Procedencia: todo se genera con `scripts/brand/render-brand.mjs` a partir de la mascota original, el JPEG en git `2bf0815:src/app/icon.jpg`. El detalle está en DESIGN.md.
 - Voz en español neutro latinoamericano, con tuteo. Serena y cercana en el día a día, tajante y directiva en una emergencia.
 - El foco explícito en el papá como copiloto forma parte de la marca.
 

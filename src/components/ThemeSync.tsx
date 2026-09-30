@@ -4,7 +4,7 @@ import { useLayoutEffect } from "react";
 import { resolveTheme, usePandaStore, type ResolvedTheme, type ThemePreference } from "@/store/usePandaStore";
 
 /** Mismos colores que `viewport.themeColor` en layout.tsx (fondo claro y oscuro). */
-export const THEME_COLOR: Record<ResolvedTheme, string> = { light: "#fdfbf7", dark: "#181520" };
+export const THEME_COLOR: Record<ResolvedTheme, string> = { light: "#faf9f5", dark: "#181520" };
 
 /**
  * Aplica el tema al documento: clase `.dark` en <html> (color-scheme lo pone globals.css) y

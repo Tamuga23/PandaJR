@@ -240,18 +240,22 @@ export function DatingPicker({
   const errorId = `${idPrefix}-error`;
   const resultId = `${idPrefix}-result`;
   const result = choice ? describeChoice(choice, today, reader) : null;
-  // Borde ≥3:1 (1.4.11), también sobre la opción elegida (tinte terracota): stone-500 4.52:1 · white/40 3.64:1.
+  // Opciones como lista con divisores que llega al borde de la columna (--gutter), sin caja: vale igual en
+  // la bienvenida (pantalla completa) y dentro del diálogo de Ajustes (sin tarjeta dentro de tarjeta).
+  // Borde ≥3:1 (1.4.11), también sobre la opción elegida (lavado terracota): line-control.
   // Campos de fecha: :focus (no :focus-visible), que Chrome no aplica con el foco en los segmentos internos.
   const inputClass =
-    "mt-1 w-full min-h-[48px] px-4 py-3 rounded-xl border border-stone-500 dark:border-white/40 bg-white dark:bg-[#1a1724] text-stone-900 dark:text-[#eae6e1] text-base focus:outline-2 focus:outline-offset-1 focus:outline-terracotta-ink";
+    "mt-1 w-full min-h-12 px-4 py-3 rounded-xl border border-line-control bg-surface-raised text-ink text-body focus:outline-2 focus:outline-offset-1 focus:outline-terracotta-ink";
+  const stepClass = `grid size-12 shrink-0 place-items-center rounded-xl border border-line-control bg-surface-raised text-ink transition-colors hover:bg-surface-hover disabled:border-line disabled:text-ink-disabled disabled:hover:bg-surface-raised ${PICKER_FOCUS}`;
+  const fieldLabel = "text-meta font-bold text-ink";
 
   return (
     <div className="text-left">
-      <div role="radiogroup" aria-label={isMama ? "¿Qué fecha conoces?" : "¿Qué fecha conocen?"} className="rounded-2xl border border-stone-200 dark:border-white/[0.08] divide-y divide-stone-200 dark:divide-white/[0.06] overflow-hidden">
+      <div role="radiogroup" aria-label={isMama ? "¿Qué fecha conoces?" : "¿Qué fecha conocen?"} className="-mx-[var(--gutter)] divide-y divide-line border-y border-line">
         {options.map((opt, i) => {
           const selected = draft.mode === opt.mode;
           return (
-            <div key={opt.mode} className={selected ? "bg-terracotta/[0.06] dark:bg-terracotta/[0.08]" : "bg-white dark:bg-[#221d2d]"}>
+            <div key={opt.mode} className={selected ? "bg-terracotta-wash" : undefined}>
               <button
                 type="button"
                 role="radio"
@@ -262,22 +266,22 @@ export function DatingPicker({
                 tabIndex={i === tabStop ? 0 : -1}
                 onKeyDown={(e) => onRadioKeyDown(e, i)}
                 onClick={() => set({ mode: opt.mode })}
-                className={`w-full min-h-[56px] flex items-center gap-3 px-4 py-3 text-left ${PICKER_FOCUS} focus-visible:-outline-offset-2`}
+                className={`flex min-h-14 w-full items-center gap-3 px-[var(--gutter)] py-3 text-left transition-colors ${selected ? "" : "hover:bg-surface-hover"} ${PICKER_FOCUS} focus-visible:-outline-offset-2`}
               >
                 {selected ? (
-                  <CheckCircle2 size={20} className="shrink-0 text-terracotta-ink" aria-hidden="true" />
+                  <CheckCircle2 size={22} strokeWidth={1.75} className="shrink-0 text-terracotta-ink" aria-hidden="true" />
                 ) : (
-                  <Circle size={20} className="shrink-0 text-stone-500 dark:text-[#a6a1b2]" aria-hidden="true" />
+                  <Circle size={22} strokeWidth={1.75} className="shrink-0 text-line-control" aria-hidden="true" />
                 )}
                 <span className="min-w-0">
-                  <span className="block text-sm font-bold text-stone-900 dark:text-[#eae6e1]">{opt.label}</span>
-                  <span className="block text-xs text-stone-600 dark:text-[#a6a1b2]">{opt.hint}</span>
+                  <span className="block text-body font-bold text-ink">{opt.label}</span>
+                  <span className="mt-0.5 block text-meta text-ink-muted">{opt.hint}</span>
                 </span>
               </button>
 
               {selected && opt.mode === "eco" && (
-                <div className="px-4 pb-4">
-                  <label htmlFor={`${idPrefix}-due`} className="text-xs font-bold text-stone-700 dark:text-[#d9d4de]">
+                <div className="ps-[calc(var(--gutter)+2.125rem)] pe-[var(--gutter)] pb-4">
+                  <label htmlFor={`${idPrefix}-due`} className={fieldLabel}>
                     Fecha probable de parto
                   </label>
                   <input
@@ -295,8 +299,8 @@ export function DatingPicker({
               )}
 
               {selected && opt.mode === "fum" && (
-                <div className="px-4 pb-4">
-                  <label htmlFor={`${idPrefix}-lmp`} className="text-xs font-bold text-stone-700 dark:text-[#d9d4de]">
+                <div className="ps-[calc(var(--gutter)+2.125rem)] pe-[var(--gutter)] pb-4">
+                  <label htmlFor={`${idPrefix}-lmp`} className={fieldLabel}>
                     {isMama ? "Primer día de tu última regla" : "Primer día de su última regla"}
                   </label>
                   <input
@@ -314,8 +318,8 @@ export function DatingPicker({
               )}
 
               {selected && opt.mode === "week" && (
-                <div className="px-4 pb-4">
-                  <p id={`${idPrefix}-week-label`} className="text-xs font-bold text-stone-700 dark:text-[#d9d4de]">
+                <div className="ps-[calc(var(--gutter)+2.125rem)] pe-[var(--gutter)] pb-4">
+                  <p id={`${idPrefix}-week-label`} className={fieldLabel}>
                     {isMama ? "¿En qué semana estás?" : `¿En qué semana está ${her}?`}
                   </p>
                   <div className={`mt-1 flex items-center gap-2 ${draft.unknown ? "opacity-50" : ""}`}>
@@ -324,9 +328,9 @@ export function DatingPicker({
                       onClick={() => set({ week: Math.max(WEEK_MIN, (Number.isInteger(draft.week) ? draft.week : 12) - 1), unknown: false })}
                       disabled={draft.unknown || draft.week <= WEEK_MIN}
                       aria-label="Una semana menos"
-                      className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-stone-300 dark:border-white/15 bg-white dark:bg-[#2d273a] text-stone-800 dark:text-[#eae6e1] disabled:text-stone-400 dark:disabled:text-[#6f6a7c] ${PICKER_FOCUS}`}
+                      className={stepClass}
                     >
-                      <Minus size={18} aria-hidden="true" />
+                      <Minus size={18} strokeWidth={1.75} aria-hidden="true" />
                     </button>
                     <input
                       type="number"
@@ -341,16 +345,16 @@ export function DatingPicker({
                       }}
                       aria-labelledby={`${idPrefix}-week-label`}
                       aria-invalid={!draft.unknown && !!error}
-                      className="h-12 min-w-0 flex-1 rounded-xl border border-stone-500 dark:border-white/40 bg-white dark:bg-[#1a1724] text-center text-lg font-black tabular-nums text-stone-900 dark:text-[#eae6e1] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-terracotta-ink"
+                      className="h-12 min-w-0 flex-1 rounded-xl border border-line-control bg-surface-raised text-center text-subtitle font-extrabold tabular-nums text-ink disabled:border-line disabled:text-ink-disabled focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-terracotta-ink"
                     />
                     <button
                       type="button"
                       onClick={() => set({ week: Math.min(WEEK_MAX, (Number.isInteger(draft.week) ? draft.week : 12) + 1), unknown: false })}
                       disabled={draft.unknown || draft.week >= WEEK_MAX}
                       aria-label="Una semana más"
-                      className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-stone-300 dark:border-white/15 bg-white dark:bg-[#2d273a] text-stone-800 dark:text-[#eae6e1] disabled:text-stone-400 dark:disabled:text-[#6f6a7c] ${PICKER_FOCUS}`}
+                      className={stepClass}
                     >
-                      <Plus size={18} aria-hidden="true" />
+                      <Plus size={18} strokeWidth={1.75} aria-hidden="true" />
                     </button>
                   </div>
                   {allowUnknown && (
@@ -359,12 +363,12 @@ export function DatingPicker({
                       role="checkbox"
                       aria-checked={draft.unknown}
                       onClick={() => set({ unknown: !draft.unknown })}
-                      className={`mt-2 -ml-1 inline-flex min-h-[44px] items-center gap-2 rounded-lg px-1 text-sm font-semibold text-stone-700 dark:text-[#d9d4de] ${PICKER_FOCUS}`}
+                      className={`mt-2 -ms-1 inline-flex min-h-11 items-center gap-2 rounded-lg px-1 text-meta font-bold text-ink ${PICKER_FOCUS}`}
                     >
                       {draft.unknown ? (
-                        <CheckCircle2 size={18} className="text-sage-ink" aria-hidden="true" />
+                        <CheckCircle2 size={20} strokeWidth={1.75} className="text-sage-ink" aria-hidden="true" />
                       ) : (
-                        <Circle size={18} className="text-stone-500 dark:text-[#a6a1b2]" aria-hidden="true" />
+                        <Circle size={20} strokeWidth={1.75} className="text-line-control" aria-hidden="true" />
                       )}
                       {isMama ? "Aún no sé mi semana" : "Aún no sabemos la semana"}
                     </button>
@@ -377,22 +381,22 @@ export function DatingPicker({
       </div>
 
       {error && (
-        <p id={errorId} role="alert" className="mt-3 text-sm leading-snug text-terracotta-ink">
+        <p id={errorId} role="alert" className="mt-3 text-meta font-bold text-terracotta-ink">
           {error}
         </p>
       )}
 
       <div id={resultId} aria-live="polite" className="mt-3 min-h-[1px]">
         {result && (
-          <div className="rounded-2xl bg-sage/10 dark:bg-sage/[0.12] px-4 py-3">
-            <p className="text-base font-black leading-snug text-stone-900 dark:text-[#eae6e1]">
+          <div className="rounded-2xl bg-sage-wash px-4 py-3">
+            <p className="font-display text-subtitle text-ink">
               {choice?.kind === "dueDate"
                 ? isMama
                   ? `Estás en la ${result.title.charAt(0).toLocaleLowerCase("es")}${result.title.slice(1)}`
                   : `${her.charAt(0).toLocaleUpperCase("es")}${her.slice(1)} está en la ${result.title.charAt(0).toLocaleLowerCase("es")}${result.title.slice(1)}`
                 : result.title}
             </p>
-            <p className="mt-0.5 text-sm leading-snug text-stone-700 dark:text-[#d9d4de]">{result.detail}</p>
+            <p className="mt-0.5 text-meta text-ink">{result.detail}</p>
           </div>
         )}
       </div>

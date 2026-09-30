@@ -2,23 +2,48 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ==========================================================================
+   PandaJR — sistema visual ("Warm Botanical Sanctuary", ampliado en la fase 6)
+   Un solo valor canónico por token (DESIGN.md §1.1 repite esta tabla). Estrategia de tema:
+   valores crudos en :root (claro) y .dark (obsidiana violeta), mapeados a utilidades en @theme inline.
+   Contrastes medidos (WCAG 2.1): texto ≥4.5:1 sobre ground/surface/surface-raised/surface-sunken y
+   sobre los "wash"; line-control ≥3:1 (límite de controles, 1.4.11). line y line-strong son decorativas.
+   Uso de tokens y componentes: DESIGN.md (§1.1 tokens; Components).
+   ========================================================================== */
 :root {
   /* Controles nativos (fecha, hora, select, barras) siguen al tema de la app. */
   color-scheme: light;
   --safe-top: max(0.625rem, env(safe-area-inset-top));
   --safe-bottom: max(0.75rem, env(safe-area-inset-bottom));
-  /* Fondo cálido alabastro */
-  --background: #fdfbf7;
-  --foreground: #2d2a26;
-  --surface-card: #ffffff;
-  --surface-muted: #f5f2eb;
-  --border-subtle: rgba(45, 42, 38, 0.06);
-  
-  /* Brand Accents */
-  --color-terracotta: #e07a64;
-  --color-terracotta-hover: #c96651;
-  --color-sage: #6c9a84;
-  --color-sage-hover: #5a8570;
+  /* Margen lateral de la columna. ListGroup (tono plain) sangra hasta aquí y las filas lo usan de
+     padding; un contenedor con otro padding lo redefine: className="px-5 [--gutter:1.25rem]". */
+  --gutter: 1rem;
+
+  /* Superficies */
+  --ground: #faf9f5;          /* alabastro: fondo de la app */
+  --surface: #fdfbf7;         /* alabastro claro: grupos inset, hojas, barras */
+  --surface-raised: #fffefb;  /* diálogos, menús, campos (nunca #fff en fondos largos) */
+  --surface-sunken: #f3efe7;  /* pozos: pista de segmentado, chips, campo sobre surface */
+  --surface-hover: rgb(45 42 38 / 0.05); /* hover/pressed de filas: translúcido, sirve sobre cualquier superficie */
+
+  /* Líneas */
+  --line: #e8e2d7;            /* divisor fino entre filas (decorativo) */
+  --line-strong: #d8d0c1;     /* borde de grupo inset, separador visible (decorativo) */
+  --line-control: #8c8479;    /* borde de campos, switch apagado, botón contorno: 3.5:1 sobre ground */
+
+  /* Texto */
+  --ink: #2d2a26;             /* 13.6:1 ground */
+  --ink-muted: #5c554d;       /* secundario: 7.0:1 ground · 6.4:1 sunken */
+  --ink-subtle: #6d665e;      /* meta, horas, pies: 5.4:1 ground · 4.9:1 sunken · 4.7:1 wash */
+  --ink-disabled: #9a938a;    /* solo controles deshabilitados (exentos de 1.4.3) */
+  --on-accent: #ffffff;       /* texto sobre rellenos bg-*-ink */
+
+  /* Marca: tonos de relleno y decoración (no para texto: no llegan a 4.5:1) */
+  --terracotta: #e07a64;
+  --terracotta-hover: #c96651;
+  --sage: #6c9a84;
+  --sage-hover: #5a8570;
+  --amber: #f59e0b;           /* solo logística y avisos no críticos */
 
   /* Tintas accesibles (WCAG AA). ink = texto sobre superficies claras y relleno con texto blanco. */
   --terracotta-ink: #a54833;       /* blanco sobre ella 5.87:1 · sobre #faf9f5 5.58:1 · sobre terracotta/20 4.63:1 */
@@ -27,25 +52,58 @@
   --sage-ink: #44695a;             /* blanco 6.15:1 · sobre #faf9f5 5.84:1 · sobre sage/20 4.83:1 */
   --sage-ink-fill: #44695a;
   --sage-ink-hover: #37574a;       /* blanco 8.00:1 */
+  --amber-ink: #8a5708;            /* texto e icono de aviso: 5.8:1 ground · 5.4:1 amber-wash */
+
+  /* Lavados de estado (fondos sólidos; el texto encima usa la tinta del mismo tono) */
+  --terracotta-wash: #f6e6df;      /* alarma/urgencia en calma: terracotta-ink 4.8:1 · ink 11.8:1 */
+  --sage-wash: #e5eee8;            /* completado/seleccionado: sage-ink 5.2:1 */
+  --amber-wash: #faf0dc;           /* aviso logístico: amber-ink 5.4:1 */
+
+  /* Superficies del navegador */
+  --selection: #f1d6cb;            /* ink encima 10.4:1 */
 
   /* Placeholder legible (WCAG 1.4.3): sobre #ffffff 5.4:1 · #f5f5f4 4.96:1 · #fdfbf7 5.2:1 */
   --placeholder: #6f6964;
+
+  /* Marca: el panda trazado (PandaMark). Pelaje casi blanco sobre alabastro: lo separa un contorno de tinta. */
+  --panda-fur: #fffefb;
+  --panda-baby: #f3efe7;
+  --panda-shade: #e8e2d7;
+  --panda-patch: #2d2a26;
+  --panda-line: #2d2a26;
+
+  /* Compatibilidad (fase ≤5): alias de los nombres anteriores. No usar en código nuevo. */
+  --background: var(--ground);
+  --foreground: var(--ink);
+  --surface-card: var(--surface-raised);
+  --surface-muted: var(--surface-sunken);
+  --border-subtle: var(--line);
 }
 
 .dark {
   color-scheme: dark;
-  /* Fondo violeta nocturno cálido */
-  --background: #181520;
-  --foreground: #eae6e1;
-  --surface-card: #221d2d;
-  --surface-muted: #2d273a;
-  --border-subtle: rgba(255, 255, 255, 0.06);
-  
-  /* Brand Accents */
-  --color-terracotta: #d16e5a;
-  --color-terracotta-hover: #b85c49;
-  --color-sage: #619b7e;
-  --color-sage-hover: #50866b;
+  /* Superficies: la elevación sube en luminosidad (no se invierte el tema claro) */
+  --ground: #181520;          /* obsidiana violeta */
+  --surface: #221d2d;
+  --surface-raised: #2d273a;
+  --surface-sunken: #1a1724;
+  --surface-hover: rgb(234 230 225 / 0.06);
+
+  --line: #3a334b;            /* 1.5:1 ground · 1.4:1 surface · 1.2:1 raised */
+  --line-strong: #4a4160;
+  --line-control: #857d9a;    /* 4.6:1 ground · 4.2:1 surface · 3.7:1 raised */
+
+  --ink: #eae6e1;             /* 14.5:1 ground · 11.6:1 raised */
+  --ink-muted: #cbc5d2;       /* 10.7:1 ground · 8.5:1 raised */
+  --ink-subtle: #a6a1b2;      /* 7.2:1 ground · 5.7:1 raised · 5.6:1 wash */
+  --ink-disabled: #6f6980;
+  --on-accent: #ffffff;
+
+  --terracotta: #d16e5a;
+  --terracotta-hover: #b85c49;
+  --sage: #619b7e;
+  --sage-hover: #50866b;
+  --amber: #f59e0b;
 
   /* En oscuro el texto necesita una tinta clara y el relleno una oscura: se separan. */
   --terracotta-ink: #eb9279;       /* texto: sobre #181520 7.64:1 · sobre #221d2d 6.96:1 */
@@ -54,35 +112,110 @@
   --sage-ink: #89bca0;             /* texto: sobre #181520 8.37:1 · sobre #221d2d 7.62:1 */
   --sage-ink-fill: #48705d;        /* relleno: blanco 5.60:1 */
   --sage-ink-hover: #3d5f4f;       /* blanco 7.12:1 */
+  --amber-ink: #eebd62;            /* 10.4:1 ground · 8.1:1 amber-wash */
+
+  --terracotta-wash: #3a2429;      /* terracotta-ink 6.1:1 */
+  --sage-wash: #1e2d2a;            /* sage-ink 6.7:1 */
+  --amber-wash: #342a1b;           /* amber-ink 8.1:1 */
+
+  --selection: #5a3440;            /* ink encima 8.5:1 */
 
   --placeholder: #a6a1b2;          /* sobre #1a1724 7.0:1 · #221d2d 6.5:1 · #2d273a 5.7:1 */
+
+  /* Panda de noche: el pelaje se recorta solo contra la obsidiana (sin contorno); manchas en tinta cálida. */
+  --panda-fur: #f3efe7;
+  --panda-baby: #e3ddd2;
+  --panda-shade: #cfc7b8;
+  --panda-patch: #2d2a26;
+  --panda-line: transparent;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-surface-card: var(--surface-card);
-  --color-surface-muted: var(--surface-muted);
-  --color-border-subtle: var(--border-subtle);
-  --color-terracotta: var(--color-terracotta);
-  --color-terracotta-hover: var(--color-terracotta-hover);
-  --color-sage: var(--color-sage);
-  --color-sage-hover: var(--color-sage-hover);
-  /* text-/border-/outline-*-ink leen --color-*; bg-*-ink lee --background-color-* (relleno para texto blanco). */
+  /* Superficies: bg-ground, bg-surface, bg-surface-raised, bg-surface-sunken, hover:bg-surface-hover */
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-hover: var(--surface-hover);
+  /* Líneas: border-line, divide-line, border-line-strong, border-line-control */
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-line-control: var(--line-control);
+  /* Texto: text-ink, text-ink-muted, text-ink-subtle, text-ink-disabled, text-on-accent */
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-subtle: var(--ink-subtle);
+  --color-ink-disabled: var(--ink-disabled);
+  --color-on-accent: var(--on-accent);
+  /* Marca (relleno/decoración) */
+  --color-terracotta: var(--terracotta);
+  --color-terracotta-hover: var(--terracotta-hover);
+  --color-sage: var(--sage);
+  --color-sage-hover: var(--sage-hover);
+  --color-amber: var(--amber);
+  /* text-/border-/outline-/fill-/stroke-*-ink leen --color-*; bg-*-ink lee --background-color-* (relleno para texto blanco). */
   --color-terracotta-ink: var(--terracotta-ink);
   --background-color-terracotta-ink: var(--terracotta-ink-fill);
   --color-terracotta-ink-hover: var(--terracotta-ink-hover);
   --color-sage-ink: var(--sage-ink);
   --background-color-sage-ink: var(--sage-ink-fill);
   --color-sage-ink-hover: var(--sage-ink-hover);
-  --font-sans: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), monospace;
+  --color-amber-ink: var(--amber-ink);
+  /* Lavados: bg-terracotta-wash, bg-sage-wash, bg-amber-wash */
+  --color-terracotta-wash: var(--terracotta-wash);
+  --color-sage-wash: var(--sage-wash);
+  --color-amber-wash: var(--amber-wash);
+  /* Estados (alias semánticos de las tintas): text-danger, text-success, text-warning */
+  --color-danger: var(--terracotta-ink);
+  --color-success: var(--sage-ink);
+  --color-warning: var(--amber-ink);
+  /* Compatibilidad (fase ≤5) */
+  --color-background: var(--ground);
+  --color-foreground: var(--ink);
+  --color-surface-card: var(--surface-raised);
+  --color-surface-muted: var(--surface-sunken);
+  --color-border-subtle: var(--line);
+
+  /* Familias. next/font (layout.tsx) define --font-alegreya y --font-alegreya-sans en <html>; aquí se
+     exponen como --font-display / --font-sans y las utilidades font-display / font-sans.
+     Alegreya Sans es la sans por defecto del body; font-display = Alegreya para títulos. */
+  --font-sans: var(--font-alegreya-sans), "Alegreya Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-alegreya), "Alegreya", ui-serif, Georgia, "Times New Roman", serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+/* Escala tipográfica (roles, no tamaños). Pasos de la escala de títulos ≥1.2 (16 → 20 → 24 → 30);
+   el tramo de lectura (16 / 14 / 13) se distingue además por color (ink / ink-muted / ink-subtle).
+   Utilidades: text-display, text-title, text-subtitle, text-body, text-meta, text-micro. Cada una trae
+   su interlineado; las de título, además, su peso (un font-* explícito manda). Títulos: + font-display. */
+@theme {
+  --text-display: 1.875rem;               /* 30px · la semana en la Guía, héroes. Alegreya 700 */
+  --text-display--line-height: 1.1;
+  --text-display--letter-spacing: -0.01em;
+  --text-display--font-weight: 700;
+  --text-title: 1.5rem;                   /* 24px · título de pantalla o de diálogo (h1). Alegreya 700 */
+  --text-title--line-height: 1.2;
+  --text-title--letter-spacing: -0.005em;
+  --text-title--font-weight: 700;
+  --text-subtitle: 1.25rem;               /* 20px · título de sección (h2). Alegreya 700 */
+  --text-subtitle--line-height: 1.3;
+  --text-subtitle--font-weight: 700;
+  --text-body: 1rem;                      /* 16px · cuerpo y título de fila. Alegreya Sans 400/500/700 */
+  --text-body--line-height: 1.5;
+  --text-meta: 0.875rem;                  /* 14px · línea secundaria de fila, descripciones. ink-muted */
+  --text-meta--line-height: 1.45;
+  --text-micro: 0.8125rem;                /* 13px · horas, autores, contadores. ink-subtle, peso 500+ */
+  --text-micro--line-height: 1.35;
+  --text-micro--letter-spacing: 0.01em;
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+  background-color: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-alegreya-sans), "Alegreya Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Alegreya y Alegreya Sans traen cifras de estilo antiguo por defecto (bailan en horas, semanas y
+     contadores): la app usa cifras de caja alta en todo. Contadores y horas que cambian: + tabular-nums. */
+  font-variant-numeric: lining-nums;
   overflow-x: hidden;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -123,6 +256,31 @@ body {
     color: var(--placeholder);
     opacity: 1;
   }
+
+  /* Superficies del navegador en la paleta: selección, cursor de texto, controles nativos y barras. */
+  ::selection {
+    background-color: var(--selection);
+    color: var(--ink);
+  }
+  input,
+  textarea,
+  [contenteditable] {
+    caret-color: var(--terracotta-ink);
+  }
+  :root {
+    accent-color: var(--sage-ink-fill);
+    scrollbar-color: var(--line-strong) transparent;
+  }
+
+  /* Títulos equilibrados y párrafos sin viudas (no cambia tamaños ni márgenes). */
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
 }
 
 /* Movimiento reducido: nada se desplaza, escala ni late; los cambios de estado siguen visibles.
@@ -132,7 +290,9 @@ body {
      los fundidos de color y opacidad que ya tenía cada componente se conservan (no son movimiento
      y marcan el cambio de estado). Nada gana una transición que no tenía.
    - animate-spin se mantiene: es el aviso de "cargando" (los componentes pueden apagarlo con
-     motion-reduce:animate-none si el texto ya lo dice). */
+     motion-reduce:animate-none si el texto ya lo dice).
+   - GrowingPlant (la única animación de autor) consulta prefers-reduced-motion en JS: con movimiento
+     reducido no anima nada; la planta aparece directamente en su estado final. */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto !important;

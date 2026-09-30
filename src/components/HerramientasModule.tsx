@@ -43,12 +43,14 @@ import { signCopy } from "@/lib/urgencyCopy";
 import { ModalPortal } from "@/components/ModalPortal";
 import { useModalDialog } from "@/lib/useModalDialog";
 import { Z_CLASS } from "@/lib/layers";
+import { GrowingPlant } from "@/components/GrowingPlant";
+import { ListGroup, ListRow, RowButton, Section, SectionAction } from "@/components/ui/List";
 import {
   Activity, AlertTriangle, ArrowLeft, ArrowRight, Baby, BookOpen, CalendarClock, Camera, Check, CheckCircle, CheckCircle2,
   ChevronDown, ChevronRight, ChevronUp, Circle, CircleAlert, ClipboardList, Clock, CloudOff, Edit3, FileText, Flame, HeartHandshake,
-  Heart, HeartPulse, History, ImagePlus, Info, LoaderCircle, Minus, Moon, Music, Package, Pencil, Phone, PhoneCall, Play,
-  Plus, Printer, RefreshCw, RotateCcw, Send, Share2, Siren, Sparkles, Square, Tag, Timer, Trash2, Trophy, Undo2, Users, Utensils,
-  Wallet, Wand2, Waves, X,
+  Heart, HeartPulse, ImagePlus, Info, LoaderCircle, Minus, Moon, Music, Package, Pencil, Phone, PhoneCall, Play,
+  Plus, Printer, RefreshCw, RotateCcw, Send, Share2, Siren, Sparkles, Square, Tag, Timer, Trash2, Undo2, Users, Utensils,
+  Wallet, Wand2, Waves, Wind, X,
 } from "lucide-react";
 
 
@@ -85,7 +87,8 @@ function QuickCallBlock({ context, children }: { context: "patadas" | "contracci
   const [open, setOpen] = useState(false);
   const panelId = React.useId();
   return (
-    <div className="rounded-3xl border border-stone-200 dark:border-white/[0.08] bg-[#fdfbf7] dark:bg-[#221d2d] p-4">
+    // Sin tarjeta: una banda entre filetes (las llamadas no quedan dentro de otra caja).
+    <div className="border-y border-line py-4">
       {children}
       <EmergencyCallLink className="mt-3" withNote />
       <button
@@ -93,7 +96,7 @@ function QuickCallBlock({ context, children }: { context: "patadas" | "contracci
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((v) => !v)}
-        className={`mt-1 -ml-1 inline-flex min-h-[44px] items-center gap-1.5 rounded-lg px-1 text-sm font-bold text-terracotta-ink underline-offset-4 hover:underline ${sosFocusRing}`}
+        className={`mt-1 -ms-1 inline-flex min-h-11 items-center gap-1.5 rounded-lg px-1 text-meta font-bold text-terracotta-ink underline-offset-4 hover:underline ${sosFocusRing}`}
       >
         <Phone size={16} aria-hidden="true" />
         {open ? "Ocultar obstetra y hospital" : "Obstetra y hospital"}
@@ -256,17 +259,17 @@ function RetryNotice({ state, onDismiss, className = "" }: { state: RetryState; 
   return (
     <div
       role="alert"
-      className={`flex items-center gap-2 rounded-2xl border border-terracotta-ink/30 bg-terracotta/10 py-1 pl-4 pr-1 dark:bg-terracotta/[0.12] ${className}`}
+      className={`flex items-center gap-2 rounded-2xl bg-terracotta-wash py-1 ps-4 pe-1 ${className}`}
     >
       <CircleAlert size={18} className="shrink-0 text-terracotta-ink" aria-hidden="true" />
-      <p className="min-w-0 flex-1 py-2 text-sm leading-snug text-stone-800 dark:text-[#eae6e1]">{state.message}</p>
+      <p className="min-w-0 flex-1 py-2 text-meta text-ink">{state.message}</p>
       <button
         type="button"
         onClick={() => {
           onDismiss?.();
           state.retry();
         }}
-        className={`inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-xl px-3 text-sm font-bold text-terracotta-ink hover:bg-terracotta/15 ${sosFocusRing}`}
+        className={`inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl px-3 text-meta font-bold text-terracotta-ink hover:bg-terracotta/15 ${sosFocusRing}`}
       >
         <RefreshCw size={15} aria-hidden="true" />
         Reintentar
@@ -276,7 +279,7 @@ function RetryNotice({ state, onDismiss, className = "" }: { state: RetryState; 
           type="button"
           onClick={onDismiss}
           aria-label="Cerrar aviso"
-          className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-stone-600 hover:bg-terracotta/15 dark:text-[#a6a1b2] ${sosFocusRing}`}
+          className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-ink-muted hover:bg-terracotta/15 ${sosFocusRing}`}
         >
           <X size={16} aria-hidden="true" />
         </button>
@@ -606,9 +609,9 @@ function UnsentNotice({ count, onRetry, one, many }: { count: number; onRetry: (
   const online = useOnline();
   if (count === 0) return null;
   return (
-    <div role="status" className="flex items-center gap-2 rounded-2xl border border-amber-700/30 bg-amber-50 py-1 pl-4 pr-1 dark:border-amber-300/25 dark:bg-amber-300/[0.08]">
-      <CloudOff size={18} className="shrink-0 text-amber-800 dark:text-amber-300" aria-hidden="true" />
-      <p className="min-w-0 flex-1 py-2 text-sm leading-snug text-stone-800 dark:text-[#eae6e1]">
+    <div role="status" className="flex items-center gap-2 rounded-2xl bg-amber-wash py-1 ps-4 pe-1">
+      <CloudOff size={18} className="shrink-0 text-amber-ink" aria-hidden="true" />
+      <p className="min-w-0 flex-1 py-2 text-meta text-ink">
         {count === 1 ? `1 ${one} aún sin enviar a tu pareja.` : `${count} ${many} aún sin enviar a tu pareja.`}{" "}
         {online ? "No se pierde: queda en este teléfono y se reenvía." : "No se pierde: queda en este teléfono y se enviará al volver la señal."}
       </p>
@@ -616,7 +619,7 @@ function UnsentNotice({ count, onRetry, one, many }: { count: number; onRetry: (
         <button
           type="button"
           onClick={onRetry}
-          className={`inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-xl px-3 text-sm font-bold text-amber-900 hover:bg-amber-100 dark:text-amber-200 dark:hover:bg-amber-300/10 ${sosFocusRing}`}
+          className={`inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl px-3 text-meta font-bold text-amber-ink hover:bg-amber/15 ${sosFocusRing}`}
         >
           <RefreshCw size={15} aria-hidden="true" />
           Reintentar
@@ -630,7 +633,7 @@ function UnsentNotice({ count, onRetry, one, many }: { count: number; onRetry: (
 function SharedLoading({ what }: { what: string }) {
   const online = useOnline();
   return (
-    <p role="status" className="py-6 text-center text-sm text-stone-600 dark:text-[#a6a1b2]">
+    <p role="status" className="py-6 text-center text-meta text-ink-muted">
       {online
         ? `Cargando ${what}…`
         : `Sin conexión: no podemos mostrar ${what}. Lo que registres aquí se guarda en este teléfono.`}
@@ -682,19 +685,54 @@ function isControlTarget(target: EventTarget | null): boolean {
 
 const sosFocusRing =
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink";
-/** Anillo sobre rellenos de color (tarjeta sage-ink): la tinta terracota no se distingue ahí (1.05:1); el blanco sí (≥5.6:1). */
-const onFillFocusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
+/** Anillo interior (filas a lo ancho de la columna: el anillo exterior se cortaría en el borde). */
+const insetFocusRing =
+  "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-terracotta-ink";
 /**
- * Campos de texto: borde ≥3:1 con lo que lo rodea (WCAG 1.4.11; stone-500 ≥4.59:1 en claro,
- * white/35 ≥3.1:1 en oscuro) y foco con la tinta, como el resto de controles.
+ * Campos de texto: borde line-control (≥3:1 con lo que lo rodea, WCAG 1.4.11: 3.5:1 claro,
+ * ≥3.7:1 oscuro) y foco con la tinta, como el resto de controles.
  */
-const fieldBorder = "border border-stone-500 dark:border-white/35";
+const fieldBorder = "border border-line-control";
 const fieldFocus = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink";
-// Placeholder: sin utilidad propia, manda ::placeholder de globals.css (--placeholder: ≥5.2:1 claro, ≥5.7:1 oscuro;
-// el #8f899c de antes daba 4.26:1 sobre #2d273a).
+// Placeholder: sin utilidad propia, manda ::placeholder de globals.css (--placeholder ≥5.2:1 en claro y oscuro).
+
+// --- Vocabulario visual de las herramientas (fase 6): tokens, Alegreya en títulos, sin tarjetas ---
+/** Título de la pantalla de una herramienta (h3 bajo la barra con su nombre). */
+const screenTitle = "font-display text-title text-ink";
+/** Título de un bloque dentro de la herramienta. */
+const blockTitle = "font-display text-subtitle text-ink";
+/** Lista plana a lo ancho de la columna (filas hasta el borde, texto alineado con el título). */
+const bleedList = "mx-[calc(var(--gutter)*-1)] divide-y divide-line border-y border-line";
+const bleedRow = "px-[var(--gutter)]";
+/** Botón de icono (44px) sin caja. */
+const iconButton = `grid h-11 w-11 shrink-0 place-items-center rounded-full text-ink-subtle transition-colors hover:bg-surface-hover hover:text-ink ${sosFocusRing}`;
+const iconButtonDanger = `grid h-11 w-11 shrink-0 place-items-center rounded-full text-ink-subtle transition-colors hover:bg-terracotta-wash hover:text-terracotta-ink ${sosFocusRing}`;
+/** Botones de acción: relleno terracota (principal), sage (guardar/completar), contorno (secundario). */
+const btnBase = `inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl px-5 text-body font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${sosFocusRing}`;
+const btnPrimary = `${btnBase} bg-terracotta-ink text-on-accent hover:bg-terracotta-ink-hover`;
+const btnSage = `${btnBase} bg-sage-ink text-on-accent hover:bg-sage-ink-hover`;
+const btnOutline = `${btnBase} border border-line-control text-ink hover:bg-surface-hover`;
+/** Chip conmutable (aria-pressed): seleccionado = tinta sage; libre = contorno. */
+const chip = (active: boolean) =>
+  `inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border px-3.5 text-meta font-bold transition-colors ${sosFocusRing} ${
+    active ? "border-transparent bg-sage-ink text-on-accent" : "border-line-control text-ink-muted hover:bg-surface-hover hover:text-ink"
+  }`;
+/** Control segmentado: pista hundida y opción activa elevada. */
+const segTrack = "flex rounded-2xl bg-surface-sunken p-1";
+const segButton = (active: boolean) =>
+  `flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl px-2 text-meta font-bold transition-colors ${sosFocusRing} ${
+    active ? "bg-surface-raised text-ink shadow-sm" : "text-ink-muted hover:text-ink"
+  }`;
+/** Panel de un diálogo (Presupuesto, PandaStory, Panda Audio) y su velo. */
+const dialogScrim = `fixed inset-0 ${Z_CLASS.dialog} flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4 dark:bg-black/75`;
+const dialogPanel = "flex w-full flex-col overflow-hidden border border-line bg-surface-raised shadow-2xl outline-none";
+/** Cerrar un diálogo (44px, pozo neutro como el botón Volver de la cabecera de herramienta). */
+const dialogClose = `grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface-sunken text-ink-muted transition-colors hover:bg-line hover:text-ink ${sosFocusRing}`;
 
 /** Herramientas que se abren como diálogo modal (tienen su propio título y botón de cerrar). */
 const MODAL_TOOLS = ["presupuesto", "story", "reproductor"];
+/** Herramientas anunciadas pero sin contenido todavía: en el índice son filas estáticas, no botones. */
+const COMING_SOON_TOOLS = ["lecturas"];
 
 /** Herramientas que HerramientasView puede abrir por `openRequest`. */
 const OPENABLE_TOOLS = [
@@ -714,7 +752,7 @@ const COMMON_DISCOMFORTS: {
   {
     id: "nauseas",
     title: "Náuseas y vómitos",
-    icon: <Utensils size={20} aria-hidden="true" />,
+    icon: <Utensils size={20} strokeWidth={1.75} aria-hidden="true" />,
     tips: [
       { lead: "Antes de levantarte:", text: "come unas galletas saladas o pan tostado." },
       { lead: "Líquidos en sorbos:", text: "agua fría en tragos pequeños y frecuentes. A algunas personas les ayuda el jengibre o el limón." },
@@ -731,7 +769,7 @@ const COMMON_DISCOMFORTS: {
   {
     id: "acidez",
     title: "Acidez y reflujo",
-    icon: <Flame size={20} aria-hidden="true" />,
+    icon: <Flame size={20} strokeWidth={1.75} aria-hidden="true" />,
     tips: [
       { lead: "Poco y seguido:", text: "5 o 6 comidas pequeñas al día en lugar de 3 grandes." },
       { lead: "Dale tiempo a la digestión:", text: "espera al menos 2 horas después de cenar para acostarte y eleva la cabecera con una almohada extra." },
@@ -748,7 +786,7 @@ const COMMON_DISCOMFORTS: {
   {
     id: "ciatica",
     title: "Dolor pélvico y ciática",
-    icon: <Activity size={20} aria-hidden="true" />,
+    icon: <Activity size={20} strokeWidth={1.75} aria-hidden="true" />,
     tips: [
       { lead: "Calor local:", text: "compresas tibias en la espalda baja durante 15 a 20 minutos; tu pareja puede preparártelas." },
       { lead: "Postura y soporte:", text: "una faja o cinturón pélvico para embarazo puede ayudar si tu obstetra lo aprueba. Para dormir, acuéstate de lado, de preferencia el izquierdo, con una almohada entre las rodillas." },
@@ -845,18 +883,15 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
     return null;
   };
 
-  const listSurface =
-    "rounded-3xl border bg-[#fdfbf7] dark:bg-[#1c1826] divide-y divide-stone-200/80 dark:divide-white/[0.07]";
-
   return (
-    <div className="mx-auto flex w-full max-w-lg flex-col gap-10 pb-8 animate-in fade-in duration-300">
+    <div className="mx-auto flex w-full max-w-lg flex-col gap-10 pb-8">
       {/* Señales urgentes + llamadas */}
       <section aria-labelledby={`${baseId}-urgente`}>
-        <h3 id={`${baseId}-urgente`} className="flex items-center gap-2 text-2xl font-black leading-tight text-terracotta-ink">
+        <h3 id={`${baseId}-urgente`} className="flex items-center gap-2 font-display text-title text-terracotta-ink">
           <Siren size={24} className="shrink-0" aria-hidden="true" />
           {isPapa ? "Vayan a urgencias ya" : "Ve a urgencias ya"}
         </h3>
-        <p className="mt-1.5 text-base leading-relaxed text-stone-700 dark:text-[#eae6e1]">
+        <p className="mt-1.5 text-body text-ink">
           {isPapa
             ? "Si ella tiene cualquiera de estas señales, llama a emergencias o llévala al hospital ahora. No esperen a ver si se pasa."
             : "Si tienes cualquiera de estas señales, llama a emergencias o ve al hospital ahora. No esperes a ver si se pasa."}
@@ -864,28 +899,23 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
 
         <CallActions context="sos" className="mt-4" />
 
-        <ul className={`mt-5 ${listSurface} border-terracotta-ink/25`}>
+        <ul className={`mt-6 ${bleedList}`}>
           {URGENT_SIGNS.map((sign) => {
             const note = signNote(sign);
             const emphasized = sign.id === "movimientos" && highlightMovement;
             const copy = signCopy(sign, profile?.role);
             return (
-              <li
-                key={sign.id}
-                className={`px-4 py-3.5 first:rounded-t-3xl last:rounded-b-3xl ${emphasized ? "bg-terracotta/10 dark:bg-terracotta/[0.12]" : ""}`}
-              >
-                <p className={`text-base font-bold leading-snug ${emphasized ? "text-terracotta-ink" : "text-stone-900 dark:text-[#eae6e1]"}`}>
-                  {copy.title}
-                </p>
-                <p className="mt-0.5 text-sm leading-relaxed text-stone-700 dark:text-[#a6a1b2]">{copy.detail}</p>
+              <li key={sign.id} className={`${bleedRow} py-3.5 ${emphasized ? "bg-terracotta-wash" : ""}`}>
+                <p className={`text-body font-bold ${emphasized ? "text-terracotta-ink" : "text-ink"}`}>{copy.title}</p>
+                <p className="mt-0.5 text-meta text-ink-muted">{copy.detail}</p>
                 {note && (
                   <div className="mt-2">
-                    <p className="text-sm font-semibold leading-snug text-stone-900 dark:text-[#eae6e1]">{note.text}</p>
+                    <p className="text-meta font-bold text-ink">{note.text}</p>
                     {note.tool && onOpenTool && (
                       <button
                         type="button"
                         onClick={() => onOpenTool(note.tool as SosLinkTool)}
-                        className={`mt-0.5 -ml-1 inline-flex min-h-[44px] items-center gap-1 rounded-lg px-1 text-sm font-bold text-terracotta-ink underline-offset-4 hover:underline ${sosFocusRing}`}
+                        className={`mt-0.5 -ms-1 inline-flex min-h-11 items-center gap-1 rounded-lg px-1 text-meta font-bold text-terracotta-ink underline-offset-4 hover:underline ${sosFocusRing}`}
                       >
                         {note.toolLabel}
                         <ChevronRight size={16} aria-hidden="true" />
@@ -901,20 +931,20 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
 
       {/* Llama hoy */}
       <section aria-labelledby={`${baseId}-hoy`}>
-        <h3 id={`${baseId}-hoy`} className="flex items-center gap-2 text-xl font-black leading-tight text-stone-900 dark:text-[#eae6e1]">
+        <h3 id={`${baseId}-hoy`} className={`flex items-center gap-2 ${blockTitle}`}>
           <CalendarClock size={22} className="shrink-0 text-terracotta-ink" aria-hidden="true" />
           {isPapa ? "Llama hoy a su obstetra" : "Llama hoy a tu obstetra"}
         </h3>
-        <p className="mt-1.5 text-base leading-relaxed text-stone-700 dark:text-[#a6a1b2]">
+        <p className="mt-1 text-body text-ink-muted">
           {isPapa ? "No es una emergencia, pero conviene que la revisen pronto." : "No es una emergencia, pero conviene que te revisen pronto."}
         </p>
-        <ul className={`mt-4 ${listSurface} border-stone-200 dark:border-white/[0.08]`}>
+        <ul className={`mt-3 ${bleedList}`}>
           {callTodaySigns.map((sign) => {
             const copy = signCopy(sign, profile?.role);
             return (
-              <li key={sign.id} className="px-4 py-3.5">
-                <p className="text-base font-bold leading-snug text-stone-900 dark:text-[#eae6e1]">{copy.title}</p>
-                <p className="mt-0.5 text-sm leading-relaxed text-stone-700 dark:text-[#a6a1b2]">{copy.detail}</p>
+              <li key={sign.id} className={`${bleedRow} py-3.5`}>
+                <p className="text-body font-bold text-ink">{copy.title}</p>
+                <p className="mt-0.5 text-meta text-ink-muted">{copy.detail}</p>
               </li>
             );
           })}
@@ -922,15 +952,15 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
         {obPhone && (
           <a
             href={telHref(obPhone)}
-            className={`@container mt-3 flex min-h-[56px] w-full items-center gap-3 rounded-2xl border border-stone-200 bg-white px-3.5 py-2.5 text-stone-900 transition-colors hover:bg-stone-50 active:scale-[0.98] motion-reduce:active:scale-100 dark:border-white/10 dark:bg-[#2d273a] dark:text-[#eae6e1] dark:hover:bg-[#352e44] ${sosFocusRing}`}
+            className={`@container mt-4 flex min-h-[56px] w-full items-center gap-3 rounded-2xl border border-line-control bg-surface-raised px-3.5 py-2.5 text-ink transition-colors hover:bg-surface-hover active:scale-[0.98] motion-reduce:active:scale-100 ${sosFocusRing}`}
           >
             {/* Con zoom al 200% el icono cede su sitio y el texto pasa de línea en vez de cortarse (1.4.4). */}
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-sage/15 text-sage-ink @max-[11rem]:hidden">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-sage-wash text-sage-ink @max-[11rem]:hidden">
               <Phone size={20} aria-hidden="true" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block break-words text-base font-bold leading-tight">{obName ? `Llamar a ${obName}` : isPapa ? "Llamar a su obstetra" : "Llamar a tu obstetra"}</span>
-              <span className="block break-words text-sm leading-snug tabular-nums text-stone-600 dark:text-[#a6a1b2]">{obPhone}</span>
+              <span className="block break-words text-body font-bold leading-tight">{obName ? `Llamar a ${obName}` : isPapa ? "Llamar a su obstetra" : "Llamar a tu obstetra"}</span>
+              <span className="block break-words text-meta tabular-nums text-ink-muted">{obPhone}</span>
             </span>
           </a>
         )}
@@ -938,30 +968,30 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
 
       {/* Salud emocional */}
       <section aria-labelledby={`${baseId}-emocional`}>
-        <h3 id={`${baseId}-emocional`} className="flex items-center gap-2 text-xl font-black leading-tight text-stone-900 dark:text-[#eae6e1]">
+        <h3 id={`${baseId}-emocional`} className={`flex items-center gap-2 ${blockTitle}`}>
           <HeartHandshake size={22} className="shrink-0 text-sage-ink" aria-hidden="true" />
           {isPapa ? "Su salud emocional" : "Tu salud emocional"}
         </h3>
-        <p className="mt-1.5 text-base leading-relaxed text-stone-700 dark:text-[#a6a1b2]">
+        <p className="mt-1 text-body text-ink-muted">
           {isPapa
             ? "Lo que ella siente también cuenta. Si notas estas señales, ayúdala a pedir ayuda."
             : "Lo que sientes también cuenta. Hablarlo es parte de cuidarte."}
         </p>
-        <div className={`mt-4 ${listSurface} border-stone-200 dark:border-white/[0.08]`}>
+        <div className={`mt-3 ${bleedList}`}>
           {moodSign && (
-            <div className="px-4 py-3.5">
-              <p className="text-base font-bold leading-snug text-stone-900 dark:text-[#eae6e1]">{signCopy(moodSign, profile?.role).title}</p>
-              <p className="mt-0.5 text-sm leading-relaxed text-stone-700 dark:text-[#a6a1b2]">{signCopy(moodSign, profile?.role).detail}</p>
+            <div className={`${bleedRow} py-3.5`}>
+              <p className="text-body font-bold text-ink">{signCopy(moodSign, profile?.role).title}</p>
+              <p className="mt-0.5 text-meta text-ink-muted">{signCopy(moodSign, profile?.role).detail}</p>
             </div>
           )}
           {harmSign && (
-            <div className="rounded-b-3xl bg-terracotta/10 px-4 py-3.5 dark:bg-terracotta/[0.12]">
-              <p className="text-base font-bold leading-snug text-terracotta-ink">{signCopy(harmSign, profile?.role).title}</p>
-              <p className="mt-0.5 text-sm leading-relaxed text-stone-800 dark:text-[#eae6e1]">{signCopy(harmSign, profile?.role).detail}</p>
+            <div className={`${bleedRow} bg-terracotta-wash py-3.5`}>
+              <p className="text-body font-bold text-terracotta-ink">{signCopy(harmSign, profile?.role).title}</p>
+              <p className="mt-0.5 text-meta text-ink">{signCopy(harmSign, profile?.role).detail}</p>
               <a
                 href={telHref(emergencyNumber)}
                 aria-label={`Llamar a emergencias, ${emergencyNumber}`}
-                className={`@container mt-3 flex min-h-[56px] w-full items-center gap-3 rounded-2xl bg-terracotta-ink px-3.5 py-2.5 text-white transition-[background-color,transform] hover:bg-terracotta-ink-hover active:scale-[0.98] motion-reduce:active:scale-100 ${sosFocusRing}`}
+                className={`@container mt-3 flex min-h-[56px] w-full items-center gap-3 rounded-2xl bg-terracotta-ink px-3.5 py-2.5 text-on-accent transition-[background-color,transform] hover:bg-terracotta-ink-hover active:scale-[0.98] motion-reduce:active:scale-100 ${sosFocusRing}`}
               >
                 {/* Igual que CallActions: en un botón estrecho los iconos ceden su sitio a "Emergencias". */}
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/15 @max-[11rem]:hidden">
@@ -979,54 +1009,54 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
 
       {/* Molestias comunes (secundario) */}
       <section aria-labelledby={`${baseId}-molestias`}>
-        <h3 id={`${baseId}-molestias`} className="text-lg font-bold leading-tight text-stone-800 dark:text-[#eae6e1]">
+        <h3 id={`${baseId}-molestias`} className={blockTitle}>
           Molestias comunes
         </h3>
-        <p className="mt-1 text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
+        <p className="mt-1 text-meta text-ink-muted">
           {isPapa
             ? "Son frecuentes y suelen mejorar con cuidados en casa; en varios puedes ayudar tú. Ante la duda, que lo consulte con su obstetra."
             : "Son frecuentes y suelen mejorar con cuidados en casa. Ante la duda, consulta a tu obstetra."}
         </p>
-        <ul className={`mt-3 ${listSurface} border-stone-200 dark:border-white/[0.08]`}>
+        <ul className={`mt-3 ${bleedList}`}>
           {COMMON_DISCOMFORTS.map((d) => {
             const open = openDiscomfort === d.id;
             const panelId = `${baseId}-${d.id}`;
             return (
-              <li key={d.id} className="p-1.5">
+              <li key={d.id}>
                 <h4>
                   <button
                     type="button"
                     aria-expanded={open}
                     aria-controls={panelId}
                     onClick={() => setOpenDiscomfort(open ? null : d.id)}
-                    className={`flex min-h-[48px] w-full items-center justify-between gap-3 rounded-2xl px-3 py-2.5 text-left text-base font-bold text-stone-800 transition-colors hover:bg-stone-100 dark:text-[#eae6e1] dark:hover:bg-white/[0.05] ${sosFocusRing}`}
+                    className={`flex min-h-12 w-full items-center justify-between gap-3 ${bleedRow} py-2.5 text-left text-body font-bold text-ink transition-colors hover:bg-surface-hover ${insetFocusRing}`}
                   >
                     <span className="flex items-center gap-3">
-                      <span className="text-stone-500 dark:text-[#a6a1b2]">{d.icon}</span>
+                      <span className="text-sage-ink">{d.icon}</span>
                       {d.title}
                     </span>
                     <ChevronDown
                       size={20}
                       aria-hidden="true"
-                      className={`shrink-0 text-stone-500 transition-transform duration-200 motion-reduce:transition-none dark:text-[#a6a1b2] ${open ? "rotate-180" : ""}`}
+                      className={`shrink-0 text-ink-subtle transition-transform duration-200 motion-reduce:transition-none ${open ? "rotate-180" : ""}`}
                     />
                   </button>
                 </h4>
-                <div id={panelId} hidden={!open} className="px-3 pb-3 pt-1">
-                  <ul className="space-y-2 text-sm leading-relaxed text-stone-700 dark:text-[#a6a1b2]">
+                <div id={panelId} hidden={!open} className={`${bleedRow} pb-4 pt-1`}>
+                  <ul className="space-y-2 text-meta text-ink-muted">
                     {(isPapa ? d.tipsPartner : d.tips).map((t) => (
                       <li key={t.lead}>
-                        <strong className="font-semibold text-stone-900 dark:text-[#eae6e1]">{t.lead}</strong> {t.text}
+                        <strong className="font-bold text-ink">{t.lead}</strong> {t.text}
                       </li>
                     ))}
                   </ul>
-                  <p className="mt-3 text-sm font-semibold leading-snug text-terracotta-ink">{isPapa ? d.alarmPartner : d.alarm}</p>
+                  <p className="mt-3 text-meta font-bold text-terracotta-ink">{isPapa ? d.alarmPartner : d.alarm}</p>
                 </div>
               </li>
             );
           })}
         </ul>
-        <p className="mt-4 text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
+        <p className="mt-4 text-meta text-ink-muted">
           {isPapa
             ? "Esta guía no reemplaza la valoración de su obstetra. Si algo les preocupa, llama."
             : "Esta guía no reemplaza la valoración de tu obstetra. Si algo te preocupa, llama."}
@@ -1212,168 +1242,151 @@ export function DiarioView({ profile, showToast }: { profile: UserProfile; onClo
   };
 
   return (
-    <div className="w-full flex flex-col pb-20 animate-in fade-in duration-300">
-      <div className="p-4 max-w-lg mx-auto w-full flex-1 flex flex-col gap-6">
-        <div className="space-y-1">
-          <h3 className="text-xl font-black text-stone-900 dark:text-[#eae6e1]">Diario del bebé</h3>
-          <p className="text-sm text-stone-600 dark:text-[#a6a1b2]">
-            {linked ? "Recuerdos que escriben entre los dos." : "Tus recuerdos de este viaje."}
-          </p>
-          <SyncBadge />
-        </div>
+    <div className="mx-auto flex w-full max-w-lg flex-col gap-6 pb-20">
+      <div className="space-y-1">
+        <h3 className={screenTitle}>Diario del bebé</h3>
+        <p className="text-meta text-ink-muted">
+          {linked ? "Recuerdos que escriben entre los dos." : "Tus recuerdos de este viaje."}
+        </p>
+        <SyncBadge />
+      </div>
 
-        <RetryNotice state={retryState} onDismiss={clearRetry} />
+      <RetryNotice state={retryState} onDismiss={clearRetry} />
 
-        {/* Editor de nueva entrada */}
-        <form
-          onSubmit={handlePost}
-          className="bg-white dark:bg-[#221d2d] rounded-3xl p-4 shadow-sm border border-stone-200 dark:border-white/[0.08]"
-        >
-          <label htmlFor={`${baseId}-texto`} className="sr-only">Nuevo recuerdo</label>
-          <textarea
-            id={`${baseId}-texto`}
-            value={newEntry}
-            onChange={(e) => setNewEntry(e.target.value)}
-            maxLength={2000}
-            placeholder="Escribe un recuerdo, un hito o un mensaje para el bebé…"
-            className={`w-full bg-stone-50 dark:bg-[#181520] rounded-2xl p-3 resize-none h-24 text-base text-stone-800 dark:text-white ${fieldBorder} ${fieldFocus}`}
-          />
+      {/* Editor: una sola caja, porque se escribe y se guarda como una unidad */}
+      <form onSubmit={handlePost} className="rounded-2xl border border-line-strong bg-surface p-4">
+        <label htmlFor={`${baseId}-texto`} className="sr-only">Nuevo recuerdo</label>
+        <textarea
+          id={`${baseId}-texto`}
+          value={newEntry}
+          onChange={(e) => setNewEntry(e.target.value)}
+          maxLength={2000}
+          placeholder="Escribe un recuerdo, un hito o un mensaje para el bebé…"
+          className={`h-24 w-full resize-none rounded-xl bg-surface-raised p-3 text-body text-ink ${fieldBorder} ${fieldFocus}`}
+        />
 
-          <fieldset className="mt-3">
-            <legend className="sr-only">Etiqueta</legend>
-            <div className="flex flex-wrap gap-2">
-              {JOURNAL_TAGS.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  aria-pressed={tag === selectedTag}
-                  onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
-                  className={`min-h-[44px] px-3 rounded-full text-xs font-bold border transition-colors ${sosFocusRing} ${
-                    tag === selectedTag
-                      ? "bg-sage-ink text-white border-transparent"
-                      : "bg-stone-50 dark:bg-[#181520] text-stone-600 dark:text-[#a6a1b2] border-stone-200 dark:border-white/10 hover:border-sage-ink/50"
-                  }`}
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-
-          <fieldset className="mt-3">
-            <legend className="sr-only">Cómo te sientes</legend>
-            <div className="flex flex-wrap gap-1">
-              {JOURNAL_MOODS.map((mood) => (
-                <button
-                  key={mood.emoji}
-                  type="button"
-                  aria-pressed={mood.emoji === selectedMood}
-                  aria-label={mood.label}
-                  title={mood.label}
-                  onClick={() => setSelectedMood(mood.emoji === selectedMood ? null : mood.emoji)}
-                  className={`grid h-11 w-11 place-items-center rounded-full text-lg transition-colors ${sosFocusRing} ${
-                    mood.emoji === selectedMood ? "bg-terracotta/20 ring-2 ring-terracotta-ink/50" : "hover:bg-stone-100 dark:hover:bg-white/10"
-                  }`}
-                >
-                  <span aria-hidden="true">{mood.emoji}</span>
-                </button>
-              ))}
-            </div>
-          </fieldset>
-
-          <div className="mt-4 pt-3 border-t border-stone-100 dark:border-white/5 flex justify-end">
-            <button
-              type="submit"
-              disabled={!newEntry.trim()}
-              className={`min-h-[44px] bg-terracotta-ink text-white px-5 rounded-xl text-sm font-bold disabled:opacity-50 transition-colors flex items-center gap-2 hover:bg-terracotta-ink-hover active:scale-95 ${sosFocusRing}`}
-            >
-              <Send size={16} aria-hidden="true" /> Guardar
-            </button>
+        <fieldset className="mt-4">
+          <legend className="mb-2 text-meta font-bold text-ink-muted">Etiqueta</legend>
+          <div className="flex flex-wrap gap-2">
+            {JOURNAL_TAGS.map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                aria-pressed={tag === selectedTag}
+                onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
+                className={chip(tag === selectedTag)}
+              >
+                {tag}
+              </button>
+            ))}
           </div>
-        </form>
+        </fieldset>
 
-        {errorPid === pid && linked && !current && (
-          <LoadErrorNotice what="el diario compartido" onRetry={() => setAttempt((a) => a + 1)} />
-        )}
+        {/* El ánimo se guarda como antes (su emoji es el identificador); en pantalla va con palabras. */}
+        <fieldset className="mt-4">
+          <legend className="mb-2 text-meta font-bold text-ink-muted">Cómo te sientes</legend>
+          <div className="flex flex-wrap gap-2">
+            {JOURNAL_MOODS.map((mood) => (
+              <button
+                key={mood.emoji}
+                type="button"
+                aria-pressed={mood.emoji === selectedMood}
+                onClick={() => setSelectedMood(mood.emoji === selectedMood ? null : mood.emoji)}
+                className={chip(mood.emoji === selectedMood)}
+              >
+                {mood.label}
+              </button>
+            ))}
+          </div>
+        </fieldset>
 
-        {/* Línea de tiempo */}
-        <div className="relative pl-4 mt-2">
-          {entries.length > 0 && <div className="absolute left-[35px] top-4 bottom-0 w-px bg-stone-200 dark:bg-white/10" aria-hidden="true" />}
+        <div className="mt-4 flex justify-end border-t border-line pt-3">
+          <button type="submit" disabled={!newEntry.trim()} className={btnPrimary}>
+            <Send size={16} aria-hidden="true" /> Guardar
+          </button>
+        </div>
+      </form>
 
-          {linked && !current && errorPid === pid ? null : loading ? (
-            <p className="py-10 text-center text-sm text-stone-600 dark:text-[#a6a1b2]" role="status">
-              Cargando el diario compartido…
-            </p>
-          ) : entries.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-sage/15 rounded-full flex items-center justify-center mx-auto mb-4 text-sage-ink">
-                <FileText size={24} aria-hidden="true" />
-              </div>
-              <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] mb-1">El diario está vacío</h4>
-              <p className="text-sm text-stone-600 dark:text-[#a6a1b2]">Escribe arriba el primero: un antojo, una ecografía o un mensaje para el bebé.</p>
-            </div>
-          ) : (
-            <ol className="flex flex-col gap-6 relative">
-              {entries.map((entry) => {
-                const date = journalDate(entry.createdAt);
-                const isMama = entry.authorRole === "mama";
-                const initial = Array.from((entry.authorName || (isMama ? "Mamá" : "Papá")).trim())[0]?.toLocaleUpperCase("es") ?? "?";
-                return (
-                  <li key={entry.id} className="flex gap-4">
-                    <div
-                      aria-hidden="true"
-                      className={`relative mt-1 w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-sm font-black border-4 border-[#faf9f5] dark:border-[#181520] ${
-                        isMama ? "bg-terracotta/20 text-terracotta-ink" : "bg-sage/20 text-sage-ink"
-                      }`}
-                    >
-                      {initial}
+      {errorPid === pid && linked && !current && (
+        <LoadErrorNotice what="el diario compartido" onRetry={() => setAttempt((a) => a + 1)} />
+      )}
+
+      {/* Línea de tiempo: un filete vertical une los avatares; cada recuerdo es texto, sin tarjeta. */}
+      <div className="relative mt-2">
+        {entries.length > 0 && <div className="absolute bottom-2 left-[19.5px] top-5 w-px bg-line" aria-hidden="true" />}
+
+        {linked && !current && errorPid === pid ? null : loading ? (
+          <p className="py-10 text-center text-meta text-ink-muted" role="status">
+            Cargando el diario compartido…
+          </p>
+        ) : entries.length === 0 ? (
+          <div className="py-10 text-center">
+            <FileText size={28} strokeWidth={1.75} className="mx-auto text-sage-ink" aria-hidden="true" />
+            <h4 className="mt-3 font-display text-subtitle text-ink">El diario está vacío</h4>
+            <p className="mx-auto mt-1 max-w-xs text-meta text-ink-muted">Escribe arriba el primero: un antojo, una ecografía o un mensaje para el bebé.</p>
+          </div>
+        ) : (
+          <ol className="relative flex flex-col gap-7">
+            {entries.map((entry) => {
+              const date = journalDate(entry.createdAt);
+              const isMama = entry.authorRole === "mama";
+              const author = entry.authorName || (isMama ? "Mamá" : "Papá");
+              const initial = Array.from(author.trim())[0]?.toLocaleUpperCase("es") ?? "?";
+              const moodLabel = entry.mood ? JOURNAL_MOODS.find((m) => m.emoji === entry.mood)?.label : undefined;
+              return (
+                <li key={entry.id} className="flex gap-4">
+                  <div
+                    aria-hidden="true"
+                    className={`relative grid h-10 w-10 shrink-0 place-items-center rounded-full font-display text-body font-bold ring-4 ring-ground ${
+                      isMama ? "bg-terracotta-wash text-terracotta-ink" : "bg-sage-wash text-sage-ink"
+                    }`}
+                  >
+                    {initial}
+                  </div>
+
+                  <article className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 text-body font-bold text-ink">
+                          <span className="truncate">{author}</span>
+                          {moodLabel && <span className="text-meta font-medium text-ink-muted">· {moodLabel}</span>}
+                        </p>
+                        <p className="text-micro font-medium tabular-nums text-ink-subtle">
+                          {date
+                            ? date.toLocaleString("es", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+                            : "Guardando…"}
+                        </p>
+                      </div>
+                      {canDelete(entry) && (
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(entry)}
+                          aria-label="Eliminar este recuerdo"
+                          className={`-me-2 -mt-1.5 ${iconButtonDanger}`}
+                        >
+                          <Trash2 size={16} aria-hidden="true" />
+                        </button>
+                      )}
                     </div>
 
-                    <article className="min-w-0 bg-white dark:bg-[#221d2d] rounded-3xl rounded-tl-sm p-4 shadow-sm border border-stone-200/60 dark:border-white/[0.08] flex-1">
-                      <div className="flex justify-between items-start gap-2 mb-2">
-                        <div className="min-w-0">
-                          <p className="flex items-center gap-1.5 text-sm font-bold text-stone-800 dark:text-[#eae6e1]">
-                            <span className="truncate">{entry.authorName || (isMama ? "Mamá" : "Papá")}</span>
-                            {entry.mood && (
-                              <span role="img" aria-label={JOURNAL_MOODS.find((m) => m.emoji === entry.mood)?.label ?? "Estado de ánimo"}>{entry.mood}</span>
-                            )}
-                          </p>
-                          <p className="text-xs text-stone-600 dark:text-[#a6a1b2]">
-                            {date
-                              ? date.toLocaleString("es", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
-                              : "Guardando…"}
-                          </p>
-                        </div>
-                        {canDelete(entry) && (
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(entry)}
-                            aria-label="Eliminar este recuerdo"
-                            className={`-mr-2 -mt-2 grid h-11 w-11 shrink-0 place-items-center rounded-full text-stone-500 hover:bg-terracotta/10 hover:text-terracotta-ink dark:text-[#a6a1b2] transition-colors ${sosFocusRing}`}
-                          >
-                            <Trash2 size={16} aria-hidden="true" />
-                          </button>
-                        )}
-                      </div>
+                    {entry.tag && (
+                      <span className="mt-2 inline-block rounded-md bg-surface-sunken px-2 py-0.5 text-micro font-bold text-ink-muted">
+                        {entry.tag}
+                      </span>
+                    )}
 
-                      {entry.tag && (
-                        <span className="inline-block px-2 py-0.5 bg-stone-100 dark:bg-[#181520] text-stone-600 dark:text-[#a6a1b2] rounded-md text-xs font-bold mb-2">
-                          {entry.tag}
-                        </span>
-                      )}
-
-                      <p className="text-stone-700 dark:text-[#eae6e1]/90 text-sm whitespace-pre-wrap break-words leading-relaxed">{entry.text}</p>
-                    </article>
-                  </li>
-                );
-              })}
-            </ol>
-          )}
-        </div>
+                    <p className="mt-1.5 whitespace-pre-wrap break-words text-body text-ink">{entry.text}</p>
+                  </article>
+                </li>
+              );
+            })}
+          </ol>
+        )}
       </div>
     </div>
   );
 }
+
 
 const LOCAL_GOBAG_KEY = "pandajr_gobag";
 
@@ -1438,43 +1451,59 @@ export function MaletaView({ profile }: { profile: UserProfile; onClose?: () => 
     ]
   };
 
+  const categoryTitle: Record<keyof typeof items, string> = { mama: "Para mamá", bebe: "Para el bebé", papa: "Para papá" };
+
   return (
-    <div className="w-full">
-      <div className="p-4 max-w-lg mx-auto space-y-6 pb-20">
+    <div className="mx-auto flex w-full max-w-lg flex-col gap-8 pb-20">
+      <div className="flex flex-col gap-3">
         <SyncBadge />
         <RetryNotice state={retryState} onDismiss={clearRetry} />
-
-        {Object.entries(items).map(([category, list]) => (
-          <section key={category} aria-label={category === 'mama' ? 'Para mamá' : category === 'bebe' ? 'Para el bebé' : 'Para papá'}>
-            <h3 className="font-bold text-sm text-stone-600 dark:text-[#a6a1b2] mb-3">
-              {category === 'mama' ? 'Para mamá' : category === 'bebe' ? 'Para el bebé' : 'Para papá'}
-            </h3>
-            <ul className="bg-white dark:bg-[#181a20] rounded-2xl shadow-sm border border-stone-200 dark:border-white/[0.05] overflow-hidden divide-y divide-stone-100 dark:divide-white/5">
-              {list.map((item) => (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    aria-pressed={!!bag[item.id]}
-                    onClick={() => toggleItem(item.id)}
-                    className={`flex w-full min-h-[52px] items-center gap-3 p-4 text-left transition-colors hover:bg-stone-50 dark:hover:bg-white/[0.02] ${sosFocusRing}`}
-                  >
-                    {/* Círculo sin marcar ≥3:1 con el fondo (WCAG 1.4.11): stone-500 4.8:1 claro, stone-400 6.9:1 oscuro. */}
-                    <span aria-hidden="true" className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${bag[item.id] ? 'bg-sage-ink border-transparent text-white' : 'border-stone-500 dark:border-stone-400'}`}>
-                      {bag[item.id] && <Check size={14} strokeWidth={3} />}
-                    </span>
-                    <span className={`text-sm font-medium ${bag[item.id] ? 'text-stone-500 dark:text-stone-400 line-through' : 'text-stone-700 dark:text-stone-200'}`}>
-                      {item.label}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
       </div>
+
+      {(Object.keys(items) as (keyof typeof items)[]).map((category) => {
+        const list = items[category];
+        const done = list.filter((item) => bag[item.id]).length;
+        return (
+          <Section
+            key={category}
+            as="h3"
+            size="md"
+            title={categoryTitle[category]}
+            action={<span className="text-micro font-medium tabular-nums text-ink-subtle">{done} de {list.length}</span>}
+          >
+            <ListGroup>
+              {list.map((item) => (
+                <ListRow
+                  key={item.id}
+                  onClick={() => toggleItem(item.id)}
+                  aria-pressed={!!bag[item.id]}
+                  weight="medium"
+                  leading={<CheckMark checked={!!bag[item.id]} />}
+                  title={item.label}
+                  titleClassName={bag[item.id] ? "text-ink-subtle! line-through" : undefined}
+                />
+              ))}
+            </ListGroup>
+          </Section>
+        );
+      })}
     </div>
   );
 }
+
+/** Círculo de lista de verificación (decorativo: el estado va en aria-pressed). Sin marcar ≥3:1 con el fondo. */
+function CheckMark({ checked }: { checked: boolean }) {
+  return (
+    <span
+      className={`grid h-6 w-6 place-items-center rounded-full border-2 transition-colors ${
+        checked ? "border-transparent bg-sage-ink text-on-accent" : "border-line-control"
+      }`}
+    >
+      {checked && <Check size={14} strokeWidth={3} />}
+    </span>
+  );
+}
+
 
 const LECTURAS: Record<1 | 2 | 3, { title: string; desc: string; type: string }[]> = {
   1: [
@@ -1500,45 +1529,43 @@ export function LecturasView({ profile }: { profile?: UserProfile; onClose?: () 
   const [selectedTri, setSelectedTri] = useState<1 | 2 | 3>(currentTrimester ?? 1);
 
   return (
-    <div className="w-full flex flex-col h-full animate-in fade-in duration-300">
-      <p className="text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
+    <div className="mx-auto flex w-full max-w-lg flex-col gap-5 pb-12">
+      <p className="text-meta text-ink-muted">
         {profile?.role === "papa"
           ? "Estas lecturas aún no están disponibles. Mientras tanto, ante cualquier duda, consulten con su obstetra."
           : "Estas lecturas aún no están disponibles. Mientras tanto, ante cualquier duda, consulta a tu obstetra."}
       </p>
 
-      <div className="mt-3 mb-2 flex gap-2 overflow-x-auto hide-scrollbar shrink-0 py-1" role="group" aria-label="Trimestre">
+      <div className={segTrack} role="group" aria-label="Trimestre">
         {([1, 2, 3] as const).map((t) => (
-          <button
-            key={t}
-            type="button"
-            aria-pressed={selectedTri === t}
-            onClick={() => setSelectedTri(t)}
-            className={`min-h-[44px] px-4 rounded-xl text-sm font-bold whitespace-nowrap transition-colors ${sosFocusRing} ${
-              selectedTri === t ? "bg-terracotta-ink text-white" : "bg-stone-200 dark:bg-[#2d273a] text-stone-700 dark:text-[#a6a1b2]"
-            }`}
-          >
+          <button key={t} type="button" aria-pressed={selectedTri === t} onClick={() => setSelectedTri(t)} className={segButton(selectedTri === t)}>
             Trimestre {t}
             {currentTrimester === t && <span className="sr-only"> (trimestre actual)</span>}
           </button>
         ))}
       </div>
 
-      <ul className="flex-1 space-y-3 pb-12">
+      <ListGroup>
         {LECTURAS[selectedTri].map((art) => (
-          <li key={art.title} className="bg-white dark:bg-[#221d2d] border border-stone-200 dark:border-white/[0.06] rounded-2xl p-4">
-            <h3 className="text-base font-bold text-stone-800 dark:text-[#eae6e1] leading-tight">{art.title}</h3>
-            <p className="mt-1.5 text-sm text-stone-600 dark:text-[#a6a1b2] leading-relaxed">{art.desc}</p>
-            <p className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-stone-600 dark:text-[#a6a1b2]">
-              <Clock size={13} aria-hidden="true" />
-              {art.type} · Próximamente
-            </p>
-          </li>
+          <ListRow
+            key={art.title}
+            title={art.title}
+            meta={
+              <>
+                {art.desc}
+                <span className="mt-1 flex items-center gap-1.5 text-micro font-medium text-ink-subtle">
+                  <Clock size={13} aria-hidden="true" />
+                  {art.type} · Próximamente
+                </span>
+              </>
+            }
+          />
         ))}
-      </ul>
+      </ListGroup>
     </div>
   );
 }
+
 
 export function HerramientasView({ showToast, profile, openRequest }: { showToast: ShowToast, profile?: UserProfile, openRequest?: { tool: string; nonce: number } }) {
   const [activeTool, setActiveTool] = useState<string | null>(null);
@@ -1595,70 +1622,56 @@ export function HerramientasView({ showToast, profile, openRequest }: { showToas
     if (typeof window !== "undefined") window.scrollTo({ top: 0 });
   };
 
-  const tools = [
-    {
-      id: "reproductor",
-      icon: <Music className="text-sage-ink" size={26} />,
-      label: "Panda Audio",
-      desc: "Música para relajarte",
-      color: "bg-sage/10 dark:bg-stone-800/40 border-sage/20 dark:border-sage/20"
-    },
-
-    {
-      id: "story",
-      icon: <Camera className="text-terracotta-ink" size={26} />,
-      label: "PandaStory",
-      desc: "Tarjeta de la semana",
-      color: "bg-terracotta/10 dark:bg-terracotta/20 border-terracotta/20 dark:border-terracotta/30"
-    },
-
-    {
-      id: "presupuesto",
-      icon: <Wallet className="text-sage-ink" size={26} />,
-      label: "Presupuesto",
-      desc: "Control de gastos",
-      color: "bg-sage/20 dark:bg-sage/20 border-sage/30 dark:border-sage/20",
-    },
-
-    // SOS se pinta aparte (tarjeta ancha en terracota de tinta); estos colores solo lo describen.
-    { id: "sos", label: "SOS Síntomas", icon: <HeartPulse size={24} />, desc: "Señales de alarma y a quién llamar", color: "bg-terracotta/10 text-terracotta-ink", border: "border-terracotta/20" },
-    { id: "contracciones", label: "Contracciones", icon: <Timer size={24} />, desc: "Frecuencia y duración", color: "bg-terracotta/10 text-terracotta-ink", border: "border-terracotta/20" },
-    { id: "patadas", label: "Patadas", icon: <Baby size={24} />, desc: "Conteo desde la semana 28", color: "bg-sage/10 text-sage-ink", border: "border-sage/20" },
-    { id: "diario", label: "Diario", icon: <FileText size={24} />, desc: "Recuerdos del embarazo", color: "bg-sage/10 text-sage-ink", border: "border-sage/20 dark:border-sage/20" },
-    { id: "maleta", label: "Maleta", icon: <Package size={24} />, desc: "Para el hospital", color: "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400", border: "border-amber-100 dark:border-amber-500/20" },
-    { id: "nombres", label: "Nombres", icon: <Users size={24} />, desc: "Voten por separado", color: "bg-terracotta/10 text-terracotta-ink", border: "border-terracotta/20" },
-    { id: "parto", label: "Plan de parto", icon: <ClipboardList size={24} />, desc: "Preferencias para el hospital", color: "bg-sage/10 text-sage-ink", border: "border-sage/20" },
-    { id: "lecturas", label: "Lecturas", icon: <BookOpen size={24} />, desc: "Próximamente", color: "bg-stone-100 text-stone-600 dark:bg-white/5 dark:text-[#a6a1b2]", border: "border-stone-200 dark:border-white/10" },
+  // `desc` acompaña al nombre en la barra de la herramienta; `hubDesc` (si existe) en el índice.
+  const tools: { id: string; label: string; desc: string; hubDesc?: string; icon: React.ReactNode; group: ToolGroup }[] = [
+    { id: "sos", label: "SOS Síntomas", desc: "Señales de alarma y a quién llamar", hubDesc: "Cuándo ir a urgencias y a quién llamar", icon: <HeartPulse size={20} strokeWidth={1.75} />, group: "urgente" },
+    { id: "contracciones", label: "Contracciones", desc: "Frecuencia y duración", icon: <Timer size={20} strokeWidth={1.75} />, group: "urgente" },
+    { id: "patadas", label: "Patadas", desc: "Conteo desde la semana 28", icon: <Baby size={20} strokeWidth={1.75} />, group: "urgente" },
+    { id: "maleta", label: "Maleta", desc: "Para el hospital", icon: <Package size={20} strokeWidth={1.75} />, group: "preparacion" },
+    { id: "parto", label: "Plan de parto", desc: "Preferencias para el hospital", icon: <ClipboardList size={20} strokeWidth={1.75} />, group: "preparacion" },
+    { id: "lecturas", label: "Lecturas", desc: "Próximamente", icon: <BookOpen size={20} strokeWidth={1.75} />, group: "preparacion" },
+    { id: "nombres", label: "Nombres", desc: "Voten por separado", icon: <Users size={20} strokeWidth={1.75} />, group: "pareja" },
+    { id: "presupuesto", label: "Presupuesto", desc: "Control de gastos", icon: <Wallet size={20} strokeWidth={1.75} />, group: "pareja" },
+    { id: "diario", label: "Diario", desc: "Recuerdos del embarazo", icon: <FileText size={20} strokeWidth={1.75} />, group: "pareja" },
+    { id: "reproductor", label: "Panda Audio", desc: "Música para relajarte", icon: <Music size={20} strokeWidth={1.75} />, group: "calma" },
+    { id: "story", label: "PandaStory", desc: "Tarjeta de la semana", icon: <Camera size={20} strokeWidth={1.75} />, group: "calma" },
   ];
 
-  // Orden según la semana (la semana manda): desde la 36, Contracciones y Maleta primero; de la 28
-  // a la 35, Patadas. SOS sigue siempre arriba y a lo ancho.
+  // Orden según la semana (la semana manda): desde la 36, Contracciones y Maleta encabezan su grupo;
+  // de la 28 a la 35, Patadas. SOS sigue siempre arriba (primera fila de Urgente, el primer grupo).
   const hubWeek = knownWeek(profile);
   const priority: string[] = hubWeek === undefined ? [] : hubWeek >= 36 ? ["contracciones", "maleta"] : hubWeek >= 28 ? ["patadas"] : [];
-  const orderedTools = [
-    ...priority.map((id) => tools.find((t) => t.id === id)).filter((t): t is (typeof tools)[number] => !!t),
-    ...tools.filter((t) => !priority.includes(t.id)),
-  ];
+  const rank = (id: string, index: number) => (id === "sos" ? -1 : priority.includes(id) ? priority.indexOf(id) : 100 + index);
+  const toolsIn = (group: ToolGroup) =>
+    tools
+      .map((t, index) => ({ t, r: rank(t.id, index) }))
+      .filter(({ t }) => t.group === group)
+      .sort((a, b) => a.r - b.r)
+      .map(({ t }) => t);
 
   if (activeTool) {
     const tool = tools.find(t => t.id === activeTool);
     return (
-      <div className="flex flex-col h-full w-full bg-stone-50 dark:bg-[#120f18] animate-in fade-in zoom-in-95 duration-200">
-        
-        {/* Only show generic header if it's not one of our new custom modal tools */}
-        {!MODAL_TOOLS.includes(activeTool) && (
-          <div data-tool-header className="sticky top-[calc(3.4375rem+var(--safe-top))] [@media(max-height:500px)]:static z-20 bg-white/90 dark:bg-[#181520]/90 backdrop-blur-md px-4 py-3 flex items-center gap-3 border-b border-stone-200 dark:border-white/5">
+      <div className="flex h-full w-full flex-col bg-ground">
 
-          <button type="button" onClick={closeTool} aria-label="Volver a Herramientas" className="w-11 h-11 shrink-0 rounded-full bg-stone-100 dark:bg-white/5 flex items-center justify-center text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-white/10 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink">
-            <ArrowLeft size={20} aria-hidden="true" />
-          </button>
-          <div>
-            <h2 ref={toolHeadingRef} tabIndex={-1} className="font-bold text-lg text-stone-800 dark:text-white leading-tight outline-none">{tool?.label}</h2>
-            <p className="text-[10px] uppercase tracking-wider text-stone-500 dark:text-[#a6a1b2] font-bold">{tool?.desc}</p>
+        {/* Cabecera genérica (los diálogos Presupuesto, PandaStory y Panda Audio traen la suya). Fondo sólido, sin desenfoque. */}
+        {!MODAL_TOOLS.includes(activeTool) && (
+          <div data-tool-header className="sticky top-[calc(3.4375rem+var(--safe-top))] z-20 flex items-center gap-3 border-b border-line bg-ground px-4 py-3 lg:px-8 [@media(max-height:500px)]:static">
+            <button
+              type="button"
+              onClick={closeTool}
+              aria-label="Volver a Herramientas"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface-sunken text-ink-muted transition-colors hover:bg-line hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
+            >
+              <ArrowLeft size={20} aria-hidden="true" />
+            </button>
+            <div className="min-w-0">
+              <h2 ref={toolHeadingRef} tabIndex={-1} className="font-display text-subtitle text-ink outline-none">{tool?.label}</h2>
+              <p className="truncate text-micro font-medium text-ink-subtle">{tool?.desc}</p>
+            </div>
           </div>
-        </div>
         )}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto px-[var(--gutter)] py-4 lg:px-8">
           {activeTool === 'diario' && profile && <DiarioView profile={profile} showToast={showToast} />}
           {activeTool === 'maleta' && profile && <MaletaView profile={profile} />}
           {activeTool === 'sos' && <SOSSintomas profile={profile} onOpenTool={openToolFromSos} />}
@@ -1677,61 +1690,62 @@ export function HerramientasView({ showToast, profile, openRequest }: { showToas
   }
 
   return (
-    <div className="flex flex-col h-full w-full bg-stone-50 dark:bg-[#120f18] p-5 overflow-y-auto animate-in fade-in slide-in-from-bottom-4 duration-300">
-      <div className="mb-6 mt-4">
+    <div className="flex h-full w-full flex-col bg-ground px-[var(--gutter)] pb-24 pt-6 lg:px-8 lg:pt-10">
+      <div className="mb-8">
         {/* h2: el h1 de la página es "PandaJR" (una vista, un encabezado principal). */}
-        <h2 className="text-2xl font-black text-stone-800 dark:text-white tracking-tight leading-none mb-1">
-          Herramientas
-        </h2>
-        <p className="text-sm text-stone-600 dark:text-[#a6a1b2]">
+        <h2 className="font-display text-title text-ink">Herramientas</h2>
+        <p className="mt-1 text-meta text-ink-muted">
           {priority.length > 0 ? `Semana ${hubWeek}: primero lo que más vas a usar.` : "Todo lo que necesitas a un toque de distancia."}
         </p>
       </div>
 
-      <div className="grid grid-cols-2 max-[300px]:grid-cols-1 gap-4 pb-24">
-        {/* SOS takes full width */}
-        <button
-          ref={(el) => { tileRefs.current.sos = el; }}
-          type="button"
-          onClick={() => openTool('sos')}
-          className="col-span-2 max-[300px]:col-span-1 bg-terracotta-ink hover:bg-terracotta-ink-hover text-white rounded-2xl p-4 min-h-[72px] flex items-center justify-between shadow-sm transition-colors group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
-        >
-          {/* Con zoom al 200% (<300px) los iconos decorativos ceden su sitio al texto, que pasa de línea. */}
-          <div className="flex min-w-0 items-center gap-4">
-            <div className="w-12 h-12 shrink-0 rounded-full bg-white/15 flex items-center justify-center group-hover:scale-110 motion-reduce:group-hover:scale-100 transition-transform max-[300px]:hidden">
-              <HeartPulse size={28} aria-hidden="true" />
-            </div>
-            <div className="min-w-0 text-left">
-              <h3 className="font-bold text-lg leading-tight break-words">SOS Síntomas</h3>
-              <p className="text-white text-sm leading-snug break-words">Cuándo ir a urgencias y a quién llamar</p>
-            </div>
-          </div>
-          <ChevronRight size={24} aria-hidden="true" className="shrink-0 opacity-80 group-hover:opacity-100 group-hover:translate-x-1 motion-reduce:group-hover:translate-x-0 transition-all max-[300px]:hidden" />
-        </button>
-
-        {/* Other tools */}
-        {orderedTools.filter(t => t.id !== 'sos').map(tool => (
-          <button
-            key={tool.id}
-            ref={(el) => { tileRefs.current[tool.id] = el; }}
-            type="button"
-            onClick={() => openTool(tool.id)}
-            aria-haspopup={MODAL_TOOLS.includes(tool.id) ? "dialog" : undefined}
-            className={`bg-white dark:bg-[#181520] rounded-2xl p-4 flex flex-col gap-3 shadow-sm border border-stone-200/60 dark:border-white/[0.04] hover:border-stone-300 dark:hover:border-white/10 hover:shadow-md transition-all text-left group ${sosFocusRing}`}
-          >
-            <div className={`w-12 h-12 rounded-2xl ${tool.color} border ${tool.border} flex items-center justify-center group-hover:scale-105 transition-transform`}>
-              {tool.icon}
-            </div>
-            <div>
-              <h3 className="font-bold text-stone-800 dark:text-white text-sm break-words">{tool.label}</h3>
-              <p className="text-[11px] text-stone-500 dark:text-[#a6a1b2] font-medium leading-tight mt-0.5">{tool.desc}</p>
-            </div>
-          </button>
+      {/* Índice en cuatro listas (sin rejilla de tarjetas iguales): cada herramienta es una fila. */}
+      <div className="flex flex-col gap-8">
+        {TOOL_GROUPS.map((group) => (
+          <Section key={group.id} as="h3" size="md" title={group.title}>
+            <ListGroup>
+              {toolsIn(group.id).map((tool) =>
+                COMING_SOON_TOOLS.includes(tool.id) ? (
+                  // Aún no existe: fila estática y atenuada, sin chevron (ningún control promete lo que no hace).
+                  <ListRow
+                    key={tool.id}
+                    leading={<span className="text-ink-subtle">{tool.icon}</span>}
+                    title={tool.label}
+                    meta={tool.hubDesc ?? tool.desc}
+                    weight="medium"
+                    titleClassName="text-ink-muted!"
+                  />
+                ) : (
+                  <ListRow
+                    key={tool.id}
+                    buttonRef={(el) => { tileRefs.current[tool.id] = el; }}
+                    onClick={() => openTool(tool.id)}
+                    aria-haspopup={MODAL_TOOLS.includes(tool.id) ? "dialog" : undefined}
+                    tone={tool.id === "sos" ? "danger" : "default"}
+                    leading={tool.icon}
+                    title={tool.label}
+                    meta={tool.hubDesc ?? tool.desc}
+                    trailing="chevron"
+                  />
+                )
+              )}
+            </ListGroup>
+          </Section>
         ))}
       </div>
     </div>
   );
 }
+
+type ToolGroup = "urgente" | "preparacion" | "pareja" | "calma";
+/** Grupos del índice de Herramientas, en orden: lo urgente siempre arriba. */
+const TOOL_GROUPS: { id: ToolGroup; title: string }[] = [
+  { id: "urgente", title: "Urgente" },
+  { id: "preparacion", title: "Preparación" },
+  { id: "pareja", title: "En pareja" },
+  { id: "calma", title: "Calma" },
+];
+
 
 
 interface KickRecord {
@@ -2017,18 +2031,18 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
   const isTwoHours = isOvertime && elapsedSeconds >= 7200;
 
   return (
-    <div className="flex flex-col py-2 animate-in fade-in duration-300 w-full space-y-6">
-      
-      {/* ENCABEZADO CON MÉTODO CARDIFF Y GUÍA */}
+    <div className="mx-auto flex w-full max-w-lg flex-col gap-6 py-2">
+
+      {/* Encabezado: método Cardiff y guía */}
       <div className="text-center">
-        <h3 className="text-2xl font-black text-stone-800 dark:text-[#eae6e1]">Cuenta sus movimientos</h3>
-        <p className="text-sm text-stone-600 dark:text-[#a6a1b2] max-w-xs mx-auto mt-1 leading-relaxed">
+        <h3 className={screenTitle}>Cuenta sus movimientos</h3>
+        <p className="mx-auto mt-1 max-w-xs text-meta text-ink-muted">
           {isPapa
             ? `Con el método Cardiff se cuentan 10 movimientos del bebé: cada vez que ${her} sienta un movimiento, regístralo aquí. Lo habitual es llegar a 10 en menos de 2 horas.`
             : "Con el método Cardiff cuentas 10 movimientos del bebé. Lo habitual es llegar a 10 en menos de 2 horas."}
         </p>
         {typeof week === "number" && week < 28 && (
-          <p className="mt-2 mx-auto max-w-xs inline-flex items-start gap-1.5 text-left text-sm leading-snug text-stone-600 dark:text-[#a6a1b2]">
+          <p className="mx-auto mt-2 inline-flex max-w-xs items-start gap-1.5 text-left text-meta text-ink-muted">
             <Info size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
             <span>El conteo de movimientos suele empezar en la semana 28. {isPapa ? `${Her} está en la semana ${week}.` : `Estás en la semana ${week}.`}</span>
           </p>
@@ -2040,40 +2054,40 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
           onClick={() => setShowGuide(!showGuide)}
           aria-expanded={showGuide}
           aria-controls={`${callPanelId}-guia`}
-          className={`mt-3 min-h-[44px] text-xs font-bold text-sage-ink hover:underline underline-offset-4 inline-flex items-center gap-1 bg-sage/10 dark:bg-[#1a1724] hover:bg-sage/20 dark:hover:bg-[#19322c] px-3 py-1.5 rounded-xl border border-sage/30 dark:border-sage/25 transition-colors ${sosFocusRing}`}
+          className={`mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-full border border-line-control px-3.5 text-meta font-bold text-sage-ink transition-colors hover:bg-surface-hover ${sosFocusRing}`}
         >
-          <Info size={14} className="text-sage-ink" />
+          <Info size={15} aria-hidden="true" />
           <span>{showGuide ? "Ocultar la guía" : "¿Cómo y cuándo contar patadas?"}</span>
-          {showGuide ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          {showGuide ? <ChevronUp size={15} aria-hidden="true" /> : <ChevronDown size={15} aria-hidden="true" />}
         </button>
       </div>
 
       {/* GUÍA DESPLEGABLE (alineada con guías públicas; no sustituye al obstetra) */}
       {showGuide && (
-        <div id={`${callPanelId}-guia`} className="bg-gradient-to-br from-sage/10 to-emerald-50/70 dark:from-[#221d2d] dark:to-[#1a1724] border border-sage/30 dark:border-sage/25 rounded-3xl p-5 text-left text-xs text-stone-700 dark:text-[#eae6e1]/90 space-y-3 shadow-xs animate-in fade-in slide-in-from-top-2">
-          <h4 className="font-bold text-sage-ink text-sm flex items-center gap-2">
-            <ClipboardList size={16} className="text-sage-ink" aria-hidden="true" /> Cómo contar movimientos (método Cardiff)
+        <div id={`${callPanelId}-guia`} className="border-y border-line py-4 text-left">
+          <h4 className="flex items-center gap-2 font-display text-body font-bold text-sage-ink">
+            <ClipboardList size={18} className="shrink-0" aria-hidden="true" /> Cómo contar movimientos (método Cardiff)
           </h4>
-          <ul className="space-y-2 leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
-            <li className="flex items-start gap-2">
-              <span className="text-terracotta-ink font-bold">1.</span>
-              <span><strong>¿Cuándo empezar?</strong> Lo habitual es desde la semana 28, o antes si {isPapa ? "su obstetra" : "tu obstetra"} lo indica.</span>
+          <ul className="mt-3 space-y-2.5 text-meta text-ink-muted">
+            <li className="flex items-start gap-2.5">
+              <span className="w-4 shrink-0 font-bold tabular-nums text-terracotta-ink">1.</span>
+              <span><strong className="font-bold text-ink">¿Cuándo empezar?</strong> Lo habitual es desde la semana 28, o antes si {isPapa ? "su obstetra" : "tu obstetra"} lo indica.</span>
             </li>
-            <li className="flex items-start gap-2">
-              <span className="text-terracotta-ink font-bold">2.</span>
-              <span><strong>Mejor momento:</strong> 30 a 60 minutos después de comer o por la noche, cuando el bebé recibe más glucosa y {isPapa ? `${her} está` : "estás"} en reposo.</span>
+            <li className="flex items-start gap-2.5">
+              <span className="w-4 shrink-0 font-bold tabular-nums text-terracotta-ink">2.</span>
+              <span><strong className="font-bold text-ink">Mejor momento:</strong> 30 a 60 minutos después de comer o por la noche, cuando el bebé recibe más glucosa y {isPapa ? `${her} está` : "estás"} en reposo.</span>
             </li>
-            <li className="flex items-start gap-2">
-              <span className="text-terracotta-ink font-bold">3.</span>
-              <span><strong>Postura recomendada:</strong> {isPapa ? `Pídele a ${her} que se recueste de lado (izquierdo o derecho) y que evite estar boca arriba.` : "Recuéstate de lado (izquierdo o derecho) y evita estar boca arriba."}</span>
+            <li className="flex items-start gap-2.5">
+              <span className="w-4 shrink-0 font-bold tabular-nums text-terracotta-ink">3.</span>
+              <span><strong className="font-bold text-ink">Postura recomendada:</strong> {isPapa ? `Pídele a ${her} que se recueste de lado (izquierdo o derecho) y que evite estar boca arriba.` : "Recuéstate de lado (izquierdo o derecho) y evita estar boca arriba."}</span>
             </li>
-            <li className="flex items-start gap-2">
-              <span className="text-terracotta-ink font-bold">4.</span>
-              <span><strong>¿Qué cuenta como movimiento?</strong> Patadas, aleteos, giros o presiones claras. El hipo rítmico no se cuenta como patada voluntaria.</span>
+            <li className="flex items-start gap-2.5">
+              <span className="w-4 shrink-0 font-bold tabular-nums text-terracotta-ink">4.</span>
+              <span><strong className="font-bold text-ink">¿Qué cuenta como movimiento?</strong> Patadas, aleteos, giros o presiones claras. El hipo rítmico no se cuenta como patada voluntaria.</span>
             </li>
-            <li className="flex items-start gap-2">
-              <span className="text-terracotta-ink font-bold">5.</span>
-              <span><strong>Meta:</strong> {isPapa ? `que ${her} sienta 10 movimientos en menos de 2 horas.` : "sentir 10 movimientos en menos de 2 horas."} Lo importante es notar si tarda mucho más de lo habitual para {isPapa ? "su" : "tu"} bebé.</span>
+            <li className="flex items-start gap-2.5">
+              <span className="w-4 shrink-0 font-bold tabular-nums text-terracotta-ink">5.</span>
+              <span><strong className="font-bold text-ink">Meta:</strong> {isPapa ? `que ${her} sienta 10 movimientos en menos de 2 horas.` : "sentir 10 movimientos en menos de 2 horas."} Lo importante es notar si tarda mucho más de lo habitual para {isPapa ? "su" : "tu"} bebé.</span>
             </li>
           </ul>
         </div>
@@ -2081,17 +2095,14 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
 
       {/* ALERTA CARDIFF: A LOS 90 MIN SIN 10 MOVIMIENTOS; A LAS 2 H, LLAMAR */}
       {isOvertime && (
-        <section
-          aria-labelledby={`${callPanelId}-alerta`}
-          className="rounded-3xl border border-terracotta-ink/35 bg-terracotta/10 dark:bg-terracotta/[0.12] p-4 text-left animate-in fade-in"
-        >
-          <div role="alert" aria-live="assertive" className="flex gap-3 items-start">
-            <AlertTriangle className="text-terracotta-ink shrink-0 mt-0.5" size={22} aria-hidden="true" />
+        <section aria-labelledby={`${callPanelId}-alerta`} className="rounded-2xl bg-terracotta-wash p-4 text-left">
+          <div role="alert" aria-live="assertive" className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 shrink-0 text-terracotta-ink" size={22} aria-hidden="true" />
             <div className="min-w-0">
-              <h4 id={`${callPanelId}-alerta`} className="text-base font-bold leading-snug text-terracotta-ink">
+              <h4 id={`${callPanelId}-alerta`} className="text-body font-bold text-terracotta-ink">
                 {isTwoHours ? "Pasaron 2 horas sin llegar a 10 movimientos" : "Van 90 minutos sin llegar a 10 movimientos"}
               </h4>
-              <p className="mt-1 text-sm leading-relaxed text-stone-800 dark:text-[#eae6e1]">
+              <p className="mt-1 text-meta text-ink">
                 {isTwoHours
                   ? isPapa
                     ? "Llama ahora a su obstetra o vayan a urgencias para que revisen al bebé."
@@ -2100,7 +2111,7 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
                     ? `Pídele a ${her} que se recueste de lado y sigan contando con calma. Si a las 2 horas no llegan a 10 movimientos, llama a su obstetra o vayan a urgencias.`
                     : "Recuéstate de lado y sigue contando con calma. Si a las 2 horas no llegas a 10 movimientos, llama a tu obstetra o ve a urgencias."}
               </p>
-              <p className="mt-2 text-sm font-semibold leading-relaxed text-stone-900 dark:text-[#eae6e1]">
+              <p className="mt-2 text-meta font-bold text-ink">
                 {isPapa
                   ? `Si ${her} nota que se mueve menos de lo habitual, no esperen a completar el conteo: llama.`
                   : "Si notas que se mueve menos de lo habitual, no esperes a completar el conteo: llama."}
@@ -2111,15 +2122,15 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
         </section>
       )}
 
-      {/* TRACKER VISUAL DE 10 PASOS */}
-      <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] space-y-3">
-        <div className="flex items-center justify-between text-xs font-bold">
-          <span className="text-stone-700 dark:text-[#eae6e1]">Progreso de la sesión</span>
+      {/* PROGRESO DE LA SESIÓN: 10 pasos */}
+      <div className="space-y-3">
+        <div className="flex items-baseline justify-between gap-3 text-meta font-bold">
+          <span className="text-ink">Progreso de la sesión</span>
           {/* Región viva: cada toque se anuncia ("3 de 10 movimientos") sin mover el foco del botón grande. */}
-          <span className="text-sage-ink" aria-live="polite" aria-atomic="true">{count} de 10 movimientos</span>
+          <span className="tabular-nums text-sage-ink" aria-live="polite" aria-atomic="true">{count} de 10 movimientos</span>
         </div>
 
-        {/* 10 Pills Indicadoras (decorativas: el conteo ya se dice en texto) */}
+        {/* 10 pasos (decorativos: el conteo ya se dice en texto) */}
         <div className="grid grid-cols-10 gap-1.5" aria-hidden="true">
           {Array.from({ length: 10 }).map((_, idx) => {
             const isDone = idx < count;
@@ -2127,86 +2138,70 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
             return (
               <div
                 key={idx}
-                className={`h-9 rounded-xl flex items-center justify-center text-xs font-bold transition-all ${
+                className={`grid aspect-square place-items-center rounded-full text-micro font-bold tabular-nums transition-colors ${
                   isDone
-                    ? "bg-terracotta-ink text-white shadow-xs scale-100"
+                    ? "bg-sage-ink text-on-accent"
                     : isCurrent
-                    ? "bg-terracotta/20 dark:bg-[#241b12] text-terracotta-ink border-2 border-terracotta-ink animate-pulse motion-reduce:animate-none scale-105"
-                    : "bg-stone-100 dark:bg-[#2d273a] text-stone-600 dark:text-[#a6a1b2]"
+                    ? "border-2 border-terracotta-ink bg-terracotta-wash text-terracotta-ink"
+                    : "border border-line-strong text-ink-subtle"
                 }`}
               >
-                {isDone ? <Check size={14} /> : idx + 1}
+                {isDone ? <Check size={14} strokeWidth={2.5} /> : idx + 1}
               </div>
             );
           })}
         </div>
-
-        {/* Barra de progreso suave */}
-        <div className="w-full bg-stone-100 dark:bg-[#2d273a] rounded-full h-2 overflow-hidden" aria-hidden="true">
-          <div
-            className="bg-sage-ink h-full transition-all duration-300 rounded-full"
-            style={{ width: `${Math.min(100, (count / 10) * 100)}%` }}
-          />
-        </div>
       </div>
 
-      {/* BOTÓN PRINCIPAL DE CONTEO ERGONÓMICO */}
+      {/* BOTÓN PRINCIPAL DE CONTEO ERGONÓMICO (240px) */}
       <div className="relative flex flex-col items-center justify-center py-2">
-        <button 
+        <button
           type="button"
           onClick={handleKick}
           disabled={count >= 10}
           aria-label={count >= 10 ? "Conteo completo: 10 de 10 movimientos" : "Registrar movimiento del bebé"}
-          className={`relative z-10 w-60 h-60 rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-200 transform active:scale-95 motion-reduce:active:scale-100 select-none ${sosFocusRing} bg-sage-ink text-white border-4 border-white dark:border-white/15 ${
-            count >= 10 ? "cursor-default" : "hover:bg-sage-ink-hover hover:scale-[1.02] motion-reduce:hover:scale-100"
+          className={`relative z-10 flex h-60 w-60 select-none flex-col items-center justify-center rounded-full bg-sage-ink text-on-accent shadow-[0_18px_40px_-20px_rgb(45_42_38/0.6)] ring-8 ring-sage-wash transition-[background-color,transform] duration-200 active:scale-95 motion-reduce:active:scale-100 ${sosFocusRing} ${
+            count >= 10 ? "cursor-default" : "hover:bg-sage-ink-hover"
           }`}
         >
           {count < 10 ? (
             <>
-              <span className="text-8xl font-black tracking-tighter leading-none">{count}</span>
-              <span className="text-sm font-bold mt-2 bg-black/20 px-3 py-1 rounded-full text-white">
+              <span className="font-display text-[6rem] font-bold leading-none tabular-nums">{count}</span>
+              <span className="mt-2 rounded-full bg-sage-ink-hover px-3 py-1 text-meta font-bold">
                 {count === 0 && !startTime ? (isPapa ? "Toca cuando lo sienta" : "Toca en cada movimiento") : "Registrar movimiento"}
               </span>
-              <span className="text-xs text-white mt-1 font-medium">
+              <span className="mt-1.5 text-micro font-medium">
                 {count === 0 ? (startTime ? "El tiempo ya corre" : "El primero inicia el tiempo") : `Faltan ${10 - count} para la meta`}
               </span>
             </>
           ) : (
             <>
               <CheckCircle2 size={40} className="mb-1" aria-hidden="true" />
-              <span className="text-4xl font-black tracking-tight leading-tight tabular-nums">10 de 10</span>
-              <span className="text-xs font-bold tracking-tight text-white mt-1">Conteo completo</span>
+              <span className="font-display text-[2.5rem] font-bold leading-tight tabular-nums">10 de 10</span>
+              <span className="mt-1 text-micro font-bold">Conteo completo</span>
             </>
           )}
         </button>
 
-        {/* Botón Deshacer (-1) cuando hay conteo activo */}
+        {/* Deshacer (-1) cuando hay conteo activo */}
         {count > 0 && count < 10 && (
-          <button
-            type="button"
-            onClick={handleUndo}
-            className={`mt-4 inline-flex min-h-[44px] items-center gap-1.5 text-xs font-bold text-stone-600 dark:text-[#eae6e1] hover:text-stone-900 dark:hover:text-white bg-white dark:bg-[#2d273a] border border-stone-200 dark:border-white/10 hover:bg-stone-50 dark:hover:bg-[#2a2e37] px-3.5 py-1.5 rounded-full shadow-xs active:scale-95 transition-all ${sosFocusRing}`}
-          >
-            <Undo2 size={13} aria-hidden="true" /> Deshacer último movimiento
-          </button>
+          <RowButton onClick={handleUndo} className="mt-5">
+            <Undo2 size={14} aria-hidden="true" /> Deshacer último movimiento
+          </RowButton>
         )}
 
         {count === 0 && !startTime && (
-          <button
-            type="button"
-            onClick={startEmptySession}
-            className="mt-4 inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-stone-300 dark:border-white/15 bg-white dark:bg-[#2d273a] px-4 text-sm font-bold text-stone-800 dark:text-[#eae6e1] hover:bg-stone-50 dark:hover:bg-[#352e44] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
-          >
+          <RowButton onClick={startEmptySession} className="mt-5">
             <Clock size={16} aria-hidden="true" />
             {isPapa ? "Aún no lo siente: iniciar el tiempo" : "Aún no lo siento: iniciar el tiempo"}
-          </button>
+          </RowButton>
         )}
 
         {/* Atajo de teclado accesible */}
         {count < 10 && (
-          <div className="mt-3 text-xs text-stone-500 dark:text-[#a6a1b2] font-medium flex items-center gap-1.5 select-none">
+          <div className="mt-3 flex select-none items-center gap-1.5 text-micro font-medium text-ink-subtle">
             <span>Con teclado, pulsa</span>
-            <kbd className="px-1.5 py-0.5 text-xs font-mono font-semibold bg-stone-100 dark:bg-[#2d273a] border border-stone-300 dark:border-white/10 rounded text-stone-700 dark:text-[#eae6e1] shadow-2xs">
+            <kbd className="rounded border border-line-strong bg-surface-sunken px-1.5 py-0.5 font-mono text-micro font-bold text-ink">
               Espacio
             </kbd>
             <span>para registrar un movimiento</span>
@@ -2217,97 +2212,88 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
       {/* LLAMAR SIN ESPERAR AL CONTEO (la alerta de 90 min ya trae sus propias llamadas) */}
       {!isOvertime && (
         <QuickCallBlock context="patadas">
-          <p className="text-sm leading-relaxed text-stone-700 dark:text-[#eae6e1]">
+          <p className="text-meta text-ink-muted">
             {isPapa ? (
-              <><strong className="font-bold text-stone-900 dark:text-[#eae6e1]">Si {her} nota que se mueve menos de lo habitual,</strong> no esperen a completar el conteo: llama.</>
+              <><strong className="font-bold text-ink">Si {her} nota que se mueve menos de lo habitual,</strong> no esperen a completar el conteo: llama.</>
             ) : (
-              <><strong className="font-bold text-stone-900 dark:text-[#eae6e1]">Si notas que se mueve menos de lo habitual,</strong> no esperes a completar el conteo: llama.</>
+              <><strong className="font-bold text-ink">Si notas que se mueve menos de lo habitual,</strong> no esperes a completar el conteo: llama.</>
             )}
           </p>
         </QuickCallBlock>
       )}
 
-      {/* TARJETA DE CRONÓMETRO Y ACCIONES DE SESIÓN */}
-      <div className="bg-white dark:bg-[#221d2d] w-full rounded-3xl shadow-xs border border-stone-100 dark:border-white/[0.08] p-4 flex flex-col gap-3">
-        <div className="flex justify-between items-center">
+      {/* TIEMPO DE LA SESIÓN Y RITMO */}
+      <div>
+        <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="bg-sage/10 dark:bg-[#1a1724] text-sage-ink p-2.5 rounded-2xl">
-              <Clock size={22} className={startTime ? "animate-pulse motion-reduce:animate-none text-sage-ink" : ""} />
-            </div>
+            <Clock size={22} strokeWidth={1.75} className="shrink-0 text-sage-ink" aria-hidden="true" />
             <div>
-              <p className="text-xs text-sage-ink font-bold tracking-tight">Tiempo de la sesión</p>
-              <p className="text-2xl font-black text-stone-800 dark:text-[#eae6e1] tracking-tight font-mono tabular-nums">{formatTimer(elapsedSeconds)}</p>
+              <p className="text-micro font-bold text-sage-ink">Tiempo de la sesión</p>
+              <p className="text-title font-extrabold tabular-nums text-ink">{formatTimer(elapsedSeconds)}</p>
             </div>
           </div>
-          
-          <button 
-            type="button"
-            onClick={reset} 
-            className="min-h-[44px] text-terracotta-ink font-bold text-xs bg-terracotta/10 hover:bg-terracotta/20 dark:bg-terracotta/[0.12] dark:hover:bg-terracotta/20 px-3.5 py-2 rounded-xl transition-colors tracking-tight flex items-center gap-1.5 active:scale-95 border border-terracotta-ink/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
-            title="Borra los movimientos y el tiempo de esta sesión"
-          >
-            <RotateCcw size={13} aria-hidden="true" /> Descartar conteo
-          </button>
+
+          <RowButton tone="danger" onClick={reset} title="Borra los movimientos y el tiempo de esta sesión">
+            <RotateCcw size={14} aria-hidden="true" /> Descartar conteo
+          </RowButton>
         </div>
 
-        {/* Desplegable de Ritmo/Timeline de Patadas Registradas */}
+        {/* Desplegable del ritmo de los movimientos registrados */}
         {kicks.length > 0 && (
-          <div className="pt-2 border-t border-stone-100 dark:border-white/[0.06]">
+          <div className="mt-3 border-t border-line pt-1">
             <button
               type="button"
               onClick={() => setShowTimeline(!showTimeline)}
               aria-expanded={showTimeline}
               aria-controls={`${callPanelId}-ritmo`}
-              className={`w-full min-h-[44px] flex items-center justify-between rounded-lg text-xs font-bold text-stone-600 dark:text-[#a6a1b2] hover:text-stone-900 dark:hover:text-[#eae6e1] py-1 transition-colors ${sosFocusRing}`}
+              className={`flex min-h-11 w-full items-center justify-between rounded-lg text-meta font-bold text-ink-muted transition-colors hover:text-ink ${sosFocusRing}`}
             >
               <span className="flex items-center gap-1.5">
-                <Activity size={14} className="text-sage-ink" />
+                <Activity size={15} className="text-sage-ink" aria-hidden="true" />
                 <span>Ver ritmo de movimientos ({kicks.length} registrados)</span>
               </span>
-              {showTimeline ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              {showTimeline ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
             </button>
 
             {showTimeline && (
-              <div id={`${callPanelId}-ritmo`} className="mt-2.5 space-y-1.5 max-h-48 overflow-y-auto no-scrollbar pt-1">
+              <ol id={`${callPanelId}-ritmo`} className="no-scrollbar max-h-48 divide-y divide-line overflow-y-auto">
                 {kicks.map((k, idx) => (
-                  <div key={k.id} className="flex justify-between items-center text-xs bg-slate-50 dark:bg-[#2d273a]/60 px-3 py-1.5 rounded-xl border border-slate-100 dark:border-white/[0.06]">
-                    <span className="font-bold text-stone-700 dark:text-[#eae6e1]">Movimiento {idx + 1}</span>
-                    <span className="text-stone-500 dark:text-[#a6a1b2] font-mono">{k.timeStr}</span>
-                    <span className="text-sage-ink font-semibold text-xs">
+                  <li key={k.id} className="grid grid-cols-3 items-center gap-2 py-2 text-micro">
+                    <span className="font-bold text-ink">Movimiento {idx + 1}</span>
+                    <span className="text-center tabular-nums text-ink-subtle">{k.timeStr}</span>
+                    <span className="text-right font-bold tabular-nums text-sage-ink">
                       {k.intervalSecs !== null ? `+${formatDurationText(k.intervalSecs)}` : "Inicio"}
                     </span>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ol>
             )}
           </div>
         )}
       </div>
 
-      {/* TARJETA DE CELEBRACIÓN Y NOTA AL COMPLETAR */}
+      {/* SESIÓN COMPLETADA: nota y nueva sesión (una sola caja en lavado sage) */}
       {completedSession && (
-        <div className="bg-sage-ink text-white rounded-3xl p-5 shadow-lg space-y-4 animate-in zoom-in-95 duration-200">
-          <div className="flex items-start justify-between">
+        <div className="space-y-4 rounded-2xl bg-sage-wash p-5">
+          <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="bg-white/20 p-2.5 rounded-2xl">
-                <CheckCircle2 size={24} aria-hidden="true" />
-              </div>
+              <CheckCircle2 size={28} className="shrink-0 text-sage-ink" aria-hidden="true" />
               <div>
-                <h4 className="text-lg font-black leading-tight">Sesión guardada</h4>
-                <p className="text-xs text-white mt-0.5">10 movimientos completados en {completedSession.durationFormatted}</p>
+                <h4 className="font-display text-subtitle text-ink">Sesión guardada</h4>
+                <p className="text-meta text-ink-muted">10 movimientos completados en {completedSession.durationFormatted}</p>
               </div>
             </div>
             <button
               type="button"
               onClick={() => setCompletedSession(null)}
-              className={`text-white hover:text-white min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-xl hover:bg-white/10 transition-colors ${onFillFocusRing}`}
+              className={`-me-2 -mt-2 ${iconButton}`}
               aria-label="Cerrar aviso de sesión completada"
             >
-              <X size={18} />
+              <X size={18} aria-hidden="true" />
             </button>
           </div>
 
-          <p className={`text-xs text-white leading-relaxed bg-black/15 p-3 rounded-2xl${slowSession ? " font-semibold" : ""}`}>
+          <p className={`text-meta ${slowSession ? "font-bold text-ink" : "text-ink-muted"}`}>
             {slowSession
               ? isPapa
                 ? `${slowLead} Si ${her} siente que se mueve menos de lo habitual, llama hoy a su obstetra.`
@@ -2321,26 +2307,22 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
           {slowSession && <CallActions context="patadas" />}
 
           <div>
-            <p className="text-xs font-bold tracking-tight text-white mb-2">Agrega una nota a la sesión:</p>
-              <div className="flex flex-wrap gap-1.5">
-                {[
-                  "Después de comer",
-                  "En reposo",
-                  "Con música",
-                  "Por la noche",
-                  "En la mañana",
-                  "Tras caminar"
-                ].map(note => (
+            <p className="mb-2 text-meta font-bold text-ink">Agrega una nota a la sesión:</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                "Después de comer",
+                "En reposo",
+                "Con música",
+                "Por la noche",
+                "En la mañana",
+                "Tras caminar"
+              ].map(note => (
                 <button
                   key={note}
                   type="button"
                   onClick={() => saveSessionNote(note)}
                   aria-pressed={selectedNote === note}
-                  className={`min-h-[44px] text-xs px-3 py-1.5 rounded-xl font-medium transition-all ${onFillFocusRing} ${
-                    selectedNote === note
-                      ? "bg-white text-sage-ink dark:text-sage-ink-hover font-bold shadow-sm"
-                      : "bg-black/15 text-white hover:bg-black/25"
-                  }`}
+                  className={chip(selectedNote === note)}
                 >
                   {note}
                 </button>
@@ -2348,30 +2330,20 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={reset}
-            // Blanco en ambos temas: en oscuro la tinta de texto (#89bca0) daría 2.15:1; la de relleno oscuro da 7.1:1.
-            className={`w-full min-h-[48px] py-3 bg-white text-sage-ink dark:text-sage-ink-hover rounded-2xl font-bold text-sm hover:bg-stone-100 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2 ${onFillFocusRing}`}
-          >
-            <RotateCcw size={14} aria-hidden="true" /> Iniciar una sesión nueva
+          <button type="button" onClick={reset} className={`w-full ${btnSage}`}>
+            <RotateCcw size={16} aria-hidden="true" /> Iniciar una sesión nueva
           </button>
         </div>
       )}
 
       {/* PROMEDIO PERSONAL (sin juicios clínicos: solo tu referencia) */}
       {avgDurationMinutes !== null && (
-        <div className="bg-sage/10 dark:bg-[#221d2d] rounded-3xl p-4 border border-sage/20 dark:border-white/[0.08] flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="bg-sage/20 dark:bg-[#1a1724] text-sage-ink p-2.5 rounded-2xl">
-              <Trophy size={20} aria-hidden="true" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-stone-800 dark:text-[#eae6e1]">{isPapa ? "Su promedio para llegar a 10" : "Tu promedio para llegar a 10"}</p>
-              <p className="text-lg font-black text-sage-ink tabular-nums">~{avgDurationMinutes} minutos</p>
-            </div>
+        <div className="flex items-center justify-between gap-3 border-y border-line py-3">
+          <div>
+            <p className="text-meta font-bold text-ink">{isPapa ? "Su promedio para llegar a 10" : "Tu promedio para llegar a 10"}</p>
+            <p className="font-display text-subtitle tabular-nums text-sage-ink">~{avgDurationMinutes} minutos</p>
           </div>
-          <span className="text-xs font-semibold text-stone-600 dark:text-[#a6a1b2] tabular-nums">
+          <span className="text-micro font-medium tabular-nums text-ink-subtle">
             {validSessions.length} {validSessions.length === 1 ? "sesión" : "sesiones"}
           </span>
         </div>
@@ -2379,9 +2351,9 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
 
       {/* HISTORIAL DE SESIONES */}
       <div>
-        <div className="flex flex-wrap justify-between items-center gap-x-3 gap-y-1 mb-3">
-          <h4 className="font-bold text-stone-800 dark:text-[#eae6e1] flex items-center gap-2 text-sm">
-            <History size={18} className="text-sage-ink" aria-hidden="true" /> Historial ({sessions.length})
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+          <h4 className={blockTitle}>
+            Historial <span className="font-sans text-meta font-bold tabular-nums text-ink-subtle">({sessions.length})</span>
           </h4>
           <SyncBadge lastSyncedAt={history.meta?.updatedAt ?? null} waiting={!history.loaded} />
         </div>
@@ -2401,59 +2373,58 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
         {history.loadError ? null : !history.loaded && sessions.length === 0 ? (
           <SharedLoading what="el historial compartido" />
         ) : sessions.length === 0 ? (
-          <div className="bg-stone-50 dark:bg-[#221d2d]/60 rounded-2xl p-6 text-center border border-dashed border-stone-200 dark:border-white/[0.08]">
-            <Baby className="mx-auto text-stone-400 dark:text-[#a6a1b2]/50 mb-2" size={32} aria-hidden="true" />
-            <p className="text-stone-600 dark:text-[#a6a1b2] text-sm">Aún no hay sesiones guardadas. Completa 10 movimientos para guardar la primera.</p>
+          <div className="py-8 text-center">
+            <Baby className="mx-auto text-ink-subtle" size={28} strokeWidth={1.75} aria-hidden="true" />
+            <p className="mx-auto mt-2 max-w-xs text-meta text-ink-muted">Aún no hay sesiones guardadas. Completa 10 movimientos para guardar la primera.</p>
           </div>
         ) : (
-          <div className="space-y-2.5">
-            {sessions.map(s => (
-              <div key={s.id} className="bg-white dark:bg-[#221d2d] p-3.5 rounded-2xl border border-stone-200/80 dark:border-white/[0.08] shadow-xs flex justify-between items-center group hover:border-sage/30 dark:hover:border-sage/30 transition-all">
-                <div className="flex items-center gap-3">
-                  <div className="bg-emerald-50 dark:bg-[#1a1724] text-sage-hover dark:text-sage/80 p-2 rounded-xl shrink-0">
-                    <CheckCircle size={18}/>
-                  </div>
-                  <div className="min-w-0">
-                    <span className="flex items-center gap-1.5 font-bold text-stone-800 dark:text-[#eae6e1] text-xs leading-tight">
-                      {s.timestamp > 0 ? formatDayTime(s.timestamp, listNow) : s.dateFormatted}
+          <ListGroup>
+            {sessions.map((s) => {
+              const when = s.timestamp > 0 ? formatDayTime(s.timestamp, listNow) : s.dateFormatted;
+              return (
+                <ListRow
+                  key={s.id}
+                  leading={<CheckCircle size={20} strokeWidth={1.75} className="text-sage-ink" />}
+                  title={
+                    <span className="flex items-center gap-1.5">
+                      {when}
                       {history.linked && <ItemAuthor item={s} members={me.members} />}
                     </span>
-                    {history.unsentIds.has(String(s.id)) && (
-                      <span className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-amber-800 dark:text-amber-300">
-                        <CloudOff size={12} aria-hidden="true" /> Sin enviar
-                      </span>
-                    )}
-                    {s.note && (
-                      <span className="text-xs font-medium text-sage-ink bg-sage/10 dark:bg-[#1a1724] px-2 py-0.5 rounded-md inline-block mt-0.5">
-                        {s.note}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="text-right">
-                    <p className="text-xs font-black text-stone-800 dark:text-[#eae6e1]">{s.count} movimientos</p>
-                    <p className="text-xs font-semibold text-stone-500 dark:text-[#a6a1b2] font-mono">en {s.durationFormatted}</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => deleteSession(s)}
-                    aria-label={`Eliminar sesión de ${s.timestamp > 0 ? formatDayTime(s.timestamp, listNow) : s.dateFormatted}`}
-                    className={`min-w-[44px] min-h-[44px] flex items-center justify-center text-stone-500 dark:text-[#a6a1b2] hover:text-terracotta-ink hover:bg-stone-100 dark:hover:bg-[#2d273a] p-2 rounded-xl transition-colors ${sosFocusRing}`}
-                  >
-                    <Trash2 size={16} aria-hidden="true" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+                  }
+                  meta={
+                    <>
+                      <span className="tabular-nums">{s.count} movimientos en {s.durationFormatted}</span>
+                      {history.unsentIds.has(String(s.id)) && (
+                        <span className="mt-0.5 flex items-center gap-1 text-micro font-bold text-amber-ink">
+                          <CloudOff size={12} aria-hidden="true" /> Sin enviar
+                        </span>
+                      )}
+                      {s.note && (
+                        <span className="mt-1 block w-fit rounded-md bg-sage-wash px-2 py-0.5 text-micro font-bold text-sage-ink">{s.note}</span>
+                      )}
+                    </>
+                  }
+                  trailing={
+                    <button
+                      type="button"
+                      onClick={() => deleteSession(s)}
+                      aria-label={`Eliminar sesión de ${when}`}
+                      className={iconButtonDanger}
+                    >
+                      <Trash2 size={16} aria-hidden="true" />
+                    </button>
+                  }
+                />
+              );
+            })}
+          </ListGroup>
         )}
       </div>
 
     </div>
   );
 }
+
 
 type ContractionItem = { id: number; start: number; duration: number; interval: number | null } & Authored;
 
@@ -2662,34 +2633,31 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
   const showPretermAlert = pretermAlert && !activeLabor;
 
   return (
-    <div className="flex flex-col py-2 animate-in fade-in duration-300 w-full space-y-4">
+    <div className="mx-auto flex w-full max-w-lg flex-col gap-6 py-2">
 
       {/* Alerta: posible parto pretérmino (antes de la semana 37, 4 o más en 1 hora) */}
       {showPretermAlert && (
-        <section
-          aria-labelledby={`${alertId}-pretermino`}
-          className="rounded-3xl border border-terracotta-ink/35 bg-terracotta/10 dark:bg-terracotta/[0.12] p-4 animate-in slide-in-from-top-3"
-        >
+        <section aria-labelledby={`${alertId}-pretermino`} className="rounded-2xl bg-terracotta-wash p-4">
           <div role="alert" aria-live="assertive" className="flex gap-3">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-terracotta-ink text-white">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-terracotta-ink text-on-accent">
               <AlertTriangle size={22} aria-hidden="true" />
             </span>
             <div className="min-w-0">
-              <h3 id={`${alertId}-pretermino`} className="text-base font-bold leading-snug text-terracotta-ink">
+              <h3 id={`${alertId}-pretermino`} className="text-body font-bold text-terracotta-ink">
                 {weekKnown ? "Posible parto pretérmino" : "4 o más contracciones en la última hora"}
               </h3>
               {weekKnown ? (
-                <p className="mt-1 text-sm leading-relaxed text-stone-800 dark:text-[#eae6e1]">
+                <p className="mt-1 text-meta text-ink">
                   {isPapa
                     ? `Registraron ${recentCount} contracciones en la última hora y ${her} está en la semana ${week}.`
                     : `Registraste ${recentCount} contracciones en la última hora y estás en la semana ${week}.`}{" "}
-                  <strong className="font-bold text-stone-900 dark:text-white">{isPapa ? "Llama ya a su obstetra o a emergencias." : "Llama ya a tu obstetra o a emergencias."}</strong>{" "}
+                  <strong className="font-bold">{isPapa ? "Llama ya a su obstetra o a emergencias." : "Llama ya a tu obstetra o a emergencias."}</strong>{" "}
                   {isPapa ? "No esperen a que se detengan." : "No esperes a que se detengan."}
                 </p>
               ) : (
-                <p className="mt-1 text-sm leading-relaxed text-stone-800 dark:text-[#eae6e1]">
+                <p className="mt-1 text-meta text-ink">
                   {isPapa ? `Registraron ${recentCount} contracciones en la última hora.` : `Registraste ${recentCount} contracciones en la última hora.`}{" "}
-                  <strong className="font-bold text-stone-900 dark:text-white">
+                  <strong className="font-bold">
                     {isPapa ? `Si ${her} está antes de la semana 37, llama ya a su obstetra o a emergencias:` : "Si estás antes de la semana 37, llama ya a tu obstetra o a emergencias:"}
                   </strong>{" "}
                   puede ser parto pretérmino. {isPapa ? "Indiquen la semana en Ajustes para que el aviso sea exacto." : "Indica tu semana en Ajustes para que el aviso sea exacto."}
@@ -2703,21 +2671,18 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
 
       {/* Alerta: posible trabajo de parto activo (regla 5-1-1, semana 37 o más) */}
       {activeLabor && (
-        <section
-          aria-labelledby={`${alertId}-511`}
-          className="rounded-3xl border border-terracotta-ink/35 bg-terracotta/10 dark:bg-terracotta/[0.12] p-4 animate-in slide-in-from-top-3"
-        >
+        <section aria-labelledby={`${alertId}-511`} className="rounded-2xl bg-terracotta-wash p-4">
           <div role="alert" aria-live="assertive" className="flex gap-3">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-terracotta-ink text-white">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-terracotta-ink text-on-accent">
               <AlertTriangle size={22} aria-hidden="true" />
             </span>
             <div className="min-w-0">
-              <h3 id={`${alertId}-511`} className="text-base font-bold leading-snug text-terracotta-ink">
+              <h3 id={`${alertId}-511`} className="text-body font-bold text-terracotta-ink">
                 Posible trabajo de parto activo
               </h3>
-              <p className="mt-1 text-sm leading-relaxed text-stone-800 dark:text-[#eae6e1]">
+              <p className="mt-1 text-meta text-ink">
                 En la última hora {isPapa ? "sus" : "tus"} contracciones llegaron cada {formatTime(avgInterval)} en promedio y duraron unos {formatTime(avgDuration)}.{" "}
-                <strong className="font-bold text-stone-900 dark:text-white">{isPapa ? "Es momento de llamar a su obstetra o ir al hospital." : "Es momento de llamar a tu obstetra o ir al hospital."}</strong>
+                <strong className="font-bold">{isPapa ? "Es momento de llamar a su obstetra o ir al hospital." : "Es momento de llamar a tu obstetra o ir al hospital."}</strong>
               </p>
             </div>
           </div>
@@ -2725,38 +2690,39 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
         </section>
       )}
 
-      {/* Tarjetas de Promedios (última hora) */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] flex flex-col items-center justify-center text-center">
-          <p className="text-xs text-stone-600 dark:text-[#a6a1b2] font-bold tracking-tight mb-1">Duración media</p>
-          <p className="text-xl font-black text-sage-ink tabular-nums">{recentCount > 0 ? formatTime(avgDuration) : "—"}</p>
-          <p className="text-xs text-stone-600 dark:text-[#a6a1b2] mt-0.5">última hora</p>
+      {/* Promedios de la última hora: dos cifras entre filetes, sin tarjetas */}
+      <dl className="grid grid-cols-2 divide-x divide-line border-y border-line">
+        <div className="py-3 pe-3 text-center">
+          <dt className="text-micro font-bold text-ink-muted">Duración media</dt>
+          <dd className="font-display text-display tabular-nums text-ink">{recentCount > 0 ? formatTime(avgDuration) : "—"}</dd>
+          <dd className="text-micro font-medium text-ink-subtle">última hora</dd>
         </div>
-        <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-4 shadow-xs border border-stone-100 dark:border-white/[0.08] flex flex-col items-center justify-center text-center">
-          <p className="text-xs text-stone-600 dark:text-[#a6a1b2] font-bold tracking-tight mb-1">Frecuencia media</p>
-          <p className="text-xl font-black text-terracotta-ink tabular-nums">{avgInterval ? formatTime(avgInterval) : "—"}</p>
-          <p className="text-xs text-stone-600 dark:text-[#a6a1b2] mt-0.5">última hora</p>
+        <div className="py-3 ps-3 text-center">
+          <dt className="text-micro font-bold text-ink-muted">Frecuencia media</dt>
+          <dd className="font-display text-display tabular-nums text-ink">{avgInterval ? formatTime(avgInterval) : "—"}</dd>
+          <dd className="text-micro font-medium text-ink-subtle">última hora</dd>
         </div>
-      </div>
+      </dl>
 
-      {/* Botón Principal del Cronómetro */}
+      {/* Botón principal del cronómetro (ancho completo, ergonomía de la fase 1). Sage como el de Patadas:
+          la terracota es de la alarma y de Emergencias, que no deben competir con el contador. */}
       <button
         type="button"
         onClick={toggleRecording}
-        className={`w-full py-7 rounded-3xl shadow-xl text-white font-bold text-xl flex flex-col items-center justify-center gap-2 transition-all duration-300 transform active:scale-95 motion-reduce:active:scale-100 ${sosFocusRing} ${
+        className={`flex w-full flex-col items-center justify-center gap-2 rounded-3xl py-7 text-on-accent shadow-[0_18px_40px_-20px_rgb(45_42_38/0.6)] transition-[background-color,transform] duration-300 active:scale-95 motion-reduce:active:scale-100 ${sosFocusRing} ${
           isRecording
-            ? "bg-terracotta-ink-hover ring-4 ring-terracotta/35"
-            : "bg-terracotta-ink hover:bg-terracotta-ink-hover"
+            ? "bg-sage-ink-hover ring-4 ring-sage/40"
+            : "bg-sage-ink hover:bg-sage-ink-hover"
         }`}
         aria-label={isRecording ? "Detener registro de contracción" : "Iniciar registro de contracción"}
       >
-        <div className="flex items-center gap-2">
-          {isRecording ? <Square size={32} /> : <Play size={32} />}
-          <span className="text-2xl font-black tracking-tight tabular-nums">
+        <span className="flex items-center gap-2">
+          {isRecording ? <Square size={30} aria-hidden="true" /> : <Play size={30} aria-hidden="true" />}
+          <span className="text-title font-extrabold tabular-nums">
             {isRecording ? formatTime(currentDuration) : "Iniciar contracción"}
           </span>
-        </div>
-        <span className="text-xs font-medium">
+        </span>
+        <span className="text-micro font-medium">
           {isRecording
             ? isPapa ? `Toca cuando ${her} te diga que terminó` : "Toca o presiona Espacio al terminar"
             : isPapa ? `Toca cuando ${her} te diga que empieza` : "Toca o presiona Espacio al sentir que inicia"}
@@ -2769,21 +2735,21 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
           <div className="flex gap-3">
             <Info size={20} className="mt-0.5 shrink-0 text-terracotta-ink" aria-hidden="true" />
             {preterm ? (
-              <p className="text-sm leading-relaxed text-stone-700 dark:text-[#eae6e1]">
-                {isPapa ? `${Her} está en la semana ${week}.` : `Estás en la semana ${week}.`} Antes de la semana 37, <strong className="font-bold text-stone-900 dark:text-white">4 o más contracciones en 1 hora</strong>, presión en la pelvis o dolor lumbar que va y viene son motivo para llamar ya.
+              <p className="text-meta text-ink-muted">
+                {isPapa ? `${Her} está en la semana ${week}.` : `Estás en la semana ${week}.`} Antes de la semana 37, <strong className="font-bold text-ink">4 o más contracciones en 1 hora</strong>, presión en la pelvis o dolor lumbar que va y viene son motivo para llamar ya.
                 {recentCount > 0 && ` En la última hora ${isPapa ? "llevan" : "llevas"} ${recentCount} ${recentCount === 1 ? "contracción" : "contracciones"}.`}
               </p>
             ) : !weekKnown ? (
-              <p className="text-sm leading-relaxed text-stone-700 dark:text-[#eae6e1]">
-                {isPapa ? "No tenemos confirmada la semana" : "No tenemos confirmada tu semana"}, así que vigilamos las dos reglas. <strong className="font-bold text-stone-900 dark:text-white">Antes de la semana 37:</strong> 4 o más contracciones en 1 hora son motivo para llamar ya. <strong className="font-bold text-stone-900 dark:text-white">Desde la semana 37:</strong> cada 5 minutos o menos, de 1 minuto, durante 1 hora (5-1-1).
+              <p className="text-meta text-ink-muted">
+                {isPapa ? "No tenemos confirmada la semana" : "No tenemos confirmada tu semana"}, así que vigilamos las dos reglas. <strong className="font-bold text-ink">Antes de la semana 37:</strong> 4 o más contracciones en 1 hora son motivo para llamar ya. <strong className="font-bold text-ink">Desde la semana 37:</strong> cada 5 minutos o menos, de 1 minuto, durante 1 hora (5-1-1).
                 {recentCount > 0 && ` En la última hora ${isPapa ? "llevan" : "llevas"} ${recentCount} ${recentCount === 1 ? "contracción" : "contracciones"}.`}
               </p>
             ) : (
-              <p className="text-sm leading-relaxed text-stone-700 dark:text-[#eae6e1]">
+              <p className="text-meta text-ink-muted">
                 {isPapa ? (
-                  <><strong className="font-bold text-stone-900 dark:text-white">Si se rompe la fuente, {her} tiene sangrado o el bebé se mueve menos,</strong> no esperen a la regla 5-1-1 (contracciones cada 5 minutos, de 1 minuto, durante 1 hora): llama.</>
+                  <><strong className="font-bold text-ink">Si se rompe la fuente, {her} tiene sangrado o el bebé se mueve menos,</strong> no esperen a la regla 5-1-1 (contracciones cada 5 minutos, de 1 minuto, durante 1 hora): llama.</>
                 ) : (
-                  <><strong className="font-bold text-stone-900 dark:text-white">Si se rompe la fuente, tienes sangrado o el bebé se mueve menos,</strong> no esperes a la regla 5-1-1 (contracciones cada 5 minutos, de 1 minuto, durante 1 hora): llama.</>
+                  <><strong className="font-bold text-ink">Si se rompe la fuente, tienes sangrado o el bebé se mueve menos,</strong> no esperes a la regla 5-1-1 (contracciones cada 5 minutos, de 1 minuto, durante 1 hora): llama.</>
                 )}
               </p>
             )}
@@ -2791,42 +2757,38 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
         </QuickCallBlock>
       )}
 
-      {/* MODO RECUPERACIÓN Y RESPIRACIÓN GUIADA ENTRE CONTRACCIONES */}
+      {/* DESCANSO Y RESPIRACIÓN ENTRE CONTRACCIONES (una caja en lavado sage, quieta) */}
       {!isRecording && history.length > 0 && (
-        <div className="bg-sage/[0.08] dark:bg-[#221d2d] rounded-3xl p-5 border border-sage/30 dark:border-white/[0.08] space-y-4 animate-in fade-in">
-          <div className="flex items-center justify-between border-b border-sage/20 dark:border-white/[0.06] pb-2.5">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-sage-ink animate-ping motion-reduce:animate-none" aria-hidden="true"></span>
-              <h3 className="text-xs font-bold text-stone-900 dark:text-[#eae6e1] tracking-tight">Descanso entre contracciones</h3>
-            </div>
-            <span className="text-xs font-bold text-sage-ink font-mono tabular-nums">
+        <div className="rounded-2xl bg-sage-wash p-5">
+          <div className="flex items-center justify-between gap-3 border-b border-sage/30 pb-3">
+            <h3 className="font-display text-body font-bold text-ink">Descanso entre contracciones</h3>
+            <span className="text-meta font-bold tabular-nums text-sage-ink">
               Descanso: {formatTime(restSeconds)}
             </span>
           </div>
 
-          {/* Pacer Visual de Respiración */}
-          <div className="flex flex-col items-center justify-center py-2 text-center">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-sage/20 to-emerald-400/30 border-2 border-sage flex items-center justify-center animate-pulse motion-reduce:animate-none">
-              <HeartPulse size={32} className="text-sage-ink" aria-hidden="true" />
-            </div>
-            <p className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm mt-3">
+          <div className="flex flex-col items-center py-4 text-center">
+            <span className="grid h-16 w-16 place-items-center rounded-full border-2 border-sage-ink/40 text-sage-ink" aria-hidden="true">
+              <Wind size={28} strokeWidth={1.75} />
+            </span>
+            <p className="mt-3 text-body font-bold text-ink">
               {isPapa ? "Respiren juntos: inhalen lento en 4 s… exhalen suave en 6 s" : "Inhala lento en 4 s… exhala suave en 6 s"}
             </p>
-            <p className="text-xs text-stone-600 dark:text-[#a6a1b2] max-w-xs mt-0.5">
+            <p className="mt-0.5 max-w-xs text-meta text-ink-muted">
               {isPapa ? `Recuérdale a ${her} soltar la mandíbula y los hombros: la ayuda a relajarse entre contracciones.` : "Suelta la mandíbula y los hombros: ayuda a relajarte entre contracciones."}
             </p>
           </div>
 
-          {/* Guía Rápida para el Acompañante */}
-          <div className="border-t border-sage/20 dark:border-white/[0.08] pt-4 text-sm space-y-1.5">
-            <p className="font-bold text-sage-ink flex items-center gap-1.5">
-              <HeartHandshake size={14} className="shrink-0" aria-hidden="true" />
+          {/* Guía rápida para el acompañante */}
+          <div className="border-t border-sage/30 pt-4">
+            <p className="flex items-center gap-1.5 text-meta font-bold text-sage-ink">
+              <HeartHandshake size={15} className="shrink-0" aria-hidden="true" />
               <span>{isPapa ? "Tú, entre contracciones:" : "Para tu acompañante:"}</span>
             </p>
-            <ul className="list-disc space-y-1 pl-5 text-stone-600 dark:text-[#a6a1b2] leading-relaxed marker:text-sage-ink">
+            <ul className="mt-1.5 list-disc space-y-1 ps-5 text-meta text-ink-muted marker:text-sage-ink">
               <li>Ofrece un sorbo pequeño de agua fresca o bálsamo labial.</li>
               <li>Aplica contrapresión firme con el talón de la mano en el sacro (espalda baja).</li>
-              <li>Recuérdale con voz serena: <em>“Respira profundo, lo estás haciendo genial.”</em></li>
+              <li>Recuérdale con voz serena: “Respira profundo, lo estás haciendo genial.”</li>
             </ul>
           </div>
         </div>
@@ -2840,16 +2802,14 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
         {shared.loadError && <LoadErrorNotice what="el historial compartido" onRetry={shared.retryLoad} />}
       </div>
 
-      {/* Historial o Estado Inicial */}
+      {/* Historial o estado inicial */}
       {shared.loadError ? null : !shared.loaded && history.length === 0 ? (
         <SharedLoading what="el historial compartido" />
       ) : history.length === 0 ? (
-        <div className="bg-white dark:bg-[#221d2d] rounded-3xl p-6 border border-dashed border-stone-200 dark:border-white/[0.08] text-center shadow-xs">
-          <div className="bg-sage/10 dark:bg-[#1a1724] w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 text-sage-ink">
-            <HeartPulse size={24} />
-          </div>
-          <h3 className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm mb-1">Sin contracciones registradas</h3>
-          <p className="text-sm text-stone-600 dark:text-[#a6a1b2] max-w-xs mx-auto leading-relaxed">
+        <div className="py-4 text-center">
+          <Timer size={28} strokeWidth={1.75} className="mx-auto text-sage-ink" aria-hidden="true" />
+          <h3 className="mt-2 font-display text-body font-bold text-ink">Sin contracciones registradas</h3>
+          <p className="mx-auto mt-1 max-w-xs text-meta text-ink-muted">
             {isPapa
               ? preterm || !weekKnown
                 ? `Cuando ${her} sienta que su vientre se endurece, toca el botón grande al empezar y otra vez al terminar. Les avisamos si registran 4 o más contracciones en 1 hora (antes de la semana 37) o si se cumple la regla 5-1-1.`
@@ -2859,54 +2819,46 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
                 : "Cuando sientas que tu vientre se endurece, toca el botón grande al empezar y otra vez al terminar. Medimos la última hora y te avisamos cuando se cumpla la regla 5-1-1: cada 5 minutos o menos, de 1 minuto o más, durante 1 hora."}
           </p>
           {!preterm && (
-            <p className="mt-2 text-sm text-stone-600 dark:text-[#a6a1b2] max-w-xs mx-auto leading-relaxed">
+            <p className="mx-auto mt-2 max-w-xs text-meta text-ink-muted">
               Las contracciones de práctica (Braxton Hicks) suelen ser irregulares y se calman al descansar; las de trabajo de parto se vuelven regulares, más largas y más seguidas.
             </p>
           )}
         </div>
       ) : (
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <h3 id={`${alertId}-historial`} className="font-bold text-stone-800 dark:text-[#eae6e1] text-sm flex items-center gap-2">
-              <Timer size={18} className="text-terracotta-ink" aria-hidden="true" /> Historial ({history.length})
+        <div>
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <h3 id={`${alertId}-historial`} className={blockTitle}>
+              Historial <span className="font-sans text-meta font-bold tabular-nums text-ink-subtle">({history.length})</span>
             </h3>
-            <button
-              type="button"
-              onClick={clearHistory}
-              className="min-h-[44px] px-2 -mr-2 rounded-lg text-xs font-bold text-stone-600 dark:text-[#a6a1b2] hover:text-terracotta-ink transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
-            >
-              Borrar historial
-            </button>
+            <SectionAction onClick={clearHistory}>Borrar historial</SectionAction>
           </div>
 
-          {/* Tabla con semántica ARIA: el lector anuncia la columna (Hora, Duración…) de cada dato. */}
-          <div role="table" aria-labelledby={`${alertId}-historial`} className="bg-white dark:bg-[#221d2d] rounded-3xl shadow-xs border border-stone-200/80 dark:border-white/[0.08] overflow-hidden">
+          {/* Tabla con semántica ARIA: el lector anuncia la columna (Hora, Duración…) de cada dato. Plana, entre filetes. */}
+          <div role="table" aria-labelledby={`${alertId}-historial`} className="mx-[calc(var(--gutter)*-1)] border-y border-line">
             <div role="rowgroup">
-              <div role="row" className="grid grid-cols-4 bg-stone-50 dark:bg-[#2d273a]/50 p-3 text-xs font-bold text-stone-600 dark:text-[#a6a1b2] tracking-tight text-center">
+              <div role="row" className={`grid grid-cols-4 items-center border-b border-line py-2 text-center text-micro font-bold text-ink-subtle ${bleedRow}`}>
                 <div role="columnheader">Hora</div>
                 <div role="columnheader">Duración</div>
                 <div role="columnheader">Frecuencia</div>
                 <div role="columnheader">Eliminar</div>
               </div>
             </div>
-            <div role="rowgroup" className="divide-y divide-stone-100 dark:divide-white/[0.06] text-xs text-center">
+            <div role="rowgroup" className="divide-y divide-line text-center text-meta">
               {history.map((item) => (
-                <div key={item.id} role="row" className="grid grid-cols-4 px-3 py-1.5 items-center hover:bg-stone-50/70 dark:hover:bg-[#2d273a]/40 transition-colors">
-                  <div role="cell" className="flex items-center justify-center gap-1.5 text-stone-700 dark:text-[#a6a1b2] font-medium tabular-nums">
+                <div key={item.id} role="row" className={`grid grid-cols-4 items-center py-0.5 transition-colors hover:bg-surface-hover ${bleedRow}`}>
+                  <div role="cell" className="flex items-center justify-center gap-1.5 font-medium tabular-nums text-ink-muted">
                     {shared.linked && <ItemAuthor item={item} members={me.members} />}
                     {new Date(item.start).toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" })}
                     {shared.unsentIds.has(String(item.id)) && (
-                      <span role="img" aria-label="Sin enviar" title="Sin enviar a tu pareja" className="text-amber-800 dark:text-amber-300">
+                      <span role="img" aria-label="Sin enviar" title="Sin enviar a tu pareja" className="text-amber-ink">
                         <CloudOff size={12} aria-hidden="true" />
                       </span>
                     )}
                   </div>
-                  <div role="cell">
-                    <span className="font-bold text-sage-ink bg-sage/10 dark:bg-[#1a1724] py-1 px-2 rounded-lg inline-block tabular-nums">
-                      {formatTime(item.duration)}
-                    </span>
+                  <div role="cell" className="font-bold tabular-nums text-ink">
+                    {formatTime(item.duration)}
                   </div>
-                  <div role="cell" className="font-bold text-terracotta-ink tabular-nums">
+                  <div role="cell" className="tabular-nums text-ink">
                     {item.interval ? formatTime(item.interval) : "—"}
                   </div>
                   <div role="cell">
@@ -2914,7 +2866,7 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
                       type="button"
                       onClick={() => deleteItem(item)}
                       aria-label={`Eliminar la contracción de las ${new Date(item.start).toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" })}`}
-                      className={`min-w-[44px] min-h-[44px] inline-flex items-center justify-center text-stone-500 dark:text-[#a6a1b2] hover:text-terracotta-ink hover:bg-stone-100 dark:hover:bg-[#2d273a] p-2 rounded-xl transition-colors ${sosFocusRing}`}
+                      className={`mx-auto ${iconButtonDanger}`}
                     >
                       <Trash2 size={16} aria-hidden="true" />
                     </button>
@@ -2928,6 +2880,7 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
     </div>
   );
 }
+
 
 // --- NOMBRES: votos por persona (subcolección baby_names) ---
 
@@ -3350,32 +3303,26 @@ export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
       ? `Voten por separado. Cuando a ti y a ${partnerName} les guste el mismo nombre, aparece en Coincidieron.`
       : "Vota los nombres que te gusten. Cuando tu pareja se una, verán en qué coinciden.";
 
-  const pillButton = `inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-full px-4 text-sm font-bold transition-colors active:scale-95 motion-reduce:active:scale-100 ${sosFocusRing}`;
-
   return (
-    <div className="flex w-full flex-col gap-6 py-2 animate-in fade-in duration-300">
-      <header className="space-y-1.5">
-        <h3 className="text-xl font-black leading-tight text-stone-900 dark:text-[#eae6e1]">Nombres del bebé</h3>
-        <p className="text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">{intro}</p>
+    <div className="mx-auto flex w-full max-w-lg flex-col gap-6 pb-12">
+      <div className="space-y-1">
+        <h3 className={screenTitle}>Nombres del bebé</h3>
+        <p className="text-meta text-ink-muted">{intro}</p>
         <SyncBadge />
-      </header>
+      </div>
 
       <RetryNotice state={retryState} onDismiss={clearRetry} />
       {loadError && <LoadErrorNotice what="los nombres compartidos" onRetry={() => setAttempt((a) => a + 1)} />}
 
       <div className="flex items-center justify-between gap-2">
-        <div className="flex gap-2 overflow-x-auto no-scrollbar py-1" role="group" aria-label="Filtrar por género">
+        <div className="no-scrollbar flex gap-2 overflow-x-auto py-1" role="group" aria-label="Filtrar por género">
           {NAME_FILTERS.map((f) => (
             <button
               key={f.id}
               type="button"
               aria-pressed={filter === f.id}
               onClick={() => setFilter(f.id)}
-              className={`${pillButton} whitespace-nowrap ${
-                filter === f.id
-                  ? "bg-terracotta-ink text-white"
-                  : "bg-stone-100 text-stone-700 hover:bg-stone-200 dark:bg-[#2d273a] dark:text-[#a6a1b2] dark:hover:bg-[#383147]"
-              }`}
+              className={`${chip(filter === f.id)} whitespace-nowrap`}
             >
               {f.label}
             </button>
@@ -3383,22 +3330,18 @@ export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
         </div>
 
         {lastVote && (
-          <button
-            type="button"
-            onClick={undoLastVote}
-            aria-label={`Deshacer tu voto por ${lastVote.name}`}
-            className={`${pillButton} shrink-0 border border-stone-200 bg-white text-stone-700 hover:bg-stone-100 dark:border-white/10 dark:bg-[#2d273a] dark:text-[#eae6e1] dark:hover:bg-[#383147]`}
-          >
+          <RowButton onClick={undoLastVote} aria-label={`Deshacer tu voto por ${lastVote.name}`} className="shrink-0">
             <Undo2 size={15} aria-hidden="true" /> Deshacer
-          </button>
+          </RowButton>
         )}
       </div>
 
       {loadError ? null : !loaded ? (
-        <div role="status" className="rounded-3xl border border-stone-200 bg-white p-8 text-center text-sm text-stone-600 dark:border-white/[0.08] dark:bg-[#221d2d] dark:text-[#a6a1b2]">
+        <p role="status" className="py-10 text-center text-meta text-ink-muted">
           Cargando los nombres compartidos…
-        </div>
+        </p>
       ) : card ? (
+        // La única caja de la pantalla: el nombre se toca y se desliza como una unidad.
         <article
           aria-labelledby={`${baseId}-nombre`}
           onTouchStart={(e) => setTouchStart(e.targetTouches[0].clientX)}
@@ -3410,50 +3353,51 @@ export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
             transform: touchStart !== null ? `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.05}deg)` : undefined,
             transition: touchStart !== null ? "none" : "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
           }}
-          className="w-full select-none touch-pan-y rounded-3xl border border-stone-200 bg-white px-6 py-8 text-center shadow-[0_12px_32px_-16px_rgba(60,40,30,0.35)] dark:border-white/[0.08] dark:bg-[#221d2d]"
+          className="w-full touch-pan-y select-none rounded-3xl border border-line-strong bg-surface px-6 pb-6 pt-9 text-center shadow-[0_14px_32px_-22px_rgb(45_42_38/0.45)]"
         >
-          <h4 id={`${baseId}-nombre`} className="break-words text-4xl font-black leading-tight text-stone-900 dark:text-[#eae6e1]">
+          <h4 id={`${baseId}-nombre`} className="break-words font-display text-[2.5rem] font-bold leading-[1.1] text-ink">
             {card.name}
           </h4>
           {(card.origin || card.gender) && (
-            <p className="mt-2 text-sm font-semibold text-sage-ink">
+            <p className="mt-2 text-meta font-bold text-sage-ink">
               {[card.origin, card.gender ? GENDER_LABEL[card.gender] : ""].filter(Boolean).join(" · ")}
             </p>
           )}
           {card.meaning && (
-            <p className="mx-auto mt-3 max-w-xs text-base italic leading-relaxed text-stone-700 dark:text-[#cfcad8]">“{card.meaning}”</p>
+            <p className="mx-auto mt-3 max-w-xs font-display text-body text-ink-muted">“{card.meaning}”</p>
           )}
-          <p className="mt-3 text-xs text-stone-600 dark:text-[#a6a1b2]">{sourceLabel(card)}</p>
+          <p className="mt-3 text-micro font-medium text-ink-subtle">{sourceLabel(card)}</p>
 
-          <div className="mt-6 flex justify-center gap-6">
+          <div className="mt-7 flex justify-center gap-6">
             <button
               type="button"
               onClick={() => vote(card, "nope")}
               aria-label={`No me gusta ${card.name}`}
-              className={`grid h-16 w-16 place-items-center rounded-full border-2 border-stone-200 bg-white text-stone-600 transition-transform hover:bg-stone-50 active:scale-90 motion-reduce:active:scale-100 dark:border-white/10 dark:bg-[#2d273a] dark:text-[#a6a1b2] dark:hover:bg-[#383147] ${sosFocusRing}`}
+              className={`grid h-16 w-16 place-items-center rounded-full border border-line-control bg-surface-raised text-ink-muted transition-[background-color,transform] hover:bg-surface-hover hover:text-ink active:scale-90 motion-reduce:active:scale-100 ${sosFocusRing}`}
             >
-              <X size={30} aria-hidden="true" />
+              <X size={28} aria-hidden="true" />
             </button>
             <button
               type="button"
               onClick={() => vote(card, "like")}
               aria-label={`Me gusta ${card.name}`}
-              className={`grid h-16 w-16 place-items-center rounded-full bg-terracotta-ink text-white shadow-md transition-transform hover:bg-terracotta-ink-hover active:scale-90 motion-reduce:active:scale-100 ${sosFocusRing}`}
+              className={`grid h-16 w-16 place-items-center rounded-full bg-terracotta-ink text-on-accent transition-[background-color,transform] hover:bg-terracotta-ink-hover active:scale-90 motion-reduce:active:scale-100 ${sosFocusRing}`}
             >
-              <Heart size={30} fill="currentColor" aria-hidden="true" />
+              <Heart size={28} fill="currentColor" aria-hidden="true" />
             </button>
           </div>
-          <p className="mt-4 text-xs text-stone-600 dark:text-[#a6a1b2]">
+          <p className="mt-5 text-micro font-medium tabular-nums text-ink-subtle">
             {pending.length === 1 ? "Es el último por votar" : `Quedan ${pending.length} por votar`}
             {filter !== "todos" && ` en ${NAME_FILTERS.find((f) => f.id === filter)?.label.toLowerCase()}`}
           </p>
         </article>
       ) : (
-        <div className="flex w-full flex-col items-center rounded-3xl border border-stone-200 bg-white p-7 text-center dark:border-white/[0.08] dark:bg-[#221d2d]">
-          <h4 className="text-lg font-bold text-stone-900 dark:text-[#eae6e1]">
+        <div className="flex w-full flex-col items-center border-y border-line py-8 text-center">
+          <Heart size={28} strokeWidth={1.75} className="text-sage-ink" aria-hidden="true" />
+          <h4 className="mt-3 font-display text-subtitle text-ink">
             {cards.length === 0 ? "Aún no hay nombres en la lista" : "No quedan nombres por votar"}
           </h4>
-          <p className="mt-1.5 max-w-xs text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
+          <p className="mt-1 max-w-xs text-meta text-ink-muted">
             {cards.length === 0
               ? "Escribe uno que te guste o pide ideas a PandaIA."
               : filter !== "todos"
@@ -3466,7 +3410,7 @@ export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
             <button
               type="button"
               onClick={revoteDiscarded}
-              className={`mt-3 inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-3 text-sm font-bold text-stone-700 underline-offset-4 hover:underline dark:text-[#eae6e1] ${sosFocusRing}`}
+              className={`mt-2 inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-meta font-bold text-terracotta-ink underline-offset-4 hover:underline ${sosFocusRing}`}
             >
               <RotateCcw size={15} aria-hidden="true" />
               Volver a votar los que descartaste ({discarded.length})
@@ -3487,27 +3431,18 @@ export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
             maxLength={60}
             placeholder="Escribe un nombre que te guste"
             autoComplete="off"
-            className={`min-h-[44px] min-w-0 flex-1 rounded-xl bg-white px-4 text-base text-stone-900 dark:bg-[#221d2d] dark:text-[#eae6e1] ${fieldBorder} ${fieldFocus}`}
+            className={`min-h-12 min-w-0 flex-1 rounded-2xl bg-surface-raised px-4 text-body text-ink ${fieldBorder} ${fieldFocus}`}
           />
-          <button
-            type="submit"
-            disabled={!draft.trim()}
-            className={`inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-xl bg-sage-ink px-4 text-sm font-bold text-white transition-colors hover:bg-sage-ink-hover disabled:opacity-50 ${sosFocusRing}`}
-          >
+          <button type="submit" disabled={!draft.trim()} className={`shrink-0 px-4! ${btnSage}`}>
             <Plus size={16} aria-hidden="true" /> Agregar
           </button>
         </form>
         {adding.length > 0 && (
-          <p role="status" className="text-xs text-stone-600 dark:text-[#a6a1b2]">
+          <p role="status" className="text-micro font-medium text-ink-subtle">
             {online ? `Agregando ${adding.join(", ")}…` : `Sin conexión: ${adding.join(", ")} se agregará al reconectar.`}
           </p>
         )}
-        <button
-          type="button"
-          onClick={() => void requestMoreNames()}
-          disabled={isLoadingMore}
-          className={`flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl border border-stone-200 bg-white text-sm font-bold text-stone-800 transition-colors hover:bg-stone-50 disabled:opacity-60 dark:border-white/10 dark:bg-[#221d2d] dark:text-[#eae6e1] dark:hover:bg-[#2d273a] ${sosFocusRing}`}
-        >
+        <button type="button" onClick={() => void requestMoreNames()} disabled={isLoadingMore} className={`w-full ${btnOutline}`}>
           {isLoadingMore ? (
             <>
               <LoaderCircle size={18} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
@@ -3523,64 +3458,64 @@ export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
       </div>
 
       {matches.length > 0 && (
-        <section aria-labelledby={`${baseId}-coinciden`}>
-          <h4 id={`${baseId}-coinciden`} className="flex items-center gap-2 text-base font-bold text-stone-900 dark:text-[#eae6e1]">
-            <Heart size={18} className="text-terracotta-ink" fill="currentColor" aria-hidden="true" />
+        <section aria-labelledby={`${baseId}-coinciden`} className="mt-2">
+          <h4 id={`${baseId}-coinciden`} className={`flex items-center gap-2 ${blockTitle}`}>
+            <Heart size={20} className="shrink-0 text-terracotta-ink" fill="currentColor" aria-hidden="true" />
             ¡Coincidieron!
           </h4>
-          <p className="mt-0.5 text-sm text-stone-600 dark:text-[#a6a1b2]">
+          <p className="mt-0.5 text-meta text-ink-muted">
             {partnerName ? `A ti y a ${partnerName} les gustan estos nombres.` : "A los dos les gustan estos nombres."}
           </p>
-          <ul className="mt-3 divide-y divide-stone-100 rounded-2xl border border-stone-200 bg-white dark:divide-white/[0.06] dark:border-white/[0.08] dark:bg-[#221d2d]">
+          <ListGroup className="mt-2">
             {matches.map((m) => (
-              <li key={m.id} className="flex min-h-[56px] items-center justify-between gap-3 px-4 py-2">
-                <span className="min-w-0 truncate text-lg font-bold text-stone-900 dark:text-[#eae6e1]">{m.name}</span>
-                <span className="flex shrink-0 -space-x-1">
-                  {likersOf(m).map((liker) => (
-                    <AuthorChip key={liker.uid} name={liker.name} role={liker.role} title={`A ${liker.name ?? "esta persona"} le gusta`} />
-                  ))}
-                </span>
-              </li>
+              <ListRow
+                key={m.id}
+                title={<span className="font-display text-subtitle">{m.name}</span>}
+                trailing={
+                  <span className="flex -space-x-1">
+                    {likersOf(m).map((liker) => (
+                      <AuthorChip key={liker.uid} name={liker.name} role={liker.role} title={`A ${liker.name ?? "esta persona"} le gusta`} />
+                    ))}
+                  </span>
+                }
+              />
             ))}
-          </ul>
+          </ListGroup>
         </section>
       )}
 
       {favorites.length > 0 && (
-        <section aria-labelledby={`${baseId}-favoritos`}>
-          <h4 id={`${baseId}-favoritos`} className="text-base font-bold text-stone-900 dark:text-[#eae6e1]">Tus favoritos</h4>
-          <p className="mt-0.5 text-sm text-stone-600 dark:text-[#a6a1b2]">
+        <section aria-labelledby={`${baseId}-favoritos`} className="mt-2">
+          <h4 id={`${baseId}-favoritos`} className={blockTitle}>Tus favoritos</h4>
+          <p className="mt-0.5 text-meta text-ink-muted">
             {!linked
               ? "Invita a tu pareja para ver en qué coinciden."
               : !partnerMember
                 ? "Cuando tu pareja se una, verán en qué coinciden."
                 : "Los nombres que te gustan y aún no coinciden."}
           </p>
-          <ul className="mt-3 divide-y divide-stone-100 rounded-2xl border border-stone-200 bg-white dark:divide-white/[0.06] dark:border-white/[0.08] dark:bg-[#221d2d]">
+          <ListGroup className="mt-2">
             {favorites.map((f) => {
               const partnerVote = partnerMember ? f.votes[partnerMember.uid] : undefined;
               return (
-                <li key={f.id} className="flex min-h-[56px] items-center gap-3 py-1.5 pl-4 pr-1">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-bold text-stone-900 dark:text-[#eae6e1]">{f.name}</p>
-                    {canMatch && (
-                      <p className="text-xs text-stone-600 dark:text-[#a6a1b2]">
-                        {partnerVote === "nope" ? `A ${partnerName} no le convenció` : `${PartnerName} aún no lo vota`}
-                      </p>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => unlike(f)}
-                    aria-label={`Quitar ${f.name} de tus favoritos`}
-                    className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 dark:text-[#a6a1b2] dark:hover:bg-white/5 ${sosFocusRing}`}
-                  >
-                    <X size={16} aria-hidden="true" />
-                  </button>
-                </li>
+                <ListRow
+                  key={f.id}
+                  title={f.name}
+                  meta={canMatch ? (partnerVote === "nope" ? `A ${partnerName} no le convenció` : `${PartnerName} aún no lo vota`) : undefined}
+                  trailing={
+                    <button
+                      type="button"
+                      onClick={() => unlike(f)}
+                      aria-label={`Quitar ${f.name} de tus favoritos`}
+                      className={iconButton}
+                    >
+                      <X size={16} aria-hidden="true" />
+                    </button>
+                  }
+                />
               );
             })}
-          </ul>
+          </ListGroup>
         </section>
       )}
     </div>
@@ -4007,20 +3942,21 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile; showT
           ? `Guardado · ${formatRelative(savedAt, new Date(now))}`
           : "";
 
-  const inputClass =
-    `w-full min-h-[44px] bg-stone-50 dark:bg-[#2d273a] rounded-xl px-3 py-2 text-base text-stone-800 dark:text-[#eae6e1] ${fieldBorder} ${fieldFocus}`;
+  const inputClass = `w-full min-h-12 rounded-2xl bg-surface-raised px-3.5 py-2.5 text-body text-ink ${fieldBorder} ${fieldFocus}`;
 
   const printValue = (v: string) =>
     v.trim() ? <span>{v.trim()}</span> : <span className="inline-block w-48 border-b border-stone-400 align-bottom" />;
 
   // Documento para imprimir: se monta en <body> para que no lo recorte el contenedor con scroll.
+  // Colores fijos de papel (tinta negra y grises), no tokens: con la app en oscuro, los tokens
+  // imprimirían texto claro. El título va en Alegreya, como en pantalla.
   const printDoc = (
     <div className="pandajr-print-root hidden print:block text-black bg-white p-8 text-sm">
       <style>{`@media print { body > *:not(.pandajr-print-root) { display: none !important; } .pandajr-print-root { display: block !important; } }`}</style>
       {/* div y no <header>: globals.css oculta header/nav/button al imprimir */}
       <div className="border-b-2 border-stone-800 pb-3 flex justify-between items-end gap-6">
         <div>
-          <h1 className="text-2xl font-black tracking-tight">Plan de parto</h1>
+          <h1 className="font-display text-2xl font-bold">Plan de parto</h1>
           <p className="text-xs text-stone-700 mt-0.5">Preferencias para la atención del parto y del recién nacido</p>
         </div>
         <div className="text-right text-xs text-stone-700 shrink-0">
@@ -4102,31 +4038,27 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile; showT
     </div>
   );
 
-  const segmented = (active: boolean) =>
-    `flex-1 min-h-[44px] px-2 text-sm font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5 ${sosFocusRing} ${
-      active ? "bg-white dark:bg-[#2d273a] text-stone-900 dark:text-[#eae6e1] shadow-sm" : "text-stone-600 dark:text-[#a6a1b2] hover:text-stone-900 dark:hover:text-[#eae6e1]"
-    }`;
-
+  /** Preferencia de una opción (aria-pressed): deseo = sage, evitar = terracota, hablarlo = tinta neutra. */
   const prefButton = (pref: PlanPref, active: boolean) => {
     const on =
       pref === "want"
-        ? "bg-sage-ink text-white border-transparent"
+        ? "border-transparent bg-sage-ink text-on-accent"
         : pref === "avoid"
-          ? "bg-terracotta-ink text-white border-transparent"
-          : "bg-stone-800 text-white border-transparent dark:bg-[#eae6e1] dark:text-[#181520]";
-    return `min-h-[44px] rounded-xl border px-3 text-sm font-semibold transition-colors ${sosFocusRing} ${
-      active ? on : "border-stone-300 text-stone-700 hover:bg-stone-100 dark:border-white/15 dark:text-[#cfcad8] dark:hover:bg-white/5"
+          ? "border-transparent bg-terracotta-ink text-on-accent"
+          : "border-transparent bg-ink text-ground";
+    return `inline-flex min-h-11 items-center rounded-full border px-3.5 text-meta font-bold transition-colors ${sosFocusRing} ${
+      active ? on : "border-line-control text-ink-muted hover:bg-surface-hover hover:text-ink"
     }`;
   };
 
   return (
-    <div className="flex flex-col py-2 animate-in fade-in duration-300 w-full">
+    <div className="mx-auto flex w-full max-w-lg flex-col pb-12">
       {isClient && createPortal(printDoc, document.body)}
 
       <div className="no-print space-y-4">
-        <div className="space-y-1.5">
-          <h3 className="text-2xl font-black text-stone-900 dark:text-[#eae6e1]">{isPapa ? `El plan de parto de ${her}` : "Tu plan de parto"}</h3>
-          <p className="text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
+        <div className="space-y-1">
+          <h3 className={screenTitle}>{isPapa ? `El plan de parto de ${her}` : "Tu plan de parto"}</h3>
+          <p className="text-meta text-ink-muted">
             {isPapa
               ? `Está escrito con la voz de ${her}: complétenlo juntos. En cada opción, marquen si la desea, si prefiere evitarla o si la hablará con su obstetra. Pueden dejar opciones sin marcar.`
               : "Para cada opción, elige si la deseas, si prefieres evitarla o si la hablarás con tu obstetra. Puedes dejar opciones sin marcar."}
@@ -4134,7 +4066,7 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile; showT
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <SyncBadge waiting={!ready} />
             {statusText && (
-              <span role="status" className={`text-[13px] leading-5 ${saveStatus === "error" ? "text-terracotta-ink font-semibold" : "text-stone-600 dark:text-[#a6a1b2]"}`}>
+              <span role="status" className={`text-micro ${saveStatus === "error" ? "font-bold text-terracotta-ink" : "font-medium text-ink-subtle"}`}>
                 {statusText}
               </span>
             )}
@@ -4146,39 +4078,39 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile; showT
           <LoadErrorNotice what="el plan de parto compartido" onRetry={() => setAttempt((a) => a + 1)} />
         )}
         {needsReview && (
-          <div role="note" className="flex items-start gap-2 rounded-2xl border border-amber-700/30 bg-amber-50 p-3 dark:border-amber-300/25 dark:bg-amber-300/[0.08]">
-            <Info size={18} className="mt-0.5 shrink-0 text-amber-800 dark:text-amber-300" aria-hidden="true" />
-            <p className="min-w-0 flex-1 text-sm leading-snug text-stone-800 dark:text-[#eae6e1]">
+          <div role="note" className="flex items-start gap-2 rounded-2xl bg-amber-wash py-1 ps-4 pe-1">
+            <Info size={18} className="mt-2.5 shrink-0 text-amber-ink" aria-hidden="true" />
+            <p className="min-w-0 flex-1 py-2 text-meta text-ink">
               El plan anterior venía con casi todo marcado de antemano. Solo conservamos las opciones que se cambiaron a mano: revisa cada una antes de imprimirlo.
             </p>
             <button
               type="button"
               onClick={() => setNeedsReview(false)}
               aria-label="Cerrar aviso"
-              className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-amber-900 hover:bg-amber-100 dark:text-amber-200 dark:hover:bg-amber-300/10 ${sosFocusRing}`}
+              className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-amber-ink hover:bg-amber/15 ${sosFocusRing}`}
             >
               <X size={16} aria-hidden="true" />
             </button>
           </div>
         )}
 
-        <div className="flex bg-stone-100 dark:bg-[#221d2d] p-1 rounded-2xl" role="group" aria-label="Vista del plan">
-          <button type="button" aria-pressed={viewMode === "wizard"} onClick={() => setViewMode("wizard")} className={segmented(viewMode === "wizard")}>
+        <div className={segTrack} role="group" aria-label="Vista del plan">
+          <button type="button" aria-pressed={viewMode === "wizard"} onClick={() => setViewMode("wizard")} className={segButton(viewMode === "wizard")}>
             <Edit3 size={15} aria-hidden="true" /> Preferencias
           </button>
-          <button type="button" aria-pressed={viewMode === "document"} onClick={() => setViewMode("document")} className={segmented(viewMode === "document")}>
+          <button type="button" aria-pressed={viewMode === "document"} onClick={() => setViewMode("document")} className={segButton(viewMode === "document")}>
             <FileText size={15} aria-hidden="true" /> Documento
-            <span className="font-semibold text-stone-600 dark:text-[#a6a1b2]">· {counts.marked}</span>
+            <span className="font-medium tabular-nums text-ink-subtle">· {counts.marked}</span>
           </button>
         </div>
       </div>
 
       {!ready ? (
-        <p role="status" className="no-print mt-6 rounded-3xl border border-stone-200 bg-white p-6 text-center text-sm text-stone-600 dark:border-white/[0.08] dark:bg-[#221d2d] dark:text-[#a6a1b2]">
+        <p role="status" className="no-print py-10 text-center text-meta text-ink-muted">
           Cargando el plan de parto compartido…
         </p>
       ) : viewMode === "wizard" ? (
-        <div className="no-print mt-4 space-y-5">
+        <div className="no-print mt-6 space-y-6">
           <div className="flex items-center gap-3">
             <div className="flex flex-1 items-center gap-1.5">
               {PLAN_SECTIONS.map((s) => (
@@ -4188,25 +4120,24 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile; showT
                   onClick={() => setStep(s.id)}
                   aria-label={`Ir al paso ${s.id}: ${s.category}`}
                   aria-current={s.id === step ? "step" : undefined}
-                  className={`flex-1 min-h-[44px] flex items-center rounded-full ${sosFocusRing}`}
+                  className={`flex min-h-11 flex-1 items-center rounded-full ${sosFocusRing}`}
                 >
-                  <span className={`h-2 w-full rounded-full transition-colors ${s.id <= step ? "bg-sage-ink" : "bg-stone-200 dark:bg-[#2d273a]"}`} />
+                  <span className={`h-1.5 w-full rounded-full transition-colors ${s.id <= step ? "bg-sage-ink" : "bg-line-strong"}`} />
                 </button>
               ))}
             </div>
-            <span className="shrink-0 text-sm font-semibold tabular-nums text-stone-600 dark:text-[#a6a1b2]">Paso {step} de {PLAN_SECTIONS.length}</span>
+            <span className="shrink-0 text-micro font-medium tabular-nums text-ink-subtle">Paso {step} de {PLAN_SECTIONS.length}</span>
           </div>
 
-          <section aria-labelledby={`${baseId}-seccion`} className="bg-white dark:bg-[#221d2d] rounded-3xl border border-stone-200/80 dark:border-white/[0.08]">
-            <div className="px-5 pt-5 pb-3">
-              <h4 id={`${baseId}-seccion`} className="text-lg font-black text-stone-900 dark:text-[#eae6e1] leading-tight">{currentSection.title}</h4>
-              <p className="text-sm text-stone-600 dark:text-[#a6a1b2] mt-1">{currentSection.subtitle}</p>
-            </div>
-            <ul className="divide-y divide-stone-100 dark:divide-white/[0.06]">
+          {/* Un paso = un título y su lista de opciones entre filetes (sin tarjeta). */}
+          <section aria-labelledby={`${baseId}-seccion`}>
+            <h4 id={`${baseId}-seccion`} className={blockTitle}>{currentSection.title}</h4>
+            <p className="mt-0.5 text-meta text-ink-muted">{currentSection.subtitle}</p>
+            <ul className={`mt-3 ${bleedList}`}>
               {currentSection.options.map((opt) => (
-                <li key={opt.id} className="px-5 py-4">
-                  <p id={`${baseId}-${opt.id}`} className="text-sm font-bold leading-snug text-stone-900 dark:text-[#eae6e1]">{opt.label}</p>
-                  <p className="mt-0.5 text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">{opt.desc}</p>
+                <li key={opt.id} className={`${bleedRow} py-4`}>
+                  <p id={`${baseId}-${opt.id}`} className="text-body font-bold text-ink">{opt.label}</p>
+                  <p className="mt-0.5 text-meta text-ink-muted">{opt.desc}</p>
                   <div role="group" aria-labelledby={`${baseId}-${opt.id}`} className="mt-3 flex flex-wrap gap-2">
                     {PLAN_PREFS.map((p) => (
                       <button key={p.id} type="button" aria-pressed={prefs[opt.id] === p.id} onClick={() => setPref(opt.id, p.id)} className={prefButton(p.id, prefs[opt.id] === p.id)}>
@@ -4221,41 +4152,29 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile; showT
 
           <div className="flex gap-2">
             {step > 1 && (
-              <button
-                type="button"
-                onClick={() => setStep((s) => Math.max(1, s - 1))}
-                className={`min-h-[48px] px-4 bg-stone-100 dark:bg-[#2d273a] text-stone-800 dark:text-[#eae6e1] rounded-2xl hover:bg-stone-200 dark:hover:bg-[#383147] transition-colors font-bold text-sm flex items-center gap-1.5 ${sosFocusRing}`}
-              >
+              <button type="button" onClick={() => setStep((s) => Math.max(1, s - 1))} className={`px-4! ${btnOutline}`}>
                 <ArrowLeft size={16} aria-hidden="true" /> Anterior
               </button>
             )}
             {step < PLAN_SECTIONS.length ? (
-              <button
-                type="button"
-                onClick={() => setStep((s) => Math.min(PLAN_SECTIONS.length, s + 1))}
-                className={`flex-1 min-h-[48px] px-5 bg-terracotta-ink hover:bg-terracotta-ink-hover text-white rounded-2xl font-bold text-sm flex justify-center items-center gap-2 transition-colors ${sosFocusRing}`}
-              >
+              <button type="button" onClick={() => setStep((s) => Math.min(PLAN_SECTIONS.length, s + 1))} className={`flex-1 ${btnPrimary}`}>
                 Siguiente <ArrowRight size={16} aria-hidden="true" />
               </button>
             ) : (
-              <button
-                type="button"
-                onClick={() => setViewMode("document")}
-                className={`flex-1 min-h-[48px] px-5 bg-stone-900 dark:bg-[#eae6e1] text-white dark:text-[#181520] rounded-2xl font-bold text-sm flex justify-center items-center gap-2 transition-colors ${sosFocusRing}`}
-              >
+              <button type="button" onClick={() => setViewMode("document")} className={`flex-1 ${btnPrimary}`}>
                 <FileText size={16} aria-hidden="true" /> Ver el documento
               </button>
             )}
           </div>
         </div>
       ) : (
-        <div className="no-print mt-4 space-y-5">
-          <section aria-labelledby={`${baseId}-datos`} className="bg-white dark:bg-[#221d2d] rounded-3xl p-5 border border-stone-200/80 dark:border-white/[0.08] space-y-3">
+        <div className="no-print mt-6 space-y-8">
+          <section aria-labelledby={`${baseId}-datos`} className="space-y-4">
             <div>
-              <h4 id={`${baseId}-datos`} className="text-base font-bold text-stone-900 dark:text-[#eae6e1]">Datos del documento</h4>
-              <p className="text-sm text-stone-600 dark:text-[#a6a1b2]">Lo que dejes vacío se imprime como una línea para completar a mano.</p>
+              <h4 id={`${baseId}-datos`} className={blockTitle}>Datos del documento</h4>
+              <p className="mt-0.5 text-meta text-ink-muted">Lo que dejes vacío se imprime como una línea para completar a mano.</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {(
                 [
                   ["motherName", "Nombre de la madre", "Ej. Sofía Martínez"],
@@ -4265,7 +4184,7 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile; showT
                 ] as const
               ).map(([field, label, placeholder]) => (
                 <div key={field}>
-                  <label htmlFor={`${baseId}-${field}`} className="text-sm font-semibold text-stone-700 dark:text-[#eae6e1] block mb-1">{label}</label>
+                  <label htmlFor={`${baseId}-${field}`} className="mb-1 block text-meta font-bold text-ink-muted">{label}</label>
                   <input
                     id={`${baseId}-${field}`}
                     type="text"
@@ -4280,7 +4199,7 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile; showT
               ))}
             </div>
             <div>
-              <label htmlFor={`${baseId}-notes`} className="text-sm font-semibold text-stone-700 dark:text-[#eae6e1] block mb-1">Observaciones o alergias</label>
+              <label htmlFor={`${baseId}-notes`} className="mb-1 block text-meta font-bold text-ink-muted">Observaciones o alergias</label>
               <textarea
                 id={`${baseId}-notes`}
                 rows={2}
@@ -4292,69 +4211,61 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile; showT
                 className={`${inputClass} resize-none`}
               />
             </div>
-            <p className="text-sm text-stone-600 dark:text-[#a6a1b2]">
+            <p className="text-meta text-ink-muted">
               {typeof week === "number" ? `Semana de gestación: ${week} (se toma de Ajustes).` : "La semana no está confirmada: se imprimirá una línea para completarla a mano."}
             </p>
           </section>
 
-          <section aria-labelledby={`${baseId}-resumen`} className="bg-white dark:bg-[#221d2d] rounded-3xl p-5 border border-stone-200/80 dark:border-white/[0.08]">
-            <h4 id={`${baseId}-resumen`} className="text-base font-bold text-stone-900 dark:text-[#eae6e1]">Resumen</h4>
-            <p className="text-sm text-stone-600 dark:text-[#a6a1b2]">
+          <section aria-labelledby={`${baseId}-resumen`}>
+            <h4 id={`${baseId}-resumen`} className={blockTitle}>Resumen</h4>
+            <p className="mt-0.5 text-meta text-ink-muted">
               {counts.marked === 0
                 ? "Aún no marcaste ninguna preferencia."
                 : `${counts.want} ${counts.want === 1 ? "deseo" : "deseos"} · ${counts.avoid} para evitar · ${counts.discuss} para hablar con ${isPapa ? "su" : "tu"} obstetra`}
             </p>
-            <div className="mt-3 divide-y divide-stone-100 dark:divide-white/[0.06]">
+            <ul className={`mt-3 ${bleedList}`}>
               {PLAN_SECTIONS.map((sec) => {
                 const marked = sec.options.filter((o) => prefs[o.id]);
                 return (
-                  <div key={sec.id} className="py-3">
-                    <p className="flex justify-between gap-3 text-sm font-bold text-stone-900 dark:text-[#eae6e1]">
+                  <li key={sec.id} className={`${bleedRow} py-3`}>
+                    <p className="flex justify-between gap-3 text-body font-bold text-ink">
                       <span>{sec.title}</span>
-                      <span className="shrink-0 font-normal text-stone-600 dark:text-[#a6a1b2]">{marked.length} de {sec.options.length}</span>
+                      <span className="shrink-0 text-meta font-medium tabular-nums text-ink-subtle">{marked.length} de {sec.options.length}</span>
                     </p>
                     {marked.length > 0 && (
                       <ul className="mt-1.5 space-y-1">
                         {marked.map((o) => (
-                          <li key={o.id} className="flex items-start justify-between gap-3 text-sm text-stone-700 dark:text-[#cfcad8]">
+                          <li key={o.id} className="flex items-start justify-between gap-3 text-meta text-ink-muted">
                             <span>{o.label}</span>
-                            <span className={`shrink-0 text-xs font-bold ${prefs[o.id] === "want" ? "text-sage-ink" : prefs[o.id] === "avoid" ? "text-terracotta-ink" : "text-stone-600 dark:text-[#a6a1b2]"}`}>
+                            <span className={`shrink-0 text-micro font-bold ${prefs[o.id] === "want" ? "text-sage-ink" : prefs[o.id] === "avoid" ? "text-terracotta-ink" : "text-ink-subtle"}`}>
                               {PLAN_PREFS.find((p) => p.id === prefs[o.id])?.label}
                             </span>
                           </li>
                         ))}
                       </ul>
                     )}
-                  </div>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           </section>
 
-          <div className="space-y-2">
-            <p className="text-sm text-stone-600 dark:text-[#a6a1b2]">Imprime dos copias (una para la historia clínica y otra para el equipo que atienda el parto) o guárdalo como PDF.</p>
+          <div className="space-y-3">
+            <p className="text-meta text-ink-muted">Imprime dos copias (una para la historia clínica y otra para el equipo que atienda el parto) o guárdalo como PDF.</p>
             <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={handlePrint}
-                className={`min-h-[48px] px-4 bg-stone-900 dark:bg-[#eae6e1] text-white dark:text-[#181520] font-bold text-sm rounded-2xl transition-colors flex items-center justify-center gap-2 ${sosFocusRing}`}
-              >
+              <button type="button" onClick={handlePrint} className={`px-3! ${btnOutline}`}>
                 <Printer size={16} aria-hidden="true" /> Imprimir o PDF
               </button>
-              <button
-                type="button"
-                onClick={() => void sharePlan()}
-                className={`min-h-[48px] px-4 bg-terracotta-ink hover:bg-terracotta-ink-hover text-white font-bold text-sm rounded-2xl transition-colors flex items-center justify-center gap-2 ${sosFocusRing}`}
-              >
+              <button type="button" onClick={() => void sharePlan()} className={`px-3! ${btnPrimary}`}>
                 <Share2 size={16} aria-hidden="true" /> Compartir
               </button>
             </div>
             {counts.marked > 0 && (
-              <div className="pt-1 text-center">
+              <div className="text-center">
                 <button
                   type="button"
                   onClick={clearAll}
-                  className={`min-h-[44px] px-3 rounded-xl text-sm font-semibold text-stone-600 dark:text-[#a6a1b2] underline-offset-4 hover:underline ${sosFocusRing}`}
+                  className={`min-h-11 rounded-lg px-3 text-meta font-bold text-ink-muted underline-offset-4 hover:text-ink hover:underline ${sosFocusRing}`}
                 >
                   Quitar todas las marcas
                 </button>
@@ -4599,14 +4510,13 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
   const purchasedPct = cap ? Math.min(100, (totalPurchased / cap) * 100) : 0;
   const plural = !!pid;
 
-  const fieldClass =
-    `min-h-[44px] rounded-xl bg-white text-base text-stone-900 dark:bg-[#221d2d] dark:text-[#eae6e1] ${fieldBorder} ${fieldFocus}`;
+  const fieldClass = `min-h-12 rounded-2xl bg-surface-raised text-body text-ink ${fieldBorder} ${fieldFocus}`;
 
   const capForm = (
     <form onSubmit={submitCap} className="space-y-2" noValidate>
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base font-bold text-stone-600 dark:text-[#a6a1b2]" aria-hidden="true">$</span>
+          <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-body font-bold text-ink-subtle" aria-hidden="true">$</span>
           <input
             id={`${baseId}-tope`}
             type="number"
@@ -4618,13 +4528,10 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
             placeholder="Ej. 5000"
             aria-invalid={!!capError}
             aria-describedby={capError ? `${baseId}-tope-error` : undefined}
-            className={`${fieldClass} w-full pl-7 pr-3 font-bold tabular-nums`}
+            className={`${fieldClass} w-full pl-8 pr-3 font-bold tabular-nums`}
           />
         </div>
-        <button
-          type="submit"
-          className={`min-h-[44px] shrink-0 rounded-xl bg-sage-ink px-4 text-sm font-bold text-white transition-colors hover:bg-sage-ink-hover ${sosFocusRing}`}
-        >
+        <button type="submit" className={`shrink-0 px-4! ${btnSage}`}>
           Guardar
         </button>
         {cap !== null && (
@@ -4634,14 +4541,14 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
               setEditingCap(false);
               setCapError(null);
             }}
-            className={`min-h-[44px] shrink-0 rounded-xl px-3 text-sm font-bold text-stone-700 hover:bg-stone-200 dark:text-[#eae6e1] dark:hover:bg-white/10 ${sosFocusRing}`}
+            className={`min-h-12 shrink-0 rounded-2xl px-3 text-meta font-bold text-ink-muted transition-colors hover:bg-surface-hover hover:text-ink ${sosFocusRing}`}
           >
             Cancelar
           </button>
         )}
       </div>
       {capError && (
-        <p id={`${baseId}-tope-error`} role="alert" className="text-sm font-semibold text-terracotta-ink">{capError}</p>
+        <p id={`${baseId}-tope-error`} role="alert" className="text-meta font-bold text-terracotta-ink">{capError}</p>
       )}
     </form>
   );
@@ -4649,61 +4556,43 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
   return (
     <ModalPortal>
     <div
-      className={`fixed inset-0 ${Z_CLASS.dialog} flex items-end justify-center bg-black/60 p-0 animate-in fade-in duration-200 sm:items-center sm:p-4 dark:bg-black/80`}
+      className={dialogScrim}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div
-        {...dialogProps}
-        className="flex h-[88dvh] max-h-[90dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl border border-stone-200 bg-[#fdfbf7] shadow-2xl outline-none animate-in slide-in-from-bottom-8 sm:h-auto sm:rounded-3xl dark:border-white/10 dark:bg-[#1a1625]"
-      >
-        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-stone-200 px-5 pb-3 pt-4 dark:border-white/10">
+      <div {...dialogProps} className={`${dialogPanel} h-[88dvh] max-h-[90dvh] max-w-lg rounded-t-3xl sm:h-auto sm:rounded-3xl`}>
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-line px-5 pb-3 pt-4">
           <div className="min-w-0">
-            <h2 id={`${baseId}-titulo`} className="flex items-center gap-2 text-xl font-black text-stone-900 dark:text-[#eae6e1]">
-              <Wallet size={22} className="shrink-0 text-sage-ink" aria-hidden="true" />
+            <h2 id={`${baseId}-titulo`} className="flex items-center gap-2 font-display text-title text-ink">
+              <Wallet size={22} strokeWidth={1.75} className="shrink-0 text-sage-ink" aria-hidden="true" />
               Presupuesto del bebé
             </h2>
             <SyncBadge lastSyncedAt={list.meta?.updatedAt ?? null} waiting={!list.loaded} className="mt-1" />
           </div>
-          <button
-            ref={closeRef}
-            type="button"
-            onClick={onClose}
-            aria-label="Cerrar presupuesto"
-            className={`grid h-11 w-11 shrink-0 place-items-center rounded-full bg-stone-100 text-stone-700 transition-colors hover:bg-stone-200 dark:bg-white/5 dark:text-[#eae6e1] dark:hover:bg-white/10 ${sosFocusRing}`}
-          >
+          <button ref={closeRef} type="button" onClick={onClose} aria-label="Cerrar presupuesto" className={dialogClose}>
             <X size={20} aria-hidden="true" />
           </button>
         </div>
 
-        <div className="flex-1 space-y-6 overflow-y-auto p-5">
+        <div className="flex-1 space-y-7 overflow-y-auto px-5 pb-8 pt-5 [--gutter:1.25rem]">
           <RetryNotice state={retryState} onDismiss={clearRetry} />
           <UnsentNotice count={list.unsentIds.size} onRetry={list.retryUnsent} one="gasto" many="gastos" />
           {list.loadError && <LoadErrorNotice what="el presupuesto compartido" onRetry={list.retryLoad} />}
 
-          {/* Resumen: cuánto queda o cuánto se pasaron */}
-          <section aria-label="Resumen del presupuesto" className="rounded-3xl bg-white p-5 shadow-[0_6px_20px_-12px_rgba(60,40,30,0.25)] dark:bg-[#221d2d]">
+          {/* Resumen: cuánto queda o cuánto se pasaron (sin tarjeta: la cifra encabeza el diálogo) */}
+          <section aria-label="Resumen del presupuesto">
             {capLoadError ? (
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm text-stone-700 dark:text-[#eae6e1]">No pudimos cargar el tope. Revisa tu conexión.</p>
-                <button
-                  type="button"
-                  onClick={() => setCapAttempt((a) => a + 1)}
-                  className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-3 text-sm font-bold text-terracotta-ink hover:bg-terracotta/10 ${sosFocusRing}`}
-                >
-                  <RefreshCw size={15} aria-hidden="true" /> Reintentar
-                </button>
-              </div>
+              <RetryNotice state={{ message: "No pudimos cargar el tope. Revisa tu conexión.", retry: () => setCapAttempt((a) => a + 1) }} />
             ) : !capLoaded ? (
               <SharedLoading what="el presupuesto compartido" />
             ) : cap === null ? (
               <div className="space-y-3">
                 <div>
-                  <label htmlFor={`${baseId}-tope`} className="block text-base font-bold text-stone-900 dark:text-[#eae6e1]">
+                  <label htmlFor={`${baseId}-tope`} className="block font-display text-subtitle text-ink">
                     ¿Cuánto {plural ? "quieren" : "quieres"} destinar en total?
                   </label>
-                  <p className="mt-0.5 text-sm text-stone-600 dark:text-[#a6a1b2]">
+                  <p className="mt-0.5 text-meta text-ink-muted">
                     Así {plural ? "sabrán" : "sabrás"} cuánto queda. {plural ? "Pueden cambiarlo cuando quieran." : "Puedes cambiarlo cuando quieras."}
                     {totalPlanned > 0 && ` Planeado hasta ahora: ${formatMoney(totalPlanned)}.`}
                   </p>
@@ -4714,8 +4603,8 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
               <>
                 <div className="flex items-end justify-between gap-4">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-stone-600 dark:text-[#a6a1b2]">{over ? "Por encima del tope" : "Quedan"}</p>
-                    <p className={`text-3xl font-black tracking-tight tabular-nums ${over ? "text-terracotta-ink" : "text-sage-ink"}`}>
+                    <p className="text-meta font-bold text-ink-muted">{over ? "Por encima del tope" : "Quedan"}</p>
+                    <p className={`text-display font-extrabold tabular-nums ${over ? "text-terracotta-ink" : "text-sage-ink"}`}>
                       {/* "Por encima del tope: $500" (sin signo menos ni culpa: la etiqueta ya dice que es de más). */}
                       {formatMoney(over ? Math.abs(remaining ?? 0) : (remaining ?? 0))}
                     </p>
@@ -4728,10 +4617,10 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
                         setEditingCap(true);
                       }}
                       aria-label={`Cambiar el tope, ahora ${formatMoney(cap)}`}
-                      className={`-mr-2 inline-flex min-h-[44px] shrink-0 flex-col items-end justify-center rounded-xl px-2 text-right hover:bg-stone-100 dark:hover:bg-white/5 ${sosFocusRing}`}
+                      className={`-me-2 inline-flex min-h-11 shrink-0 flex-col items-end justify-center rounded-xl px-2 text-right transition-colors hover:bg-surface-hover ${sosFocusRing}`}
                     >
-                      <span className="text-xs text-stone-600 dark:text-[#a6a1b2]">Tope</span>
-                      <span className="flex items-center gap-1 font-bold tabular-nums text-stone-900 dark:text-[#eae6e1]">
+                      <span className="text-micro font-medium text-ink-subtle">Tope</span>
+                      <span className="flex items-center gap-1 text-body font-bold tabular-nums text-ink">
                         {formatMoney(cap)} <Pencil size={13} aria-hidden="true" />
                       </span>
                     </button>
@@ -4740,7 +4629,7 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
 
                 {editingCap && (
                   <div className="mt-3">
-                    <label htmlFor={`${baseId}-tope`} className="mb-1 block text-sm font-semibold text-stone-700 dark:text-[#eae6e1]">Nuevo tope</label>
+                    <label htmlFor={`${baseId}-tope`} className="mb-1 block text-meta font-bold text-ink-muted">Nuevo tope</label>
                     {capForm}
                   </div>
                 )}
@@ -4751,7 +4640,7 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
                   aria-valuemax={cap}
                   aria-valuenow={Math.min(totalPlanned, cap)}
                   aria-valuetext={`Planeado ${formatMoney(totalPlanned)} de ${formatMoney(cap)}${over ? ", por encima del tope" : ""}`}
-                  className="relative mt-4 h-3 w-full overflow-hidden rounded-full bg-stone-200 dark:bg-black/30"
+                  className="relative mt-4 h-2.5 w-full overflow-hidden rounded-full bg-line"
                 >
                   <div
                     className={`absolute inset-y-0 left-0 rounded-full transition-[width] duration-300 ${over ? "bg-terracotta-ink" : "bg-sage/45"}`}
@@ -4762,7 +4651,7 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
                     style={{ width: `${purchasedPct}%` }}
                   />
                 </div>
-                <div className="mt-2 flex flex-wrap justify-between gap-x-4 gap-y-1 text-xs text-stone-600 dark:text-[#a6a1b2]">
+                <div className="mt-2 flex flex-wrap justify-between gap-x-4 gap-y-1 text-micro font-medium text-ink-subtle">
                   <span className="flex items-center gap-1.5">
                     <span className={`h-2 w-2 rounded-full ${over ? "bg-terracotta-ink-hover" : "bg-sage-ink"}`} aria-hidden="true" />
                     Comprado <span className="tabular-nums">{formatMoney(totalPurchased)}</span>
@@ -4777,8 +4666,8 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
           </section>
 
           {/* Agregar gasto */}
-          <form onSubmit={addExpense} className="space-y-2" noValidate>
-            <label htmlFor={`${baseId}-item`} className="block text-sm font-bold text-stone-900 dark:text-[#eae6e1]">Agregar un gasto</label>
+          <form onSubmit={addExpense} className="space-y-2 border-t border-line pt-6" noValidate>
+            <label htmlFor={`${baseId}-item`} className="block font-display text-subtitle text-ink">Agregar un gasto</label>
             <input
               ref={itemInputRef}
               id={`${baseId}-item`}
@@ -4795,7 +4684,7 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
                 id={`${baseId}-categoria`}
                 value={newCategory}
                 onChange={(e) => setNewCategory(e.target.value)}
-                className={`${fieldClass} w-[8.5rem] shrink-0 px-3 text-sm font-semibold`}
+                className={`${fieldClass} w-[8.5rem] shrink-0 px-3 text-meta font-bold`}
               >
                 {BUDGET_CATEGORIES.map((c) => (
                   <option key={c} value={c}>{c}</option>
@@ -4803,7 +4692,7 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
               </select>
               <div className="relative min-w-0 flex-1">
                 <label htmlFor={`${baseId}-monto`} className="sr-only">Monto</label>
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base font-bold text-stone-600 dark:text-[#a6a1b2]" aria-hidden="true">$</span>
+                <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-body font-bold text-ink-subtle" aria-hidden="true">$</span>
                 <input
                   ref={amountRef}
                   id={`${baseId}-monto`}
@@ -4814,67 +4703,63 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
                   placeholder="0"
                   value={newAmount}
                   onChange={(e) => setNewAmount(e.target.value)}
-                  className={`${fieldClass} w-full pl-7 pr-3 font-bold tabular-nums`}
+                  className={`${fieldClass} w-full pl-8 pr-3 font-bold tabular-nums`}
                 />
               </div>
               <button
                 type="submit"
                 aria-label="Agregar gasto"
-                className={`grid min-h-[44px] w-12 shrink-0 place-items-center rounded-xl bg-sage-ink text-white transition-colors hover:bg-sage-ink-hover ${sosFocusRing}`}
+                className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-sage-ink text-on-accent transition-colors hover:bg-sage-ink-hover ${sosFocusRing}`}
               >
                 <Plus size={22} aria-hidden="true" />
               </button>
             </div>
-            {formError && <p role="alert" className="text-sm font-semibold text-terracotta-ink">{formError}</p>}
+            {formError && <p role="alert" className="text-meta font-bold text-terracotta-ink">{formError}</p>}
           </form>
 
           {list.loadError ? null : !list.loaded && items.length === 0 ? (
             <SharedLoading what="los gastos compartidos" />
           ) : items.length === 0 ? (
-            <div className="py-4 text-center">
-              <p className="mb-3 text-sm text-stone-600 dark:text-[#a6a1b2]">
+            <div className="text-center">
+              <p className="mb-3 text-meta text-ink-muted">
                 Aún no hay gastos. ¿Por dónde empezar? Toca una idea y escribe cuánto cuesta.
               </p>
               <div className="flex flex-wrap justify-center gap-2">
                 {BUDGET_IDEAS.map((idea) => (
-                  <button
-                    key={idea.name}
-                    type="button"
-                    onClick={() => pickIdea(idea)}
-                    className={`inline-flex min-h-[44px] items-center gap-1 rounded-full bg-stone-100 px-4 text-sm font-semibold text-stone-700 transition-colors hover:bg-stone-200 dark:bg-white/5 dark:text-[#eae6e1] dark:hover:bg-white/10 ${sosFocusRing}`}
-                  >
+                  <button key={idea.name} type="button" onClick={() => pickIdea(idea)} className={chip(false)}>
                     <Plus size={14} aria-hidden="true" /> {idea.name}
                   </button>
                 ))}
               </div>
             </div>
           ) : (
-            <ul className="divide-y divide-stone-100 rounded-2xl border border-stone-200 bg-white dark:divide-white/[0.06] dark:border-white/[0.08] dark:bg-[#221d2d]">
+            // Lista plana entre filetes: marcar comprado, nombre y categoría, monto y quitar.
+            <ul className={bleedList}>
               {items.map((expense) => (
-                <li key={expense.id} className="flex items-center gap-2 py-1.5 pl-1.5 pr-1">
+                <li key={expense.id} className="flex min-h-14 items-center gap-1 py-1.5 ps-[calc(var(--gutter)-0.625rem)] pe-[calc(var(--gutter)-0.625rem)]">
                   <button
                     type="button"
                     onClick={() => togglePurchased(expense)}
                     aria-pressed={expense.isPurchased}
                     aria-label={`${expense.name}: ya comprado`}
-                    className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl hover:bg-stone-100 dark:hover:bg-white/5 ${sosFocusRing}`}
+                    className={`grid h-11 w-11 shrink-0 place-items-center rounded-full transition-colors hover:bg-surface-hover ${sosFocusRing}`}
                   >
                     {expense.isPurchased ? (
                       <CheckCircle2 size={22} className="text-sage-ink" aria-hidden="true" />
                     ) : (
-                      <Circle size={22} className="text-stone-500 dark:text-[#a6a1b2]" aria-hidden="true" />
+                      <Circle size={22} className="text-line-control" aria-hidden="true" />
                     )}
                   </button>
-                  <div className="min-w-0 flex-1">
-                    <p className={`truncate font-bold ${expense.isPurchased ? "text-stone-500 line-through dark:text-[#8f899c]" : "text-stone-900 dark:text-[#eae6e1]"}`}>
+                  <div className="min-w-0 flex-1 ps-1">
+                    <p className={`truncate text-body font-bold ${expense.isPurchased ? "text-ink-subtle line-through" : "text-ink"}`}>
                       {expense.name}
                     </p>
-                    <p className="flex items-center gap-1.5 text-xs text-stone-600 dark:text-[#a6a1b2]">
-                      <Tag size={11} aria-hidden="true" /> {expense.category}
+                    <p className="flex items-center gap-1.5 text-micro font-medium text-ink-subtle">
+                      <Tag size={12} aria-hidden="true" /> {expense.category}
                       {list.linked && <ItemAuthor item={expense} members={me.members} />}
                     </p>
                   </div>
-                  <span className={`shrink-0 font-black tabular-nums ${expense.isPurchased ? "text-stone-500 dark:text-[#8f899c]" : "text-stone-800 dark:text-[#eae6e1]"}`}>
+                  <span className={`shrink-0 text-body font-extrabold tabular-nums ${expense.isPurchased ? "text-ink-subtle" : "text-ink"}`}>
                     {formatMoney(expense.amount)}
                   </span>
                   <button
@@ -4882,7 +4767,7 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
                     type="button"
                     onClick={() => removeExpense(expense)}
                     aria-label={`Quitar ${expense.name}`}
-                    className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-stone-500 transition-colors hover:bg-terracotta/10 hover:text-terracotta-ink dark:text-[#a6a1b2] ${sosFocusRing}`}
+                    className={iconButtonDanger}
                   >
                     <Trash2 size={17} aria-hidden="true" />
                   </button>
@@ -4924,46 +4809,69 @@ function splitSize(size: string): { label: string; emoji: string } {
   return m ? { label: m[1].trim(), emoji: m[2] } : { label: size.trim(), emoji: "" };
 }
 
+/**
+ * Estilos de la tarjeta compartible (fase 6). La tarjeta se exporta como PNG y debe verse igual con la
+ * app en claro o en oscuro, así que cada estilo fija sus propios tokens (valores canónicos de DESIGN.md)
+ * como variables CSS en la raíz de la tarjeta: text-ink, la planta (sage-ink, sage, terracotta…) y los
+ * acentos (--story-accent, --story-accent-2, --story-rule) se resuelven dentro de ella.
+ * Contraste de texto sobre cada suelo ≥4.5:1 (acentos ≥4.8:1).
+ */
+const LIGHT_PLANT = { "--sage-ink": "#44695a", "--sage": "#6c9a84", "--terracotta": "#e07a64", "--terracotta-ink": "#a54833" };
 const STORY_STYLES = [
   {
     id: "botanico",
     name: "Botánico",
-    container: "bg-gradient-to-br from-[#e8efe9] via-[#faf9f5] to-[#f6e4dc]",
-    primary: "text-[#44695a]",
-    secondary: "text-[#a54833]",
-    card: "bg-white/85 border-[#44695a]/15",
-    cardText: "text-stone-700",
-    cardStrong: "text-stone-900",
+    vars: {
+      ...LIGHT_PLANT,
+      "--ground": "#e5eee8", // sage-wash
+      "--ink": "#2d2a26",
+      "--ink-muted": "#5c554d",
+      "--story-accent": "#44695a", // sage-ink
+      "--story-accent-2": "#a54833", // terracotta-ink
+      "--story-rule": "rgb(68 105 90 / 0.28)",
+    },
   },
   {
     id: "nocturno",
     name: "Nocturno",
-    container: "bg-gradient-to-br from-[#181520] via-[#221d2d] to-[#2d2338]",
-    primary: "text-[#eae6e1]",
-    secondary: "text-[#eb9279]",
-    card: "bg-white/10 border-white/15",
-    cardText: "text-[#cfcad8]",
-    cardStrong: "text-white",
+    vars: {
+      "--sage-ink": "#89bca0",
+      "--sage": "#619b7e",
+      "--terracotta": "#d16e5a",
+      "--terracotta-ink": "#eb9279",
+      "--ground": "#181520", // obsidiana violeta
+      "--ink": "#eae6e1",
+      "--ink-muted": "#cbc5d2",
+      "--story-accent": "#eb9279", // terracotta-ink (oscuro)
+      "--story-accent-2": "#89bca0", // sage-ink (oscuro)
+      "--story-rule": "rgb(234 230 225 / 0.2)",
+    },
   },
   {
     id: "amanecer",
     name: "Amanecer",
-    container: "bg-gradient-to-tr from-[#f8e1d7] via-[#fbf1e6] to-[#f3d9c9]",
-    primary: "text-[#8f3c2a]",
-    secondary: "text-[#44695a]",
-    card: "bg-white/80 border-[#a54833]/15",
-    cardText: "text-stone-700",
-    cardStrong: "text-stone-900",
+    vars: {
+      ...LIGHT_PLANT,
+      "--ground": "#f6e6df", // terracotta-wash
+      "--ink": "#2d2a26",
+      "--ink-muted": "#5c554d",
+      "--story-accent": "#8f3c2a", // terracotta-ink-hover
+      "--story-accent-2": "#44695a",
+      "--story-rule": "rgb(165 72 51 / 0.25)",
+    },
   },
   {
     id: "limpio",
     name: "Limpio",
-    container: "bg-[#faf9f5]",
-    primary: "text-stone-900",
-    secondary: "text-stone-600",
-    card: "bg-white border-stone-200",
-    cardText: "text-stone-600",
-    cardStrong: "text-stone-900",
+    vars: {
+      ...LIGHT_PLANT,
+      "--ground": "#faf9f5", // alabastro
+      "--ink": "#2d2a26",
+      "--ink-muted": "#5c554d",
+      "--story-accent": "#2d2a26",
+      "--story-accent-2": "#5c554d",
+      "--story-rule": "#d8d0c1", // line-strong
+    },
   },
 ] as const;
 
@@ -5063,22 +4971,20 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
     }
   };
 
-  const iconButton = `grid h-11 w-11 shrink-0 place-items-center rounded-full bg-stone-100 text-stone-700 transition-colors hover:bg-stone-200 dark:bg-white/5 dark:text-[#eae6e1] dark:hover:bg-white/10 ${sosFocusRing}`;
-
   return (
     <ModalPortal>
     <div
-      className={`fixed inset-0 ${Z_CLASS.dialog} flex items-center justify-center bg-black/60 p-4 animate-in fade-in duration-200 dark:bg-black/80`}
+      className={`fixed inset-0 ${Z_CLASS.dialog} flex items-center justify-center bg-black/60 p-4 dark:bg-black/75`}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div {...dialogProps} className="flex max-h-[92dvh] w-full max-w-sm flex-col overflow-hidden rounded-3xl bg-[#fdfbf7] shadow-2xl outline-none dark:bg-[#1a1625]">
-        <div className="flex shrink-0 items-center justify-between border-b border-stone-200 bg-white px-4 py-3 dark:border-white/10 dark:bg-[#221d2d]">
-          <h2 id="panda-story-titulo" className="flex items-center gap-2 font-bold text-stone-900 dark:text-[#eae6e1]">
-            <Camera size={20} className="text-terracotta-ink" aria-hidden="true" /> Tarjeta de la semana
+      <div {...dialogProps} className={`${dialogPanel} max-h-[92dvh] max-w-sm rounded-3xl`}>
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-line px-5 py-3">
+          <h2 id="panda-story-titulo" className="flex items-center gap-2 font-display text-title text-ink">
+            <Camera size={22} strokeWidth={1.75} className="shrink-0 text-terracotta-ink" aria-hidden="true" /> Tarjeta de la semana
           </h2>
-          <button ref={closeRef} type="button" onClick={onClose} aria-label="Cerrar la tarjeta de la semana" className={iconButton}>
+          <button ref={closeRef} type="button" onClick={onClose} aria-label="Cerrar la tarjeta de la semana" className={dialogClose}>
             <X size={18} aria-hidden="true" />
           </button>
         </div>
@@ -5086,51 +4992,56 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
         {typeof week !== "number" || !weekData || !size ? (
           // Semana confirmada pero menor de 4: pedir que la confirme sería un callejón sin salida.
           earlyWeek ? (
-            <div className="space-y-2 p-6 text-center">
-              <p className="font-bold text-stone-900 dark:text-[#eae6e1]">La tarjeta estará disponible desde la semana 4</p>
-              <p className="text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
+            <div className="space-y-1.5 px-6 py-8 text-center">
+              <p className="font-display text-subtitle text-ink">La tarjeta estará disponible desde la semana 4</p>
+              <p className="text-meta text-ink-muted">
                 Muestra la semana y el tamaño del bebé, que antes de la semana 4 todavía no se puede medir.
               </p>
             </div>
           ) : (
-            <div className="space-y-2 p-6 text-center">
-              <p className="font-bold text-stone-900 dark:text-[#eae6e1]">Primero confirma la semana de embarazo</p>
-              <p className="text-sm leading-relaxed text-stone-600 dark:text-[#a6a1b2]">
+            <div className="space-y-1.5 px-6 py-8 text-center">
+              <p className="font-display text-subtitle text-ink">Primero confirma la semana de embarazo</p>
+              <p className="text-meta text-ink-muted">
                 La tarjeta muestra la semana y el tamaño del bebé. Confirma la semana en Ajustes para crearla.
               </p>
             </div>
           )
         ) : (
           <div className="flex flex-1 flex-col items-center gap-5 overflow-y-auto p-5">
-            {/* Tamaños en unidades del contenedor: la tarjeta se ve igual a 260 o 320 px y al exportarla. */}
-            <div className="@container relative aspect-[9/16] w-[260px] shrink-0 overflow-hidden rounded-[2rem] border-4 border-white shadow-xl sm:w-[300px] dark:border-[#2d273a]">
-              <div ref={storyRef} className={`absolute inset-0 flex flex-col items-center p-[7cqw] text-center ${style.container}`}>
-                {/* Sin opacidad: la marca queda ≥4.99:1 sobre el fondo de cada estilo (antes 2.39:1). */}
-                <p className={`text-[4.5cqw] font-black tracking-tight ${style.primary}`}>PandaJR</p>
+            {/* Tamaños en unidades del contenedor: la tarjeta se ve igual a 260 o 300 px y al exportarla. */}
+            <div className="@container relative aspect-[9/16] w-[260px] shrink-0 overflow-hidden rounded-[2rem] border border-line-strong shadow-[0_18px_40px_-24px_rgb(45_42_38/0.55)] sm:w-[300px]">
+              <div
+                ref={storyRef}
+                style={style.vars as React.CSSProperties}
+                className="absolute inset-0 flex flex-col items-center bg-ground px-[7cqw] pb-[8cqw] pt-[7cqw] text-center text-ink"
+              >
+                <p className="font-display text-[5cqw] font-extrabold leading-none text-ink">
+                  Panda<span className="text-[var(--story-accent-2)]">JR</span>
+                </p>
 
-                <div className="mt-[4cqw] w-full">
-                  <p className={`text-[5cqw] font-bold uppercase tracking-[0.12em] ${style.secondary}`}>¡Estamos en la</p>
-                  <p className={`whitespace-nowrap text-[14cqw] font-black leading-[1.05] tracking-tight ${style.primary}`}>semana {week}!</p>
-                </div>
+                {/* Un solo titular en dos líneas (sin antetítulo): la semana lleva el acento. */}
+                <p className="mt-[6cqw] font-display text-[11.5cqw] font-bold leading-[1.05] text-ink">
+                  ¡Estamos en la <span className="whitespace-nowrap text-[var(--story-accent)]">semana {week}!</span>
+                </p>
 
                 <div className="flex min-h-0 w-full flex-1 items-center justify-center py-[3cqw]">
                   {customImage ? (
                     // eslint-disable-next-line @next/next/no-img-element -- imagen local del usuario (blob:) para exportar
-                    <img src={customImage} alt="Foto elegida para la tarjeta" className="aspect-square w-[52cqw] rounded-full border-[1.5cqw] border-white object-cover shadow-lg" />
-                  ) : size.emoji ? (
-                    <span className="text-[34cqw] leading-none" role="img" aria-label={size.label}>{size.emoji}</span>
+                    <img src={customImage} alt="Foto elegida para la tarjeta" className="aspect-square w-[52cqw] rounded-full border-[1.2cqw] border-[var(--ground)] object-cover ring-1 ring-[var(--story-rule)]" />
                   ) : (
-                    <Baby className={`h-[34cqw] w-[34cqw] ${style.primary}`} aria-hidden="true" />
+                    <GrowingPlant week={week} size={192} animate={false} title="" className="h-[74cqw] w-[74cqw]" />
                   )}
                 </div>
 
-                <div className={`w-full rounded-[5cqw] border px-[5cqw] py-[4cqw] ${style.card}`}>
-                  <p className={`text-[4cqw] font-semibold ${style.cardText}`}>Nuestro bebé es del tamaño de</p>
-                  <p className={`mt-[1cqw] line-clamp-2 text-[7cqw] font-black leading-tight ${style.cardStrong}`}>{size.label}</p>
-                  <p className={`mt-[1.5cqw] text-[3.8cqw] font-bold tabular-nums ${style.cardText}`}>
+                {/* Tamaño, medidas e hito: texto entre filetes, sin caja dentro de la tarjeta. */}
+                <div className="w-full">
+                  <p className="text-[4.2cqw] font-medium text-ink-muted">Nuestro bebé es del tamaño de</p>
+                  <p className="mt-[1cqw] line-clamp-2 font-display text-[8cqw] font-bold leading-[1.1] text-ink">{size.label}</p>
+                  <p className="mt-[1.5cqw] text-[4cqw] font-bold tabular-nums text-ink-muted">
                     {weekData.length} · {weekData.weight}
                   </p>
-                  <p className={`mt-[3cqw] border-t border-current/15 pt-[3cqw] text-[4cqw] font-bold leading-snug ${style.primary}`}>
+                  <div className="mx-auto mt-[4cqw] h-px w-[30cqw] bg-[var(--story-rule)]" aria-hidden="true" />
+                  <p className="mt-[4cqw] font-display text-[4.6cqw] font-bold leading-snug text-[var(--story-accent-2)]">
                     {storyMilestone(week)}
                   </p>
                 </div>
@@ -5143,7 +5054,7 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
             </div>
 
             {error && (
-              <p role="alert" className="w-full text-center text-sm font-semibold text-terracotta-ink">{error}</p>
+              <p role="alert" className="w-full text-center text-meta font-bold text-terracotta-ink">{error}</p>
             )}
 
             <div className="flex w-full flex-col gap-3">
@@ -5156,32 +5067,24 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
                         type="button"
                         aria-pressed={activeStyleId === s.id}
                         onClick={() => setActiveStyleId(s.id)}
-                        className={`min-h-[44px] rounded-xl border px-3 text-sm font-bold transition-colors ${sosFocusRing} ${
-                          activeStyleId === s.id
-                            ? "border-terracotta-ink bg-terracotta/10 text-terracotta-ink"
-                            : "border-stone-200 text-stone-600 hover:bg-stone-100 dark:border-white/10 dark:text-[#a6a1b2] dark:hover:bg-white/5"
-                        }`}
+                        className={chip(activeStyleId === s.id)}
                       >
+                        {/* Muestra del suelo del estilo (decorativa: el nombre ya lo dice). */}
+                        <span
+                          aria-hidden="true"
+                          className="h-3.5 w-3.5 shrink-0 rounded-full ring-1 ring-line-control"
+                          style={{ background: s.vars["--ground"] }}
+                        />
                         {s.name}
                       </button>
                     ))}
                   </div>
                   <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl border border-stone-200 bg-white font-bold text-stone-800 transition-colors hover:bg-stone-50 dark:border-white/10 dark:bg-white/10 dark:text-[#eae6e1] ${sosFocusRing}`}
-                  >
-                    <ImagePlus size={20} className="text-stone-600 dark:text-[#a6a1b2]" aria-hidden="true" />
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className={`w-full ${btnOutline}`}>
+                    <ImagePlus size={20} strokeWidth={1.75} className="text-ink-muted" aria-hidden="true" />
                     {customImage ? "Cambiar la foto" : "Agregar foto o ecografía"}
                   </button>
-                  <button
-                    ref={createRef}
-                    type="button"
-                    onClick={() => void generateStory()}
-                    disabled={isGenerating}
-                    className={`flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-terracotta-ink font-bold text-white transition-colors hover:bg-terracotta-ink-hover disabled:opacity-70 ${sosFocusRing}`}
-                  >
+                  <button ref={createRef} type="button" onClick={() => void generateStory()} disabled={isGenerating} className={`w-full min-h-[52px]! ${btnPrimary}`}>
                     {isGenerating ? (
                       <LoaderCircle size={20} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
                     ) : (
@@ -5192,12 +5095,7 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
                 </>
               ) : (
                 <div className="flex gap-2">
-                  <button
-                    ref={shareRef}
-                    type="button"
-                    onClick={() => void shareStory()}
-                    className={`flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-2xl bg-sage-ink font-bold text-white transition-colors hover:bg-sage-ink-hover ${sosFocusRing}`}
-                  >
+                  <button ref={shareRef} type="button" onClick={() => void shareStory()} className={`flex-1 min-h-[52px]! ${btnSage}`}>
                     <Share2 size={20} aria-hidden="true" /> Compartir
                   </button>
                   <button
@@ -5206,7 +5104,7 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
                       focusAfterRef.current = "create";
                       setImageUrl(null);
                     }}
-                    className={`flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-2xl bg-stone-200 font-bold text-stone-800 transition-colors hover:bg-stone-300 dark:bg-white/10 dark:text-[#eae6e1] ${sosFocusRing}`}
+                    className={`flex-1 min-h-[52px]! ${btnOutline}`}
                   >
                     Editar
                   </button>
@@ -5288,64 +5186,50 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
   }, []);
 
   const tabs = [
-    { id: "dormir" as const, label: "Dormir", icon: <Moon size={14} aria-hidden="true" />, active: "text-sage-ink" },
-    { id: "estimulacion" as const, label: "Clásica", icon: <Music size={14} aria-hidden="true" />, active: "text-terracotta-ink" },
-    { id: "latidos" as const, label: "Ruido", icon: <Waves size={14} aria-hidden="true" />, active: "text-stone-800 dark:text-stone-200" },
+    { id: "dormir" as const, label: "Dormir", icon: <Moon size={15} aria-hidden="true" /> },
+    { id: "estimulacion" as const, label: "Clásica", icon: <Music size={15} aria-hidden="true" /> },
+    { id: "latidos" as const, label: "Ruido", icon: <Waves size={15} aria-hidden="true" /> },
   ];
 
   return (
     <ModalPortal>
     <div
-      className={`fixed inset-0 bg-black/70 dark:bg-black/90 backdrop-blur-md ${Z_CLASS.dialog} flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200`}
+      className={dialogScrim}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div {...dialogProps} className="bg-white dark:bg-[#15131a] w-full max-w-md sm:rounded-[2.5rem] rounded-t-[2.5rem] h-[85dvh] sm:h-auto max-h-[90dvh] flex flex-col overflow-hidden shadow-2xl border border-white/20 dark:border-white/5 outline-none animate-in slide-in-from-bottom-8">
-
-        <div className="bg-gradient-to-br from-[#2a2631] to-[#15131a] border-b border-white/5 p-6 shrink-0 relative overflow-hidden text-white">
-          <div className="relative z-10 flex justify-between items-start">
-            <div>
-              <div className="bg-white/20 w-10 h-10 rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-white/20">
-                <Music size={20} className="text-white" aria-hidden="true" />
-              </div>
-              <h2 id="panda-audio-titulo" className="text-2xl font-black tracking-tight leading-none mb-1">
-                Panda Audio
-              </h2>
-              <p className="text-stone-300 text-sm font-medium">Música y sonidos para relajarte</p>
-            </div>
-            <button ref={closeRef} type="button" onClick={onClose} aria-label="Cerrar Panda Audio" className="grid h-11 w-11 place-items-center bg-black/10 hover:bg-black/20 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
-              <X size={20} aria-hidden="true" />
-            </button>
+      <div {...dialogProps} className={`${dialogPanel} h-[85dvh] max-h-[90dvh] max-w-md rounded-t-3xl sm:h-auto sm:rounded-3xl`}>
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-line px-5 pb-3 pt-4">
+          <div className="min-w-0">
+            <h2 id="panda-audio-titulo" className="flex items-center gap-2 font-display text-title text-ink">
+              <Music size={22} strokeWidth={1.75} className="shrink-0 text-sage-ink" aria-hidden="true" />
+              Panda Audio
+            </h2>
+            <p className="mt-0.5 text-meta text-ink-muted">Música y sonidos para relajarte</p>
           </div>
+          <button ref={closeRef} type="button" onClick={onClose} aria-label="Cerrar Panda Audio" className={dialogClose}>
+            <X size={20} aria-hidden="true" />
+          </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto bg-stone-50 dark:bg-[#15131a] flex flex-col">
-
-          <div className="px-4 pt-6 pb-2">
-            <div className="flex bg-stone-200/50 dark:bg-[#221d2d] p-1.5 rounded-2xl" role="group" aria-label="Tipo de audio">
-              {tabs.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  aria-pressed={activeTab === t.id}
-                  onClick={() => setActiveTab(t.id)}
-                  className={`flex-1 min-h-[44px] inline-flex items-center justify-center gap-1.5 text-xs font-bold rounded-xl transition-colors ${sosFocusRing} ${activeTab === t.id ? `bg-white dark:bg-[#383147] shadow-sm ${t.active}` : "text-stone-600 dark:text-[#a6a1b2]"}`}
-                >
-                  {t.icon} {t.label}
-                </button>
-              ))}
-            </div>
+        <div className="flex flex-1 flex-col overflow-y-auto px-5 pb-6 pt-5">
+          <div className={segTrack} role="group" aria-label="Tipo de audio">
+            {tabs.map((t) => (
+              <button key={t.id} type="button" aria-pressed={activeTab === t.id} onClick={() => setActiveTab(t.id)} className={segButton(activeTab === t.id)}>
+                {t.icon} {t.label}
+              </button>
+            ))}
           </div>
 
-          <div className="p-4 flex-1 flex flex-col animate-in fade-in slide-in-from-right-4 duration-300">
-            <div className="mb-4 px-2">
-              <h3 className="text-lg font-black text-stone-800 dark:text-stone-200">
+          <div className="mt-6 flex flex-1 flex-col">
+            <div className="mb-4">
+              <h3 className="font-display text-subtitle text-ink">
                 {activeTab === "dormir" && "Música para dormir"}
                 {activeTab === "estimulacion" && "Música clásica"}
                 {activeTab === "latidos" && "Sonido constante"}
               </h3>
-              <p className="text-xs text-stone-600 dark:text-stone-400 mt-1">
+              <p className="mt-0.5 text-meta text-ink-muted">
                 {activeTab === "dormir" && "Una lista de Spotify para relajarte antes de dormir. Necesita conexión."}
                 {activeTab === "estimulacion" && "Música clásica en Spotify para escuchar juntos. Necesita conexión."}
                 {activeTab === "latidos" && "Un sonido grave y continuo que a muchas personas les ayuda a relajarse o a dormir."}
@@ -5353,10 +5237,9 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
             </div>
 
             {activeTab !== "latidos" ? (
-              <div className="flex-1 min-h-[350px] bg-stone-200/50 dark:bg-[#221d2d] rounded-3xl overflow-hidden shadow-inner p-2 border border-stone-200/80 dark:border-white/[0.04]">
+              <div className="min-h-[350px] flex-1 overflow-hidden rounded-2xl border border-line bg-surface-sunken">
                 <iframe
                   title={activeTab === "dormir" ? "Lista de Spotify para dormir" : "Lista de Spotify de música clásica"}
-                  style={{ borderRadius: '20px' }}
                   src={activeTab === "dormir" ? playlists.dormir : playlists.estimulacion}
                   width="100%"
                   height="100%"
@@ -5364,28 +5247,25 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
                   allowFullScreen
                   allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                   loading="lazy"
+                  className="block h-full min-h-[350px] w-full"
                 ></iframe>
               </div>
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center p-6 bg-gradient-to-br from-sage/10 to-transparent dark:from-sage/5 rounded-3xl border border-sage/20">
-                 <div className="relative w-40 h-40 mb-8 flex items-center justify-center">
-                    {isPlaying && <div className="absolute inset-0 bg-sage/20 rounded-full animate-ping motion-reduce:animate-none" aria-hidden="true"></div>}
-                    {isPlaying && <div className="absolute inset-4 bg-sage/30 rounded-full animate-pulse motion-reduce:animate-none" aria-hidden="true"></div>}
-                    <button
-                      type="button"
-                      onClick={toggleNoise}
-                      aria-label={isPlaying ? "Detener el ruido marrón" : "Reproducir el ruido marrón"}
-                      className={`w-32 h-32 bg-sage-ink text-white rounded-full flex items-center justify-center shadow-xl relative z-10 transition-transform hover:scale-105 motion-reduce:hover:scale-100 ${sosFocusRing}`}
-                    >
-                      {isPlaying ? <Square size={40} className="fill-current" aria-hidden="true" /> : <Play size={40} className="fill-current ml-2" aria-hidden="true" />}
-                    </button>
-                 </div>
+              // Sin caja: el botón grande es la pieza (como en Patadas); el estado lo dicen el icono y el anillo.
+              <div className="flex flex-1 flex-col items-center justify-center border-y border-line py-8 text-center">
+                <button
+                  type="button"
+                  onClick={toggleNoise}
+                  aria-label={isPlaying ? "Detener el ruido marrón" : "Reproducir el ruido marrón"}
+                  className={`grid h-32 w-32 place-items-center rounded-full bg-sage-ink text-on-accent ring-8 transition-[background-color,box-shadow] hover:bg-sage-ink-hover ${isPlaying ? "ring-sage/40" : "ring-sage-wash"} ${sosFocusRing}`}
+                >
+                  {isPlaying ? <Square size={36} className="fill-current" aria-hidden="true" /> : <Play size={36} className="ms-1.5 fill-current" aria-hidden="true" />}
+                </button>
 
-                 <h4 className="font-black text-xl text-stone-800 dark:text-stone-200 mb-2">Ruido marrón</h4>
-                 <p className="text-sm text-stone-600 dark:text-[#a6a1b2] text-center mb-6">Se genera en el teléfono: sin anuncios y sin conexión. Se detiene al cerrar Panda Audio.</p>
+                <h4 className="mt-7 font-display text-subtitle text-ink">Ruido marrón</h4>
+                <p className="mt-1 max-w-xs text-meta text-ink-muted">Se genera en el teléfono: sin anuncios y sin conexión. Se detiene al cerrar Panda Audio.</p>
               </div>
             )}
-
           </div>
         </div>
       </div>

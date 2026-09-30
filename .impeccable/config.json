@@ -9,6 +9,24 @@
         "value": "animate-bounce",
         "createdAt": "2026-09-27T18:21:34.578Z",
         "reason": "Claude (triage): globals.css:140 es el selector .animate-bounce dentro de @media (prefers-reduced-motion: reduce) que la ANULA (animation: none); ningún componente usa animate-bounce"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "6rem",
+        "createdAt": "2026-09-30T00:00:29.981Z",
+        "reason": "Claude (triage): cifra del contador de patadas dentro de su botón de 240px; excepción documentada en DESIGN.md › Typography"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "2.5rem",
+        "createdAt": "2026-09-30T00:00:30.249Z",
+        "reason": "Claude (triage): «10 de 10» y nombre del votador de nombres; excepción documentada en DESIGN.md › Typography"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#111827",
+        "createdAt": "2026-09-30T00:00:30.622Z",
+        "reason": "Claude (triage): negro de impresión del plan de parto en @media print; documentado en DESIGN.md › Typography"
       }
     ]
   }
