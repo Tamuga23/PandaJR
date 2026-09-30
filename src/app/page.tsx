@@ -91,6 +91,7 @@ import {
   TodayBlock,
   WeekHeader,
   taskWindowNote,
+  useWeekExplorer,
   type GuiaTool,
   type OwnerLabels,
   type SinceLastVisit,
@@ -3043,16 +3044,20 @@ function GuiaPapaView({
   // «Todas las tareas» (los tres trimestres) se abre en su propia hoja: en la Guía ninguna tarea se
   // repite (antes el trimestre actual, desplegado, volvía a listar las mismas tareas de «Hoy»).
   const [allTasksOpen, setAllTasksOpen] = useState(false);
-  // Dónde vive el progreso de las tareas: bajo la fila de «Hoy» y en la cabecera de la hoja.
+  // Dónde vive el progreso de las tareas: junto a las tareas de «Hoy» y en la cabecera de la hoja.
   const checklistBadge = (
-    <SyncBadge partnerName={partner.partnerName} lastSyncedAt={lastChecklistChange} waiting={!checklistLoaded} className="mt-2" />
+    <SyncBadge partnerName={partner.partnerName} lastSyncedAt={lastChecklistChange} waiting={!checklistLoaded} />
   );
+  // Semana que se mira (R2 · paso 2): la eligen las flechas del bloque de semana y la sigue la ficha.
+  const explorer = useWeekExplorer(realWeek, 12);
 
-  // Composición (fase 6). Móvil: una columna, 40px entre secciones y más aire sobre cada título que
-  // debajo. ≥1280px: dos columnas en rejilla (semana + ficha a la izquierda, «Hoy» y el estado de
-  // mamá a la derecha) SIN cambiar el orden del DOM: labor → semana → hoy → ficha, igual
-  // que en el teléfono. La fila flexible (1fr) absorbe la altura de la columna derecha, así que la
-  // ficha arranca justo bajo la semana. «¿Es la hora?» ocupa las dos columnas arriba.
+  // Composición (fase 6 + R2). Móvil: una columna, 40px entre secciones y más aire sobre cada título que
+  // debajo. Primero el corazón de la semana (planta, semana, hito y misión), luego «Hoy» (dos tareas y la
+  // cita), el estado de mamá y, al final, la ficha del bebé como detalle. ≥1280px: dos columnas en rejilla
+  // (semana + misión + ficha a la izquierda, «Hoy» y el estado de mamá a la derecha) SIN cambiar el orden
+  // del DOM: labor → semana → hoy → ficha, igual que en el teléfono. La fila flexible (1fr) absorbe la
+  // altura de la columna derecha, así que la ficha arranca justo bajo la semana. «¿Es la hora?» ocupa las
+  // dos columnas arriba.
   // 36+ en el teléfono: el ritmo se aprieta (32px entre secciones, 16px bajo la cabecera) para que la primera
   // pantalla (390×844, sobre la barra de 82px) muestre «¿Es la hora?», las llamadas, la planta, la semana y
   // el título «Hoy».
@@ -3075,9 +3080,16 @@ function GuiaPapaView({
         </div>
       )}
 
-      {/* Bloque de semana: la planta y la semana en Alegreya; el ramito cierra el bloque. */}
+      {/* Bloque de semana: la planta, la semana, el hito y la misión de quien lee; el ramito cierra el bloque. */}
       <div className={`xl:col-start-1 ${rows.week}`}>
-        <WeekHeader ga={ga} reader={reader} onConfirmDate={onConfirmDate} needsReview={dueDateNeedsReview} />
+        <WeekHeader
+          ga={ga}
+          reader={reader}
+          onConfirmDate={onConfirmDate}
+          needsReview={dueDateNeedsReview}
+          explorer={explorer}
+          partnerName={partnerName}
+        />
         <BotanicalRule className={rhythm.rule} />
       </div>
 
@@ -3118,13 +3130,7 @@ function GuiaPapaView({
       </div>
 
       <div className={`flex flex-col gap-10 xl:col-start-1 ${rows.ficha}`}>
-        <FetalCard
-          realWeek={realWeek}
-          fallbackWeek={12}
-          theme={profile.comparisonTheme || "frutas"}
-          reader={reader}
-          partnerName={partnerName}
-        />
+        <FetalCard week={explorer.display} realWeek={realWeek} theme={profile.comparisonTheme || "frutas"} />
       </div>
 
       {allTasksOpen && (

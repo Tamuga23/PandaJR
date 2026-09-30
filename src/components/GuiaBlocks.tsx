@@ -1,9 +1,9 @@
 "use client";
 
-// Bloques de la Guía: bloque de semana (con la planta que crece), «¿Es la hora?» (36+), «Hoy», ficha de la
-// semana explorable y la hoja «Todas las tareas» (checklists por trimestre). Solo presentación y estado de
-// interfaz (qué está desplegado): las lecturas y escrituras de Firebase viven en page.tsx, en listeners y
-// manejadores.
+// Bloques de la Guía: bloque de semana (la planta que crece, la semana, el hito y la misión, con las
+// flechas de explorar), «¿Es la hora?» (36+), «Hoy», ficha del bebé y la hoja «Todas las tareas»
+// (checklists por trimestre). Solo presentación y estado de interfaz (qué está desplegado, qué semana se
+// mira): las lecturas y escrituras de Firebase viven en page.tsx, en listeners y manejadores.
 //
 // Fase 6 ("la Guía es un jardín compartido"): secciones y listas con divisores en lugar de tarjetas,
 // títulos en Alegreya (font-display) y la planta como firma. Primitivas en @/components/ui/List.
@@ -152,7 +152,8 @@ export function TaskRow({
                 {task.text}
               </span>
               <span className={`mt-0.5 block text-meta ${windowNote?.overdue ? "text-amber-ink" : "text-ink-muted"}`}>
-                {ownerLabels[owner]}
+                {/* Quién la hace, primero y en negrita: en «Hoy» no hay un título por dueño. */}
+                <span className="font-bold">{ownerLabels[owner]}</span>
                 {windowNote ? ` · ${windowNote.text}` : ""}
               </span>
             </span>
@@ -207,7 +208,10 @@ export function TaskRow({
 }
 
 // =====================================================================================
-// Bloque de semana: la planta (semana REAL) y la semana en Alegreya; explorar vive en la ficha
+// Bloque de semana (R2 · paso 2: «la semana manda»): la planta (semana REAL), la semana en Alegreya con
+// las flechas de explorar al lado, el hito como frase y la misión de quien lee. Es lo primero que se ve
+// (390×844): el corazón de la semana ya no queda debajo de las tareas. La ficha (longitud, peso,
+// tamaño) queda más abajo como detalle (FetalCard).
 // =====================================================================================
 
 /** "Semana 24 + 3 días · hoy es la fecha probable" → partes para componer el título. */
@@ -218,32 +222,119 @@ function splitWeekLabel(label: string): { week: string; extra?: string; note?: s
   return plus > 0 ? { week: main.slice(0, plus), extra: main.slice(plus + 1), note } : { week: main, note };
 }
 
+/**
+ * Semana que se mira en la Guía. La real no se pierde: explorar solo cambia el hito, la misión y la
+ * ficha (y la planta pequeña de la tira «Viendo la semana N»). Estado de interfaz, sin Firebase.
+ */
+export type WeekExplorer = {
+  /** Semana que se muestra: la explorada, la real o, sin semana confirmada, la de ejemplo. */
+  display: number;
+  /** Hay semana real y se está mirando otra. */
+  exploring: boolean;
+  /** Ya se usaron las flechas (para anunciar la semana al lector). */
+  touched: boolean;
+  go: (week: number) => void;
+  reset: () => void;
+};
+
+export function useWeekExplorer(realWeek: number | undefined, fallbackWeek: number): WeekExplorer {
+  const [viewWeek, setViewWeek] = useState<number | null>(null);
+  const display = viewWeek ?? realWeek ?? fallbackWeek;
+  return {
+    display,
+    exploring: realWeek !== undefined && display !== realWeek,
+    touched: viewWeek !== null,
+    go: (w) => setViewWeek(Math.min(WEEK_MAX, Math.max(WEEK_MIN, w))),
+    reset: () => setViewWeek(null),
+  };
+}
+
+/** Flechas de explorar: fantasmas de 44px (el chevrón queda alineado con el margen de la columna). */
+function WeekStepper({ explorer, className = "" }: { explorer: WeekExplorer; className?: string }) {
+  const { display, go } = explorer;
+  const btn = `grid size-11 shrink-0 place-items-center rounded-full text-ink transition-colors hover:bg-surface-hover disabled:text-ink-disabled disabled:hover:bg-transparent ${FOCUS}`;
+  return (
+    <div className={`flex shrink-0 ${className}`}>
+      <button type="button" onClick={() => go(display - 1)} disabled={display <= WEEK_MIN} aria-label="Ver la semana anterior" className={btn}>
+        <ChevronLeft size={22} strokeWidth={1.75} aria-hidden="true" />
+      </button>
+      <button type="button" onClick={() => go(display + 1)} disabled={display >= WEEK_MAX} aria-label="Ver la semana siguiente" className={btn}>
+        <ChevronRight size={22} strokeWidth={1.75} aria-hidden="true" />
+      </button>
+    </div>
+  );
+}
+
+/** Hito (frase, no título) y misión de quien lee para la semana que se mira. */
+function WeekHeart({
+  week,
+  reader,
+  typical,
+  partnerName,
+}: {
+  week: number;
+  reader: Role;
+  /** Sin semana confirmada: es lo típico de esa semana, no necesariamente la suya. */
+  typical: boolean;
+  partnerName?: string;
+}) {
+  const info = getWeek(week);
+  const isMama = reader === "mama";
+  return (
+    <>
+      <p className="mt-4 font-display text-subtitle font-normal text-pretty text-ink">{info.milestone}</p>
+      <h3 className="mt-5 font-display text-body font-bold text-ink">{isMama ? "Tu misión" : "Tu misión de copiloto"}</h3>
+      <p className="mt-1 text-body text-pretty text-ink">{isMama ? info.forMom : info.forDad}</p>
+      {typical && (
+        <p className="mt-2 text-micro font-medium text-ink-subtle">
+          {isMama
+            ? `Lo típico de la semana ${week}, no necesariamente la tuya.`
+            : `Lo típico de la semana ${week}, no necesariamente la de ${partnerName || "tu pareja"}.`}
+        </p>
+      )}
+    </>
+  );
+}
+
 export function WeekHeader({
   ga,
   reader,
   onConfirmDate,
   needsReview = false,
+  explorer,
+  partnerName,
 }: {
   ga: GestationalAgeState;
   reader: Role;
   onConfirmDate: () => void;
   /** La FPP compartida está fuera de rango (dato remoto dudoso): por eso la semana está sin confirmar. */
   needsReview?: boolean;
+  /** Con él, el bloque lleva las flechas de explorar, el hito y la misión (la Guía siempre lo pasa). */
+  explorer?: WeekExplorer;
+  partnerName?: string;
 }) {
   const isMama = reader === "mama";
   // La planta dice la semana real; sin confirmar, un brote neutro (no se inventa una semana).
   const plant = (
     <GrowingPlant week={ga.source === "unknown" ? undefined : ga.weeks} size={120} title="" className="-ms-2 shrink-0" />
   );
+  // Anuncia la semana al explorar (el hito y la misión cambian con ella).
+  const live = explorer && (
+    <p className="sr-only" aria-live="polite">
+      {explorer.touched ? `Semana ${explorer.display}` : ""}
+    </p>
+  );
 
   // Con el texto por debajo de 10rem (zoom del 200% en un teléfono) la planta queda arriba y el texto
   // debajo, en vez de partir "Semana" letra a letra.
   if (ga.source === "unknown") {
     return (
-      <header>
+      <section aria-labelledby="guia-week-title">
         <div className="flex flex-wrap items-center gap-3">
           {plant}
-          <h2 className="min-w-[10rem] flex-1 font-display text-display text-ink">Semana sin confirmar</h2>
+          <h2 id="guia-week-title" className="min-w-[10rem] flex-1 font-display text-display text-ink">
+            Semana sin confirmar
+          </h2>
         </div>
         <p className="mt-2 text-body text-ink-muted">
           {needsReview
@@ -255,46 +346,60 @@ export function WeekHeader({
         <RowButton tone="primary" onClick={onConfirmDate} className="mt-3">
           {needsReview ? "Revisar la fecha" : isMama ? "Confirmar mi fecha" : "Confirmar la fecha"}
         </RowButton>
-      </header>
+        {explorer && (
+          <>
+            {/* Sin semana real: lo típico de una semana de ejemplo, que se puede recorrer. */}
+            <div className="mt-6 flex items-center justify-between gap-3">
+              <p className="min-w-0 text-meta font-bold text-ink tabular-nums">Semana {explorer.display} · Lo típico de esta semana</p>
+              <WeekStepper explorer={explorer} className="-me-3" />
+            </div>
+            {live}
+            <WeekHeart week={explorer.display} reader={reader} typical partnerName={partnerName} />
+          </>
+        )}
+      </section>
     );
   }
 
   const parts = splitWeekLabel(ga.label);
-  const title = (
-    <h2 className="font-display text-display text-ink">
-      {parts.week}
-      {parts.extra && <span className="whitespace-nowrap text-ink-muted"> {parts.extra}</span>}
-      {parts.note && <span className="sr-only"> · {parts.note}</span>}
-    </h2>
+  // Semana REAL (explorar no la cambia). «Semana 24» y «+ 4 días» no se parten por dentro; con las flechas
+  // al lado, en un teléfono los días bajan a la segunda línea. Si ni «Semana 24» cabe (≤360px), las
+  // flechas bajan a su propia línea.
+  const titleRow = (
+    <div className="flex flex-wrap items-start gap-x-1">
+      <h2 id="guia-week-title" className="min-w-[8.5rem] flex-1 font-display text-display text-ink">
+        {/* El espacio va FUERA de los nowrap: es el único punto donde el título puede partirse. */}
+        <span className="whitespace-nowrap">{parts.week}</span>
+        {parts.extra && (
+          <>
+            {" "}
+            <span className="whitespace-nowrap text-ink-muted">{parts.extra}</span>
+          </>
+        )}
+        {parts.note && <span className="sr-only"> · {parts.note}</span>}
+      </h2>
+      {explorer && <WeekStepper explorer={explorer} className="ms-auto -me-3 -mt-1.5" />}
+    </div>
   );
 
+  let detail: React.ReactNode;
   if (ga.source === "manual") {
-    return (
-      <header className="flex flex-wrap items-center gap-3">
-        {plant}
-        <div className="min-w-[10rem] flex-1">
-          {title}
-          <p className="mt-1 text-meta text-ink-muted">
-            Semana elegida a mano: no avanza sola.{" "}
-            <button type="button" onClick={onConfirmDate} className={`-mx-2 ${TEXT_ACTION} underline`}>
-              Agregar la fecha probable
-            </button>
-          </p>
-        </div>
-      </header>
+    detail = (
+      <p className="mt-1 text-meta text-ink-muted">
+        Semana elegida a mano: no avanza sola.{" "}
+        <button type="button" onClick={onConfirmDate} className={`-mx-2 ${TEXT_ACTION} underline`}>
+          Agregar la fecha probable
+        </button>
+      </p>
     );
-  }
-
-  const today = new Date();
-  // "Según la ecografía · fecha probable: …", "Estimada por la semana que indicaron · fecha probable estimada: …"
-  const src = dueDateSummary(ga.dueDateSource, reader, ga.dueDate ? formatDateLong(ga.dueDate, today) : undefined);
-  const total = ga.totalDays ?? 0;
-  const left = PREGNANCY_DAYS - total;
-  return (
-    <header className="flex flex-wrap items-center gap-3">
-      {plant}
-      <div className="min-w-[10rem] flex-1">
-        {title}
+  } else {
+    const today = new Date();
+    // "Según la ecografía · fecha probable: …", "Estimada por la semana que indicaron · fecha probable estimada: …"
+    const src = dueDateSummary(ga.dueDateSource, reader, ga.dueDate ? formatDateLong(ga.dueDate, today) : undefined);
+    const total = ga.totalDays ?? 0;
+    const left = PREGNANCY_DAYS - total;
+    detail = (
+      <>
         {parts.note && (
           <p aria-hidden="true" className="mt-1 text-meta font-bold text-ink">
             {cap(parts.note)}
@@ -306,8 +411,37 @@ export function WeekHeader({
             {left === 1 ? "Falta 1 día para la fecha probable" : `Faltan ${left} días para la fecha probable`}
           </p>
         )}
+      </>
+    );
+  }
+
+  return (
+    <section aria-labelledby="guia-week-title">
+      {/* ≥1280px el texto sube al borde superior: la semana queda a la altura de «Hoy» (columna derecha). */}
+      <div className="flex flex-wrap items-center gap-3 xl:items-start">
+        {plant}
+        <div className="min-w-[10rem] flex-1">
+          {titleRow}
+          {detail}
+        </div>
       </div>
-    </header>
+      {explorer && (
+        <>
+          {live}
+          {explorer.exploring && (
+            <div className="mt-4 flex items-center gap-3 rounded-2xl bg-surface-sunken py-1.5 ps-1.5 pe-3">
+              {/* La planta pequeña sigue a la semana que se explora (al avanzar, crece). La grande no cambia. */}
+              <GrowingPlant week={explorer.display} size={56} title="" className="shrink-0" />
+              <p className="min-w-0 flex-1 text-meta font-bold text-ink tabular-nums">Viendo la semana {explorer.display}</p>
+              <button type="button" onClick={explorer.reset} className={`${TEXT_ACTION} underline`}>
+                Volver a hoy
+              </button>
+            </div>
+          )}
+          <WeekHeart week={explorer.display} reader={reader} typical={false} partnerName={partnerName} />
+        </>
+      )}
+    </section>
   );
 }
 
@@ -387,7 +521,9 @@ export function LaborReadyBlock({
 }
 
 // =====================================================================================
-// «Hoy»: qué toca y quién (una lista por dueño), la próxima cita y lo que hizo la pareja
+// «Hoy» (R2 · paso 2): lo mínimo para hoy. A la vista, dos tareas —la más relevante de quien lee y la
+// de su pareja (o «De los dos»)— y la próxima cita; «Ver las N» despliega el resto de la semana en su
+// sitio. Lo del parto (36+) va antes; «Todas las tareas» (la hoja con los trimestres) cierra el bloque.
 // =====================================================================================
 
 export type TodayGroup = { id: "mine" | "partner" | "both"; title: string; rows: TaskRowModel[] };
@@ -400,7 +536,7 @@ export type AllTasksEntry = {
   /** false = aún sin el primer dato del servidor: no se afirma un conteo. */
   loaded: boolean;
   onOpen: () => void;
-  /** Estado de sincronía del progreso (SyncBadge), bajo la fila. */
+  /** Estado de sincronía del progreso (SyncBadge), junto a las tareas de la semana. */
   syncBadge?: React.ReactNode;
 };
 
@@ -410,7 +546,26 @@ export function allTasksProgress(done: number, total: number, loaded: boolean): 
   return `${done} de ${total} ${total === 1 ? "hecha" : "hechas"}`;
 }
 
-const GROUP_LIMIT = 4;
+/**
+ * Las dos tareas a la vista en «Hoy»: la más relevante de quien lee y la de su pareja (o «De los dos»
+ * si la pareja no tiene). Cada grupo ya viene ordenado por relevancia (ventana abierta que cierra antes,
+ * hábitos, ventanas recién cerradas y, al final, lo hecho). Si falta alguna, se completa con el resto.
+ */
+export function featuredTaskIds(groups: TodayGroup[]): string[] {
+  const rowsOf = (id: TodayGroup["id"]) => groups.find((g) => g.id === id)?.rows ?? [];
+  const mine = rowsOf("mine");
+  const partner = rowsOf("partner");
+  const both = rowsOf("both");
+  const out: string[] = [];
+  const take = (list: TaskRowModel[]) => {
+    const r = list.find((x) => !out.includes(String(x.task.id)));
+    if (r) out.push(String(r.task.id));
+  };
+  take(mine);
+  take(partner.length ? partner : both);
+  for (const list of [both, partner, mine]) if (out.length < 2) take(list);
+  return out;
+}
 
 /** Subtítulo de un grupo de «Hoy» (h3). La lista va justo después (el h3 y su lista son hermanos). */
 function GroupHeading({ title, aside }: { title: string; aside?: string }) {
@@ -456,12 +611,29 @@ export function TodayBlock({
   sinceLastVisit: SinceLastVisit;
   /** Desde la semana 36 (semana conocida): «Para el parto», con el cronómetro y la maleta a mano. */
   onOpenTool?: (tool: GuiaTool) => void;
-  /** Fila «Todas las tareas» tras las de la semana (abre la hoja con los trimestres). */
+  /** Fila «Todas las tareas» al final de «Hoy» (abre la hoja con los trimestres). */
   allTasks?: AllTasksEntry;
 }) {
-  const [showAll, setShowAll] = useState<Record<string, boolean>>({});
+  const [expanded, setExpanded] = useState(false);
   const todayText = new Intl.DateTimeFormat("es", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
-  const visible = groups.filter((g) => g.rows.length > 0);
+
+  // Todas las de la semana, por dueño (tuyas, de tu pareja, de los dos) y, dentro, por relevancia.
+  const weekRows = (["mine", "partner", "both"] as const).flatMap((id) => groups.find((g) => g.id === id)?.rows ?? []);
+  // Las dos destacadas se fijan mientras no cambie el conjunto de tareas: marcar o reasignar una no la
+  // saca de su sitio (ni se pierde el foco). Cambian con la semana o si una sale de la lista.
+  const setKey = weekRows.map((r) => String(r.task.id)).sort().join(",");
+  const [pin, setPin] = useState<{ key: string; ids: string[] }>({ key: "", ids: [] });
+  let featuredIds = pin.ids;
+  if (pin.key !== setKey) {
+    featuredIds = featuredTaskIds(groups);
+    setPin({ key: setKey, ids: featuredIds });
+  }
+  const byId = new Map(weekRows.map((r) => [String(r.task.id), r] as const));
+  const featured = featuredIds.map((id) => byId.get(id)).filter((r): r is TaskRowModel => !!r);
+  const rest = weekRows.filter((r) => !featuredIds.includes(String(r.task.id)));
+  const shown = expanded ? [...featured, ...rest] : featured;
+  const pending = weekRows.filter((r) => !r.completed).length;
+  const hasRows = weekKnown && !loading && weekRows.length > 0;
 
   return (
     <section aria-labelledby="guia-hoy-title">
@@ -509,81 +681,59 @@ export function TodayBlock({
         </div>
       )}
 
-      {/* Tareas por dueño */}
-      {!weekKnown ? (
-        <p className="mt-3 text-body text-ink-muted">
-          {reader === "mama"
-            ? "Cuando confirmes tu fecha, aquí verás qué toca esta semana y a quién le toca."
-            : "Cuando confirmen la fecha, aquí verás qué toca esta semana y a quién le toca."}
-        </p>
-      ) : loading ? (
-        <p className="mt-3 text-body text-ink-muted" aria-live="polite">
-          {loadingText}
-        </p>
-      ) : visible.length === 0 ? (
-        <p className="mt-3 text-body text-ink-muted">
-          No hay tareas con fecha para esta semana.{allTasks ? " En «Todas las tareas» están las de cada trimestre." : ""}
-        </p>
-      ) : (
-        visible.map((g) => {
-          const all = !!showAll[g.id];
-          const rows = all ? g.rows : g.rows.slice(0, GROUP_LIMIT);
-          const pending = g.rows.filter((r) => !r.completed).length;
-          return (
-            <div key={g.id} className="mt-6">
-              <GroupHeading
-                title={g.title}
-                aside={pending === 0 ? "Todo hecho" : pending === 1 ? "1 pendiente" : `${pending} pendientes`}
+      {/* Tareas de la semana: dos a la vista (quién hace qué se lee en cada fila) y el resto a un toque. */}
+      <div className="mt-6">
+        <GroupHeading
+          title="Tareas de la semana"
+          aside={hasRows ? (pending === 0 ? "Todo hecho" : pending === 1 ? "1 pendiente" : `${pending} pendientes`) : undefined}
+        />
+        {!weekKnown ? (
+          <p className="mt-1 text-body text-ink-muted">
+            {reader === "mama"
+              ? "Cuando confirmes tu fecha, aquí verás qué toca esta semana y a quién le toca."
+              : "Cuando confirmen la fecha, aquí verás qué toca esta semana y a quién le toca."}
+          </p>
+        ) : loading ? (
+          <p className="mt-1 text-body text-ink-muted" aria-live="polite">
+            {loadingText}
+          </p>
+        ) : weekRows.length === 0 ? (
+          <p className="mt-1 text-body text-ink-muted">
+            No hay tareas con fecha para esta semana.{allTasks ? " En «Todas las tareas» están las de cada trimestre." : ""}
+          </p>
+        ) : (
+          <ListGroup className="mt-1">
+            {shown.map((row) => (
+              <TaskRow
+                key={row.task.id}
+                idBase={`hoy-${row.task.id}`}
+                row={row}
+                ownerLabels={ownerLabels}
+                disabled={disabled}
+                onToggleDone={() => onToggleDone(row)}
+                onAssign={(o) => onAssign(row, o)}
               />
-              <ListGroup className="mt-1">
-                {rows.map((row) => (
-                  <TaskRow
-                    key={row.task.id}
-                    idBase={`hoy-${g.id}-${row.task.id}`}
-                    row={row}
-                    ownerLabels={ownerLabels}
-                    disabled={disabled}
-                    onToggleDone={() => onToggleDone(row)}
-                    onAssign={(o) => onAssign(row, o)}
-                  />
-                ))}
-              </ListGroup>
-              {g.rows.length > GROUP_LIMIT && (
-                <button
-                  type="button"
-                  aria-expanded={all}
-                  onClick={() => setShowAll((s) => ({ ...s, [g.id]: !all }))}
-                  className={`mt-1 -mx-2 ${TEXT_ACTION}`}
-                >
-                  {/* «Ver las 5», no «Ver todas»: «Todas las tareas» es la fila de abajo (todo el embarazo). */}
-                  {all ? "Ver menos" : `Ver las ${g.rows.length}`}
-                </button>
-              )}
-            </div>
-          );
-        })
-      )}
-
-      {/* El resto del embarazo, en su propia hoja: aquí no se repite ninguna tarea de arriba. */}
-      {allTasks && (
-        <div className="mt-6">
-          <ListGroup edges>
-            <ListRow
-              leading={<ListChecks {...ICON} />}
-              title="Todas las tareas"
-              meta={
-                <span className="tabular-nums">
-                  {cap([allTasksProgress(allTasks.done, allTasks.total, allTasks.loaded), "por trimestre"].filter(Boolean).join(" · "))}
-                </span>
-              }
-              onClick={allTasks.onOpen}
-              aria-haspopup="dialog"
-              trailing="chevron"
-            />
+            ))}
           </ListGroup>
-          {allTasks.syncBadge}
-        </div>
-      )}
+        )}
+        {hasRows && (rest.length > 0 || allTasks?.syncBadge) && (
+          <div className="mt-1 flex flex-wrap items-center justify-between gap-x-4">
+            {rest.length > 0 && (
+              <button
+                type="button"
+                aria-expanded={expanded}
+                onClick={() => setExpanded((v) => !v)}
+                className={`-mx-2 ${TEXT_ACTION}`}
+              >
+                {/* «Ver las 8», no «Ver todas»: «Todas las tareas» (todo el embarazo) es la fila del final. */}
+                {expanded ? "Ver menos" : `Ver las ${weekRows.length}`}
+              </button>
+            )}
+            {/* Dónde vive este progreso: solo aquí o compartido con la pareja. */}
+            {allTasks?.syncBadge && <div className="ms-auto flex min-h-11 min-w-0 items-center">{allTasks.syncBadge}</div>}
+          </div>
+        )}
+      </div>
 
       {/* Próxima cita (solo futura) */}
       <div className="mt-6">
@@ -620,81 +770,57 @@ export function TodayBlock({
           )}
         </ListGroup>
       </div>
+
+      {/* El resto del embarazo, en su propia hoja: aquí no se repite ninguna tarea de arriba. */}
+      {allTasks && (
+        <ListGroup edges className="mt-6">
+          <ListRow
+            leading={<ListChecks {...ICON} />}
+            title="Todas las tareas"
+            meta={
+              <span className="tabular-nums">
+                {cap([allTasksProgress(allTasks.done, allTasks.total, allTasks.loaded), "por trimestre"].filter(Boolean).join(" · "))}
+              </span>
+            }
+            onClick={allTasks.onOpen}
+            aria-haspopup="dialog"
+            trailing="chevron"
+          />
+        </ListGroup>
+      )}
     </section>
   );
 }
 
 // =====================================================================================
-// Ficha de la semana (1..42) con explorador: sin tarjetas ni etiquetas sobre los títulos.
-// El título ES el hito (en Alegreya): la semana ya la dice el bloque de semana, no se repite. Longitud,
-// peso y tamaño aproximado (en ese orden: la comparación va al final) en una lista de definiciones; la
-// misión cierra. Al explorar, una planta pequeña muestra (y hace crecer) la semana que se mira; la semana
-// real no se pierde.
+// Ficha del bebé (R2 · paso 2): solo el detalle de la semana que se mira —longitud (con cómo se mide),
+// peso y tamaño aproximado, en ese orden: la comparación va al final—. El hito y la misión viven en el
+// bloque de semana y aquí no se repiten. Al explorar, sigue a la semana explorada.
 // =====================================================================================
 
 export function FetalCard({
+  week,
   realWeek,
-  fallbackWeek,
   theme,
-  reader,
-  partnerName,
 }: {
-  /** Semana real (undefined = sin confirmar: todo es "lo típico de la semana X"). */
+  /** Semana que se mira (la explorada, la real o, sin semana confirmada, la de ejemplo). */
+  week: number;
+  /** Semana real (undefined = sin confirmar: es "lo típico de la semana X"). */
   realWeek: number | undefined;
-  fallbackWeek: number;
   theme: "frutas" | "geek";
-  reader: Role;
-  partnerName?: string;
 }) {
-  const [viewWeek, setViewWeek] = useState<number | null>(null);
-  const display = viewWeek ?? realWeek ?? fallbackWeek;
-  const exploring = realWeek !== undefined && display !== realWeek;
-  const info = getWeek(display);
-  const measure = lengthMeasure(display);
-  const isMama = reader === "mama";
-  const go = (w: number) => setViewWeek(Math.min(WEEK_MAX, Math.max(WEEK_MIN, w)));
-  const stepBtn = `grid size-11 shrink-0 place-items-center rounded-full border border-line-control text-ink transition-colors hover:bg-surface-hover disabled:border-line disabled:text-ink-disabled disabled:hover:bg-transparent ${FOCUS}`;
-  const fact = "flex items-baseline justify-between gap-4 py-2.5";
-  const srWeek = realWeek === undefined || exploring ? `Semana ${display}` : isMama ? `Tu semana, la ${display}` : `Su semana, la ${display}`;
+  const info = getWeek(week);
+  const measure = lengthMeasure(week);
+  const title =
+    realWeek === undefined ? `Lo típico en la semana ${week}` : week === realWeek ? "El bebé esta semana" : `El bebé en la semana ${week}`;
+  const fact = "flex items-baseline justify-between gap-4 py-2";
 
   return (
     <section aria-labelledby="guia-fetal-title">
-      <div className="flex items-start justify-between gap-3">
-        <h2 id="guia-fetal-title" className="min-w-0 flex-1 pt-1.5 font-display text-subtitle text-ink">
-          {/* La semana que se mira, para el lector (a la vista la dicen el bloque de semana o la barra de abajo). */}
-          <span className="sr-only">{srWeek}: </span>
-          {info.milestone}
-        </h2>
-        <div className="flex shrink-0 gap-2">
-          <button type="button" onClick={() => go(display - 1)} disabled={display <= WEEK_MIN} aria-label="Ver la semana anterior" className={stepBtn}>
-            <ChevronLeft size={20} strokeWidth={1.75} aria-hidden="true" />
-          </button>
-          <button type="button" onClick={() => go(display + 1)} disabled={display >= WEEK_MAX} aria-label="Ver la semana siguiente" className={stepBtn}>
-            <ChevronRight size={20} strokeWidth={1.75} aria-hidden="true" />
-          </button>
-        </div>
-      </div>
-      {/* Anuncia la semana al explorar (el título cambia con ella). */}
-      <p className="sr-only" aria-live="polite">
-        {viewWeek !== null ? `Semana ${display}` : ""}
-      </p>
-
-      {realWeek === undefined && (
-        <p className="mt-1 text-meta text-ink-muted">Semana {display} · Lo típico de esta semana</p>
-      )}
-
-      {exploring && (
-        <div className="mt-3 flex items-center gap-3 rounded-2xl bg-surface-sunken py-1.5 ps-1.5 pe-3">
-          {/* La planta sigue a la semana que se explora (al avanzar, crece). La de arriba no cambia. */}
-          <GrowingPlant week={display} size={56} title="" className="shrink-0" />
-          <p className="min-w-0 flex-1 text-meta font-bold text-ink">Viendo la semana {display}</p>
-          <button type="button" onClick={() => setViewWeek(null)} className={`${TEXT_ACTION} underline`}>
-            Volver a hoy
-          </button>
-        </div>
-      )}
-
-      <dl className="mt-4 divide-y divide-line">
+      <h2 id="guia-fetal-title" className="font-display text-subtitle text-ink">
+        {title}
+      </h2>
+      <dl className="mt-2 divide-y divide-line">
         <div className={fact}>
           <dt className="text-meta text-ink-muted">
             Longitud
@@ -717,15 +843,6 @@ export function FetalCard({
         </div>
       </dl>
       {info.note && <p className="mt-2 text-micro font-medium text-ink-subtle">{info.note}</p>}
-
-      <h3 className="mt-6 font-display text-body font-bold text-ink">{isMama ? "Tu misión" : "Tu misión de copiloto"}</h3>
-      <p className="mt-1 text-body text-ink-muted">{isMama ? info.forMom : info.forDad}</p>
-      {!isMama && realWeek === undefined && (
-        <p className="mt-2 text-micro font-medium text-ink-subtle">Lo típico de la semana {display}, no necesariamente la de {partnerName || "tu pareja"}.</p>
-      )}
-      {isMama && realWeek === undefined && (
-        <p className="mt-2 text-micro font-medium text-ink-subtle">Lo típico de la semana {display}, no necesariamente la tuya.</p>
-      )}
     </section>
   );
 }
@@ -897,7 +1014,7 @@ export function AllTasksSheet({
                 {progress && <span className="font-bold text-ink tabular-nums">{cap(progress)}. </span>}
                 Toca una tarea para ver por qué importa y a quién le toca.
               </p>
-              {syncBadge}
+              {syncBadge && <div className="mt-2">{syncBadge}</div>}
             </div>
             <button
               type="button"
