@@ -68,6 +68,7 @@ import {
   isTaskDone,
   ownersMissingRemotely,
   readLocalTaskOwners,
+  taskWindow,
   tasksForWeek,
   writeLocalTaskOwner,
   type TaskOwner,
@@ -90,6 +91,8 @@ import {
   LaborReadyBlock,
   TodayBlock,
   WeekHeader,
+  discussAtControl,
+  overdueAsk,
   taskWindowNote,
   useWeekExplorer,
   type GuiaTool,
@@ -99,6 +102,7 @@ import {
   type TodayGroup,
   type TrimesterModel,
 } from "@/components/GuiaBlocks";
+import { publishDiscuss, requestOpenDiscuss } from "@/lib/guiaDiscuss";
 import { GrowingPlant } from "@/components/GrowingPlant";
 import { Wordmark } from "@/components/Wordmark";
 import { PandaMark } from "@/components/PandaMark";
@@ -2415,6 +2419,12 @@ export default function PandaJRApp() {
             setAiInitialQuery(question);
             setActiveTab("pandaia");
           }}
+          onMarkTasks={() => {
+            // «Para comentar en esta cita» → el grupo de «Hoy» en la Guía, desplegado y con el foco.
+            setSelectedPrepEvent(null);
+            setActiveTab("planificacion");
+            requestOpenDiscuss();
+          }}
         />
       )}
 
@@ -2967,15 +2977,37 @@ function GuiaPapaView({
     };
   };
 
+  // --- «Para comentar en tu próximo control» (R2 · paso 3) ---
+  // Vacunas, pruebas y trámites cuya ventana ya cerró y siguen sin marcar: van en UN grupo (en «Hoy», en la
+  // hoja «Todas las tareas» y en la preparación de la próxima cita), no como un muro de avisos. Solo con
+  // semana conocida y con el dato del servidor: nunca se afirma que algo falta sin saberlo. Las que se
+  // marcan durante la sesión siguen en su grupo (marcadas): nada se mueve bajo el dedo ni se pierde el foco.
+  const discussable = (t: (typeof ALL_TASKS)[number]) => discussAtControl(t, realWeek) && taskStatus[String(t.id)] !== "dismissed";
+  const discussPendingIds = checklistLoaded
+    ? ALL_TASKS.filter(t => discussable(t) && !isTaskDone(taskStatus[String(t.id)])).map(t => String(t.id))
+    : [];
+  const [discussSeen, setDiscussSeen] = useState<{ pid: string; week?: number; ids: string[] }>({ pid, week: realWeek, ids: [] });
+  let discussSeenIds = discussSeen.pid === pid && discussSeen.week === realWeek ? discussSeen.ids : [];
+  if (discussSeenIds !== discussSeen.ids || discussPendingIds.some(id => !discussSeenIds.includes(id))) {
+    discussSeenIds = [...new Set([...discussSeenIds, ...discussPendingIds])];
+    setDiscussSeen({ pid, week: realWeek, ids: discussSeenIds });
+  }
+  const discussAllRows = ALL_TASKS.filter(t => discussable(t) && discussSeenIds.includes(String(t.id))).map(buildRow);
+  const discussIds = new Set(discussAllRows.map(r => String(r.task.id)));
+  // En «Hoy» y en la cita, solo las de ventanas que cerraron en las últimas 4 semanas (revisión clínica #18);
+  // las más antiguas siguen en «Todas las tareas».
+  const discussTodayRows = discussAllRows.filter(r => (realWeek ?? 0) - taskWindow(r.task).to <= 4);
+
   // --- «Hoy»: ventana activa (pendientes primero) + ventanas pasadas sin hacer, por dueño ---
   const forWeek = tasksForWeek(realWeek, taskStatus);
   const todayRows = [
     ...forWeek.now.filter(t => !t.completed),
     // Solo las de ventana clínica propia que cerraron en las últimas 4 semanas: los hábitos de un
     // trimestre pasado no "vencen" hoy y un muro de pendientes viejos no ayuda (siguen en los checklists).
+    // Las de comentar en el control van en su grupo; aquí queda la logística («mejor cuanto antes»).
     ...forWeek.overdue.filter(t => (t.weekFrom !== undefined || t.weekTo !== undefined) && (forWeek.week ?? 0) - t.window.to <= 4),
     ...forWeek.now.filter(t => t.completed),
-  ].map(t => buildRow(t));
+  ].filter(t => !discussIds.has(String(t.id))).map(t => buildRow(t));
   const todayGroups: TodayGroup[] = [
     { id: "mine", title: "Tus tareas", rows: todayRows.filter(r => r.owner === reader) },
     { id: "partner", title: `Las de ${partnerName || (otherRole === "mama" ? "mamá" : "papá")}`, rows: todayRows.filter(r => r.owner === otherRole) },
@@ -3004,6 +3036,17 @@ function GuiaPapaView({
         byName: pid && nextEvent.ev.createdBy && nextEvent.ev.createdBy !== partner.myUid ? nextEvent.ev.createdByName : undefined,
       }
     : null;
+
+  // La preparación de la próxima cita (hoja en la raíz, también desde la Agenda) muestra lo mismo que el
+  // grupo de «Hoy»: se publica tras cada render (no avisa si no cambió). Memoria del teléfono, no Firebase.
+  const discussForPrep = discussTodayRows
+    .filter(r => !r.completed)
+    .map(r => ({ id: String(r.task.id), text: r.task.text, ask: overdueAsk(r.task.kind, reader) }));
+  const nextEventId = nextEvent?.ev.id ?? null;
+  useEffect(() => {
+    publishDiscuss({ eventId: nextEventId, items: discussForPrep });
+  });
+  useEffect(() => () => publishDiscuss(null), []);
 
   // --- "Desde tu última visita": lo que marcó o reasignó la pareja (solo con dato del servidor) ---
   const visitSince = visit.pid === pid ? visit.since : null;
@@ -3110,6 +3153,7 @@ function GuiaPapaView({
           onGoToAgenda={onGoToAgenda}
           sinceLastVisit={sinceLastVisit}
           onOpenTool={laborReady ? onOpenTool : undefined}
+          discuss={discussTodayRows}
           allTasks={{
             done: doneCount,
             total: allRows.length,
@@ -3147,6 +3191,8 @@ function GuiaPapaView({
           disabled={!checklistLoaded}
           onToggleDone={toggleTask}
           onAssign={(row, o) => assignTask(row, o)}
+          reader={reader}
+          discuss={discussAllRows}
         />
       )}
     </div>

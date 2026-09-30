@@ -11,7 +11,7 @@
 // R2: ninguna tarea aparece dos veces en la misma vista. «Hoy» lista las de la semana; el resto vive en
 // una hoja aparte («Todas las tareas»), a la que se llega desde una sola fila al final de las tareas.
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   CalendarClock,
   CalendarPlus,
@@ -22,6 +22,7 @@ import {
   Circle,
   ListChecks,
   Luggage,
+  Stethoscope,
   Timer,
   X,
 } from "lucide-react";
@@ -33,8 +34,9 @@ import { ModalPortal } from "@/components/ModalPortal";
 import { ListGroup, ListRow, RowButton } from "@/components/ui/List";
 import { Z_CLASS } from "@/lib/layers";
 import { useModalDialog } from "@/lib/useModalDialog";
+import { useOpenDiscussRequest } from "@/lib/guiaDiscuss";
 import { MAX_VALID_GESTATION_DAYS, PREGNANCY_DAYS, dueDateSummary, type GestationalAgeState } from "@/lib/pregnancy";
-import { TASK_OWNERS, taskWindow, type TaskOwner, type TaskWithCategory } from "@/lib/tasks";
+import { TASK_OWNERS, taskWindow, type TaskKind, type TaskOwner, type TaskWithCategory } from "@/lib/tasks";
 import { WEEK_MAX, WEEK_MIN, formatLength, formatWeight, getWeek, lengthMeasure } from "@/lib/weeks";
 
 export type Role = "mama" | "papa";
@@ -51,13 +53,44 @@ const cap = (s: string) => (s ? s.charAt(0).toLocaleUpperCase("es") + s.slice(1)
 
 // =====================================================================================
 // Ventana clínica de una tarea (texto sereno; sin "vencida" si la semana no se conoce)
+// R2 · paso 3: pasada la ventana sin marcarla, una pregunta con la gramática de lo que es (vacuna,
+// prueba, cultivo o trámite) en la voz de quien lee, y «llévalo a tu próximo control», sin reproche.
+// La logística de casa no se lleva al control: sigue pendiente, «mejor cuanto antes».
 // =====================================================================================
 
+type WindowTask = Pick<TaskWithCategory, "trimester" | "weekFrom" | "weekTo" | "expiresAfterWindow" | "kind">;
+
+/** «¿Ya te la pusieron?» (vacuna), «¿Ya te la hicieron?» (prueba), «¿Ya te lo hicieron?» (cultivo), «¿Ya está hecha?». */
+export function overdueAsk(kind: TaskKind | undefined, reader: Role): string {
+  const mama = reader === "mama";
+  switch (kind) {
+    case "vacuna":
+      return mama ? "¿Ya te la pusieron?" : "¿Ya se la pusieron?";
+    case "prueba":
+      return mama ? "¿Ya te la hicieron?" : "¿Ya se la hicieron?";
+    case "cultivo":
+      return mama ? "¿Ya te lo hicieron?" : "¿Ya se lo hicieron?";
+    default:
+      return "¿Ya está hecha?";
+  }
+}
+
+/**
+ * La tarea es de las que, con la ventana ya cerrada, se llevan al próximo control: tiene ventana propia,
+ * no caduca y no es logística. (Si está marcada o no, lo decide quien llama.) Semana desconocida: nunca.
+ */
+export function discussAtControl(task: WindowTask, week: number | undefined): boolean {
+  if (week === undefined || (task.weekFrom === undefined && task.weekTo === undefined)) return false;
+  if (task.expiresAfterWindow || task.kind === "logistica") return false;
+  return week > taskWindow(task).to;
+}
+
 export function taskWindowNote(
-  task: Pick<TaskWithCategory, "trimester" | "weekFrom" | "weekTo" | "expiresAfterWindow">,
+  task: WindowTask,
   week: number | undefined,
   completed: boolean,
-  owner: TaskOwner,
+  // Se conserva por compatibilidad: la pregunta depende de quién lee y de qué es la tarea, no de su dueño.
+  _owner: TaskOwner,
   reader: Role
 ): { text: string; overdue: boolean } | null {
   const own = task.weekFrom !== undefined || task.weekTo !== undefined;
@@ -68,14 +101,10 @@ export function taskWindowNote(
     // Hábitos del trimestre (sin ventana clínica propia): no "vencen"; no se pregunta por ellos.
     if (completed || !own) return own ? { text: `Ventana: ${range}`, overdue: false } : null;
     if (task.expiresAfterWindow) return { text: `Era hasta la semana ${win.to}`, overdue: false };
+    if (task.kind === "logistica") return { text: `Ventana: ${range} · mejor cuanto antes`, overdue: false };
     // Sin "ya pasó": lo que toca es preguntarlo en el control (p. ej., la Tdap se puede poner después).
-    const ask =
-      owner === reader
-        ? "¿Ya la hiciste? Si no, coméntalo en el próximo control"
-        : owner === "ambos"
-          ? "¿Ya la hicieron? Si no, coméntenlo en el próximo control"
-          : "¿Ya está hecha? Si no, coméntenlo en el próximo control";
-    return { text: `Ventana: ${range} · ${ask}`, overdue: true };
+    const next = reader === "mama" ? "Si no, llévalo a tu próximo control" : "Si no, llévenlo a su próximo control";
+    return { text: `Ventana: ${range} · ${overdueAsk(task.kind, reader)} ${next}`, overdue: true };
   }
   if (week < win.from) return { text: `Desde la semana ${win.from}`, overdue: false };
   return own ? { text: `Ventana: ${range} · es ahora`, overdue: false } : null;
@@ -90,6 +119,7 @@ export type TaskRowModel = {
   task: TaskWithCategory;
   completed: boolean;
   owner: TaskOwner;
+  /** overdue: ventana pasada y sin marcar, para comentar en el próximo control (nunca con semana desconocida). */
   windowNote: { text: string; overdue: boolean } | null;
   author: { name?: string; role?: Role; title: string } | null;
   /** "Luis la asignó a Ana hace 2 días" (solo si alguien la reasignó). */
@@ -151,7 +181,8 @@ export function TaskRow({
               >
                 {task.text}
               </span>
-              <span className={`mt-0.5 block text-meta ${windowNote?.overdue ? "text-amber-ink" : "text-ink-muted"}`}>
+              {/* Sin ámbar por fila (R2 · paso 3): lo pendiente de semanas pasadas se agrupa en «para comentar». */}
+              <span className="mt-0.5 block text-meta text-ink-muted">
                 {/* Quién la hace, primero y en negrita: en «Hoy» no hay un título por dueño. */}
                 <span className="font-bold">{ownerLabels[owner]}</span>
                 {windowNote ? ` · ${windowNote.text}` : ""}
@@ -521,6 +552,110 @@ export function LaborReadyBlock({
 }
 
 // =====================================================================================
+// «Para comentar en tu próximo control» (R2 · paso 3): lo que quedó sin marcar de ventanas ya cerradas
+// (vacunas, pruebas, trámites con el equipo de salud) se agrupa en UNA fila serena que se despliega en su
+// sitio. Sin ámbar por fila ni reproches: el aviso es un icono ámbar y una frase. Las que se marcan siguen
+// a la vista (marcadas) mientras dure la sesión: nada se mueve bajo el dedo ni se pierde el foco.
+// =====================================================================================
+
+export function discussTitle(pending: number, reader: Role): string {
+  const control = reader === "mama" ? "tu próximo control" : "el próximo control";
+  if (pending === 0) return `Todo al día para ${control}`;
+  return `${pending} ${pending === 1 ? "cosa" : "cosas"} para comentar en ${control}`;
+}
+
+export function DiscussGroup({
+  rows,
+  reader,
+  ownerLabels,
+  disabled,
+  onToggleDone,
+  onAssign,
+  idBase,
+  topRule = false,
+  listenOpenRequest = false,
+  bleed = true,
+  className,
+}: {
+  rows: TaskRowModel[];
+  reader: Role;
+  ownerLabels: OwnerLabels;
+  disabled: boolean;
+  onToggleDone: (row: TaskRowModel) => void;
+  onAssign: (row: TaskRowModel, owner: TaskOwner) => void;
+  idBase: string;
+  /** Filete arriba, alineado con el texto (cuando sigue a otra lista, p. ej. la próxima cita). */
+  topRule?: boolean;
+  /** Responde al enlace «Marcarlas en la Guía» de la preparación de cita (solo el de «Hoy»). */
+  listenOpenRequest?: boolean;
+  /** Las filas sangran hasta el borde de la columna (false dentro de la hoja, que no tiene margen lateral). */
+  bleed?: boolean;
+  className?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const request = useOpenDiscussRequest();
+  const [seenRequest, setSeenRequest] = useState(request);
+  const [mountRequest] = useState(request);
+  if (listenOpenRequest && request !== seenRequest) {
+    setSeenRequest(request);
+    setOpen(true);
+  }
+  // Tras «Marcarlas en la Guía»: el grupo abierto, a la vista y con el foco (no al montar).
+  useEffect(() => {
+    if (!listenOpenRequest || request === mountRequest) return;
+    const el = toggleRef.current;
+    if (!el) return;
+    el.focus({ preventScroll: true });
+    el.scrollIntoView?.({ block: "center" });
+  }, [listenOpenRequest, request, mountRequest]);
+
+  if (rows.length === 0) return null;
+  const pending = rows.filter((r) => !r.completed).length;
+  const panelId = `${idBase}-panel`;
+  const rule = "[&>li:first-child_.pj-row-body]:border-t [&>li:first-child_.pj-row-body]:border-line";
+  return (
+    <div className={className}>
+      <ListGroup bleed={bleed} className={topRule ? rule : undefined}>
+        <ListRow
+          buttonRef={toggleRef}
+          leading={<Stethoscope {...ICON} className="text-amber-ink" />}
+          title={discussTitle(pending, reader)}
+          meta={pending > 0 ? "Sus ventanas ya pasaron y no están marcadas." : undefined}
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          trailing={
+            <ChevronDown
+              size={18}
+              strokeWidth={1.75}
+              aria-hidden="true"
+              className={`shrink-0 text-ink-subtle transition-transform motion-reduce:transition-none ${open ? "rotate-180" : ""}`}
+            />
+          }
+        />
+      </ListGroup>
+      <div id={panelId} hidden={!open}>
+        {open && (
+          <ListGroup bleed={bleed} className={rule}>
+            {rows.map((row) => (
+              <TaskRow
+                key={row.task.id}
+                idBase={`${idBase}-${row.task.id}`}
+                row={row}
+                ownerLabels={ownerLabels}
+                disabled={disabled}
+                onToggleDone={() => onToggleDone(row)}
+                onAssign={(o) => onAssign(row, o)}
+              />
+            ))}
+          </ListGroup>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// =====================================================================================
 // «Hoy» (R2 · paso 2): lo mínimo para hoy. A la vista, dos tareas —la más relevante de quien lee y la
 // de su pareja (o «De los dos»)— y la próxima cita; «Ver las N» despliega el resto de la semana en su
 // sitio. Lo del parto (36+) va antes; «Todas las tareas» (la hoja con los trimestres) cierra el bloque.
@@ -594,6 +729,7 @@ export function TodayBlock({
   sinceLastVisit,
   onOpenTool,
   allTasks,
+  discuss = [],
 }: {
   weekKnown: boolean;
   reader: Role;
@@ -613,6 +749,8 @@ export function TodayBlock({
   onOpenTool?: (tool: GuiaTool) => void;
   /** Fila «Todas las tareas» al final de «Hoy» (abre la hoja con los trimestres). */
   allTasks?: AllTasksEntry;
+  /** Ventanas cerradas hace poco y sin marcar (más las marcadas en esta sesión): van con la próxima cita. */
+  discuss?: TaskRowModel[];
 }) {
   const [expanded, setExpanded] = useState(false);
   const todayText = new Intl.DateTimeFormat("es", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
@@ -769,6 +907,20 @@ export function TodayBlock({
             />
           )}
         </ListGroup>
+        {/* Lo que quedó de semanas pasadas se lleva a esta cita (también está en su preparación). */}
+        {weekKnown && !loading && (
+          <DiscussGroup
+            rows={discuss}
+            reader={reader}
+            ownerLabels={ownerLabels}
+            disabled={disabled}
+            onToggleDone={onToggleDone}
+            onAssign={onAssign}
+            idBase="hoy-comentar"
+            topRule
+            listenOpenRequest
+          />
+        )}
       </div>
 
       {/* El resto del embarazo, en su propia hoja: aquí no se repite ninguna tarea de arriba. */}
@@ -851,7 +1003,8 @@ export function FetalCard({
 // Checklists por trimestre (solo el actual desplegado de entrada): filas desplegables con
 // divisores y, dentro, una lista por categoría. Viven en la hoja «Todas las tareas», no en la
 // Guía: así ninguna tarea de «Hoy» se repite en la misma vista. Las filas llegan al borde del
-// contenedor (--gutter lo pone quien las monta).
+// contenedor (--gutter lo pone quien las monta). Las que están en el grupo «para comentar» (arriba de la
+// hoja) no se repiten aquí, pero cuentan en el progreso del trimestre.
 // =====================================================================================
 
 export type TrimesterModel = {
@@ -867,6 +1020,7 @@ export function TrimesterChecklists({
   disabled,
   onToggleDone,
   onAssign,
+  groupedIds,
 }: {
   trimesters: TrimesterModel[];
   currentTrimester: 1 | 2 | 3 | undefined;
@@ -874,15 +1028,18 @@ export function TrimesterChecklists({
   disabled: boolean;
   onToggleDone: (row: TaskRowModel) => void;
   onAssign: (row: TaskRowModel, owner: TaskOwner) => void;
+  /** Tareas que se muestran en el grupo «para comentar» de arriba (aquí no se repiten). */
+  groupedIds?: ReadonlySet<string>;
 }) {
   const [open, setOpen] = useState<Record<number, boolean>>({});
+  const grouped = (r: TaskRowModel) => !!groupedIds?.has(String(r.task.id));
   return (
     <div>
       {trimesters.map((t, i) => {
         const isOpen = open[t.trimester] ?? t.trimester === currentTrimester;
         const rows = t.categories.flatMap((c) => c.rows);
         const done = rows.filter((r) => r.completed).length;
-        const overdue = rows.filter((r) => r.windowNote?.overdue).length;
+        const toDiscuss = rows.filter((r) => grouped(r) && !r.completed).length;
         const panelId = `guia-trim-${t.trimester}`;
         return (
           <div key={t.trimester}>
@@ -903,7 +1060,7 @@ export function TrimesterChecklists({
                   </span>
                   <span className="mt-0.5 block text-meta text-ink-muted tabular-nums">
                     {t.range} · {done} de {rows.length} hechas
-                    {overdue > 0 ? ` · ${overdue === 1 ? "1 pendiente de revisar" : `${overdue} pendientes de revisar`}` : ""}
+                    {toDiscuss > 0 ? ` · ${toDiscuss} para comentar en el control` : ""}
                   </span>
                 </span>
                 <ChevronDown
@@ -916,11 +1073,13 @@ export function TrimesterChecklists({
             </h3>
             <div id={panelId} hidden={!isOpen} className="pb-3">
               {isOpen &&
-                t.categories.map((cat) => (
+                t.categories.map((cat) => {
+                  const shown = cat.rows.filter((r) => !grouped(r));
+                  return shown.length === 0 ? null : (
                   <div key={cat.id}>
                     <h4 className="px-[var(--gutter)] pt-4 pb-0.5 text-meta font-bold text-ink-muted">{cat.title}</h4>
                     <ListGroup bleed={false}>
-                      {cat.rows.map((row) => (
+                      {shown.map((row) => (
                         <TaskRow
                           key={row.task.id}
                           idBase={`trim-${row.task.id}`}
@@ -933,7 +1092,8 @@ export function TrimesterChecklists({
                       ))}
                     </ListGroup>
                   </div>
-                ))}
+                  );
+                })}
             </div>
           </div>
         );
@@ -961,6 +1121,8 @@ export function AllTasksSheet({
   disabled,
   onToggleDone,
   onAssign,
+  reader,
+  discuss = [],
 }: {
   onClose: () => void;
   done: number;
@@ -976,8 +1138,12 @@ export function AllTasksSheet({
   disabled: boolean;
   onToggleDone: (row: TaskRowModel) => void;
   onAssign: (row: TaskRowModel, owner: TaskOwner) => void;
+  reader: Role;
+  /** Ventanas pasadas sin marcar (de todo el embarazo): un grupo arriba, fuera de los trimestres. */
+  discuss?: TaskRowModel[];
 }) {
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const groupedIds = new Set(discuss.map((r) => String(r.task.id)));
   const { dialogProps } = useModalDialog({
     open: true,
     onClose,
@@ -1032,6 +1198,20 @@ export function AllTasksSheet({
                 {loadingText}
               </p>
             )}
+            {/* Lo de semanas pasadas sin marcar, en un solo grupo arriba (solo con el dato del servidor). */}
+            {loaded && (
+              <DiscussGroup
+                rows={discuss}
+                reader={reader}
+                ownerLabels={ownerLabels}
+                disabled={disabled}
+                onToggleDone={onToggleDone}
+                onAssign={onAssign}
+                idBase="hoja-comentar"
+                bleed={false}
+                className="border-b border-line"
+              />
+            )}
             <TrimesterChecklists
               trimesters={trimesters}
               currentTrimester={currentTrimester}
@@ -1039,6 +1219,7 @@ export function AllTasksSheet({
               disabled={disabled}
               onToggleDone={onToggleDone}
               onAssign={onAssign}
+              groupedIds={loaded ? groupedIds : undefined}
             />
           </div>
         </div>

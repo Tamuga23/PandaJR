@@ -38,6 +38,7 @@ import { ModalPortal } from "@/components/ModalPortal";
 import { ListGroup, ListRow, RowButton, Section } from "@/components/ui/List";
 import { useModalDialog } from "@/lib/useModalDialog";
 import { Z_CLASS } from "@/lib/layers";
+import { useDiscussForEvent } from "@/lib/guiaDiscuss";
 
 export type { UserProfile };
 
@@ -920,11 +921,14 @@ export function AppointmentPrepModal({
   profile,
   onClose,
   onAskPandaIA,
+  onMarkTasks,
 }: {
   event: AgendaEvent;
   profile?: Partial<UserProfile> | null;
   onClose: () => void;
   onAskPandaIA?: (question: string) => void;
+  /** «Marcarlas en la Guía»: cierra y abre el grupo «para comentar» de «Hoy». */
+  onMarkTasks?: () => void;
 }) {
   const storePregnancyId = usePandaStore((s) => s.profile.pregnancyId);
   const pregnancyId = storePregnancyId ?? profile?.pregnancyId;
@@ -1009,6 +1013,11 @@ export function AppointmentPrepModal({
       }
     );
   };
+
+  // R2 · paso 3: lo que en la Guía quedó sin marcar de ventanas que ya cerraron (solo si esta es la próxima
+  // cita y la Guía ya tiene el dato del servidor). Solo tareas reales, con su texto: no se inventan preguntas.
+  const discuss = useDiscussForEvent(eventId);
+  const isPapa = profile?.role === "papa";
 
   const readyItems = prep.whatToBring.filter((i) => isChecked("items", i)).length;
   const askedQuestions = prep.whatToAsk.filter((q) => isChecked("questions", q)).length;
@@ -1158,6 +1167,36 @@ export function AppointmentPrepModal({
         >
           <div aria-busy={loading}>{renderChecklist("items", prep.whatToBring, `${titleId}-bring`)}</div>
         </Section>
+
+        {discuss.length > 0 && (
+          <Section
+            as="h3"
+            size="md"
+            headingId={`${titleId}-discuss`}
+            title="Para comentar en esta cita"
+            description={
+              isPapa
+                ? "Sus ventanas ya pasaron y en la Guía no están marcadas. Si ya están hechas, márquenlas; si no, pregúntenlo en la consulta."
+                : "Sus ventanas ya pasaron y en la Guía no están marcadas. Si ya están hechas, márcalas; si no, pregúntalo en la consulta."
+            }
+          >
+            <ListGroup aria-labelledby={`${titleId}-discuss`}>
+              {discuss.map((d) => (
+                <ListRow
+                  key={d.id}
+                  title={d.text}
+                  meta={d.ask}
+                  weight="medium"
+                />
+              ))}
+            </ListGroup>
+            {onMarkTasks && (
+              <RowButton onClick={onMarkTasks} className="mt-3">
+                Marcarlas en la Guía
+              </RowButton>
+            )}
+          </Section>
+        )}
 
         <Section
           as="h3"

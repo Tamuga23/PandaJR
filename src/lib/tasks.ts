@@ -11,6 +11,16 @@ import { WEEK_MAX, trimesterOfWeek } from "./weeks";
 export type TaskOwner = "mama" | "papa" | "ambos";
 export type Trimester = 1 | 2 | 3;
 
+/**
+ * Qué es la tarea, para hablar de ella cuando su ventana ya pasó sin marcarla (R2 · paso 3). No cambia
+ * el contenido clínico: solo elige la pregunta con la gramática correcta.
+ * - vacuna: «¿Ya te la pusieron?» · prueba (prueba o ecografía, femenino): «¿Ya te la hicieron?»
+ * - cultivo (masculino): «¿Ya te lo hicieron?» · tramite (cita o gestión con el equipo de salud): «¿Ya está hecha?»
+ * Las cuatro se llevan al próximo control. logistica (casa, maleta, silla, visitas): no es para el
+ * control; pasada la ventana sigue pendiente, «mejor cuanto antes».
+ */
+export type TaskKind = "vacuna" | "prueba" | "cultivo" | "tramite" | "logistica";
+
 export type TaskDef = {
   id: number;
   text: string;
@@ -24,6 +34,8 @@ export type TaskDef = {
   defaultOwner: TaskOwner;
   /** true: pasada la ventana deja de tener sentido y no se muestra como vencida. */
   expiresAfterWindow?: boolean;
+  /** Tipo (solo en tareas con ventana propia). Sin él, una ventana pasada se trata como «tramite». */
+  kind?: TaskKind;
 };
 
 export type TaskCategory = {
@@ -76,6 +88,7 @@ export const TASK_CATEGORIES: readonly TaskCategory[] = [
         weekFrom: 6,
         weekTo: 10,
         defaultOwner: "papa",
+        kind: "tramite",
       },
     ],
   },
@@ -140,6 +153,7 @@ export const TASK_CATEGORIES: readonly TaskCategory[] = [
         weekFrom: 18,
         weekTo: 22,
         defaultOwner: "papa",
+        kind: "prueba",
       },
       {
         id: 213,
@@ -149,6 +163,7 @@ export const TASK_CATEGORIES: readonly TaskCategory[] = [
         weekFrom: 24,
         weekTo: 28,
         defaultOwner: "mama",
+        kind: "prueba",
       },
       {
         // Nueva (fase 3, revisión clínica). El catálogo no modela la temporada: aparece como
@@ -206,6 +221,7 @@ export const TASK_CATEGORIES: readonly TaskCategory[] = [
         weekFrom: 27,
         weekTo: 36,
         defaultOwner: "mama",
+        kind: "vacuna",
       },
       {
         id: 311,
@@ -215,6 +231,7 @@ export const TASK_CATEGORIES: readonly TaskCategory[] = [
         weekFrom: 36,
         weekTo: 37,
         defaultOwner: "papa",
+        kind: "cultivo",
       },
       {
         id: 312,
@@ -232,6 +249,7 @@ export const TASK_CATEGORIES: readonly TaskCategory[] = [
         weekFrom: 32,
         weekTo: 36,
         defaultOwner: "ambos",
+        kind: "tramite",
       },
     ],
   },
@@ -248,6 +266,7 @@ export const TASK_CATEGORIES: readonly TaskCategory[] = [
         trimester: 3,
         weekTo: 36,
         defaultOwner: "papa",
+        kind: "logistica",
       },
       {
         id: 314,
@@ -256,6 +275,7 @@ export const TASK_CATEGORIES: readonly TaskCategory[] = [
         trimester: 3,
         weekTo: 36,
         defaultOwner: "papa",
+        kind: "logistica",
       },
       {
         id: 315,
@@ -264,6 +284,7 @@ export const TASK_CATEGORIES: readonly TaskCategory[] = [
         trimester: 3,
         weekTo: 36,
         defaultOwner: "ambos",
+        kind: "logistica",
       },
     ],
   },
