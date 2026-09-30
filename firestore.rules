@@ -1,8 +1,8 @@
 rules_version = '2';
 
-// BORRADOR: revisar antes de desplegar con firebase deploy --only firestore:rules
-// (hace falta un firebase.json con { "firestore": { "rules": "firestore.rules" } }).
-// Probar primero en el emulador: firebase emulators:start --only firestore
+// Desplegadas el 2026-09-30 (reemplazan el modo de prueba que caducaba el 2026-10-23).
+// Desplegar cambios: npx firebase-tools deploy --only firestore:rules (proyecto en .firebaserc).
+// Probar antes en el emulador: firebase emulators:start --only firestore
 //
 // Modelo de datos (src/lib/firebase/pairing.ts):
 //   users/{uid}                          { role, pregnancyId, updatedAt }
