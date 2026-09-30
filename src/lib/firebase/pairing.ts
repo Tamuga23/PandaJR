@@ -1603,7 +1603,15 @@ export async function saveCareTeam(pregnancyId: string, ct: CareTeam) {
   await setDoc(ref, { ...sanitizeCareTeam(ct), updatedAt: serverTimestamp() });
 }
 
-export function listenToCareTeam(pregnancyId: string, callback: (ct: CareTeam) => void) {
+/**
+ * Solo escucha. `onMeta` (opcional) avisa de cada snapshot, exista o no el documento: con
+ * fromCache=false ya llegó el dato del servidor y se puede escribir sin pisar lo de la pareja.
+ */
+export function listenToCareTeam(
+  pregnancyId: string,
+  callback: (ct: CareTeam) => void,
+  onMeta?: (meta: { exists: boolean; fromCache: boolean }) => void
+) {
   const ref = doc(db, "pregnancies", pregnancyId, "shared_data", "care_team");
   return onSnapshot(
     ref,
@@ -1611,6 +1619,7 @@ export function listenToCareTeam(pregnancyId: string, callback: (ct: CareTeam) =
       if (docSnap.exists()) {
         callback(sanitizeCareTeam(docSnap.data()));
       }
+      onMeta?.({ exists: docSnap.exists(), fromCache: docSnap.metadata.fromCache });
     },
     () => { /* sin conexión o sin permisos: se conserva la copia local */ }
   );

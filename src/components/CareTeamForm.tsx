@@ -3,7 +3,7 @@
 import React, { useCallback, useId, useRef, useState } from "react";
 import { Check, CircleAlert, LoaderCircle, RotateCw, X } from "lucide-react";
 import { usePandaStore } from "@/store/usePandaStore";
-import { useCareTeam, useDetectedEmergency } from "@/lib/useCareTeam";
+import { useCareTeam } from "@/lib/useCareTeam";
 import { ModalPortal } from "@/components/ModalPortal";
 import { useModalDialog } from "@/lib/useModalDialog";
 import { Z_CLASS } from "@/lib/layers";
@@ -14,16 +14,19 @@ type FormValues = {
   hospitalName: string;
   hospitalAddress: string;
   emergencyNumber: string;
+  crisisLine: string;
 };
 
-type PhoneField = "obPhone" | "emergencyNumber";
+type PhoneField = "obPhone" | "emergencyNumber" | "crisisLine";
 
-const MIN_DIGITS: Record<PhoneField, number> = { obPhone: 7, emergencyNumber: 3 };
+const MIN_DIGITS: Record<PhoneField, number> = { obPhone: 7, emergencyNumber: 3, crisisLine: 3 };
 
-function phoneProblem(value: string, minDigits: number): string | null {
+/** Algunas líneas de crisis se marcan con * (Chile *4141, Uruguay *0767). */
+function phoneProblem(value: string, minDigits: number, allowStar = false): string | null {
   const v = value.trim();
   if (!v) return null;
-  if (/[^\d+\s().-]/.test(v)) return "Usa solo números, espacios, guiones o el signo +.";
+  if ((allowStar ? /[^\d+*#\s().-]/ : /[^\d+\s().-]/).test(v))
+    return allowStar ? "Usa solo números, espacios, guiones, * o el signo +." : "Usa solo números, espacios, guiones o el signo +.";
   const digits = v.replace(/\D/g, "");
   if (digits.length < minDigits) return `Parece incompleto: revisa que tenga al menos ${minDigits} dígitos.`;
   if (digits.length > 15) return "Parece demasiado largo: revisa el número.";
@@ -45,8 +48,10 @@ const helpClass = "mt-1.5 text-meta text-ink-muted";
 const errorClass = "mt-1.5 flex items-start gap-1.5 text-meta font-medium text-terracotta-ink";
 
 export function CareTeamForm({ onSaved, onCancel }: { onSaved?: () => void; onCancel?: () => void }) {
-  const { careTeam, save, saving, error } = useCareTeam();
-  const detected = useDetectedEmergency();
+  const { careTeam, save, saving, error, defaults } = useCareTeam();
+  // Lo que fija el país (elegido en Ajustes o detectado): número de emergencias y línea de crisis.
+  const detected = defaults.emergency;
+  const defaultCrisis = defaults.crisis;
   const pregnancyId = usePandaStore((s) => s.profile.pregnancyId);
   // El papá también completa la hoja: "su obstetra" (el de la mamá), como en CallActions.
   const isPapa = usePandaStore((s) => s.profile.role) === "papa";
@@ -58,27 +63,39 @@ export function CareTeamForm({ onSaved, onCancel }: { onSaved?: () => void; onCa
     hospitalName: `${uid}-hospital`,
     hospitalAddress: `${uid}-address`,
     emergencyNumber: `${uid}-emergency`,
+    crisisLine: `${uid}-crisis`,
   };
 
   // Número de emergencias: con detección confiable se prellena; si no, queda vacío con el
   // detectado como ejemplo, para que guardar el obstetra no lo dé por confirmado.
   const [initialEmergency] = useState(() => careTeam.emergencyNumber ?? (detected.confident ? detected.number : ""));
   const hadCustomEmergency = !!careTeam.emergencyNumber;
+  // Línea de crisis: igual que emergencias. La del país se prellena (en forma marcable) y solo se guarda
+  // como propia si se escribe otra; vacía = vuelve a la del país.
+  const [initialCrisis] = useState(() => {
+    if (careTeam.crisisLine) return careTeam.crisisLine;
+    if (!defaultCrisis) return "";
+    return /^[\d+*#\s().-]+$/.test(defaultCrisis.display) ? defaultCrisis.display : defaultCrisis.dial;
+  });
+  const hadCustomCrisis = !!careTeam.crisisLine;
   const [values, setValues] = useState<FormValues>(() => ({
     obName: careTeam.obName ?? "",
     obPhone: careTeam.obPhone ?? "",
     hospitalName: careTeam.hospitalName ?? "",
     hospitalAddress: careTeam.hospitalAddress ?? "",
     emergencyNumber: initialEmergency,
+    crisisLine: initialCrisis,
   }));
   const [touched, setTouched] = useState<Partial<Record<PhoneField, boolean>>>({});
   const [savedOk, setSavedOk] = useState(false);
   const obPhoneRef = useRef<HTMLInputElement>(null);
   const emergencyRef = useRef<HTMLInputElement>(null);
+  const crisisRef = useRef<HTMLInputElement>(null);
 
   const errors: Record<PhoneField, string | null> = {
     obPhone: phoneProblem(values.obPhone, MIN_DIGITS.obPhone),
     emergencyNumber: phoneProblem(values.emergencyNumber, MIN_DIGITS.emergencyNumber),
+    crisisLine: phoneProblem(values.crisisLine, MIN_DIGITS.crisisLine, true),
   };
   const showError = (field: PhoneField) => (touched[field] ? errors[field] : null);
 
@@ -90,7 +107,7 @@ export function CareTeamForm({ onSaved, onCancel }: { onSaved?: () => void; onCa
 
   const submit = async () => {
     if (saving) return;
-    setTouched({ obPhone: true, emergencyNumber: true });
+    setTouched({ obPhone: true, emergencyNumber: true, crisisLine: true });
     if (errors.obPhone) {
       obPhoneRef.current?.focus();
       return;
@@ -99,13 +116,19 @@ export function CareTeamForm({ onSaved, onCancel }: { onSaved?: () => void; onCa
       emergencyRef.current?.focus();
       return;
     }
+    if (errors.crisisLine) {
+      crisisRef.current?.focus();
+      return;
+    }
     // Solo se guarda (y se comparte con la pareja) si ya era propio o la usuaria lo escribió;
     // si no, cada teléfono sigue usando el número detectado para su región.
     const emergencyEdited = values.emergencyNumber.trim() !== initialEmergency.trim();
+    const crisisEdited = values.crisisLine.trim() !== initialCrisis.trim();
     try {
       await save({
         ...values,
         emergencyNumber: hadCustomEmergency || emergencyEdited ? values.emergencyNumber : undefined,
+        crisisLine: hadCustomCrisis || crisisEdited ? values.crisisLine : undefined,
       });
       setSavedOk(true);
       onSaved?.();
@@ -121,11 +144,29 @@ export function CareTeamForm({ onSaved, onCancel }: { onSaved?: () => void; onCa
 
   const obPhoneError = showError("obPhone");
   const emergencyError = showError("emergencyNumber");
+  const crisisError = showError("crisisLine");
+  const place = defaults.countryName && defaults.country !== "OTHER" ? defaults.countryName : null;
   const emergencyHelp = hadCustomEmergency
-    ? `Número guardado. En este teléfono detectamos el ${detected.number}; bórralo para usar el detectado.`
+    ? defaults.chosen && place
+      ? `Número guardado. Para ${place} es el ${detected.number}; bórralo para usar ese.`
+      : `Número guardado. En este teléfono detectamos el ${detected.number}; bórralo para usar el detectado.`
     : detected.confident
-      ? `Detectado para tu región: ${detected.number}. Cámbialo si no es correcto.`
-      : "No pudimos detectar tu región: confirma el número de emergencias de tu país.";
+      ? defaults.chosen && place
+        ? `El de ${place}: ${detected.number}. Cámbialo si no es correcto.`
+        : `Detectado para tu región: ${detected.number}. Cámbialo si no es correcto.`
+      : "No pudimos confirmar tu país: revisa el número de emergencias (o elige tu país en Ajustes).";
+  const crisisDefaultText = defaultCrisis ? `${defaultCrisis.name} · ${defaultCrisis.display} (${defaultCrisis.hint})` : null;
+  const crisisHelp = hadCustomCrisis
+    ? crisisDefaultText && place
+      ? `Línea guardada. Para ${place} está ${crisisDefaultText}; bórrala para usar esa.`
+      : "Línea guardada."
+    : crisisDefaultText && place
+      ? `Para ${place}: ${crisisDefaultText}. Aparece junto a Emergencias cuando se trata de salud mental.`
+      : defaults.country === "OTHER"
+        ? "Para «Otro país» no tenemos una línea verificada. Si conoces una, escríbela."
+        : place
+          ? `Para ${place} no tenemos una línea verificada. Si conoces una, escríbela.`
+          : "Elige tu país en Ajustes para ver su línea, o escribe una que conozcas.";
 
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-6" aria-busy={saving}>
@@ -239,6 +280,35 @@ export function CareTeamForm({ onSaved, onCancel }: { onSaved?: () => void; onCa
           <p id={`${ids.emergencyNumber}-error`} className={errorClass}>
             <CircleAlert size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
             {emergencyError}
+          </p>
+        )}
+      </div>
+
+      <div>
+        <label htmlFor={ids.crisisLine} className={labelClass}>
+          Línea de crisis <span className="font-normal text-ink-muted">(salud mental)</span>
+        </label>
+        <input
+          ref={crisisRef}
+          id={ids.crisisLine}
+          type="tel"
+          inputMode="tel"
+          autoComplete="off"
+          maxLength={40}
+          placeholder={defaultCrisis ? `Ej. ${defaultCrisis.dial}` : "Ej. 800 911 2000"}
+          value={values.crisisLine}
+          onChange={update("crisisLine")}
+          onBlur={markTouched("crisisLine")}
+          disabled={saving}
+          aria-invalid={crisisError ? true : undefined}
+          aria-describedby={`${ids.crisisLine}-help${crisisError ? ` ${ids.crisisLine}-error` : ""}`}
+          className={`${inputClass} tabular-nums`}
+        />
+        <p id={`${ids.crisisLine}-help`} className={helpClass}>{crisisHelp}</p>
+        {crisisError && (
+          <p id={`${ids.crisisLine}-error`} className={errorClass}>
+            <CircleAlert size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+            {crisisError}
           </p>
         )}
       </div>

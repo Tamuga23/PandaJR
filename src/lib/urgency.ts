@@ -12,7 +12,12 @@ export type CareTeam = {
   obPhone?: string;
   hospitalName?: string;
   hospitalAddress?: string;
+  /** Número de emergencias escrito a mano (manda sobre el del país y el detectado). */
   emergencyNumber?: string;
+  /** País elegido (código ISO de src/lib/crisisLines.ts o "OTHER"): fija el número y la línea de crisis por defecto. */
+  country?: string;
+  /** Línea de crisis de salud mental escrita a mano (manda sobre la del país). */
+  crisisLine?: string;
 };
 
 export type AlarmSign = {
@@ -641,7 +646,7 @@ export function hospitalMapsUrl(ct?: CareTeam): { url: string; label: string; pe
 // ---------------------------------------------------------------------------
 // Utilidades de CareTeam (compartidas por store, Firestore y formulario)
 // ---------------------------------------------------------------------------
-export const CARE_TEAM_KEYS = ["obName", "obPhone", "hospitalName", "hospitalAddress", "emergencyNumber"] as const;
+export const CARE_TEAM_KEYS = ["obName", "obPhone", "hospitalName", "hospitalAddress", "emergencyNumber", "country", "crisisLine"] as const;
 
 /** Deja solo campos conocidos de tipo texto, recortados y no vacíos (máx. 200 caracteres). */
 export function sanitizeCareTeam(input: unknown): CareTeam {
@@ -652,6 +657,8 @@ export function sanitizeCareTeam(input: unknown): CareTeam {
     const v = src[key];
     if (typeof v === "string") {
       const t = v.trim().slice(0, 200);
+      // País: solo un código de dos letras o "OTHER" (la lista vive en src/lib/crisisLines.ts).
+      if (key === "country" && !/^(?:[A-Z]{2}|OTHER)$/.test(t)) continue;
       if (t) out[key] = t;
     }
   }

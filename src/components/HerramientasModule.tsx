@@ -36,8 +36,8 @@ import { formatDateShort, formatMoney, formatRelative, repairMojibake, toDateSaf
 import { LEGACY_SEED_NAMES, isLegacySeedKickSession, isLegacySeedNameItem, linkedFromLocalKey, localToSharedFlag } from "@/lib/seeds";
 import { AuthorChip } from "@/components/AuthorChip";
 import { SyncBadge, useOnline, usePartner } from "@/components/SyncBadge";
-import { CallActions, EmergencyCallLink } from "@/components/CallActions";
-import { useDetectedEmergency } from "@/lib/useCareTeam";
+import { CallActions, CrisisLineAction, EmergencyCallLink } from "@/components/CallActions";
+import { useCallTargets } from "@/lib/useCareTeam";
 import { URGENT_SIGNS, CALL_TODAY_SIGNS, clinicalWeek, isPreterm, telHref, type AlarmSign } from "@/lib/urgency";
 import { signCopy } from "@/lib/urgencyCopy";
 import { ModalPortal } from "@/components/ModalPortal";
@@ -811,7 +811,8 @@ const COMMON_DISCOMFORTS: {
 /**
  * SOS Síntomas: ruta de urgencia. Las señales urgentes son una lista estática siempre
  * visible (fuente única: URGENT_SIGNS en src/lib/urgency.ts) con las llamadas justo
- * debajo del título; después "llama hoy", salud emocional y, al final, molestias comunes.
+ * debajo del título; después salud emocional (la señal de hacerse daño, con Emergencias y la línea de
+ * crisis del país), "llama hoy" y, al final, molestias comunes.
  * La cabecera de la herramienta ya muestra "SOS Síntomas": aquí no se repite.
  */
 export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; onOpenTool?: (tool: SosLinkTool) => void }) {
@@ -819,9 +820,9 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
   const baseId = React.useId();
   const obPhone = usePandaStore((s) => s.careTeam?.obPhone?.trim() || "");
   const obName = usePandaStore((s) => s.careTeam?.obName?.trim() || "");
-  const customEmergency = usePandaStore((s) => s.careTeam?.emergencyNumber?.trim() || "");
-  const detectedEmergency = useDetectedEmergency();
-  const emergencyNumber = customEmergency || detectedEmergency.number;
+  // Emergencias y línea de crisis: lo escrito a mano manda; si no, lo del país (elegido o detectado).
+  const { emergency, crisisLine } = useCallTargets();
+  const emergencyNumber = emergency.number;
 
   const week = knownWeek(profile);
   const preterm = isPreterm(week);
@@ -906,7 +907,9 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
         <CallActions context="sos" className="mt-4" />
 
         <ul className={`mt-6 ${bleedList}`}>
-          {URGENT_SIGNS.map((sign) => {
+          {/* «Pensamientos de hacerte daño» va una sola vez, en «Tu salud emocional» (justo debajo), con
+              Emergencias y la línea de crisis del país: aquí no se repite (R2 · paso 4). */}
+          {URGENT_SIGNS.filter((sign) => sign.id !== "salud-mental").map((sign) => {
             const note = signNote(sign);
             const emphasized = sign.id === "movimientos" && highlightMovement;
             const copy = signCopy(sign, profile?.role, week);
@@ -933,43 +936,6 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
             );
           })}
         </ul>
-      </section>
-
-      {/* Llama hoy */}
-      <section aria-labelledby={`${baseId}-hoy`}>
-        <h3 id={`${baseId}-hoy`} className={`flex items-center gap-2 ${blockTitle}`}>
-          <CalendarClock size={22} className="shrink-0 text-terracotta-ink" aria-hidden="true" />
-          {isPapa ? "Llama hoy a su obstetra" : "Llama hoy a tu obstetra"}
-        </h3>
-        <p className="mt-1 text-body text-ink-muted">
-          {isPapa ? "No es una emergencia, pero conviene que la revisen pronto." : "No es una emergencia, pero conviene que te revisen pronto."}
-        </p>
-        <ul className={`mt-3 ${bleedList}`}>
-          {callTodaySigns.map((sign) => {
-            const copy = signCopy(sign, profile?.role);
-            return (
-              <li key={sign.id} className={`${bleedRow} py-3.5`}>
-                <p className="text-body font-bold text-ink">{copy.title}</p>
-                <p className="mt-0.5 text-meta text-ink-muted">{copy.detail}</p>
-              </li>
-            );
-          })}
-        </ul>
-        {obPhone && (
-          <a
-            href={telHref(obPhone)}
-            className={`@container mt-4 flex min-h-[56px] w-full items-center gap-3 rounded-2xl border border-line-control bg-surface-raised px-3.5 py-2.5 text-ink transition-colors hover:bg-surface-hover active:scale-[0.98] motion-reduce:active:scale-100 ${sosFocusRing}`}
-          >
-            {/* Con zoom al 200% el icono cede su sitio y el texto pasa de línea en vez de cortarse (1.4.4). */}
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-sage-wash text-sage-ink @max-[11rem]:hidden">
-              <Phone size={20} aria-hidden="true" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block break-words text-body font-bold leading-tight">{obName ? `Llamar a ${obName}` : isPapa ? "Llamar a su obstetra" : "Llamar a tu obstetra"}</span>
-              <span className="block break-words text-meta tabular-nums text-ink-muted">{obPhone}</span>
-            </span>
-          </a>
-        )}
       </section>
 
       {/* Salud emocional */}
@@ -1008,9 +974,48 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
                 </span>
                 <PhoneCall size={18} className="shrink-0 @max-[15rem]:hidden" aria-hidden="true" />
               </a>
+              {/* Línea de crisis del país (o la guardada): secundaria, debajo de Emergencias. Sin línea, nada nuevo. */}
+              {crisisLine && <CrisisLineAction line={crisisLine} role={isPapa ? "papa" : "mama"} className="mt-2.5" />}
             </div>
           )}
         </div>
+      </section>
+
+      {/* Llama hoy */}
+      <section aria-labelledby={`${baseId}-hoy`}>
+        <h3 id={`${baseId}-hoy`} className={`flex items-center gap-2 ${blockTitle}`}>
+          <CalendarClock size={22} className="shrink-0 text-terracotta-ink" aria-hidden="true" />
+          {isPapa ? "Llama hoy a su obstetra" : "Llama hoy a tu obstetra"}
+        </h3>
+        <p className="mt-1 text-body text-ink-muted">
+          {isPapa ? "No es una emergencia, pero conviene que la revisen pronto." : "No es una emergencia, pero conviene que te revisen pronto."}
+        </p>
+        <ul className={`mt-3 ${bleedList}`}>
+          {callTodaySigns.map((sign) => {
+            const copy = signCopy(sign, profile?.role);
+            return (
+              <li key={sign.id} className={`${bleedRow} py-3.5`}>
+                <p className="text-body font-bold text-ink">{copy.title}</p>
+                <p className="mt-0.5 text-meta text-ink-muted">{copy.detail}</p>
+              </li>
+            );
+          })}
+        </ul>
+        {obPhone && (
+          <a
+            href={telHref(obPhone)}
+            className={`@container mt-4 flex min-h-[56px] w-full items-center gap-3 rounded-2xl border border-line-control bg-surface-raised px-3.5 py-2.5 text-ink transition-colors hover:bg-surface-hover active:scale-[0.98] motion-reduce:active:scale-100 ${sosFocusRing}`}
+          >
+            {/* Con zoom al 200% el icono cede su sitio y el texto pasa de línea en vez de cortarse (1.4.4). */}
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-sage-wash text-sage-ink @max-[11rem]:hidden">
+              <Phone size={20} aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block break-words text-body font-bold leading-tight">{obName ? `Llamar a ${obName}` : isPapa ? "Llamar a su obstetra" : "Llamar a tu obstetra"}</span>
+              <span className="block break-words text-meta tabular-nums text-ink-muted">{obPhone}</span>
+            </span>
+          </a>
+        )}
       </section>
 
       {/* Molestias comunes (secundario) */}

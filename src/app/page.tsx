@@ -42,6 +42,8 @@ import { isLegacySeedEvent, linkedFromLocalKey, localToSharedFlag } from "@/lib/
 import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, ChevronRight, ChevronLeft, HeartPulse, Baby, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Users, AlertTriangle, AlertCircle, FileText, Settings, Paperclip, Share2, Bell, RotateCcw, RotateCw, Stethoscope, PhoneCall, Check, Copy, Edit3, Sun, Moon, SunMoon, RefreshCw, UserMinus, Lightbulb, CalendarCheck, CalendarClock, CalendarX, Smartphone } from "lucide-react";
 import { CallActions, EmergencyCallLink } from "@/components/CallActions";
 import { CareTeamSheet } from "@/components/CareTeamForm";
+import { useCareTeam } from "@/lib/useCareTeam";
+import { MARKET_COUNTRIES, OTHER_COUNTRY, isCountryChoice } from "@/lib/crisisLines";
 import { clinicalWeek, detectAlarm, type AlarmSign } from "@/lib/urgency";
 import { signCopy } from "@/lib/urgencyCopy";
 import {
@@ -576,10 +578,12 @@ function InviteCodePanel({
           </RowButton>
         )}
       </div>
-      <p className="mt-1.5 text-meta text-ink-muted" aria-live="polite">
+      {/* Si hace falta un código nuevo, el aviso va en tinta y negrita (el botón es de contorno: un solo primario). */}
+      <p className={`mt-1.5 text-meta ${needsNew && !copyFailed ? "font-bold text-ink" : "text-ink-muted"}`} aria-live="polite">
         {copyFailed ? "No pudimos copiarlo: mantén presionado el código para copiarlo a mano." : status}
       </p>
-      <RowButton tone={needsNew ? "primary" : "default"} onClick={regenerate} disabled={busy} className="mt-3">
+      {/* R2 · paso 4: contorno siempre (un solo primario por vista en Ajustes); el texto de arriba ya dice que hace falta. */}
+      <RowButton onClick={regenerate} disabled={busy} className="mt-3">
         <RefreshCw size={16} strokeWidth={1.75} className={busy ? "animate-spin motion-reduce:animate-none" : ""} aria-hidden="true" />
         {busy ? "Generando…" : "Generar código nuevo"}
       </RowButton>
@@ -635,7 +639,8 @@ function AccessSection({
             Volver a mi embarazo compartido
           </button>
         )}
-        <button type="button" onClick={onStartLink} className={`${last?.pid ? "mt-2" : "mt-4"} ${WIDE_BUTTON} ${SAGE_FILL}`}>
+        {/* R2 · paso 4: contorno (en Ajustes el único relleno es «Guardar fecha», con el editor de fecha abierto). */}
+        <button type="button" onClick={onStartLink} className={`${last?.pid ? "mt-2" : "mt-4"} ${WIDE_BUTTON} ${OUTLINE_FILL}`}>
           {guest ? "Crear o unirme a un embarazo" : "Vincular con mi pareja"}
         </button>
       </div>
@@ -804,9 +809,158 @@ function ThemeChoice({
   );
 }
 
+/**
+ * Diálogo de dos salidas que se abre SOBRE Ajustes (alertdialog, capa careTeam). Escape o tocar fuera
+ * no eligen nada: vuelven a Ajustes. El foco inicial va a la acción principal (la que no pierde nada).
+ */
+function ChoiceDialog({
+  titleId,
+  descId,
+  title,
+  children,
+  primaryLabel,
+  onPrimary,
+  secondaryLabel,
+  onSecondary,
+  onDismiss,
+}: {
+  titleId: string;
+  descId: string;
+  title: React.ReactNode;
+  children: React.ReactNode;
+  primaryLabel: string;
+  onPrimary: () => void;
+  secondaryLabel: string;
+  onSecondary: () => void;
+  onDismiss: () => void;
+}) {
+  const primaryRef = useRef<HTMLButtonElement>(null);
+  const { dialogProps } = useModalDialog({
+    open: true,
+    onClose: onDismiss,
+    role: "alertdialog",
+    labelledBy: titleId,
+    describedBy: descId,
+    initialFocusRef: primaryRef,
+  });
+  return (
+    <ModalPortal>
+      <div
+        className={`fixed inset-0 ${Z_CLASS.careTeam} flex items-center justify-center ${SCRIM} p-4`}
+        onClick={(e) => { if (e.target === e.currentTarget) onDismiss(); }}
+      >
+        <div
+          {...dialogProps}
+          className="w-full max-w-sm rounded-3xl border border-line bg-surface-raised p-5 shadow-dialog outline-none"
+        >
+          <h2 id={titleId} className="font-display text-title text-ink">{title}</h2>
+          <div id={descId} className="mt-2 space-y-2 text-body text-ink-muted">{children}</div>
+          <div className="mt-5 flex gap-2 max-[300px]:flex-col">
+            <button
+              type="button"
+              onClick={onSecondary}
+              className={`flex-1 min-h-11 rounded-full ${OUTLINE_FILL} text-meta font-bold transition-colors ${FOCUS_RING}`}
+            >
+              {secondaryLabel}
+            </button>
+            <button
+              ref={primaryRef}
+              type="button"
+              onClick={onPrimary}
+              className={`flex-1 min-h-11 rounded-full ${TERRA_FILL} text-meta font-bold transition-colors ${FOCUS_RING}`}
+            >
+              {primaryLabel}
+            </button>
+          </div>
+        </div>
+      </div>
+    </ModalPortal>
+  );
+}
+
+/** «Fecha probable: 15 de enero de 2027 (semana 24 + 4 días)», «Semana 30, elegida a mano»… */
+function describeDating(choice: DatingChoice): string {
+  if (choice.kind === "unknown") return "Semana sin confirmar.";
+  if (choice.kind === "manual") return `Semana ${choice.week}, elegida a mano.`;
+  const ga = resolveGestationalAge(datingPatch(choice));
+  const when = ga.dueDate ? formatDateLong(ga.dueDate) : choice.dueDate;
+  return `Fecha probable: ${when} (${ga.label.split(" · ")[0].toLocaleLowerCase("es")}).`;
+}
+
+/**
+ * País (R2 · paso 4): fija el número de emergencias y la línea de crisis por defecto (lo escrito a mano
+ * en el equipo de salud manda). Vive en el equipo de salud, compartido con la pareja. Se guarda al
+ * elegirlo (una escritura por elección, en el manejador); con vínculo, no antes del primer dato del
+ * servidor del equipo de salud.
+ */
+function CountryField({ partnerName, onSaved }: { partnerName?: string; onSaved: () => void }) {
+  const { careTeam, defaults, emergency, crisisLine, save, saving, ready, error } = useCareTeam();
+  const pregnancyId = usePandaStore((s) => s.profile.pregnancyId);
+  const value = isCountryChoice(careTeam.country) ? careTeam.country : defaults.country ?? "";
+  const detectedOnly = !defaults.chosen && !!defaults.country;
+  const customEmergency = careTeam.emergencyNumber?.trim();
+  const customCrisis = careTeam.crisisLine?.trim();
+
+  const onChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const next = e.target.value;
+    if (!next || next === careTeam.country || !ready) return;
+    save({ country: next }).then(onSaved, () => { /* el hook muestra el error; quedó en este teléfono */ });
+  };
+
+  let help: string;
+  if (!defaults.country) {
+    help = "Elige tu país: fija el número de emergencias y la línea de crisis.";
+  } else if (defaults.country === OTHER_COUNTRY) {
+    help = customEmergency
+      ? `Emergencias: ${customEmergency} (el que guardaron). Sin línea de crisis: puedes escribir una en el equipo de salud.`
+      : "Revisa el número de emergencias en el equipo de salud. Para «Otro» no hay línea de crisis.";
+  } else {
+    const em = customEmergency ? `Emergencias: ${customEmergency} (el que guardaron)` : `Emergencias: ${emergency.number}`;
+    const cl = crisisLine
+      ? customCrisis
+        ? ` · Línea de crisis: ${crisisLine.display} (la que guardaron)`
+        : ` · Línea de crisis: ${crisisLine.name}, ${crisisLine.display}`
+      : ` · Sin línea de crisis verificada para ${defaults.countryName}`;
+    help = `${detectedOnly ? "Detectado por tu teléfono. " : ""}${em}${cl}.`;
+  }
+  const scope = pregnancyId ? `Se comparte con ${partnerName || "tu pareja"}.` : "Solo en este teléfono.";
+
+  return (
+    <div className="mt-5">
+      <label htmlFor="settings-country" className="mb-1 block text-meta font-bold text-ink">País</label>
+      <select
+        id="settings-country"
+        value={value}
+        onChange={onChange}
+        disabled={!ready || saving}
+        aria-describedby="settings-country-help"
+        aria-busy={!ready || saving || undefined}
+        className={`${SETTINGS_INPUT} appearance-auto`}
+      >
+        {!value && (
+          <option value="" disabled>
+            Elegir país
+          </option>
+        )}
+        {MARKET_COUNTRIES.map((c) => (
+          <option key={c.code} value={c.code}>
+            {c.name}{detectedOnly && c.code === defaults.country ? " (detectado)" : ""}
+          </option>
+        ))}
+        <option value={OTHER_COUNTRY}>Otro</option>
+      </select>
+      <p id="settings-country-help" className="mt-1 text-meta text-ink-muted">
+        {!ready ? "Cargando lo que tienen guardado…" : help} <span className="text-ink-subtle">{scope}</span>
+      </p>
+      {error && <p role="alert" className="mt-1 text-meta font-bold text-terracotta-ink">{error}</p>}
+    </div>
+  );
+}
+
 function ProfileModal({
   profile,
-  onSave,
+  onSaveDating,
+  onUpdateLocal,
   onClose,
   focusDating = false,
   partner,
@@ -816,8 +970,10 @@ function ProfileModal({
   afterUnlinkFocusRef,
 }: {
   profile: UserProfile;
-  /** `dating` solo llega si la persona editó la fecha (si no, la fecha compartida no se toca). */
-  onSave: (p: UserProfile, dating?: DatingChoice) => void;
+  /** Guarda una fecha elegida a propósito (al instante; con vínculo, también para la pareja). */
+  onSaveDating: (dating: DatingChoice) => void;
+  /** Ajustes locales (comparación de tamaño): se guardan al cambiarlos. */
+  onUpdateLocal: (updates: Partial<UserProfile>) => void;
   onClose: () => void;
   /** Abrir con el editor de fecha desplegado y a la vista ("Confirmar mi fecha"). */
   focusDating?: boolean;
@@ -829,12 +985,10 @@ function ProfileModal({
   /** A dónde vuelve el foco tras desvincular (Ajustes se cierra entero): el botón de Ajustes de la cabecera. */
   afterUnlinkFocusRef?: React.RefObject<HTMLElement | null>;
 }) {
-  const { dialogProps } = useModalDialog({ open: true, onClose, labelledBy: "profile-modal-title" });
   const themePreference = usePandaStore(state => state.themePreference);
   const resolvedTheme = usePandaStore(state => state.resolvedTheme);
   const setThemePreference = usePandaStore(state => state.setThemePreference);
-  const [form, setForm] = useState(profile);
-  // Fecha: el editor solo se abre a propósito; cerrado, "Guardar" no envía nada de la fecha.
+  // Fecha: el editor solo se abre a propósito y tiene su propio «Guardar fecha».
   const [datingOpen, setDatingOpen] = useState(focusDating);
   const [datingDraft, setDatingDraft] = useState<DatingDraft>(() => draftFromProfile(profile));
   const datingRef = useRef<HTMLDivElement>(null);
@@ -846,6 +1000,31 @@ function ProfileModal({
   const pendingDating = datingEval?.choice && !sameDating(datingEval.choice, profile) ? datingEval.choice : undefined;
   // Editor abierto con una opción elegida pero sin completar: no se puede guardar a medias.
   const datingBlocked = datingOpen && datingDraft.mode !== null && !datingEval?.choice;
+  // Cerrar (X, Escape o el fondo) con una fecha sin guardar no la pierde en silencio: se pregunta.
+  const [closeAsk, setCloseAsk] = useState<null | "save" | "incomplete">(null);
+  const requestClose = () => {
+    if (datingOpen && pendingDating) setCloseAsk("save");
+    else if (datingBlocked) setCloseAsk("incomplete");
+    else onClose();
+  };
+  const { dialogProps } = useModalDialog({ open: true, onClose: requestClose, labelledBy: "profile-modal-title" });
+
+  // «Guardado» discreto en el ajuste que se acaba de cambiar (y anunciado por la región viva).
+  const [saved, setSaved] = useState<{ key: "comparison" | "country"; text: string } | null>(null);
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const flashSaved = (key: "comparison" | "country", text: string) => {
+    setSaved({ key, text });
+    if (savedTimer.current) clearTimeout(savedTimer.current);
+    savedTimer.current = setTimeout(() => setSaved(null), 3000);
+  };
+  useEffect(() => () => { if (savedTimer.current) clearTimeout(savedTimer.current); }, []);
+
+  const saveDatingNow = () => {
+    if (!pendingDating) return;
+    onSaveDating(pendingDating);
+    setDatingOpen(false);
+  };
+
   const currentDue = currentGa.dueDate;
   const datingSourceText =
     currentGa.source === "dueDate"
@@ -864,7 +1043,7 @@ function ProfileModal({
   const careTeam = usePandaStore(state => state.careTeam);
   const careTeamSummary = careTeam.obName || careTeam.obPhone || careTeam.hospitalName
     ? [careTeam.obName || (careTeam.obPhone ? "Obstetra" : ""), careTeam.hospitalName].filter(Boolean).join(" · ")
-    : "Obstetra, hospital y emergencias";
+    : "Obstetra, hospital, emergencias y línea de crisis";
 
   /**
    * Desvincular ESTE teléfono. Se conservan nombre y rol (no vuelve a pedir el registro).
@@ -899,32 +1078,39 @@ function ProfileModal({
     }
   };
   const partnerLabelForUnlink = partner.partnerName || (profile.role === "mama" ? "papá" : "tu pareja");
-  const isMamaForm = form.role === "mama";
-  const geek = form.comparisonTheme === "geek";
+  const isMama = profile.role === "mama";
+  const geek = profile.comparisonTheme === "geek";
 
   // Fase 6: el diálogo es la única caja; dentro, secciones (h3 en Alegreya) y listas con divisores.
+  // R2 · paso 4: sin «Guardar cambios». Cada ajuste se guarda al cambiarlo; la fecha, con «Guardar fecha».
   return (
     <ModalPortal>
-    <div className={`fixed inset-0 ${SCRIM} ${Z_CLASS.dialog} flex items-center justify-center p-4`}>
+    <div
+      className={`fixed inset-0 ${SCRIM} ${Z_CLASS.dialog} flex items-center justify-center p-4`}
+      onClick={(e) => { if (e.target === e.currentTarget) requestClose(); }}
+    >
       <div
         {...dialogProps}
         className="bg-surface-raised text-ink rounded-3xl shadow-dialog w-full max-w-sm overflow-hidden border border-line flex flex-col max-h-[85dvh] outline-none"
       >
         <div className="flex items-center justify-between gap-3 border-b border-line py-2 ps-5 pe-2">
           <h2 id="profile-modal-title" className="font-display text-title text-ink">Ajustes</h2>
-          <button type="button" onClick={onClose} className={ICON_BUTTON} aria-label="Cerrar ventana de ajustes">
+          <button type="button" onClick={requestClose} className={ICON_BUTTON} aria-label="Cerrar ventana de ajustes">
             <X size={22} strokeWidth={1.75} aria-hidden="true" />
           </button>
         </div>
+
+        {/* Anuncio de «Guardado» para el lector de pantalla (el texto visible va en cada ajuste). */}
+        <p role="status" className="sr-only">{saved ? saved.text : ""}</p>
 
         {/* El gutter es el padding del cuerpo: las filas llegan al borde del panel. */}
         <div className="flex flex-1 flex-col gap-8 overflow-y-auto px-5 pt-4 pb-6 [--gutter:1.25rem]">
           <Section as="h3" title="Familia">
             <ListGroup>
               <ListRow
-                leading={isMamaForm ? <Baby size={20} strokeWidth={1.75} /> : <Users size={20} strokeWidth={1.75} />}
-                title={isMamaForm ? "Modo mamá" : "Modo copiloto"}
-                meta={form.name}
+                leading={isMama ? <Baby size={20} strokeWidth={1.75} /> : <Users size={20} strokeWidth={1.75} />}
+                title={isMama ? "Modo mamá" : "Modo copiloto"}
+                meta={profile.name}
                 trailing={
                   profile.pregnancyId ? (
                     <RowButton onClick={() => setConfirmUnlink(true)} aria-haspopup="dialog">
@@ -933,18 +1119,30 @@ function ProfileModal({
                   ) : undefined
                 }
               />
-              {form.role === "papa" && (
+              {profile.role === "papa" && (
                 <ListRow
                   leading={<Sparkles size={20} strokeWidth={1.75} />}
                   title="Comparación de tamaño"
-                  meta="Con frutas o con objetos de tecnología y juegos"
+                  meta={
+                    <>
+                      Con frutas o con objetos de tecnología y juegos
+                      {saved?.key === "comparison" && (
+                        <span className="ms-1 inline-flex items-center gap-1 font-bold text-sage-ink">
+                          · <Check size={14} strokeWidth={2} aria-hidden="true" /> Guardado
+                        </span>
+                      )}
+                    </>
+                  }
                   trailing={
                     <button
                       type="button"
                       role="switch"
                       aria-checked={geek}
                       aria-label="Comparar con objetos de tecnología y juegos en lugar de frutas"
-                      onClick={() => setForm({ ...form, comparisonTheme: geek ? "frutas" : "geek" })}
+                      onClick={() => {
+                        onUpdateLocal({ comparisonTheme: geek ? "frutas" : "geek" });
+                        flashSaved("comparison", "Comparación guardada en este teléfono");
+                      }}
                       className={`-me-1.5 grid size-11 shrink-0 place-items-center rounded-full ${FOCUS_RING}`}
                     >
                       {/* Mismo dibujo que el switch de ListRow: pista con borde ≥3:1 apagada, sage-ink encendida. */}
@@ -985,15 +1183,13 @@ function ProfileModal({
               </ConfirmDialog>
             )}
 
-            {isMamaForm && profile.pregnancyId && (
+            {isMama && profile.pregnancyId && (
               <InviteCodePanel
                 pregnancyId={profile.pregnancyId}
-                code={form.inviteCode}
+                code={profile.inviteCode}
                 myUid={partner.myUid}
                 onCodeChange={(inviteCode) => {
-                  // También en el formulario: "Guardar cambios" no debe volver al código anterior.
                   usePandaStore.getState().setProfile({ inviteCode });
-                  setForm(f => ({ ...f, inviteCode }));
                   showToast("Código nuevo listo. El anterior ya no sirve.");
                 }}
               />
@@ -1047,47 +1243,40 @@ function ProfileModal({
                     partnerName={partner.partnerName}
                     idPrefix="settings-dating"
                   />
-                  <button
-                    type="button"
-                    onClick={() => { setDatingOpen(false); setDatingDraft(draftFromProfile(profile)); }}
-                    className={`mt-2 -ms-1 inline-flex min-h-11 items-center rounded-full px-1 text-meta font-bold text-ink underline underline-offset-4 ${FOCUS_RING}`}
-                  >
-                    Dejar la fecha como estaba
-                  </button>
+                  {datingBlocked && (
+                    <p className="mt-2 text-meta text-ink-muted" aria-live="polite">
+                      Completa la fecha para poder guardarla.
+                    </p>
+                  )}
+                  {/* Único botón principal de Ajustes: el de la fecha (el resto se guarda al cambiarlo). */}
+                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1">
+                    <RowButton tone="primary" onClick={saveDatingNow} disabled={!pendingDating}>
+                      Guardar fecha
+                    </RowButton>
+                    <button
+                      type="button"
+                      onClick={() => { setDatingOpen(false); setDatingDraft(draftFromProfile(profile)); }}
+                      className={`-ms-1 inline-flex min-h-11 items-center rounded-full px-1 text-meta font-bold text-ink underline underline-offset-4 ${FOCUS_RING}`}
+                    >
+                      Dejar la fecha como estaba
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
 
-            <div className="mt-5">
-              <label htmlFor="settings-location" className="mb-1 block text-meta font-bold text-ink">Ciudad o país</label>
-              <input
-                id="settings-location"
-                type="text"
-                value={form.location || ""}
-                onChange={(e) => setForm({...form, location: e.target.value})}
-                placeholder="Ej. Lima, Perú"
-                className={SETTINGS_INPUT}
-              />
-            </div>
-
-            <div className="mt-4">
-              <label htmlFor="settings-notes" className="mb-1 block text-meta font-bold text-ink">Notas de rutina</label>
-              <textarea
-                id="settings-notes"
-                value={form.notes || ""}
-                onChange={(e) => setForm({...form, notes: e.target.value})}
-                placeholder="Ej. Trabajo por turnos, parto programado…"
-                rows={2}
-                aria-describedby="settings-local-hint"
-                className={`${SETTINGS_INPUT} resize-none`}
-              />
-              <p id="settings-local-hint" className="mt-1 text-micro font-medium text-ink-subtle">
-                La ciudad y las notas se guardan solo en este teléfono. Por ahora la app no las usa.
+            <CountryField
+              partnerName={partner.partnerName}
+              onSaved={() => flashSaved("country", "País guardado")}
+            />
+            {saved?.key === "country" && (
+              <p aria-hidden="true" className="mt-1 inline-flex items-center gap-1 text-micro font-bold text-sage-ink">
+                <Check size={14} strokeWidth={2} /> Guardado
               </p>
-            </div>
+            )}
           </Section>
 
-          {/* Tema: sistema (sigue al teléfono), claro u oscuro */}
+          {/* Tema: sistema (sigue al teléfono), claro u oscuro. Se aplica y se guarda al elegirlo. */}
           <ThemeChoice
             preference={themePreference}
             resolved={resolvedTheme}
@@ -1098,25 +1287,39 @@ function ProfileModal({
             }}
           />
         </div>
-
-        <div className="border-t border-line p-4">
-          {datingBlocked && (
-            <p className="mb-2 text-meta text-ink-muted" aria-live="polite">
-              Completa la fecha o toca «Dejar la fecha como estaba» para guardar.
-            </p>
-          )}
-          <button
-            type="button"
-            onClick={() => onSave(form, pendingDating)}
-            disabled={datingBlocked}
-            className={`${WIDE_BUTTON} ${TERRA_FILL}`}
-          >
-            Guardar cambios
-          </button>
-        </div>
       </div>
 
       <CareTeamSheet open={careTeamOpen} onClose={() => setCareTeamOpen(false)} onSaved={() => showToast("Equipo de salud guardado")} />
+
+      {closeAsk === "save" && pendingDating && (
+        <ChoiceDialog
+          titleId="pending-date-title"
+          descId="pending-date-desc"
+          title="¿Guardar la nueva fecha?"
+          primaryLabel="Guardar fecha"
+          onPrimary={() => { setCloseAsk(null); onSaveDating(pendingDating); onClose(); }}
+          secondaryLabel="Descartar"
+          onSecondary={() => { setCloseAsk(null); onClose(); }}
+          onDismiss={() => setCloseAsk(null)}
+        >
+          <p className="font-bold text-ink">{describeDating(pendingDating)}</p>
+          <p>{isMama ? "Si no la guardas, se queda la que tenías." : "Si no la guardas, se queda la que tenían."}</p>
+        </ChoiceDialog>
+      )}
+      {closeAsk === "incomplete" && (
+        <ChoiceDialog
+          titleId="pending-date-title"
+          descId="pending-date-desc"
+          title="La fecha quedó a medias"
+          primaryLabel="Seguir editando"
+          onPrimary={() => setCloseAsk(null)}
+          secondaryLabel="Descartar"
+          onSecondary={() => { setCloseAsk(null); onClose(); }}
+          onDismiss={() => setCloseAsk(null)}
+        >
+          <p>Si cierras ahora, no se guarda ningún cambio de fecha.</p>
+        </ChoiceDialog>
+      )}
     </div>
     </ModalPortal>
   );
@@ -1908,7 +2111,7 @@ export default function PandaJRApp() {
     return true;
   };
 
-  /** Cambios LOCALES del perfil (ciudad, notas, tema). La fecha y la semana van por applyDating. */
+  /** Cambios LOCALES del perfil (comparación de tamaño…). La fecha y la semana van por applyDating. */
   const updateProfile = (updates: Partial<UserProfile>) => {
     const rest: Partial<UserProfile> = { ...updates };
     delete rest.week;
@@ -1919,52 +2122,37 @@ export default function PandaJRApp() {
   };
 
   /**
-   * "Guardar cambios" de Ajustes. La fecha solo se escribe si se editó (`dating`): guardar la
-   * ciudad o las notas nunca toca la FPP compartida. Dice el alcance real y ofrece deshacer.
+   * «Guardar fecha» de Ajustes (R2 · paso 4: la fecha tiene su propio guardado; el resto de ajustes se
+   * guarda al cambiarlo). Solo desde manejadores. Dice el alcance real y ofrece deshacer.
    */
-  const saveSettings = (next: UserProfile, dating?: DatingChoice) => {
+  const saveDating = (dating: DatingChoice) => {
     const prev = usePandaStore.getState().profile;
-    const datingChanged = !!dating && !sameDating(dating, prev);
-    const localChanged =
-      (next.location || "") !== (prev.location || "") ||
-      (next.notes || "") !== (prev.notes || "") ||
-      (next.comparisonTheme || "frutas") !== (prev.comparisonTheme || "frutas");
-    closeSettings();
-    if (!datingChanged && !localChanged) return;
-
-    if (localChanged) updateProfile({ location: next.location, notes: next.notes, comparisonTheme: next.comparisonTheme });
-    const shared = datingChanged && dating ? applyDating(dating) : false;
+    if (sameDating(dating, prev)) return;
+    const shared = applyDating(dating);
 
     const partnerLabel = partner.partnerName || "tu pareja";
-    const what = dating?.kind === "manual"
+    const what = dating.kind === "manual"
       ? `Semana ${dating.week} actualizada`
-      : dating?.kind === "unknown"
+      : dating.kind === "unknown"
         ? "Semana marcada como sin confirmar"
         : "Fecha actualizada";
-    let message = "Ajustes guardados en este teléfono";
-    if (datingChanged) {
-      message = shared
-        ? isOffline()
-          ? `${what}. Se compartirá con ${partnerLabel} al volver la señal (no cierres la app)`
-          : `${what} para ti y ${partnerLabel}`
-        : `${what} en este teléfono`;
-      if (localChanged) message += ". El resto, solo en este teléfono";
-    }
+    const message = shared
+      ? isOffline()
+        ? `${what}. Se compartirá con ${partnerLabel} al volver la señal (no cierres la app)`
+        : `${what} para ti y ${partnerLabel}`
+      : `${what} en este teléfono`;
 
     // Sin fecha ni semana previas no hay a qué volver en la cuenta compartida.
     const prevChoice = choiceFromProfile(prev);
-    const canUndo = !(datingChanged && shared && prevChoice.kind === "unknown");
+    const canUndo = !(shared && prevChoice.kind === "unknown");
     const undo = () => {
-      if (localChanged) updateProfile({ location: prev.location, notes: prev.notes, comparisonTheme: prev.comparisonTheme });
-      if (datingChanged) applyDating(prevChoice);
+      applyDating(prevChoice);
       showToast(
-        !datingChanged
-          ? "Cambios deshechos"
-          : prevChoice.kind === "dueDate"
-            ? "Volviste a la fecha anterior"
-            : prevChoice.kind === "manual"
-              ? `Volviste a la semana ${prevChoice.week}`
-              : "Volviste a semana sin confirmar"
+        prevChoice.kind === "dueDate"
+          ? "Volviste a la fecha anterior"
+          : prevChoice.kind === "manual"
+            ? `Volviste a la semana ${prevChoice.week}`
+            : "Volviste a semana sin confirmar"
       );
     };
     showToast(message, canUndo ? undo : undefined);
@@ -2397,7 +2585,8 @@ export default function PandaJRApp() {
       {isProfileModalOpen && (
         <ProfileModal
           profile={profile}
-          onSave={saveSettings}
+          onSaveDating={saveDating}
+          onUpdateLocal={updateProfile}
           onClose={closeSettings}
           focusDating={settingsFocusDating}
           partner={partner}
@@ -3288,7 +3477,9 @@ function ChatUrgencyBubble({ id, matches, reason, live = true, role = "mama" }: 
         <p className="mt-0.5 text-body">{actionLine}</p>
       </div>
       <div className="bg-surface p-3">
-        <CallActions context="chat" />
+        {/* Salud mental (autolesión o suicidio, también en tercera persona): la línea de crisis del país va
+            justo debajo de Emergencias, que sigue siendo la más fuerte. Sin línea, solo lo de siempre. */}
+        <CallActions context="chat" crisis={matches.some((m) => m.id === "salud-mental")} />
       </div>
     </section>
   );

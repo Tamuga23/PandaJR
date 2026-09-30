@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MapPin, Pencil, Phone, PhoneCall, Siren, UserPen } from "lucide-react";
+import { HeartHandshake, MapPin, Pencil, Phone, PhoneCall, Siren, UserPen } from "lucide-react";
 import { useCareTeam } from "@/lib/useCareTeam";
 import { hospitalMapsUrl, telHref } from "@/lib/urgency";
+import { canDial, crisisTelHref, type CrisisLine } from "@/lib/crisisLines";
 import { CareTeamSheet } from "@/components/CareTeamForm";
 import { usePandaStore } from "@/store/usePandaStore";
 
 type CallContext = "sos" | "contracciones" | "pretermino" | "patadas" | "chat";
-type ActionKey = "emergency" | "ob" | "hospital" | "addOb";
+type ActionKey = "emergency" | "crisis" | "ob" | "hospital" | "addOb";
 
 const focusRing =
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink";
@@ -37,6 +38,57 @@ const startIconNarrow = "@max-[11rem]:hidden";
 
 const emergencyClass =
   `${baseAction} @container min-h-[56px] py-2.5 bg-terracotta-ink hover:bg-terracotta-ink-hover text-on-accent shadow-emergency`;
+
+/**
+ * Línea de crisis de salud mental (R2 · paso 4): acción SECUNDARIA, siempre debajo de Emergencias, que
+ * sigue siendo la más fuerte. Solo se muestra cuando lo que pasa es de salud mental (autolesión o
+ * suicidio) y hay una línea verificada para el país o escrita a mano. Con * o # (Chile, Uruguay) no es un
+ * botón: iOS no marca esos números desde un enlace, así que se dice cómo marcarlo.
+ */
+export function CrisisLineAction({
+  line,
+  role = "mama",
+  compact = false,
+  className,
+}: {
+  line: CrisisLine;
+  role?: "mama" | "papa";
+  compact?: boolean;
+  className?: string;
+}) {
+  const who = role === "papa" ? "Para ella o para ti: alguien los escucha y orienta." : "Para hablar ahora con alguien que te escucha.";
+  const well = `${iconWell} ${startIconNarrow} ${compact ? "w-9 h-9" : "w-10 h-10"} bg-sage-wash text-sage-ink`;
+  const icon = <HeartHandshake size={compact ? 18 : 20} aria-hidden="true" />;
+  if (!canDial(line)) {
+    return (
+      <div className={`@container flex w-full items-center gap-3 rounded-2xl border border-line-strong bg-surface-raised px-3.5 py-2.5 text-ink min-h-[56px]${className ? ` ${className}` : ""}`}>
+        <span className={well}>{icon}</span>
+        <span className="min-w-0 flex-1">
+          <span className={`block ${wrapText} text-body font-bold leading-tight`}>
+            Marca <span className="tabular-nums">{line.display}</span> desde tu celular
+          </span>
+          <span className={subText}>{line.name} · {line.hint}. {who}</span>
+        </span>
+      </div>
+    );
+  }
+  return (
+    <a
+      href={crisisTelHref(line)}
+      aria-label={`Llamar a ${line.name}, ${line.display}`}
+      className={`${baseAction} @container ${secondaryAction} min-h-[56px] py-2.5${className ? ` ${className}` : ""}`}
+    >
+      <span className={well}>{icon}</span>
+      <span className="min-w-0 flex-1">
+        <span className={`block ${wrapText} text-body font-bold leading-tight`}>
+          {line.name} <span className="whitespace-nowrap">· <span className="tabular-nums">{line.display}</span></span>
+        </span>
+        <span className={subText}>{line.hint}. {who}</span>
+      </span>
+      <Phone size={18} className={`shrink-0 text-ink-muted ${endIconNarrow}`} aria-hidden="true" />
+    </a>
+  );
+}
 
 /** Aviso cuando el número de emergencias no se pudo confirmar para la región. */
 function EmergencyConfirmNote({ number }: { number: string }) {
@@ -94,12 +146,15 @@ export function CallActions({
   context = "sos",
   className,
   showEmergency = true,
+  crisis = false,
 }: {
   context?: CallContext;
   className?: string;
   showEmergency?: boolean;
+  /** Salud mental (autolesión o suicidio): añade la línea de crisis del país justo debajo de Emergencias. */
+  crisis?: boolean;
 }) {
-  const { careTeam, emergency } = useCareTeam();
+  const { careTeam, emergency, crisisLine } = useCareTeam();
   const [sheetOpen, setSheetOpen] = useState(false);
   // Guardados desde esta hoja: confirma por lector de pantalla y recoloca el foco si el botón que
   // abrió la hoja ("Agregar el teléfono…") desapareció al guardar (ahora está "Llamar a…").
@@ -122,7 +177,15 @@ export function CallActions({
       : context === "pretermino"
         ? ["ob", "emergency", "hospital"]
         : ["emergency", "ob", "hospital"];
-  const order = showEmergency ? baseOrder : baseOrder.filter((k) => k !== "emergency");
+  const withoutEmergency = showEmergency ? baseOrder : baseOrder.filter((k) => k !== "emergency");
+  // La línea de crisis va inmediatamente después de Emergencias (o primera si Emergencias va aparte).
+  const order: ActionKey[] =
+    crisis && crisisLine
+      ? showEmergency
+        ? withoutEmergency.flatMap((k) => (k === "emergency" ? (["emergency", "crisis"] as ActionKey[]) : [k]))
+        : (["crisis", ...withoutEmergency] as ActionKey[])
+      : withoutEmergency;
+  const role = whose === "su" ? "papa" : "mama";
 
   useEffect(() => {
     if (!savedCount) return;
@@ -158,6 +221,9 @@ export function CallActions({
             <PhoneCall size={18} className={`shrink-0 ${endIconNarrow}`} aria-hidden="true" />
           </a>
         );
+
+      case "crisis":
+        return crisisLine ? <CrisisLineAction key={key} line={crisisLine} role={role} compact={compact} /> : null;
 
       case "ob":
         return (

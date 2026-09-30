@@ -15,6 +15,10 @@ rules_version = '2';
 //   pregnancies/{pid}/shared_data/*      events, kick_sessions, contractions, budget, birth_plan,
 //                                        checklist_progress (items, meta, owners, ownersMeta),
 //                                        care_team, prep_{eventId}, baby_names (antiguo)
+//                                        care_team = { obName, obPhone, hospitalName, hospitalAddress,
+//                                          emergencyNumber, country, crisisLine, updatedAt } (R2 · paso 4:
+//                                          country y crisisLine; shared_data no filtra campos, así que
+//                                          no hace falta cambiar ninguna regla)
 //   pregnancies/{pid}/baby_names/{id}    { name, ..., votes: { [uid]: 'like'|'nope' } }
 //   pregnancies/{pid}/nudges/{id}        { fromUid, fromName, fromRole, kind, createdAt }
 //   pregnancies/{pid}/status_logs|journal|tasks|gobag/{id}
