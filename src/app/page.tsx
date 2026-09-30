@@ -37,9 +37,9 @@ import {
 } from "@/lib/firebase/pairing";
 import { SyncBadge, useOnline, usePartner, type PartnerInfo } from "@/components/SyncBadge";
 import { AuthorChip } from "@/components/AuthorChip";
-import { formatDateShort, formatRelative, repairMojibake } from "@/lib/format";
+import { formatDateShort, formatDayCountdown, formatRelative, repairMojibake } from "@/lib/format";
 import { isLegacySeedEvent, linkedFromLocalKey, localToSharedFlag } from "@/lib/seeds";
-import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, ChevronRight, ChevronLeft, HeartPulse, Baby, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Users, AlertTriangle, AlertCircle, FileText, Settings, Paperclip, Share2, Bell, RotateCcw, RotateCw, Stethoscope, PhoneCall, Check, Copy, Edit3, Sun, Moon, SunMoon, RefreshCw, UserMinus, Lightbulb, CalendarCheck, CalendarClock, CalendarX, Smartphone } from "lucide-react";
+import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, ChevronRight, ChevronLeft, HeartPulse, Baby, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Users, AlertTriangle, AlertCircle, FileText, Settings, Paperclip, Share2, RotateCcw, RotateCw, Stethoscope, PhoneCall, Check, Copy, Edit3, Sun, Moon, SunMoon, RefreshCw, UserMinus, Lightbulb, CalendarCheck, CalendarClock, CalendarX, Smartphone, Sprout } from "lucide-react";
 import { CallActions, EmergencyCallLink } from "@/components/CallActions";
 import { CareTeamSheet } from "@/components/CareTeamForm";
 import { useCareTeam } from "@/lib/useCareTeam";
@@ -1108,7 +1108,7 @@ function ProfileModal({
           <Section as="h3" title="Familia">
             <ListGroup>
               <ListRow
-                leading={isMama ? <Baby size={20} strokeWidth={1.75} /> : <Users size={20} strokeWidth={1.75} />}
+                leading={isMama ? <Sprout size={20} strokeWidth={1.75} /> : <Users size={20} strokeWidth={1.75} />}
                 title={isMama ? "Modo mamá" : "Modo copiloto"}
                 meta={profile.name}
                 trailing={
@@ -1119,13 +1119,13 @@ function ProfileModal({
                   ) : undefined
                 }
               />
-              {profile.role === "papa" && (
+              {/* R2 · paso 5: para los dos roles (antes solo el papá) y con un texto sin estereotipos. */}
                 <ListRow
                   leading={<Sparkles size={20} strokeWidth={1.75} />}
-                  title="Comparación de tamaño"
+                  title="Comparar el tamaño con objetos"
                   meta={
                     <>
-                      Con frutas o con objetos de tecnología y juegos
+                      En vez de frutas: teléfonos, teclados, consolas…
                       {saved?.key === "comparison" && (
                         <span className="ms-1 inline-flex items-center gap-1 font-bold text-sage-ink">
                           · <Check size={14} strokeWidth={2} aria-hidden="true" /> Guardado
@@ -1138,7 +1138,7 @@ function ProfileModal({
                       type="button"
                       role="switch"
                       aria-checked={geek}
-                      aria-label="Comparar con objetos de tecnología y juegos en lugar de frutas"
+                      aria-label="Comparar el tamaño con objetos en lugar de frutas"
                       onClick={() => {
                         onUpdateLocal({ comparisonTheme: geek ? "frutas" : "geek" });
                         flashSaved("comparison", "Comparación guardada en este teléfono");
@@ -1157,7 +1157,6 @@ function ProfileModal({
                     </button>
                   }
                 />
-              )}
             </ListGroup>
 
             {confirmUnlink && profile.pregnancyId && (
@@ -1633,7 +1632,7 @@ function OnboardingModal({
             <p className={subClass}>Cuéntanos quién eres para acompañarte mejor.</p>
 
             <div className="-mx-[var(--gutter)] mt-6 divide-y divide-line border-y border-line">
-              {roleOption("mama", "Soy la futura mamá", Baby)}
+              {roleOption("mama", "Soy la futura mamá", Sprout)}
               {roleOption("papa", "Soy el copiloto (pareja)", Users)}
             </div>
 
@@ -1828,7 +1827,8 @@ function opReflected(list: AgendaEvent[], key: string, op: PendingEventOp): bool
 }
 
 /**
- * Campana del encabezado: solo aparece con una cita FUTURA (nunca cae a una pasada).
+ * Botón «Preparar cita» del encabezado (R2 · paso 5: CalendarClock, antes una campana que hacía pensar en
+ * avisos). Solo aparece con una cita FUTURA (nunca cae a una pasada).
  * Punto fijo, sin parpadeo, cuando la cita es en 48 h o menos; si no, estado neutro.
  * Las citas sin hora cuentan hasta el final de su día. Tiene su propio reloj por minuto.
  */
@@ -1849,7 +1849,8 @@ function HeaderBell({ events, onOpen }: { events: AgendaEvent[]; onOpen: (ev: Ag
 
   if (!next) return null;
   const soon = next.at.getTime() - now.getTime() <= 48 * 60 * 60 * 1000;
-  const label = `${soon ? "Cita en menos de 48 horas" : "Próxima cita"}: ${next.ev.title}, ${next.ev.date}${hasClockTime(next.ev.time) ? ` a las ${next.ev.time}` : ""}`;
+  const when = formatDayCountdown(next.at, now);
+  const label = `Preparar cita: ${next.ev.title}, ${when}, ${next.ev.date}${hasClockTime(next.ev.time) ? ` a las ${next.ev.time}` : ""}`;
 
   return (
     <button
@@ -1863,7 +1864,7 @@ function HeaderBell({ events, onOpen }: { events: AgendaEvent[]; onOpen: (ev: Ag
       title={label}
       aria-label={label}
     >
-      <Bell size={18} strokeWidth={1.75} aria-hidden="true" />
+      <CalendarClock size={18} strokeWidth={1.75} aria-hidden="true" />
       {soon && (
         <span aria-hidden="true" className="absolute top-2 right-2 size-2 rounded-full bg-terracotta-ink ring-2 ring-ground"></span>
       )}
@@ -2597,7 +2598,7 @@ export default function PandaJRApp() {
         />
       )}
 
-      {/* Modal Guía de Preparación y Recordatorio de Cita */}
+      {/* «Preparar cita» (la hoja de preparación de la cita) */}
       {selectedPrepEvent && (
         <AppointmentPrepModal
             profile={profile}
@@ -2741,7 +2742,7 @@ function MomStatusCard({
 }) {
   const [isEditing, setIsEditing] = React.useState(false);
   const [text, setText] = React.useState("");
-  const [emoji, setEmoji] = React.useState("😊");
+  const [emoji, setEmoji] = React.useState("");
   // Sin vínculo, el estado de la mamá vive en este teléfono.
   const [localStatus, setLocalStatus] = React.useState<LocalMomStatus | null>(() => readStored<LocalMomStatus | null>(LS_MOM_STATUS, null));
   const [hugSent, setHugSent] = React.useState(false);
@@ -2763,8 +2764,10 @@ function MomStatusCard({
       : null;
 
   const handleSave = () => {
-    const statusText = text.trim() || "Me siento bien";
     const chosen = emoji;
+    // Sin ánimo ni texto no hay nada que guardar (nunca un «Me siento bien» que nadie dijo).
+    if (!chosen && !text.trim()) return;
+    const statusText = text.trim() || moodLabel(chosen) || "";
     setIsEditing(false);
     const pid = profile.pregnancyId;
     if (linked && pid) {
@@ -2835,7 +2838,8 @@ function MomStatusCard({
         : "Aún no ha compartido cómo se siente.";
 
   // El emoji es el dato que se guarda y comparte; en pantalla se muestra su nombre (sin emoji como icono).
-  const mood = status?.emoji ? (moodLabel(status.emoji) ?? status.emoji) : null;
+  const moodName = status?.emoji ? (moodLabel(status.emoji) ?? status.emoji) : null;
+  const mood = moodName && moodName !== status?.text ? moodName : null;
 
   // Fase 6: una sección de la Guía (h2 en Alegreya), sin tarjeta ni degradado. La frase de mamá se lee
   // en Alegreya itálica: es su voz.
@@ -2880,7 +2884,12 @@ function MomStatusCard({
           <button type="button" onClick={() => setIsEditing(false)} className={`flex-1 min-h-11 rounded-full ${OUTLINE_FILL} text-meta font-bold transition-colors ${FOCUS_RING}`}>
             Cancelar
           </button>
-          <button type="button" onClick={handleSave} className={`flex-1 min-h-11 rounded-full ${TERRA_FILL} text-meta font-bold transition-colors ${FOCUS_RING}`}>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={!emoji && !text.trim()}
+            className={`flex-1 min-h-11 rounded-full ${TERRA_FILL} text-meta font-bold transition-colors disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-ink-disabled disabled:hover:bg-surface-sunken ${FOCUS_RING}`}
+          >
             {linked ? "Compartir estado" : "Guardar estado"}
           </button>
         </div>
@@ -2912,7 +2921,7 @@ function MomStatusCard({
         <RowButton
           onClick={() => {
             setText(status?.text || "");
-            setEmoji(status?.emoji || "😊");
+            setEmoji(status?.emoji || "");
             setIsEditing(true);
           }}
           className="mt-4"
@@ -3220,8 +3229,11 @@ function GuiaPapaView({
   const nextEventInfo = nextEvent
     ? {
         title: nextEvent.ev.title,
-        when: `${nextEvent.ev.date}${hasClockTime(nextEvent.ev.time) ? ` · ${nextEvent.ev.time}` : ""}`,
-        relative: !hasClockTime(nextEvent.ev.time) && nextEvent.at.toDateString() === now.toDateString() ? "hoy" : formatRelative(nextEvent.at, now),
+        // La fecha sale de la cita parseada, no del texto guardado (PandaIA o datos viejos pueden traer
+        // "mañana" y quedaría «Mañana · mañana»).
+        when: `${formatDateShort(nextEvent.at)}${hasClockTime(nextEvent.ev.time) ? ` · ${nextEvent.ev.time}` : ""}`,
+        // Mismo criterio que la Agenda y la preparación: "hoy", "mañana", "en 9 días" (format.ts).
+        relative: formatDayCountdown(nextEvent.at, now),
         byName: pid && nextEvent.ev.createdBy && nextEvent.ev.createdBy !== partner.myUid ? nextEvent.ev.createdByName : undefined,
       }
     : null;
@@ -3738,10 +3750,9 @@ function PandaIAView({
 
   const getWelcomeText = (week: number | null, role: "papa" | "mama", name?: string) => {
     const hello = `¡Hola, ${name || (role === "papa" ? "papá" : "mamá")}! Soy PandaIA.`;
-    // Límites en una línea: orienta, no diagnostica. Ante una alarma, la llamada va antes que el chat.
-    const limits = role === "papa"
-      ? "Te doy información general: no diagnostico ni reemplazo al obstetra de tu pareja. Si notas una señal de alarma, no esperes mi respuesta: toca **Síntomas** o llama a emergencias."
-      : "Te doy información general: no diagnostico ni reemplazo a tu obstetra. Si notas una señal de alarma, no esperes mi respuesta: toca **Síntomas** o llama a emergencias.";
+    // Ante una alarma, la llamada va antes que el chat. Que PandaIA no diagnostica lo dice UNA vez la nota fija
+    // bajo el campo (R2 · paso 5: antes se repetía aquí).
+    const limits = "Si notas una señal de alarma, no esperes mi respuesta: toca **Síntomas** o llama a emergencias.";
     if (week === null) {
       return `${hello}\n\nAún no sé en qué semana están: confírmala en **Ajustes** para orientarte mejor. Mientras tanto, pregúntame lo que necesites o pídeme que **agende una cita** diciéndome el día.\n\n${limits}`;
     }
@@ -4216,8 +4227,8 @@ function PandaIAView({
               }`}>
                 {msg.sender === 'ai' ? renderFormattedMessage(msg.text) : <p>{msg.text}</p>}
 
-                {/* Botón de Copiar para Mensajes del Asistente */}
-                {msg.sender === 'ai' && (
+                {/* Copiar una respuesta de PandaIA (el saludo no: no hay nada que copiar) */}
+                {msg.sender === 'ai' && msg.id !== 1 && (
                   <div className="mt-2 flex justify-end border-t border-line pt-2">
                     <button
                       type="button"
@@ -4400,7 +4411,7 @@ function PandaIAView({
               <Send size={18} strokeWidth={1.75} aria-hidden="true" />
             </button>
           </div>
-          <p id="pandaia-limits" className="mt-1.5 px-1 text-micro font-medium text-ink-subtle">
+          <p id="pandaia-limits" className="mt-1.5 px-1.5 text-micro font-medium text-ink-subtle">
             {profile.role === "papa"
               ? "PandaIA orienta; no diagnostica ni reemplaza al obstetra."
               : "PandaIA orienta; no diagnostica ni reemplaza a tu obstetra."}

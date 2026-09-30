@@ -5,12 +5,6 @@
     "ignoreFiles": [],
     "ignoreValues": [
       {
-        "rule": "bounce-easing",
-        "value": "animate-bounce",
-        "createdAt": "2026-09-27T18:21:34.578Z",
-        "reason": "Claude (triage): globals.css:140 es el selector .animate-bounce dentro de @media (prefers-reduced-motion: reduce) que la ANULA (animation: none); ningún componente usa animate-bounce"
-      },
-      {
         "rule": "design-system-font-size",
         "value": "6rem",
         "createdAt": "2026-09-30T00:00:29.981Z",

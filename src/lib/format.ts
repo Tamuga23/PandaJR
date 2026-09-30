@@ -34,6 +34,36 @@ function calendarDayDiff(a: Date, b: Date): number {
   return Math.round((da - db) / (24 * HOUR));
 }
 
+/**
+ * Días de calendario (locales) desde hoy hasta la fecha: 0 hoy, 1 mañana, −1 ayer. null si no hay fecha.
+ */
+export function daysUntil(date: DateInput, now: Date = new Date()): number | null {
+  const d = toDateSafe(date);
+  if (!d || Number.isNaN(now.getTime())) return null;
+  return calendarDayDiff(d, now);
+}
+
+/**
+ * Cuándo es algo que está por venir, con UN solo criterio para toda la app (R2 · paso 5): la próxima
+ * cita en «Hoy», la Agenda, la preparación de cita y el tiempo relativo futuro de formatRelative.
+ * "hoy", "mañana", "en 9 días" (hasta 13), "en 2 semanas" (de 14 a 59 días), "en 3 meses" (60 o más).
+ * Pasado: "ya pasó". En minúscula: se capitaliza al empezar una frase.
+ */
+export function formatDayCountdown(date: DateInput, now: Date = new Date()): string {
+  const days = daysUntil(date, now);
+  if (days === null) return "";
+  if (days < 0) return "ya pasó";
+  if (days === 0) return "hoy";
+  if (days === 1) return "mañana";
+  if (days < 14) return `en ${days} días`;
+  if (days < 60) {
+    const weeks = Math.floor(days / 7);
+    return `en ${weeks} semanas`;
+  }
+  const months = Math.floor(days / 30);
+  return months === 1 ? "en 1 mes" : `en ${months} meses`;
+}
+
 let rtfAuto: Intl.RelativeTimeFormat | null = null;
 let rtfAlways: Intl.RelativeTimeFormat | null = null;
 const auto = () => (rtfAuto ??= new Intl.RelativeTimeFormat("es", { numeric: "auto" }));
@@ -41,7 +71,8 @@ const always = () => (rtfAlways ??= new Intl.RelativeTimeFormat("es", { numeric:
 
 /**
  * Tiempo relativo en español: "hace un momento", "hace 5 minutos", "hace 3 horas",
- * "ayer", "hace 3 días", "hace 2 semanas", "mañana", "en 3 días". null/indefinido → "".
+ * "ayer", "hace 3 días", "hace 2 semanas". Lo futuro de otro día usa formatDayCountdown
+ * ("mañana", "en 9 días", "en 2 semanas"): el mismo criterio en toda la app. null/indefinido → "".
  */
 export function formatRelative(date: DateInput, now: Date = new Date()): string {
   const d = toDateSafe(date);
@@ -60,9 +91,11 @@ export function formatRelative(date: DateInput, now: Date = new Date()): string 
   const days = calendarDayDiff(d, now);
   if (days === 0) return auto().format(sign * Math.floor(abs / HOUR), "hour");
 
+  // Futuro de otro día: el mismo texto que la cuenta atrás de las citas (nunca "dentro de 1 semana").
+  if (days > 0) return formatDayCountdown(d, now);
   const absDays = Math.abs(days);
   const daySign = days < 0 ? -1 : 1;
-  if (absDays < 7) return auto().format(days, "day"); // "ayer", "hace 3 días", "mañana"
+  if (absDays < 7) return auto().format(days, "day"); // "ayer", "hace 3 días"
   if (absDays < 30) return always().format(daySign * Math.floor(absDays / 7), "week");
   if (absDays < 365) return always().format(daySign * Math.floor(absDays / 30), "month");
   return always().format(daySign * Math.floor(absDays / 365), "year");

@@ -60,7 +60,7 @@ const cap = (s: string) => (s ? s.charAt(0).toLocaleUpperCase("es") + s.slice(1)
 
 type WindowTask = Pick<TaskWithCategory, "trimester" | "weekFrom" | "weekTo" | "expiresAfterWindow" | "kind">;
 
-/** «¿Ya te la pusieron?» (vacuna), «¿Ya te la hicieron?» (prueba), «¿Ya te lo hicieron?» (cultivo), «¿Ya está hecha?». */
+/** «¿Ya te la pusieron?» (vacuna), «¿Ya te la hicieron?» (prueba), «¿Ya te lo hicieron?» (cultivo), «¿Ya lo hablaste con tu obstetra?» (consulta), «¿Ya está hecha?». */
 export function overdueAsk(kind: TaskKind | undefined, reader: Role): string {
   const mama = reader === "mama";
   switch (kind) {
@@ -70,6 +70,8 @@ export function overdueAsk(kind: TaskKind | undefined, reader: Role): string {
       return mama ? "¿Ya te la hicieron?" : "¿Ya se la hicieron?";
     case "cultivo":
       return mama ? "¿Ya te lo hicieron?" : "¿Ya se lo hicieron?";
+    case "consulta":
+      return mama ? "¿Ya lo hablaste con tu obstetra?" : "¿Ya lo hablaron con su obstetra?";
     default:
       return "¿Ya está hecha?";
   }
@@ -889,8 +891,8 @@ export function TodayBlock({
               title={nextEvent.title}
               meta={`${cap(nextEvent.relative)} · ${nextEvent.when}${nextEvent.byName ? ` · agendada por ${nextEvent.byName}` : ""}`}
               trailing={
-                <RowButton onClick={onOpenPrep} aria-label={`Preparar la cita: ${nextEvent.title}`} aria-haspopup="dialog">
-                  Preparar
+                <RowButton onClick={onOpenPrep} aria-label={`Preparar cita: ${nextEvent.title}`} aria-haspopup="dialog">
+                  Preparar cita
                 </RowButton>
               }
             />

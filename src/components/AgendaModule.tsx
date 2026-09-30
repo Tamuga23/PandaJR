@@ -11,7 +11,7 @@ import {
   ChevronDown,
   Circle,
   CircleAlert,
-  ClipboardList,
+  CalendarClock,
   Clock,
   Download,
   FlaskConical,
@@ -30,7 +30,7 @@ import {
 import { usePandaStore, type UserProfile } from "@/store/usePandaStore";
 import { currentUid, listenToAppointmentPrep, setAppointmentPrepItem, type SharedDocMeta } from "@/lib/firebase/pairing";
 import { clinicalWeek } from "@/lib/urgency";
-import { formatDateShort, repairMojibake } from "@/lib/format";
+import { daysUntil, formatDateShort, formatDayCountdown, repairMojibake } from "@/lib/format";
 import { localToSharedFlag } from "@/lib/seeds";
 import { AuthorChip } from "@/components/AuthorChip";
 import { SyncBadge, usePartner } from "@/components/SyncBadge";
@@ -483,12 +483,11 @@ function isPastEvent(ev: AgendaEvent, date: Date | null, now: number): boolean {
   return startOfDay(date) + DAY_MS <= now;
 }
 
+/** Cuenta atrás de una cita con el helper único de format.ts ("Hoy", "Mañana", "En 9 días"…); `soon` = 7 días o menos. */
 function countdownLabel(date: Date, now: number): { text: string; soon: boolean } {
-  const diff = dayDiff(date, now);
-  if (diff < 0) return { text: "Ya pasó", soon: false };
-  if (diff === 0) return { text: "Es hoy", soon: true };
-  if (diff === 1) return { text: "Es mañana", soon: true };
-  return { text: `En ${diff} días`, soon: diff <= 7 };
+  const diff = daysUntil(date, new Date(now)) ?? dayDiff(date, now);
+  const text = formatDayCountdown(date, new Date(now));
+  return { text: text.charAt(0).toLocaleUpperCase("es") + text.slice(1), soon: diff >= 0 && diff <= 7 };
 }
 
 /** Semana estimada el día de la cita, a partir de la semana clínica de hoy. */
@@ -1063,14 +1062,16 @@ export function AppointmentPrepModal({
   );
 
   return (
-    <Sheet open onClose={onClose} labelledBy={titleId}>
-      {/* Cabecera: legible (≥4.5:1), sin texto blanco sobre salvia */}
+    <Sheet open onClose={onClose} labelledBy={titleId} describedBy={`${titleId}-desc`}>
+      {/* Cabecera: legible (≥4.5:1), sin texto blanco sobre salvia. Un solo nombre: «Preparar cita». */}
+      <p id={`${titleId}-desc`} className="sr-only">Qué llevar y qué preguntar en esta cita.</p>
       <div className={sheetHeadClass}>
         <div className="min-w-0">
           <h2 id={titleId} className={sheetTitleClass}>
-            {title}
+            Preparar cita<span className="sr-only">: {title}</span>
           </h2>
-          <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-meta text-ink-muted">
+          <p className="mt-1 text-body font-bold text-ink break-words">{title}</p>
+          <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-meta text-ink-muted">
             <span className="inline-flex items-center gap-1.5">
               <Calendar size={15} aria-hidden="true" className="shrink-0" />
               {date ? formatDateLong(date) : "Fecha sin confirmar"}
@@ -1097,7 +1098,7 @@ export function AppointmentPrepModal({
             )}
           </p>
         </div>
-        <button type="button" onClick={onClose} className={closeButtonClass} aria-label="Cerrar preparación de la cita">
+        <button type="button" onClick={onClose} className={closeButtonClass} aria-label="Cerrar «Preparar cita»">
           <X size={20} aria-hidden="true" />
         </button>
       </div>
@@ -2207,7 +2208,7 @@ function EventRow({
       ) : (
         <div className="pj-row-body min-w-0 flex-1 pt-3.5 pb-2 pe-[calc(var(--gutter)-0.75rem)]">
           {text}
-          {/* Si «Qué llevar y preguntar» no cabe junto a editar/borrar (320px), estos bajan a otra línea
+          {/* Si «Preparar cita» no cabe junto a editar/borrar (320px), estos bajan a otra línea
               en vez de partir la acción en dos. */}
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {featured ? (
@@ -2215,20 +2216,20 @@ function EventRow({
                 tone="primary"
                 onClick={() => onOpenPrep(ev)}
                 // Nombre único por fila (hay uno por cita); empieza por el texto visible (2.5.3).
-                aria-label={`Qué llevar y preguntar: ${title}`}
+                aria-label={`Preparar cita: ${title}`}
                 aria-haspopup="dialog"
               >
-                <ClipboardList size={16} aria-hidden="true" /> Qué llevar y preguntar
+                <CalendarClock size={16} aria-hidden="true" /> Preparar cita
               </RowButton>
             ) : (
               <button
                 type="button"
                 onClick={() => onOpenPrep(ev)}
-                aria-label={`Qué llevar y preguntar: ${title}`}
+                aria-label={`Preparar cita: ${title}`}
                 aria-haspopup="dialog"
                 className={`-ms-2 ${textActionClass}`}
               >
-                <ClipboardList size={16} aria-hidden="true" /> Qué llevar y preguntar
+                <CalendarClock size={16} aria-hidden="true" /> Preparar cita
               </button>
             )}
             <div className="ms-auto">{editDelete}</div>

@@ -16,10 +16,11 @@ export type Trimester = 1 | 2 | 3;
  * el contenido clínico: solo elige la pregunta con la gramática correcta.
  * - vacuna: «¿Ya te la pusieron?» · prueba (prueba o ecografía, femenino): «¿Ya te la hicieron?»
  * - cultivo (masculino): «¿Ya te lo hicieron?» · tramite (cita o gestión con el equipo de salud): «¿Ya está hecha?»
- * Las cuatro se llevan al próximo control. logistica (casa, maleta, silla, visitas): no es para el
+ * - consulta (algo que se habla con el obstetra): «¿Ya lo hablaste con tu obstetra?» (R2 · paso 5)
+ * Las cinco se llevan al próximo control. logistica (casa, maleta, silla, visitas): no es para el
  * control; pasada la ventana sigue pendiente, «mejor cuanto antes».
  */
-export type TaskKind = "vacuna" | "prueba" | "cultivo" | "tramite" | "logistica";
+export type TaskKind = "vacuna" | "prueba" | "cultivo" | "tramite" | "consulta" | "logistica";
 
 export type TaskDef = {
   id: number;
@@ -184,7 +185,7 @@ export const TASK_CATEGORIES: readonly TaskCategory[] = [
     tasks: [
       {
         id: 214,
-        text: "Preparar un buen descanso",
+        text: "Conseguir una almohada de embarazo para un mejor descanso",
         detail: "Consigan una almohada de embarazo (en forma de U o C) para dormir de lado y aliviar la espalda, la cadera y el nervio ciático.",
         trimester: 2,
         defaultOwner: "papa",
@@ -249,7 +250,7 @@ export const TASK_CATEGORIES: readonly TaskCategory[] = [
         weekFrom: 32,
         weekTo: 36,
         defaultOwner: "ambos",
-        kind: "tramite",
+        kind: "consulta",
       },
     ],
   },

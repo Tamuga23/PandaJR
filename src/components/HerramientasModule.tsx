@@ -46,7 +46,7 @@ import { Z_CLASS } from "@/lib/layers";
 import { GrowingPlant } from "@/components/GrowingPlant";
 import { ListGroup, ListRow, RowButton, Section, SectionAction } from "@/components/ui/List";
 import {
-  Activity, AlertTriangle, ArrowLeft, ArrowRight, Baby, BookOpen, CalendarClock, Camera, Check, CheckCircle, CheckCircle2,
+  Activity, AlertTriangle, ArrowLeft, ArrowRight, Baby, CalendarClock, Camera, Check, CheckCircle, CheckCircle2,
   ChevronDown, ChevronRight, ChevronUp, Circle, CircleAlert, ClipboardList, Clock, CloudOff, Edit3, FileText, Flame, HeartHandshake,
   Heart, HeartPulse, ImagePlus, Info, LoaderCircle, Minus, Moon, Music, Package, Pencil, Phone, PhoneCall, Play,
   Plus, Printer, RefreshCw, RotateCcw, Send, Share2, Siren, Sparkles, Square, Tag, Timer, Trash2, Undo2, Users, Utensils,
@@ -1644,7 +1644,6 @@ export function HerramientasView({ showToast, profile, openRequest }: { showToas
     { id: "patadas", label: "Patadas", desc: "Conteo desde la semana 28", icon: <Baby size={20} strokeWidth={1.75} />, group: "urgente" },
     { id: "maleta", label: "Maleta", desc: "Para el hospital", icon: <Package size={20} strokeWidth={1.75} />, group: "preparacion" },
     { id: "parto", label: "Plan de parto", desc: "Preferencias para el hospital", icon: <ClipboardList size={20} strokeWidth={1.75} />, group: "preparacion" },
-    { id: "lecturas", label: "Lecturas", desc: "Próximamente", icon: <BookOpen size={20} strokeWidth={1.75} />, group: "preparacion" },
     { id: "nombres", label: "Nombres", desc: "Voten por separado", icon: <Users size={20} strokeWidth={1.75} />, group: "pareja" },
     { id: "presupuesto", label: "Presupuesto", desc: "Control de gastos", icon: <Wallet size={20} strokeWidth={1.75} />, group: "pareja" },
     { id: "diario", label: "Diario", desc: "Recuerdos del embarazo", icon: <FileText size={20} strokeWidth={1.75} />, group: "pareja" },
@@ -2250,7 +2249,7 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
 
         {/* Atajo de teclado accesible */}
         {count < 10 && (
-          <div className="mt-3 flex select-none items-center gap-1.5 text-micro font-medium text-ink-subtle">
+          <div className="mt-3 hidden select-none items-center gap-1.5 text-micro font-medium text-ink-subtle pointer-fine:flex">
             <span>Con teclado, pulsa</span>
             <kbd className="rounded border border-line-strong bg-surface-sunken px-1.5 py-0.5 font-mono text-micro font-bold text-ink">
               Espacio
@@ -2801,8 +2800,8 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
         </span>
         <span className="text-micro font-medium">
           {isRecording
-            ? isPapa ? `Toca cuando ${her} te diga que terminó` : "Toca o presiona Espacio al terminar"
-            : isPapa ? `Toca cuando ${her} te diga que empieza` : "Toca o presiona Espacio al sentir que inicia"}
+            ? isPapa ? `Toca cuando ${her} te diga que terminó` : <>Toca<span className="hidden pointer-fine:inline"> o presiona Espacio</span> al terminar</>
+            : isPapa ? `Toca cuando ${her} te diga que empieza` : <>Toca<span className="hidden pointer-fine:inline"> o presiona Espacio</span> al sentir que inicia</>}
         </span>
       </button>
 
@@ -3234,6 +3233,8 @@ export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
   const favorites = cards.filter((c) => c.myVote === "like" && !matchIds.has(c.id));
   const discarded = cards.filter((c) => c.myVote === "nope");
   const pending = cards.filter((c) => !c.myVote && (filter === "todos" || c.gender === filter));
+  // Los filtros solo tienen sentido si queda algún nombre por votar (R2 · paso 5: no sobre una lista vacía).
+  const showFilters = loaded && !loadError && cards.some((c) => !c.myVote);
   const card = pending[0];
 
   const setVote = (target: { id: string; name: string }, vote: NameVote | null) => {
@@ -3396,7 +3397,9 @@ export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
       <RetryNotice state={retryState} onDismiss={clearRetry} />
       {loadError && <LoadErrorNotice what="los nombres compartidos" onRetry={() => setAttempt((a) => a + 1)} />}
 
+      {(showFilters || lastVote) && (
       <div className="flex items-center justify-between gap-2">
+        {showFilters && (
         <div className="no-scrollbar flex gap-2 overflow-x-auto py-1" role="group" aria-label="Filtrar por género">
           {NAME_FILTERS.map((f) => (
             <button
@@ -3410,13 +3413,15 @@ export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
             </button>
           ))}
         </div>
+        )}
 
         {lastVote && (
-          <RowButton onClick={undoLastVote} aria-label={`Deshacer tu voto por ${lastVote.name}`} className="shrink-0">
+          <RowButton onClick={undoLastVote} aria-label={`Deshacer tu voto por ${lastVote.name}`} className="ms-auto shrink-0">
             <Undo2 size={15} aria-hidden="true" /> Deshacer
           </RowButton>
         )}
       </div>
+      )}
 
       {loadError ? null : !loaded ? (
         <p role="status" className="py-10 text-center text-meta text-ink-muted">
