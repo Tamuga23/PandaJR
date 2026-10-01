@@ -74,12 +74,6 @@
   /* Placeholder legible (WCAG 1.4.3): sobre #ffffff 5.4:1 · #f5f5f4 4.96:1 · #fdfbf7 5.2:1 */
   --placeholder: #6f6964;
 
-  /* Marca: el panda trazado (PandaMark). Pelaje casi blanco sobre alabastro: lo separa un contorno de tinta. */
-  --panda-fur: #fffefb;
-  --panda-baby: #f3efe7;
-  --panda-shade: #e8e2d7;
-  --panda-patch: #2d2a26;
-  --panda-line: #2d2a26;
 
   /* Compatibilidad (fase ≤5): alias de los nombres anteriores. No usar en código nuevo. */
   --background: var(--ground);
@@ -133,12 +127,6 @@
 
   --placeholder: #a6a1b2;          /* sobre #1a1724 7.0:1 · #221d2d 6.5:1 · #2d273a 5.7:1 */
 
-  /* Panda de noche: el pelaje se recorta solo contra la obsidiana (sin contorno); manchas en tinta cálida. */
-  --panda-fur: #f3efe7;
-  --panda-baby: #e3ddd2;
-  --panda-shade: #cfc7b8;
-  --panda-patch: #2d2a26;
-  --panda-line: transparent;
 }
 
 @theme inline {

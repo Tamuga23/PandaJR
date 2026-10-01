@@ -228,7 +228,6 @@ Un solo valor canónico por token: esta tabla, el frontmatter y `src/app/globals
 | Selección | `selection` | `#f1d6cb` | `#5a3440` | `::selection`, con `ink` encima. |
 | Velo | `scrim` (`bg-scrim`) | negro al 50% | negro al 70% | Bajo hojas y diálogos (oscurece la app; nunca lleva texto). |
 | Placeholder | `placeholder` | `#6f6964` | `#a6a1b2` | Texto de ejemplo en campos (≥4.5:1). |
-| Panda | `panda-fur`, `panda-baby`, `panda-shade`, `panda-patch`, `panda-line` | `#fffefb`, `#f3efe7`, `#e8e2d7`, `#2d2a26`, `#2d2a26` | `#f3efe7`, `#e3ddd2`, `#cfc7b8`, `#2d2a26`, transparente | Solo el `PandaMark` (ver Components › Marca). |
 
 ### Primary
 - **Terracota tinta** (`terracotta-ink`): la voz de la acción y la alarma. Botón principal, "Emergencias", "Síntomas", la pestaña activa, el anillo de foco, el cursor de texto y lo destructivo. Su tono claro `terracotta` solo rellena el botón y la flor de la planta.
@@ -371,11 +370,11 @@ La firma del sistema. SVG paramétrico y determinista (viewBox 120; la variació
 - **Accesibilidad:** `role="img"` ("Planta de la semana 24"); `title=""` la vuelve decorativa cuando el texto de al lado ya dice la semana.
 
 ### Marca (§4.2)
-- **PandaMark** (`src/components/PandaMark.tsx`): la mascota (mamá panda con su bebé) como vector en la paleta, sin azulejo, apoyada directamente en el suelo. Sus trazados están en `src/components/panda-paths.json`, generados con `node scripts/brand/render-brand.mjs trace <original>` a partir de la mascota original que conserva git (`git show 2bf0815:src/app/icon.jpg > panda-original.jpg`): cuatro capas (pelaje, cabeza del bebé, sombra del pecho, manchas) en viewBox de 100. Colores recoloreados con los tokens `--panda-*` de `globals.css`: en claro, pelaje `surface-raised`, bebé `surface-sunken`, sombra `line`, manchas y contorno `ink` (contorno de 1.25px para separar el pelaje del alabastro); en oscuro, sin contorno, el pelaje se recorta contra la obsidiana. Decorativo por defecto; con `title`, `role="img"`.
+- **PandaMark** (`src/components/PandaMark.tsx`): la mascota (mamá panda con su bebé), sin azulejo, apoyada directamente en el suelo. Desde el 2026-09-30 es el logo final que entregó el equipo, tal cual (no un trazado): la fuente maestra es `scripts/brand/panda-mark-source.png` (PNG sin fondo, 1394×1673) y `node scripts/brand/render-brand.mjs` la recorta y redimensiona a `public/brand/panda-mark-{128,384}.png` (srcset). Sustituye al vector trazado del JPEG menta original (`panda-paths.json`), que suavizaba las formas. Caja cuadrada con la mascota centrada (`object-contain`); en oscuro, un halo de 1px en tinta clara (`drop-shadow`) separa el azul carbón de las orejas y los brazos de la obsidiana. Decorativo por defecto (`alt=""`); con `title`, imagen con nombre. También firma la tarjeta de PandaStory (junto al wordmark).
 - **Wordmark** (`src/components/Wordmark.tsx`): PandaMark + "PandaJR" como texto vivo en Alegreya 800: "Panda" en `ink`, "JR" en `terracotta-ink` (el único uso de marca de la terracota). Por defecto panda 34px + texto 24px; `compact` 28px + 20px; `responsive` (cabecera) compacto por debajo de 380px y solo el panda por debajo de 360px, con el texto en `sr-only` para que el `<h1>` siga diciendo "PandaJR".
 - **Rasters que se envían y su procedencia:**
-  - `src/app/icon.svg` (favicon vectorial: PandaMark sobre alabastro con borde `line-strong`, radio 22) y `src/app/apple-icon.png` (180px): `node scripts/brand/render-brand.mjs icons`.
-  - `public/icons/icon-192.png`, `icon-512.png`, `icon-maskable-192.png`, `icon-maskable-512.png` (los del manifiesto): `node scripts/brand/render-brand.mjs icons`, rasterizados con sharp sobre `#faf9f5`.
+  - `src/app/icon.png` (favicon 192px: la mascota sobre alabastro con borde `line-strong`, radio 22 %) y `src/app/apple-icon.png` (180px): `node scripts/brand/render-brand.mjs`.
+  - `public/icons/icon-192.png`, `icon-512.png`, `icon-maskable-192.png`, `icon-maskable-512.png` (los del manifiesto): `node scripts/brand/render-brand.mjs`, la mascota compuesta con sharp sobre `#faf9f5` (84 % del lado; 68 % en los maskable, dentro de la zona segura).
   - `src/app/opengraph-image.png` y `src/app/twitter-image.png` (1200×630, con sus `.alt.txt`): captura de `scripts/brand/og-page.tsx` (PandaMark, wordmark y la planta en las semanas 8, 20, 32 y 40, tokens claros) montada temporalmente como ruta y capturada en Chrome a 1200×630, dpr 1.
 - No hay otros rasters de marca: la mascota en JPEG con azulejo menta y el logotipo en texto teal quedaron retirados y no deben volver.
 

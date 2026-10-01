@@ -45,6 +45,7 @@ import { useModalDialog } from "@/lib/useModalDialog";
 import { Z_CLASS } from "@/lib/layers";
 import { GrowingPlant } from "@/components/GrowingPlant";
 import { StoryBackdrop } from "@/components/StoryBackdrop";
+import { PANDA_MARK_SRC } from "@/components/PandaMark";
 import { ListGroup, ListRow, RowButton, Section, SectionAction } from "@/components/ui/List";
 import {
   Activity, AlertTriangle, ArrowLeft, ArrowRight, Baby, CalendarClock, Camera, Check, CheckCircle, CheckCircle2,
@@ -4937,6 +4938,8 @@ const STORY_STYLES = [
       "--story-accent": "#eb9279", // terracotta-ink (oscuro)
       "--story-accent-2": "#89bca0", // sage-ink (oscuro)
       "--story-rule": "rgb(234 230 225 / 0.2)",
+      // El azul carbón de la mascota se perdería en la noche: un halo fino en tinta clara la recorta.
+      "--story-mark-filter": "drop-shadow(0 0 0.35cqw rgb(234 230 225 / 0.6))",
     },
   },
   {
@@ -5114,12 +5117,17 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
                 className="absolute inset-0 isolate flex flex-col items-center bg-ground px-[7cqw] pb-[8cqw] pt-[7cqw] text-center text-ink"
               >
                 <StoryBackdrop styleId={style.id} className="pointer-events-none absolute inset-0 -z-10 h-full w-full" />
-                <p className="font-display text-[5cqw] font-extrabold leading-none text-ink">
-                  Panda<span className="text-[var(--story-accent-2)]">JR</span>
-                </p>
+                {/* La marca firma la tarjeta: la mascota (el logo tal cual) junto al wordmark. */}
+                <div className="flex items-center justify-center gap-[2.2cqw]">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- logo de public/: html-to-image lo incrusta en el PNG */}
+                  <img src={PANDA_MARK_SRC} alt="" aria-hidden="true" draggable={false} className="h-[11cqw] w-auto [filter:var(--story-mark-filter,none)]" />
+                  <p className="font-display text-[6.4cqw] font-extrabold leading-none tracking-[-0.01em] text-ink">
+                    Panda<span className="text-[var(--story-accent-2)]">JR</span>
+                  </p>
+                </div>
 
                 {/* Un solo titular en dos líneas (sin antetítulo): la semana lleva el acento. */}
-                <p className="mt-[6cqw] font-display text-[11.5cqw] font-bold leading-[1.05] text-ink">
+                <p className="mt-[5cqw] font-display text-[11.5cqw] font-bold leading-[1.05] text-ink">
                   ¡Estamos en la <span className="whitespace-nowrap text-[var(--story-accent)]">semana {week}!</span>
                 </p>
 

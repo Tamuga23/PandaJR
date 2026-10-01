@@ -92,12 +92,12 @@ Todo esto se apoya en contenido clínico alineado con guías públicas (ACOG, se
 
 ## Brand Commitments
 
-- Nombre **PandaJR**, con la mascota panda (mamá con su bebé). Desde la fase visual de 2026-09 la marca es vectorial y está dentro de la paleta:
-  - Mascota: `PandaMark` (`src/components/PandaMark.tsx`, trazos en `src/components/panda-paths.json`).
+- Nombre **PandaJR**, con la mascota panda (mamá con su bebé). La mascota es el logo final entregado el 2026-09-30 (sin fondo), usado tal cual; el wordmark es texto vivo en la paleta:
+  - Mascota: `PandaMark` (`src/components/PandaMark.tsx`), el logo final entregado el 2026-09-30 (`scripts/brand/panda-mark-source.png`, sin fondo) en `public/brand/panda-mark-{128,384}.png`.
   - Wordmark: `src/components/Wordmark.tsx`, «PandaJR» en Alegreya.
-  - Iconos: `src/app/icon.svg`, `src/app/apple-icon.png`, `public/icons/icon-{192,512}.png` e `icon-maskable-{192,512}.png`.
+  - Iconos: `src/app/icon.png`, `src/app/apple-icon.png`, `public/icons/icon-{192,512}.png` e `icon-maskable-{192,512}.png`.
   - Imágenes para compartir: `src/app/opengraph-image.png` y `twitter-image.png` (1200×630).
-  - Procedencia: todo se genera con `scripts/brand/render-brand.mjs` a partir de la mascota original, el JPEG en git `2bf0815:src/app/icon.jpg`. El detalle está en DESIGN.md.
+  - Procedencia: todo se genera con `scripts/brand/render-brand.mjs` a partir de `scripts/brand/panda-mark-source.png`. El detalle está en DESIGN.md.
 - Voz en español neutro latinoamericano, con tuteo. Serena y cercana en el día a día, tajante y directiva en una emergencia.
 - El foco explícito en el papá como copiloto forma parte de la marca.
 
