@@ -837,7 +837,7 @@ function Sheet({
         <div
           ref={setPanel}
           {...dialogRest}
-          className="relative w-full max-w-md max-h-[92dvh] flex flex-col bg-surface-raised text-ink rounded-t-3xl sm:rounded-3xl border border-line shadow-sheet outline-none"
+          className="relative w-full max-w-md max-h-[min(92dvh,var(--sheet-max))] flex flex-col bg-surface-raised text-ink rounded-t-3xl sm:rounded-3xl border border-line shadow-sheet outline-none"
         >
           {children}
         </div>

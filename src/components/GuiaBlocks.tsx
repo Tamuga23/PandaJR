@@ -1171,7 +1171,7 @@ export function AllTasksSheet({
         <div
           ref={setPanel}
           {...dialogRest}
-          className="relative flex max-h-[92dvh] w-full max-w-lg flex-col rounded-t-3xl border border-line bg-surface-raised text-ink shadow-sheet outline-none sm:rounded-3xl"
+          className="relative flex max-h-[min(92dvh,var(--sheet-max))] w-full max-w-lg flex-col rounded-t-3xl border border-line bg-surface-raised text-ink shadow-sheet outline-none sm:rounded-3xl"
         >
           <div className="flex shrink-0 items-start justify-between gap-3 border-b border-line px-5 pt-5 pb-4">
             <div className="min-w-0">

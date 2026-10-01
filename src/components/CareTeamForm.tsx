@@ -410,7 +410,7 @@ export function CareTeamSheet({
         <div
           ref={setPanel}
           {...dialogRest}
-          className="relative w-full max-w-md max-h-[92dvh] flex flex-col bg-surface-raised text-ink rounded-t-3xl sm:rounded-3xl border border-line shadow-sheet outline-none"
+          className="relative w-full max-w-md max-h-[min(92dvh,var(--sheet-max))] flex flex-col bg-surface-raised text-ink rounded-t-3xl sm:rounded-3xl border border-line shadow-sheet outline-none"
         >
           <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-4 border-b border-line">
             <div className="min-w-0">

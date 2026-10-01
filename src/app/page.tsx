@@ -1100,7 +1100,7 @@ function ProfileModal({
     >
       <div
         {...dialogProps}
-        className="bg-surface-raised text-ink rounded-3xl shadow-dialog w-full max-w-sm overflow-hidden border border-line flex flex-col max-h-[85dvh] outline-none"
+        className="bg-surface-raised text-ink rounded-3xl shadow-dialog w-full max-w-sm overflow-hidden border border-line flex flex-col max-h-[min(85dvh,var(--dialog-max))] outline-none"
       >
         <div className="flex items-center justify-between gap-3 border-b border-line py-2 ps-5 pe-2">
           <h2 id="profile-modal-title" className="font-display text-title text-ink">Ajustes</h2>
@@ -2556,6 +2556,15 @@ export default function PandaJRApp() {
           </div>
         </div>
       </header>
+      {/* iOS 26 (app instalada, barra de estado translúcida): sin una caja fija y sólida en el borde de arriba, el
+          sistema dibuja un desenfoque «Liquid Glass» que baja ~40pt bajo la barra y lava la cabecera. WebKit lo
+          omite y usa el color de esa caja si encuentra un elemento fixed (no basta un sticky en reposo), de casi
+          todo el ancho y con fondo sólido en los primeros píxeles. Esta franja cubre solo la zona segura, con el
+          fondo de la cabecera (no se ve) y por encima de ella para ser lo primero que encuentra. */}
+      <div
+        aria-hidden="true"
+        className={`fixed inset-x-0 top-0 mx-auto h-[var(--safe-top)] w-full max-w-md bg-ground lg:max-w-none [@media(max-height:500px)]:hidden ${Z_CLASS.header}`}
+      />
 
       {/* Main Content Area */}
       {/* Sin overflow en las pestañas con scroll de documento (el sticky de las herramientas depende de ello).

@@ -15,6 +15,12 @@
   color-scheme: light;
   --safe-top: max(0.625rem, env(safe-area-inset-top));
   --safe-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  /* iOS 26 (app instalada): el sistema desenfoca ~40pt bajo la barra de estado cuando no hay una caja fija
+     y sólida arriba (con una hoja abierta, el velo translúcido no lo evita). Las hojas y diálogos no suben
+     hasta ahí: altura máxima = pantalla − zona segura − 2.75rem (dos márgenes en los diálogos centrados). */
+  --sheet-gap: calc(var(--safe-top) + 2.75rem);
+  --sheet-max: calc(100dvh - var(--sheet-gap));
+  --dialog-max: calc(100dvh - 2 * var(--sheet-gap));
   /* Margen lateral de la columna. ListGroup (tono plain) sangra hasta aquí y las filas lo usan de
      padding; un contenedor con otro padding lo redefine: className="px-5 [--gutter:1.25rem]". */
   --gutter: 1rem;

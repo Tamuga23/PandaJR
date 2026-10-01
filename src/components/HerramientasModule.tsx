@@ -44,6 +44,7 @@ import { ModalPortal } from "@/components/ModalPortal";
 import { useModalDialog } from "@/lib/useModalDialog";
 import { Z_CLASS } from "@/lib/layers";
 import { GrowingPlant } from "@/components/GrowingPlant";
+import { StoryBackdrop } from "@/components/StoryBackdrop";
 import { ListGroup, ListRow, RowButton, Section, SectionAction } from "@/components/ui/List";
 import {
   Activity, AlertTriangle, ArrowLeft, ArrowRight, Baby, CalendarClock, Camera, Check, CheckCircle, CheckCircle2,
@@ -4650,7 +4651,7 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div {...dialogProps} className={`${dialogPanel} h-[88dvh] max-h-[90dvh] max-w-lg rounded-t-3xl shadow-sheet sm:h-auto sm:rounded-3xl`}>
+      <div {...dialogProps} className={`${dialogPanel} h-[min(88dvh,var(--sheet-max))] max-h-[min(90dvh,var(--sheet-max))] max-w-lg rounded-t-3xl shadow-sheet sm:h-auto sm:rounded-3xl`}>
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-line px-5 pb-3 pt-4">
           <div className="min-w-0">
             <h2 id={`${baseId}-titulo`} className="flex items-center gap-2 font-display text-title text-ink">
@@ -4910,6 +4911,7 @@ const STORY_STYLES = [
   {
     id: "botanico",
     name: "Botánico",
+    swatch: "radial-gradient(circle at 50% 45%, #fffefb 0 34%, #6c9a84 36% 40%, #e5eee8 42%)",
     vars: {
       ...LIGHT_PLANT,
       "--ground": "#e5eee8", // sage-wash
@@ -4923,6 +4925,7 @@ const STORY_STYLES = [
   {
     id: "nocturno",
     name: "Nocturno",
+    swatch: "radial-gradient(circle at 50% 50%, #3a334b 0 38%, #181520 41%)",
     vars: {
       "--sage-ink": "#89bca0",
       "--sage": "#619b7e",
@@ -4939,6 +4942,7 @@ const STORY_STYLES = [
   {
     id: "amanecer",
     name: "Amanecer",
+    swatch: "linear-gradient(#f6e6df 0 34%, #e07a64 34% 56%, #faf9f5 56%)",
     vars: {
       ...LIGHT_PLANT,
       "--ground": "#f6e6df", // terracotta-wash
@@ -4952,6 +4956,7 @@ const STORY_STYLES = [
   {
     id: "limpio",
     name: "Limpio",
+    swatch: "repeating-linear-gradient(0deg, #faf9f5 0 3px, #e8e2d7 3px 4px)",
     vars: {
       ...LIGHT_PLANT,
       "--ground": "#faf9f5", // alabastro
@@ -5065,12 +5070,13 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
   return (
     <ModalPortal>
     <div
-      className={`fixed inset-0 ${Z_CLASS.dialog} flex items-center justify-center bg-scrim p-4`}
+      // En el teléfono se apoya abajo (como las hojas): centrada, su cabecera caería en el desenfoque de iOS.
+      className={`fixed inset-0 ${Z_CLASS.dialog} flex items-end justify-center bg-scrim px-4 pt-4 pb-[max(1rem,var(--safe-bottom))] sm:items-center sm:pb-4`}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div {...dialogProps} className={`${dialogPanel} max-h-[92dvh] max-w-sm rounded-3xl shadow-dialog`}>
+      <div {...dialogProps} className={`${dialogPanel} max-h-[min(92dvh,var(--sheet-max))] max-w-sm rounded-3xl shadow-dialog`}>
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-line px-5 py-3 max-[300px]:px-3">
           <h2 id="panda-story-titulo" className="flex min-w-0 items-center gap-2 font-display text-title text-ink">
             <Camera size={22} strokeWidth={1.75} className="shrink-0 text-terracotta-ink max-[300px]:hidden" aria-hidden="true" /> Tarjeta de la semana
@@ -5101,11 +5107,13 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
           <div className="flex flex-1 flex-col items-center gap-5 overflow-y-auto p-5">
             {/* Tamaños en unidades del contenedor: la tarjeta se ve igual a 260 o 300 px y al exportarla. */}
             <div className="@container relative aspect-[9/16] w-[260px] max-w-full shrink-0 overflow-hidden rounded-[2rem] border border-line-strong sm:w-[300px]">
+              {/* isolate: el fondo ilustrado (z -10) queda sobre el suelo y bajo el texto, también en el PNG. */}
               <div
                 ref={storyRef}
                 style={style.vars as React.CSSProperties}
-                className="absolute inset-0 flex flex-col items-center bg-ground px-[7cqw] pb-[8cqw] pt-[7cqw] text-center text-ink"
+                className="absolute inset-0 isolate flex flex-col items-center bg-ground px-[7cqw] pb-[8cqw] pt-[7cqw] text-center text-ink"
               >
+                <StoryBackdrop styleId={style.id} className="pointer-events-none absolute inset-0 -z-10 h-full w-full" />
                 <p className="font-display text-[5cqw] font-extrabold leading-none text-ink">
                   Panda<span className="text-[var(--story-accent-2)]">JR</span>
                 </p>
@@ -5160,11 +5168,11 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
                         onClick={() => setActiveStyleId(s.id)}
                         className={chip(activeStyleId === s.id)}
                       >
-                        {/* Muestra del suelo del estilo (decorativa: el nombre ya lo dice). */}
+                        {/* Muestra de la escena del estilo (decorativa: el nombre ya lo dice). */}
                         <span
                           aria-hidden="true"
-                          className="h-3.5 w-3.5 shrink-0 rounded-full ring-1 ring-line-control"
-                          style={{ background: s.vars["--ground"] }}
+                          className="h-4 w-4 shrink-0 rounded-full ring-1 ring-line-control"
+                          style={{ background: s.swatch }}
                         />
                         {s.name}
                       </button>
@@ -5220,9 +5228,13 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
   const audioCtxRef = useRef<AudioContext | null>(null);
   const sourceRef = useRef<AudioBufferSourceNode | null>(null);
 
+  // Listas oficiales de Spotify, comprobadas por su título (open.spotify.com/oembed, 2026-09-30). Antes había
+  // ids equivocados («Indie Running» y «Disney Hits»): al cambiar un id, comprobar el título igual.
   const playlists = {
-    dormir: "https://open.spotify.com/embed/playlist/37i9dQZF1DWZq91oLsHZvy?utm_source=generator&theme=0",
-    estimulacion: "https://open.spotify.com/embed/playlist/37i9dQZF1DX8C9xQcOrE6T?utm_source=generator&theme=0"
+    // «Sleep»: música ambiental y piano suave para dormir.
+    dormir: "https://open.spotify.com/embed/playlist/37i9dQZF1DWZd79rJ6a7lp?utm_source=generator&theme=0",
+    // «Calming Classical»: clásica tranquila (no «Classical Essentials», que mezcla piezas enérgicas).
+    estimulacion: "https://open.spotify.com/embed/playlist/37i9dQZF1DWVFeEut75IAL?utm_source=generator&theme=0"
   };
 
   const toggleNoise = () => {
@@ -5290,7 +5302,7 @@ export function ReproductorView({ onClose }: { onClose: () => void }) {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div {...dialogProps} className={`${dialogPanel} h-[85dvh] max-h-[90dvh] max-w-md rounded-t-3xl shadow-sheet sm:h-auto sm:rounded-3xl`}>
+      <div {...dialogProps} className={`${dialogPanel} h-[min(85dvh,var(--sheet-max))] max-h-[min(90dvh,var(--sheet-max))] max-w-md rounded-t-3xl shadow-sheet sm:h-auto sm:rounded-3xl`}>
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-line px-5 pb-3 pt-4">
           <div className="min-w-0">
             <h2 id="panda-audio-titulo" className="flex items-center gap-2 font-display text-title text-ink">
