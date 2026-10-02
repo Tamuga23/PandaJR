@@ -1306,6 +1306,11 @@ function ProfileModal({
               try { navigator.vibrate?.(25); } catch { /* sin vibración */ }
             }}
           />
+
+          {/* Versión publicada (commit de Vercel): para saber si la app instalada ya tomó la última. */}
+          <p className="text-center text-micro text-ink-subtle">
+            PandaJR · versión <span className="font-mono tabular-nums">{APP_VERSION}</span>
+          </p>
         </div>
       </div>
 
@@ -1449,6 +1454,9 @@ function profileFromRestored(r: RestoredAccount, prev: UserProfile): UserProfile
     ...joinedDatingFields(r),
   };
 }
+
+/** Commit publicado (Vercel expone NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA al compilar); en local, "local". */
+const APP_VERSION = (process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA || "local").slice(0, 7);
 
 /** Vuelta de un enlace de acceso por correo (se lee una vez, solo en el navegador). */
 let accessLinkCache: AccessLink | null | undefined;
@@ -2559,6 +2567,13 @@ export default function PandaJRApp() {
           </div>
         </div>
       </header>
+      {/* Solo en la app instalada: franja sólida a todo el ancho bajo la barra de estado, encima de la cabecera
+          (mismo color: no se ve). Es lo primero que encuentra la muestra de WebKit en el borde de arriba, así
+          que iOS pinta ese color en vez del desenfoque aunque la cabecera no le bastara. */}
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none fixed inset-x-0 top-0 hidden h-[max(12px,env(safe-area-inset-top))] bg-ground [@media(display-mode:standalone)]:block [@media(display-mode:standalone)_and_(max-height:500px)]:hidden ${Z_CLASS.header}`}
+      />
       {/* Alto de la cabecera fija (3.4375rem + zona segura, el mismo que usan las cabeceras de herramienta). */}
       <div aria-hidden="true" className="h-[calc(3.4375rem+var(--safe-top))] w-full shrink-0 [@media(max-height:500px)]:hidden" />
 

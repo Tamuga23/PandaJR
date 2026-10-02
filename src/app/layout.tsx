@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Alegreya, Alegreya_Sans } from "next/font/google";
 import "./globals.css";
 import { ThemeSync } from "@/components/ThemeSync";
+import { PwaUpdates } from "@/components/PwaUpdates";
 
 /**
  * Tipografía (fase 6, Huerta Tipográfica): Alegreya para títulos (font-display) y Alegreya Sans para la
@@ -95,6 +96,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="min-h-full flex flex-col bg-ground text-ink font-sans w-full overflow-x-hidden transition-colors duration-200">
         <ThemeSync />
+        <PwaUpdates />
         {children}
       </body>
     </html>
