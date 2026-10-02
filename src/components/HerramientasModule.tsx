@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback, useSyncExtern
 import { createPortal } from "react-dom";
 import { toPng } from "html-to-image";
 import { getWeekData } from "./weekData";
+import { getWeek } from "@/lib/weeks";
 import { usePandaStore } from "@/store/usePandaStore";
 import {
   listenToKickSessions,
@@ -46,6 +47,7 @@ import { Z_CLASS } from "@/lib/layers";
 import { GrowingPlant } from "@/components/GrowingPlant";
 import { StoryBackdrop } from "@/components/StoryBackdrop";
 import { PANDA_MARK_SRC } from "@/components/PandaMark";
+import { TOOL_LABEL, weekTools, type ToolId } from "@/lib/tools";
 import { ListGroup, ListRow, RowButton, Section, SectionAction } from "@/components/ui/List";
 import {
   Activity, AlertTriangle, ArrowLeft, ArrowRight, Baby, CalendarClock, Camera, Check, CheckCircle, CheckCircle2,
@@ -734,8 +736,6 @@ const dialogClose = `grid h-11 w-11 shrink-0 place-items-center rounded-full bg-
 
 /** Herramientas que se abren como diálogo modal (tienen su propio título y botón de cerrar). */
 const MODAL_TOOLS = ["presupuesto", "story", "reproductor"];
-/** Herramientas anunciadas pero sin contenido todavía: en el índice son filas estáticas, no botones. */
-const COMING_SOON_TOOLS = ["lecturas"];
 
 /** Herramientas que HerramientasView puede abrir por `openRequest`. */
 const OPENABLE_TOOLS = [
@@ -1407,6 +1407,33 @@ export function DiarioView({ profile, showToast }: { profile: UserProfile; onClo
 
 const LOCAL_GOBAG_KEY = "pandajr_gobag";
 
+/** Lista de la maleta (también la cuenta «Juntos»: «12 de 17 listos»). */
+const GOBAG_ITEMS = {
+  mama: [
+    { id: 'm1', label: 'Documentos médicos y de identidad' },
+    { id: 'm2', label: 'Ropa cómoda y batas (abiertas adelante)' },
+    { id: 'm3', label: 'Pantuflas y calcetines gruesos' },
+    { id: 'm4', label: 'Artículos de aseo personal' },
+    { id: 'm5', label: 'Ropa interior desechable o grande' },
+    { id: 'm6', label: 'Ropa para salir del hospital' }
+  ],
+  bebe: [
+    { id: 'b1', label: 'Pañales de recién nacido' },
+    { id: 'b2', label: 'Toallitas húmedas' },
+    { id: 'b3', label: 'Bodys y pijamas (3-4 mudas)' },
+    { id: 'b4', label: 'Manta de algodón o lana' },
+    { id: 'b5', label: 'Gorrito y calcetines' },
+    { id: 'b6', label: 'Asiento de auto (instalado)' }
+  ],
+  papa: [
+    { id: 'p1', label: 'Algo de comer y botellas de agua' },
+    { id: 'p2', label: 'Cargador de celular (cable largo)' },
+    { id: 'p3', label: 'Ropa de cambio cómoda' },
+    { id: 'p4', label: 'Artículos de aseo personal' },
+    { id: 'p5', label: 'Cámara o espacio en celular' }
+  ]
+};
+
 export function MaletaView({ profile }: { profile: UserProfile; onClose?: () => void }) {
   const pid = profile.pregnancyId;
   const [localBag, setLocalBag] = useState<Record<string, boolean>>(() => {
@@ -1442,31 +1469,7 @@ export function MaletaView({ profile }: { profile: UserProfile; onClose?: () => 
     );
   };
 
-  const items = {
-    mama: [
-      { id: 'm1', label: 'Documentos médicos y de identidad' },
-      { id: 'm2', label: 'Ropa cómoda y batas (abiertas adelante)' },
-      { id: 'm3', label: 'Pantuflas y calcetines gruesos' },
-      { id: 'm4', label: 'Artículos de aseo personal' },
-      { id: 'm5', label: 'Ropa interior desechable o grande' },
-      { id: 'm6', label: 'Ropa para salir del hospital' }
-    ],
-    bebe: [
-      { id: 'b1', label: 'Pañales de recién nacido' },
-      { id: 'b2', label: 'Toallitas húmedas' },
-      { id: 'b3', label: 'Bodys y pijamas (3-4 mudas)' },
-      { id: 'b4', label: 'Manta de algodón o lana' },
-      { id: 'b5', label: 'Gorrito y calcetines' },
-      { id: 'b6', label: 'Asiento de auto (instalado)' }
-    ],
-    papa: [
-      { id: 'p1', label: 'Algo de comer y botellas de agua' },
-      { id: 'p2', label: 'Cargador de celular (cable largo)' },
-      { id: 'p3', label: 'Ropa de cambio cómoda' },
-      { id: 'p4', label: 'Artículos de aseo personal' },
-      { id: 'p5', label: 'Cámara o espacio en celular' }
-    ]
-  };
+  const items = GOBAG_ITEMS;
 
   const categoryTitle: Record<keyof typeof items, string> = { mama: "Para mamá", bebe: "Para el bebé", papa: "Para papá" };
 
@@ -1584,7 +1587,182 @@ export function LecturasView({ profile }: { profile?: UserProfile; onClose?: () 
 }
 
 
-export function HerramientasView({ showToast, profile, openRequest }: { showToast: ShowToast, profile?: UserProfile, openRequest?: { tool: string; nonce: number } }) {
+// =====================================================================================
+// «Juntos»: estado real de cada herramienta (solo lectura)
+// =====================================================================================
+// En el índice cada herramienta dice lo que la pareja ya tiene dentro («12 de 17 listos», «2 coincidencias ·
+// Mayela votó 6») en vez de una descripción fija. Solo LEE: con vínculo escucha los mismos documentos que
+// la herramienta (y solo mientras el índice está a la vista); sin vínculo lee la copia de este teléfono.
+// Nunca escribe ni hace traspasos: eso sigue siendo cosa de cada herramienta al abrirla.
+
+type StatusData = {
+  bag: Record<string, boolean> | null;
+  planMarked: number | null;
+  names: BabyName[] | LocalName[] | null;
+  budget: { total: number; count: number } | null;
+  cap: number | null;
+  journal: JournalEntry[] | null;
+  kick: KickSessionItem | null;
+  kicksLoaded: boolean;
+  contraction: ContractionItem | null;
+  contractionsLoaded: boolean;
+};
+
+const EMPTY_STATUS: StatusData = { bag: null, planMarked: null, names: null, budget: null, cap: null, journal: null, kick: null, kicksLoaded: false, contraction: null, contractionsLoaded: false };
+
+const GOBAG_TOTAL = Object.values(GOBAG_ITEMS).reduce((n, list) => n + list.length, 0);
+const GOBAG_IDS = new Set(Object.values(GOBAG_ITEMS).flat().map((i) => i.id));
+/** Opciones del plan de parto (PLAN_SECTIONS se define más abajo: se cuenta al usarlo). */
+const planOptionTotal = () => PLAN_SECTIONS.reduce((n, s) => n + s.options.length, 0);
+
+function bagDone(bag: Record<string, boolean> | null): number {
+  return bag ? Object.entries(bag).filter(([id, v]) => v === true && GOBAG_IDS.has(id)).length : 0;
+}
+
+function budgetSummary(items: BudgetItem[]) {
+  return { total: items.reduce((n, i) => n + (Number.isFinite(i.amount) ? i.amount : 0), 0), count: items.length };
+}
+
+function journalSummary(entries: JournalEntry[], myUid: string | null) {
+  let last: Date | null = null;
+  let lastBy: string | undefined;
+  for (const e of entries) {
+    const d = toDateSafe(e.createdAt as Parameters<typeof toDateSafe>[0]);
+    if (d && (!last || d > last)) {
+      last = d;
+      lastBy = e.authorUid && myUid && e.authorUid !== myUid ? e.authorName || undefined : undefined;
+    }
+  }
+  return { count: entries.length, last, lastBy };
+}
+
+/** Lo que dice cada fila de «Juntos», según los datos de la pareja (o de este teléfono). */
+function useToolStatuses(profile: UserProfile | undefined, active: boolean): Partial<Record<ToolId, string>> {
+  const me = useMe();
+  const pid = profile?.pregnancyId || undefined;
+  const isClient = useIsClient();
+  const now = useNow(60_000, active);
+  const [shared, setShared] = useState<{ pid: string; data: StatusData } | null>(null);
+
+  // Con vínculo: los mismos listeners que usa cada herramienta, solo mientras «Juntos» está a la vista.
+  useEffect(() => {
+    if (!pid || !active) return;
+    const patch = (p: Partial<StatusData>) =>
+      setShared((s) => ({ pid, data: { ...(s?.pid === pid ? s.data : EMPTY_STATUS), ...p } }));
+    const offs = [
+      listenToGoBag(pid, (data) => patch({ bag: isRecord(data) ? (data as Record<string, boolean>) : {} }), () => undefined),
+      listenToBirthPlan(pid, (data, meta) => { if (meta.fromCache && !meta.exists) return; patch({ planMarked: meta.exists ? Object.keys(parsePlanSections(asArray(data.sections))).length : 0 }); }, () => undefined),
+      listenToBudget(pid, (items, meta) => { if (meta.fromCache && !meta.exists) return; patch({ budget: budgetSummary(sanitizeBudget(asArray(items))) }); }, () => undefined),
+      listenToBudgetCap(pid, (cap, meta) => { if (meta.fromCache && !meta.exists) return; patch({ cap }); }, () => undefined),
+      listenToJournal(pid, (entries) => patch({ journal: sanitizeJournal(asArray(entries)) }), () => undefined),
+      listenToKickSessions(pid, (items, meta) => { if (meta.fromCache && !meta.exists) return; patch({ kick: sanitizeKickSessions(asArray(items))[0] ?? null, kicksLoaded: true }); }, () => undefined),
+      listenToContractions(pid, (items, meta) => { if (meta.fromCache && !meta.exists) return; patch({ contraction: sanitizeContractions(asArray(items))[0] ?? null, contractionsLoaded: true }); }, () => undefined),
+      listenToBabyNamesV2(pid, (names) => patch({ names }), () => undefined),
+    ];
+    return () => offs.forEach((off) => off());
+  }, [pid, active]);
+
+  // Sin vínculo: la copia de este teléfono (se relee al volver al índice; solo en el navegador).
+  let data: StatusData = EMPTY_STATUS;
+  if (pid) {
+    data = shared?.pid === pid ? shared.data : EMPTY_STATUS;
+  } else if (isClient && active) {
+    const savedBag = readStored<unknown>(LOCAL_GOBAG_KEY);
+    const savedPlan = readStored<unknown>(LOCAL_PLAN_KEY);
+    const localNames = loadLocalNames();
+    const kicks = sanitizeKickSessions(asArray(readStored(KICK_SESSIONS_KEY)));
+    const contractions = sanitizeContractions(asArray(readStored(CONTRACTIONS_KEY)));
+    const cap = finiteNum(readStored<unknown>(LOCAL_BUDGET_CAP_KEY));
+    data = {
+      bag: isRecord(savedBag) ? (savedBag as Record<string, boolean>) : {},
+      planMarked: isRecord(savedPlan) ? Object.keys(parsePlanSections(asArray(savedPlan.sections))).length : 0,
+      names: localNames,
+      budget: budgetSummary(sanitizeBudget(asArray(readStored(LOCAL_BUDGET_KEY)))),
+      cap,
+      journal: sanitizeJournal(asArray(readStored(LOCAL_JOURNAL_KEY))),
+      kick: kicks[0] ?? null,
+      kicksLoaded: true,
+      contraction: contractions[0] ?? null,
+      contractionsLoaded: true,
+    };
+  }
+
+  const week = knownWeek(profile);
+  const partnerName = me.partner.partnerName?.trim() || (me.role === "papa" ? "mamá" : "tu pareja");
+  const linkedPartner = !!pid && me.members.length >= 2;
+  const nowDate = new Date(now);
+  const rel = (d: Date | number) => formatRelative(d, nowDate);
+  const out: Partial<Record<ToolId, string>> = {
+    sos: "Cuándo ir a urgencias y a quién llamar",
+    reproductor: "Música para dormir y ruido suave",
+    story: typeof week === "number" && week >= 4 ? `La tarjeta de la semana ${week}` : "Tarjeta de la semana",
+  };
+  if (data.bag) {
+    const done = bagDone(data.bag);
+    out.maleta = done === 0 ? `Sin empezar · ${GOBAG_TOTAL} cosas en la lista` : done >= GOBAG_TOTAL ? "Lista completa" : `${done} de ${GOBAG_TOTAL} cosas listas`;
+  }
+  if (data.planMarked !== null) {
+    out.parto = data.planMarked === 0 ? "Sin empezar" : `${data.planMarked} de ${planOptionTotal()} preferencias elegidas`;
+  }
+  if (data.names) {
+    const myUid = me.myUid;
+    const partnerUid = me.members.find((m) => m.uid !== myUid)?.uid;
+    const list = data.names;
+    const shared = pid ? (list as BabyName[]) : [];
+    const n = {
+      total: list.length,
+      mine: pid ? (myUid ? shared.filter((x) => !!x.votes[myUid]).length : 0) : (list as LocalName[]).filter((x) => !!x.vote).length,
+      partner: pid && partnerUid ? shared.filter((x) => !!x.votes[partnerUid]).length : 0,
+      matches: pid ? shared.filter((x) => isMatch(x, me.members)).length : 0,
+    };
+    if (n.total === 0) out.nombres = "Sin nombres todavía: agreguen sus favoritos";
+    else if (linkedPartner) {
+      const m = `${n.matches} ${n.matches === 1 ? "coincidencia" : "coincidencias"}`;
+      out.nombres = n.partner > 0 ? `${m} · ${partnerName} votó ${n.partner}` : `${m} · ${partnerName} aún no vota`;
+    } else out.nombres = `${n.total} ${n.total === 1 ? "nombre" : "nombres"} · votaste ${n.mine}`;
+  }
+  if (data.budget) {
+    const b = data.budget;
+    out.presupuesto = data.cap
+      ? `${formatMoney(b.total)} de ${formatMoney(data.cap)}`
+      : b.count === 0
+        ? "Sin gastos anotados todavía"
+        : `${formatMoney(b.total)} anotados`;
+  }
+  if (data.journal) {
+    const j = journalSummary(data.journal, pid ? me.myUid : null);
+    out.diario = j.count === 0
+      ? "Sin recuerdos todavía"
+      : j.count === 1
+        ? `1 recuerdo${j.last ? ` · ${rel(j.last)}${j.lastBy ? `, de ${j.lastBy}` : ""}` : ""}`
+        : `${j.count} recuerdos${j.last ? ` · el último ${rel(j.last)}${j.lastBy ? `, de ${j.lastBy}` : ""}` : ""}`;
+  }
+  if (data.kicksLoaded) {
+    out.patadas = data.kick
+      ? `Última: ${data.kick.count} en ${data.kick.durationFormatted} · ${rel(data.kick.timestamp)}`
+      : typeof week === "number" && week < 28 ? "Para contar movimientos desde la semana 28" : "Sin conteos todavía";
+  }
+  if (data.contractionsLoaded) {
+    out.contracciones = data.contraction ? `Última ${rel(data.contraction.start)}` : "Sin contracciones registradas";
+  }
+  return out;
+}
+
+/** Verbo del botón de cada herramienta en «Esta semana». */
+const TOOL_ACTION: Record<ToolId, string> = {
+  sos: "Abrir",
+  contracciones: "Cronometrar",
+  patadas: "Contar",
+  maleta: "Revisar",
+  parto: "Abrir",
+  nombres: "Votar",
+  presupuesto: "Anotar",
+  diario: "Escribir",
+  reproductor: "Escuchar",
+  story: "Crear",
+};
+
+export function HerramientasView({ showToast, profile, openRequest, active = true }: { showToast: ShowToast, profile?: UserProfile, openRequest?: { tool: string; nonce: number }; /** La pestaña está a la vista (el índice solo escucha datos entonces). */ active?: boolean }) {
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const toolHeadingRef = useRef<HTMLHeadingElement>(null);
   const focusedRequestRef = useRef<number | null>(null);
@@ -1639,34 +1817,34 @@ export function HerramientasView({ showToast, profile, openRequest }: { showToas
     if (typeof window !== "undefined") window.scrollTo({ top: 0 });
   };
 
-  // `desc` acompaña al nombre en la barra de la herramienta; `hubDesc` (si existe) en el índice.
-  const tools: { id: string; label: string; desc: string; hubDesc?: string; icon: React.ReactNode; group: ToolGroup }[] = [
-    { id: "sos", label: "SOS Síntomas", desc: "Señales de alarma y a quién llamar", hubDesc: "Cuándo ir a urgencias y a quién llamar", icon: <HeartPulse size={20} strokeWidth={1.75} />, group: "urgente" },
-    { id: "contracciones", label: "Contracciones", desc: "Frecuencia y duración", icon: <Timer size={20} strokeWidth={1.75} />, group: "urgente" },
-    { id: "patadas", label: "Patadas", desc: "Conteo desde la semana 28", icon: <Baby size={20} strokeWidth={1.75} />, group: "urgente" },
-    { id: "maleta", label: "Maleta", desc: "Para el hospital", icon: <Package size={20} strokeWidth={1.75} />, group: "preparacion" },
-    { id: "parto", label: "Plan de parto", desc: "Preferencias para el hospital", icon: <ClipboardList size={20} strokeWidth={1.75} />, group: "preparacion" },
-    { id: "nombres", label: "Nombres", desc: "Voten por separado", icon: <Users size={20} strokeWidth={1.75} />, group: "pareja" },
-    { id: "presupuesto", label: "Presupuesto", desc: "Control de gastos", icon: <Wallet size={20} strokeWidth={1.75} />, group: "pareja" },
-    { id: "diario", label: "Diario", desc: "Recuerdos del embarazo", icon: <FileText size={20} strokeWidth={1.75} />, group: "pareja" },
-    { id: "reproductor", label: "Panda Audio", desc: "Música para relajarte", icon: <Music size={20} strokeWidth={1.75} />, group: "calma" },
-    { id: "story", label: "PandaStory", desc: "Tarjeta de la semana", icon: <Camera size={20} strokeWidth={1.75} />, group: "calma" },
+  // `desc` acompaña al nombre en la barra de la herramienta; en «Juntos» cada fila dice su estado real.
+  const tools: { id: ToolId; desc: string; icon: React.ReactNode; group: ToolGroup | "sos" }[] = [
+    { id: "sos", desc: "Señales de alarma y a quién llamar", icon: <HeartPulse size={20} strokeWidth={1.75} />, group: "sos" },
+    { id: "nombres", desc: "Voten por separado", icon: <Users size={20} strokeWidth={1.75} />, group: "pareja" },
+    { id: "presupuesto", desc: "Control de gastos", icon: <Wallet size={20} strokeWidth={1.75} />, group: "pareja" },
+    { id: "diario", desc: "Recuerdos del embarazo", icon: <FileText size={20} strokeWidth={1.75} />, group: "pareja" },
+    { id: "maleta", desc: "Para el hospital", icon: <Package size={20} strokeWidth={1.75} />, group: "preparacion" },
+    { id: "parto", desc: "Preferencias para el hospital", icon: <ClipboardList size={20} strokeWidth={1.75} />, group: "preparacion" },
+    { id: "patadas", desc: "Conteo desde la semana 28", icon: <Baby size={20} strokeWidth={1.75} />, group: "contadores" },
+    { id: "contracciones", desc: "Frecuencia y duración", icon: <Timer size={20} strokeWidth={1.75} />, group: "contadores" },
+    { id: "reproductor", desc: "Música para relajarte", icon: <Music size={20} strokeWidth={1.75} />, group: "calma" },
+    { id: "story", desc: "Tarjeta de la semana", icon: <Camera size={20} strokeWidth={1.75} />, group: "calma" },
   ];
+  const toolById = (id: ToolId) => tools.find((t) => t.id === id)!;
 
-  // Orden según la semana (la semana manda): desde la 36, Contracciones y Maleta encabezan su grupo;
-  // de la 28 a la 35, Patadas. SOS sigue siempre arriba (primera fila de Urgente, el primer grupo).
+  // «Esta semana» (la semana manda): lo que pide la misión de quien lee, y lo propio de la semana.
   const hubWeek = knownWeek(profile);
-  const priority: string[] = hubWeek === undefined ? [] : hubWeek >= 36 ? ["contracciones", "maleta"] : hubWeek >= 28 ? ["patadas"] : [];
-  const rank = (id: string, index: number) => (id === "sos" ? -1 : priority.includes(id) ? priority.indexOf(id) : 100 + index);
-  const toolsIn = (group: ToolGroup) =>
-    tools
-      .map((t, index) => ({ t, r: rank(t.id, index) }))
-      .filter(({ t }) => t.group === group)
-      .sort((a, b) => a.r - b.r)
-      .map(({ t }) => t);
+  const reader = profile?.role === "mama" ? "mama" : "papa";
+  const missionText = hubWeek !== undefined ? (reader === "mama" ? getWeek(hubWeek).forMom : getWeek(hubWeek).forDad) : null;
+  const featured = weekTools(hubWeek, missionText);
+  const statuses = useToolStatuses(profile, active && !activeTool);
+  const hubMe = useMe();
+  const hubPartner = hubMe.pid && hubMe.members.length >= 2 ? hubMe.partner.partnerName?.trim() : undefined;
+  const toolsIn = (group: ToolGroup) => tools.filter((t) => t.group === group && !featured.includes(t.id));
 
   if (activeTool) {
     const tool = tools.find(t => t.id === activeTool);
+    const toolLabel = tool ? TOOL_LABEL[tool.id] : "";
     return (
       <div className="flex h-full w-full flex-col bg-ground">
 
@@ -1676,13 +1854,13 @@ export function HerramientasView({ showToast, profile, openRequest }: { showToas
             <button
               type="button"
               onClick={closeTool}
-              aria-label="Volver a Herramientas"
+              aria-label="Volver a Juntos"
               className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface-sunken text-ink-muted transition-colors hover:bg-line hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink"
             >
               <ArrowLeft size={20} aria-hidden="true" />
             </button>
             <div className="min-w-0">
-              <h2 ref={toolHeadingRef} tabIndex={-1} className="font-display text-subtitle text-ink outline-none">{tool?.label}</h2>
+              <h2 ref={toolHeadingRef} tabIndex={-1} className="font-display text-subtitle text-ink outline-none">{toolLabel}</h2>
               <p className="text-micro font-medium text-ink-subtle">{tool?.desc}</p>
             </div>
           </div>
@@ -1705,60 +1883,97 @@ export function HerramientasView({ showToast, profile, openRequest }: { showToas
     );
   }
 
+  const sos = toolById("sos");
   return (
     <div className="flex h-full w-full flex-col bg-ground px-[var(--gutter)] pb-24 pt-6 lg:px-8 lg:pt-10">
-      <div className="mb-8">
+      <div className="mb-6">
         {/* h2: el h1 de la página es "PandaJr" (una vista, un encabezado principal). */}
-        <h2 className="font-display text-title text-ink">Herramientas</h2>
+        <h2 className="font-display text-title text-ink">Juntos</h2>
         <p className="mt-1 text-meta text-ink-muted">
-          {priority.length > 0 ? `Semana ${hubWeek}: primero lo que más vas a usar.` : "Todo lo que necesitas a un toque de distancia."}
+          {hubPartner ? `Lo que van armando tú y ${hubPartner} para el bebé.` : "Lo que van armando los dos para el bebé."}
         </p>
       </div>
 
-      {/* Índice en cuatro listas (sin rejilla de tarjetas iguales): cada herramienta es una fila. */}
-      <div className="flex flex-col gap-8">
-        {TOOL_GROUPS.map((group) => (
-          <Section key={group.id} as="h3" size="md" title={group.title}>
-            <ListGroup>
-              {toolsIn(group.id).map((tool) =>
-                COMING_SOON_TOOLS.includes(tool.id) ? (
-                  // Aún no existe: fila estática y atenuada, sin chevron (ningún control promete lo que no hace).
-                  <ListRow
-                    key={tool.id}
-                    leading={<span className="text-ink-subtle">{tool.icon}</span>}
-                    title={tool.label}
-                    meta={tool.hubDesc ?? tool.desc}
-                    weight="medium"
-                    titleClassName="text-ink-muted!"
-                  />
-                ) : (
+      {/* SOS siempre arriba, a un toque (además de «Síntomas» en la cabecera). */}
+      <ListGroup>
+        <ListRow
+          buttonRef={(el) => { tileRefs.current.sos = el; }}
+          onClick={() => openTool("sos")}
+          tone="danger"
+          leading={sos.icon}
+          title={TOOL_LABEL.sos}
+          meta={statuses.sos ?? sos.desc}
+          trailing="chevron"
+        />
+      </ListGroup>
+
+      <div className="mt-8 flex flex-col gap-8">
+        {/* Lo que toca esta semana: cada fila dice su estado y lleva su acción (el botón es la acción). */}
+        <Section
+          as="h3"
+          size="md"
+          title={hubWeek !== undefined ? `Esta semana · semana ${hubWeek}` : "Para empezar"}
+          description={hubWeek !== undefined ? "Lo que más les sirve ahora." : undefined}
+        >
+          <ListGroup>
+            {featured.map((id) => {
+              const t = toolById(id);
+              return (
+                <ListRow
+                  key={id}
+                  leading={t.icon}
+                  title={TOOL_LABEL[id]}
+                  meta={statuses[id] ?? t.desc}
+                  trailing={
+                    <RowButton
+                      ref={(el: HTMLButtonElement | null) => { tileRefs.current[id] = el; }}
+                      onClick={() => openTool(id)}
+                      aria-label={`${TOOL_ACTION[id]}: ${TOOL_LABEL[id]}`}
+                      aria-haspopup={MODAL_TOOLS.includes(id) ? "dialog" : undefined}
+                    >
+                      {TOOL_ACTION[id]}
+                    </RowButton>
+                  }
+                />
+              );
+            })}
+          </ListGroup>
+        </Section>
+
+        {/* El resto, por tema y sin repetir lo de «Esta semana»: cada fila dice lo que ya tienen dentro. */}
+        {TOOL_GROUPS.map((group) => {
+          const list = toolsIn(group.id);
+          if (list.length === 0) return null;
+          return (
+            <Section key={group.id} as="h3" size="md" title={group.title}>
+              <ListGroup>
+                {list.map((tool) => (
                   <ListRow
                     key={tool.id}
                     buttonRef={(el) => { tileRefs.current[tool.id] = el; }}
                     onClick={() => openTool(tool.id)}
                     aria-haspopup={MODAL_TOOLS.includes(tool.id) ? "dialog" : undefined}
-                    tone={tool.id === "sos" ? "danger" : "default"}
                     leading={tool.icon}
-                    title={tool.label}
-                    meta={tool.hubDesc ?? tool.desc}
+                    title={TOOL_LABEL[tool.id]}
+                    meta={statuses[tool.id] ?? tool.desc}
                     trailing="chevron"
                   />
-                )
-              )}
-            </ListGroup>
-          </Section>
-        ))}
+                ))}
+              </ListGroup>
+            </Section>
+          );
+        })}
       </div>
     </div>
   );
 }
 
-type ToolGroup = "urgente" | "preparacion" | "pareja" | "calma";
-/** Grupos del índice de Herramientas, en orden: lo urgente siempre arriba. */
+type ToolGroup = "pareja" | "preparacion" | "contadores" | "calma";
+/** Grupos de «Juntos» (SOS va aparte, arriba del todo; lo de «Esta semana» no se repite aquí). */
 const TOOL_GROUPS: { id: ToolGroup; title: string }[] = [
-  { id: "urgente", title: "Urgente" },
-  { id: "preparacion", title: "Preparación" },
   { id: "pareja", title: "En pareja" },
+  { id: "preparacion", title: "Preparación" },
+  { id: "contadores", title: "Contadores" },
   { id: "calma", title: "Calma" },
 ];
 

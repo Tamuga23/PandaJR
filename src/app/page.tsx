@@ -42,7 +42,7 @@ import { SyncBadge, useOnline, usePartner, type PartnerInfo } from "@/components
 import { AuthorChip } from "@/components/AuthorChip";
 import { formatDateShort, formatDayCountdown, formatRelative, repairMojibake } from "@/lib/format";
 import { isLegacySeedEvent, linkedFromLocalKey, localToSharedFlag } from "@/lib/seeds";
-import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, ChevronRight, ChevronLeft, HeartPulse, Baby, Info, ChevronDown, ChevronUp, Sparkles, Activity, Heart, X, Users, AlertTriangle, AlertCircle, FileText, Settings, Paperclip, Share2, RotateCcw, RotateCw, Stethoscope, PhoneCall, Check, Copy, Edit3, Sun, Moon, SunMoon, RefreshCw, UserMinus, Lightbulb, CalendarCheck, CalendarClock, CalendarX, Smartphone, Sprout, KeyRound } from "lucide-react";
+import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, ChevronRight, ChevronLeft, HeartPulse, Baby, Info, ChevronDown, ChevronUp, Sparkles, Heart, X, Users, AlertTriangle, AlertCircle, FileText, Settings, Paperclip, Share2, RotateCcw, RotateCw, Stethoscope, PhoneCall, Check, Copy, Edit3, Sun, Moon, SunMoon, RefreshCw, UserMinus, Lightbulb, CalendarCheck, CalendarClock, CalendarX, Smartphone, Sprout, KeyRound, HeartHandshake } from "lucide-react";
 import { CallActions, EmergencyCallLink } from "@/components/CallActions";
 import { CareTeamSheet } from "@/components/CareTeamForm";
 import { AccountSheet } from "@/components/AccountSheet";
@@ -2644,7 +2644,7 @@ export default function PandaJrApp() {
           />
         </div>
         <div className={activeTab === "herramientas" ? "block w-full h-full" : "hidden"}>
-          <HerramientasView showToast={showToast} profile={profile} openRequest={toolOpenRequest} />
+          <HerramientasView showToast={showToast} profile={profile} openRequest={toolOpenRequest} active={activeTab === "herramientas"} />
         </div>
         <div className={activeTab === "pandaia" ? "flex-1 flex flex-col w-full h-full overflow-hidden" : "hidden"}>
           <PandaIAView
@@ -2795,8 +2795,8 @@ export default function PandaJrApp() {
           onClick={() => setActiveTab("agenda")}
         />
         <NavItem
-          icon={<Activity size={22} strokeWidth={1.75} />}
-          label="Herramientas"
+          icon={<HeartHandshake size={22} strokeWidth={1.75} />}
+          label="Juntos"
           isActive={activeTab === "herramientas"}
           onClick={() => setActiveTab("herramientas")}
         />
@@ -3459,6 +3459,7 @@ function GuiaPapaView({
           needsReview={dueDateNeedsReview}
           explorer={explorer}
           partnerName={partnerName}
+          onOpenLink={(target) => (target === "agenda" ? onGoToAgenda() : onOpenTool(target))}
         />
         <BotanicalRule className={rhythm.rule} />
       </div>

@@ -32,6 +32,7 @@ import { formatDateLong } from "@/components/DatingPicker";
 import { GrowingPlant } from "@/components/GrowingPlant";
 import { ModalPortal } from "@/components/ModalPortal";
 import { ListGroup, ListRow, RowButton } from "@/components/ui/List";
+import { LINK_LABEL, missionLink, type GuiaLinkTarget, type ToolId } from "@/lib/tools";
 import { Z_CLASS } from "@/lib/layers";
 import { useModalDialog } from "@/lib/useModalDialog";
 import { useOpenDiscussRequest } from "@/lib/guiaDiscuss";
@@ -41,7 +42,8 @@ import { WEEK_MAX, WEEK_MIN, formatLength, formatWeight, getWeek, lengthMeasure 
 
 export type Role = "mama" | "papa";
 export type OwnerLabels = Record<TaskOwner, string>;
-export type GuiaTool = "contracciones" | "sos" | "maleta";
+/** Herramientas que la Guía puede abrir (todas las de «Juntos»). */
+export type GuiaTool = ToolId;
 
 const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta-ink";
 const FOCUS_INSET = "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-terracotta-ink";
@@ -304,20 +306,30 @@ function WeekHeart({
   reader,
   typical,
   partnerName,
+  onOpenLink,
 }: {
   week: number;
   reader: Role;
   /** Sin semana confirmada: es lo típico de esa semana, no necesariamente la suya. */
   typical: boolean;
   partnerName?: string;
+  /** La misión nombra una herramienta (o la Agenda): un botón lleva directo a ella. */
+  onOpenLink?: (target: GuiaLinkTarget) => void;
 }) {
   const info = getWeek(week);
   const isMama = reader === "mama";
+  const mission = isMama ? info.forMom : info.forDad;
+  const link = onOpenLink ? missionLink(mission) : null;
   return (
     <>
       <p className="mt-4 font-display text-subtitle font-normal text-pretty text-ink">{info.milestone}</p>
       <h3 className="mt-5 font-display text-body font-bold text-ink">{isMama ? "Tu misión" : "Tu misión de copiloto"}</h3>
-      <p className="mt-1 text-body text-pretty text-ink">{isMama ? info.forMom : info.forDad}</p>
+      <p className="mt-1 text-body text-pretty text-ink">{mission}</p>
+      {link && onOpenLink && (
+        <RowButton onClick={() => onOpenLink(link)} className="mt-3">
+          {LINK_LABEL[link]}
+        </RowButton>
+      )}
       {typical && (
         <p className="mt-2 text-micro font-medium text-ink-subtle">
           {isMama
@@ -336,6 +348,7 @@ export function WeekHeader({
   needsReview = false,
   explorer,
   partnerName,
+  onOpenLink,
 }: {
   ga: GestationalAgeState;
   reader: Role;
@@ -345,6 +358,8 @@ export function WeekHeader({
   /** Con él, el bloque lleva las flechas de explorar, el hito y la misión (la Guía siempre lo pasa). */
   explorer?: WeekExplorer;
   partnerName?: string;
+  /** Botón bajo la misión cuando nombra una herramienta o la Agenda. */
+  onOpenLink?: (target: GuiaLinkTarget) => void;
 }) {
   const isMama = reader === "mama";
   // La planta dice la semana real; sin confirmar, un brote neutro (no se inventa una semana).
@@ -387,7 +402,7 @@ export function WeekHeader({
               <WeekStepper explorer={explorer} className="-me-3" />
             </div>
             {live}
-            <WeekHeart week={explorer.display} reader={reader} typical partnerName={partnerName} />
+            <WeekHeart week={explorer.display} reader={reader} typical partnerName={partnerName} onOpenLink={onOpenLink} />
           </>
         )}
       </section>
@@ -471,7 +486,7 @@ export function WeekHeader({
               </button>
             </div>
           )}
-          <WeekHeart week={explorer.display} reader={reader} typical={false} partnerName={partnerName} />
+          <WeekHeart week={explorer.display} reader={reader} typical={false} partnerName={partnerName} onOpenLink={onOpenLink} />
         </>
       )}
     </section>

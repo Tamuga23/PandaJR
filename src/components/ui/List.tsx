@@ -340,6 +340,8 @@ export function RowButton({
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
   /** default: contorno neutro · primary: relleno terracota (acción principal) · danger: contorno, tinta terracota. */
   tone?: "default" | "primary" | "danger";
+  /** React 19: llega como prop y va al <button> (p. ej. para devolver el foco al cerrar lo que abrió). */
+  ref?: Ref<HTMLButtonElement>;
 }) {
   return (
     <button
