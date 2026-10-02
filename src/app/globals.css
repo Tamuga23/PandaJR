@@ -19,6 +19,12 @@
      y sólida arriba (con una hoja abierta, el velo translúcido no lo evita). Las hojas y diálogos no suben
      hasta ahí: altura máxima = pantalla − zona segura − 2.75rem (dos márgenes en los diálogos centrados). */
   --sheet-gap: calc(var(--safe-top) + 2.75rem);
+  /* App instalada en iPhone (iOS 26+): bajo la barra de estado el sistema dibuja SIEMPRE un desenfoque de
+     ~40pt que no se puede desactivar (en Safari sí se evita con la cabecera fija; en la app instalada no).
+     Ahí la fila de la cabecera baja ese tramo (--edge-gap) para que nada legible quede debajo. --header-h es
+     la altura total de la cabecera fija: la usan el espaciador, las cabeceras de herramienta y el scroll. */
+  --edge-gap: 0px;
+  --header-h: calc(3.4375rem + var(--safe-top) + var(--edge-gap));
   --sheet-max: calc(100dvh - var(--sheet-gap));
   --dialog-max: calc(100dvh - 2 * var(--sheet-gap));
   /* Margen lateral de la columna. ListGroup (tono plain) sangra hasta aquí y las filas lo usan de
@@ -81,6 +87,13 @@
   --surface-card: var(--surface-raised);
   --surface-muted: var(--surface-sunken);
   --border-subtle: var(--line);
+}
+
+/* App instalada (pantalla de inicio), en vertical: la cabecera deja libre el tramo que iOS desenfoca. */
+@media (display-mode: standalone) and (min-height: 501px) {
+  :root {
+    --edge-gap: 3rem;
+  }
 }
 
 .dark {
@@ -241,11 +254,11 @@ body {
      la cabecera fija (3.4375rem + zona segura). Con la cabecera de una herramienta debajo (4.3rem más),
      el margen superior crece. Con poca altura (zoom, horizontal) las cabeceras dejan de ser fijas. */
   html {
-    scroll-padding-top: calc(4rem + var(--safe-top));
+    scroll-padding-top: calc(var(--header-h) + 0.5625rem);
     scroll-padding-bottom: calc(5rem + var(--safe-bottom));
   }
   html:has([data-tool-header]) {
-    scroll-padding-top: calc(8.5rem + var(--safe-top));
+    scroll-padding-top: calc(var(--header-h) + 5.0625rem);
   }
   @media (max-height: 500px) {
     html,

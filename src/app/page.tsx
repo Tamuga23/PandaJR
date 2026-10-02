@@ -2524,11 +2524,12 @@ export default function PandaJRApp() {
     // Orden del DOM (y del foco) igual en todos los tamaños: cabecera → contenido → navegación.
     <div className={`relative mx-auto flex w-full max-w-md flex-col overflow-x-clip bg-ground text-ink sm:border-x sm:border-line lg:max-w-none lg:border-x-0 lg:ps-24 ${activeTab === "pandaia" ? "h-dvh overflow-hidden" : "min-h-dvh pb-[calc(3.5rem+var(--safe-bottom))] lg:pb-0"}`}>
       {/* Cabecera: marca en Alegreya, Síntomas, cita próxima y Ajustes. Fondo sólido (sin desenfoque); su
-          altura (3.4375rem + zona segura) la usan las cabeceras de herramienta y el scroll-padding. */}
-      {/* fixed (no sticky): en la app instalada, iOS 26 muestrea justo bajo la barra de estado y solo omite su
-          desenfoque «Liquid Glass» si ahí hay una caja fija y de fondo sólido; un sticky en reposo (página
-          arriba del todo) no cuenta. El espaciador de abajo ocupa su alto en el flujo. */}
-      <header className={`fixed inset-x-0 top-0 mx-auto max-w-md [@media(max-height:500px)]:static [@media(max-height:500px)]:max-w-none ${Z_CLASS.header} w-full shrink-0 border-b border-line bg-ground px-3 pt-[var(--safe-top)] pb-2.5 max-[300px]:px-2 sm:border-x sm:px-4 lg:left-24 lg:mx-0 lg:w-auto lg:max-w-none lg:border-x-0 lg:px-0`}>
+          altura total es --header-h (globals.css), que usan el espaciador, las cabeceras de herramienta y el
+          scroll-padding.
+          iOS 26+ dibuja un desenfoque «Liquid Glass» bajo la barra de estado. En Safari lo omite si arriba hay
+          una caja fija de fondo sólido (por eso es fixed y no sticky: un sticky en reposo no cuenta). En la
+          app instalada lo dibuja siempre: ahí la fila baja --edge-gap (3rem) para quedar fuera de él. */}
+      <header className={`fixed inset-x-0 top-0 mx-auto max-w-md [@media(max-height:500px)]:static [@media(max-height:500px)]:max-w-none ${Z_CLASS.header} w-full shrink-0 border-b border-line bg-ground px-3 pt-[calc(var(--safe-top)+var(--edge-gap))] pb-2.5 max-[300px]:px-2 sm:border-x sm:px-4 lg:left-24 lg:mx-0 lg:w-auto lg:max-w-none lg:border-x-0 lg:px-0`}>
         {/* Escritorio: el padding va dentro de la columna, así la marca se alinea con el contenido. */}
         <div className={`mx-auto flex w-full items-center justify-between gap-2 lg:px-8 ${columnWidth}`}>
           <h1 className="min-w-0">
@@ -2574,8 +2575,8 @@ export default function PandaJRApp() {
         aria-hidden="true"
         className={`pointer-events-none fixed inset-x-0 top-0 hidden h-[max(12px,env(safe-area-inset-top))] bg-ground [@media(display-mode:standalone)]:block [@media(display-mode:standalone)_and_(max-height:500px)]:hidden ${Z_CLASS.header}`}
       />
-      {/* Alto de la cabecera fija (3.4375rem + zona segura, el mismo que usan las cabeceras de herramienta). */}
-      <div aria-hidden="true" className="h-[calc(3.4375rem+var(--safe-top))] w-full shrink-0 [@media(max-height:500px)]:hidden" />
+      {/* Alto de la cabecera fija (--header-h: 3.4375rem + zona segura + el tramo que iOS desenfoca en la app instalada). */}
+      <div aria-hidden="true" className="h-[var(--header-h)] w-full shrink-0 [@media(max-height:500px)]:hidden" />
 
       {/* Main Content Area */}
       {/* Sin overflow en las pestañas con scroll de documento (el sticky de las herramientas depende de ello).
@@ -2780,7 +2781,7 @@ export default function PandaJRApp() {
         className={`fixed inset-x-0 bottom-0 mx-auto grid max-w-md grid-cols-4 items-stretch gap-1 border-t border-line bg-ground px-2 pt-1.5 pb-[var(--safe-bottom)] max-[300px]:gap-0 max-[300px]:px-1 ${Z_CLASS.nav} lg:inset-y-0 lg:right-auto lg:mx-0 lg:flex lg:w-24 lg:max-w-none lg:flex-col lg:justify-start lg:gap-2 lg:border-t-0 lg:border-e lg:px-2 lg:pt-[calc(var(--safe-top)+4.5rem)] lg:pb-6`}
       >
         {/* Riel: el filete de la cabecera continúa hasta el borde de la ventana. */}
-        <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 hidden h-[calc(3.4375rem+var(--safe-top))] border-b border-line lg:block" />
+        <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 hidden h-[var(--header-h)] border-b border-line lg:block" />
         <NavItem
           icon={<Compass size={22} strokeWidth={1.75} />}
           label="Guía"

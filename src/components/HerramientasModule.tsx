@@ -1672,7 +1672,7 @@ export function HerramientasView({ showToast, profile, openRequest }: { showToas
 
         {/* Cabecera genérica (los diálogos Presupuesto, PandaStory y Panda Audio traen la suya). Fondo sólido, sin desenfoque. */}
         {!MODAL_TOOLS.includes(activeTool) && (
-          <div data-tool-header className="sticky top-[calc(3.4375rem+var(--safe-top))] z-20 flex items-center gap-3 border-b border-line bg-ground px-4 py-3 lg:px-8 [@media(max-height:500px)]:static">
+          <div data-tool-header className="sticky top-[var(--header-h)] z-20 flex items-center gap-3 border-b border-line bg-ground px-4 py-3 lg:px-8 [@media(max-height:500px)]:static">
             <button
               type="button"
               onClick={closeTool}
