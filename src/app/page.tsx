@@ -2517,7 +2517,10 @@ export default function PandaJRApp() {
     <div className={`relative mx-auto flex w-full max-w-md flex-col overflow-x-clip bg-ground text-ink sm:border-x sm:border-line lg:max-w-none lg:border-x-0 lg:ps-24 ${activeTab === "pandaia" ? "h-dvh overflow-hidden" : "min-h-dvh pb-[calc(3.5rem+var(--safe-bottom))] lg:pb-0"}`}>
       {/* Cabecera: marca en Alegreya, Síntomas, cita próxima y Ajustes. Fondo sólido (sin desenfoque); su
           altura (3.4375rem + zona segura) la usan las cabeceras de herramienta y el scroll-padding. */}
-      <header className={`sticky top-0 [@media(max-height:500px)]:static ${Z_CLASS.header} w-full shrink-0 border-b border-line bg-ground px-3 pt-[var(--safe-top)] pb-2.5 max-[300px]:px-2 sm:px-4 lg:px-0`}>
+      {/* fixed (no sticky): en la app instalada, iOS 26 muestrea justo bajo la barra de estado y solo omite su
+          desenfoque «Liquid Glass» si ahí hay una caja fija y de fondo sólido; un sticky en reposo (página
+          arriba del todo) no cuenta. El espaciador de abajo ocupa su alto en el flujo. */}
+      <header className={`fixed inset-x-0 top-0 mx-auto max-w-md [@media(max-height:500px)]:static [@media(max-height:500px)]:max-w-none ${Z_CLASS.header} w-full shrink-0 border-b border-line bg-ground px-3 pt-[var(--safe-top)] pb-2.5 max-[300px]:px-2 sm:border-x sm:px-4 lg:left-24 lg:mx-0 lg:w-auto lg:max-w-none lg:border-x-0 lg:px-0`}>
         {/* Escritorio: el padding va dentro de la columna, así la marca se alinea con el contenido. */}
         <div className={`mx-auto flex w-full items-center justify-between gap-2 lg:px-8 ${columnWidth}`}>
           <h1 className="min-w-0">
@@ -2556,15 +2559,8 @@ export default function PandaJRApp() {
           </div>
         </div>
       </header>
-      {/* iOS 26 (app instalada, barra de estado translúcida): sin una caja fija y sólida en el borde de arriba, el
-          sistema dibuja un desenfoque «Liquid Glass» que baja ~40pt bajo la barra y lava la cabecera. WebKit lo
-          omite y usa el color de esa caja si encuentra un elemento fixed (no basta un sticky en reposo), de casi
-          todo el ancho y con fondo sólido en los primeros píxeles. Esta franja cubre solo la zona segura, con el
-          fondo de la cabecera (no se ve) y por encima de ella para ser lo primero que encuentra. */}
-      <div
-        aria-hidden="true"
-        className={`fixed inset-x-0 top-0 mx-auto h-[var(--safe-top)] w-full max-w-md bg-ground lg:max-w-none [@media(max-height:500px)]:hidden ${Z_CLASS.header}`}
-      />
+      {/* Alto de la cabecera fija (3.4375rem + zona segura, el mismo que usan las cabeceras de herramienta). */}
+      <div aria-hidden="true" className="h-[calc(3.4375rem+var(--safe-top))] w-full shrink-0 [@media(max-height:500px)]:hidden" />
 
       {/* Main Content Area */}
       {/* Sin overflow en las pestañas con scroll de documento (el sticky de las herramientas depende de ello).

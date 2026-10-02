@@ -4972,6 +4972,42 @@ const STORY_STYLES = [
   },
 ] as const;
 
+/**
+ * Foto elegida → cuadrado centrado (la tarjeta la muestra en un círculo), JPEG de ≤1080 px, como data: URL.
+ * Respeta la orientación EXIF. Al ser ya cuadrada no depende de object-fit, que WebKit dibuja mal al exportar.
+ */
+async function photoToDataUrl(file: File, maxEdge = 1080): Promise<string> {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error("photo-load"));
+      img.src = url;
+    });
+    const side = Math.min(img.naturalWidth, img.naturalHeight);
+    if (!side) throw new Error("photo-empty");
+    const out = Math.max(1, Math.min(maxEdge, side));
+    const canvas = document.createElement("canvas");
+    canvas.width = out;
+    canvas.height = out;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("photo-canvas");
+    ctx.drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, out, out);
+    return canvas.toDataURL("image/jpeg", 0.88);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+/** Safari y todos los navegadores de iPhone/iPad (WebKit). */
+function isWebKitBrowser(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  const iOS = /iP(hone|ad|od)/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  return iOS || (/Safari\//.test(ua) && !/Chrome\/|Chromium\/|Android/.test(ua));
+}
+
 export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfile; onClose: () => void }) {
   const week = knownWeek(profile);
   const earlyWeek = !!profile && !profile.weekUnknown && typeof profile.week === "number" && profile.week >= 1 && profile.week < 4;
@@ -4984,7 +5020,6 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
   const [error, setError] = useState<string | null>(null);
   const storyRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const objectUrlRef = useRef<string | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const createRef = useRef<HTMLButtonElement>(null);
   const shareRef = useRef<HTMLButtonElement>(null);
@@ -4993,12 +5028,6 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
 
   // Diálogo modal: Escape, foco inicial en "Cerrar", trampa de Tab, fondo inerte y scroll bloqueado.
   const { dialogProps } = useModalDialog({ open: true, onClose, initialFocusRef: closeRef, labelledBy: "panda-story-titulo" });
-
-  useEffect(() => {
-    return () => {
-      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
-    };
-  }, []);
 
   useEffect(() => {
     const want = focusAfterRef.current;
@@ -5010,14 +5039,20 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
   const weekData = typeof week === "number" ? getWeekData(week, profile?.comparisonTheme ?? "frutas") : null;
   const size = weekData ? splitSize(weekData.size) : null;
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // La foto se guarda reducida y como data: (no blob:). En Safari una URL blob: no se puede volver a
+  // descargar al exportar (y menos con una cola ?t=…), y una foto de 12 MP dentro de la imagen exportada
+  // la hace fallar: «No se pudo crear la imagen» solo en iPhone.
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = ""; // permite elegir otra vez la misma foto
     if (!file) return;
-    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
-    const url = URL.createObjectURL(file);
-    objectUrlRef.current = url;
-    setCustomImage(url);
-    setImageUrl(null);
+    setError(null);
+    try {
+      setCustomImage(await photoToDataUrl(file));
+      setImageUrl(null);
+    } catch {
+      setError("No pudimos usar esa foto. Prueba con otra.");
+    }
   };
 
   const generateStory = async () => {
@@ -5027,7 +5062,11 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
     try {
       // Al menos 780px de ancho (3 × 260), aunque con zoom la vista previa se estreche.
       const pixelRatio = Math.max(3, 780 / Math.max(1, storyRef.current.offsetWidth));
-      const dataUrl = await toPng(storyRef.current, { pixelRatio, cacheBust: true });
+      // Sin cacheBust: todo es del mismo origen (o data:), y la cola ?t=… rompe las URL en Safari.
+      const options = { pixelRatio, cacheBust: false };
+      // WebKit (iPhone y Safari) a veces dibuja las imágenes en blanco en la primera pasada: se calienta una vez.
+      if (isWebKitBrowser()) await toPng(storyRef.current, options).catch(() => undefined);
+      const dataUrl = await toPng(storyRef.current, options);
       focusAfterRef.current = "share";
       setImageUrl(dataUrl);
     } catch (err) {
@@ -5133,8 +5172,14 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
 
                 <div className="flex min-h-0 w-full flex-1 items-center justify-center py-[3cqw]">
                   {customImage ? (
-                    // eslint-disable-next-line @next/next/no-img-element -- imagen local del usuario (blob:) para exportar
-                    <img src={customImage} alt="Foto elegida para la tarjeta" className="aspect-square w-[52cqw] rounded-full border-[1.2cqw] border-[var(--ground)] object-cover ring-1 ring-[var(--story-rule)]" />
+                    // Círculo = contenedores redondos con la foto (ya cuadrada) dentro. Sin object-fit ni box-shadow:
+                    // WebKit los pinta mal al exportar (una media luna junto al círculo). El filete es un relleno de 1px.
+                    <span className="block rounded-full bg-[var(--story-rule)] p-px">
+                      <span className="block aspect-square w-[52cqw] overflow-hidden rounded-full border-[1.2cqw] border-[var(--ground)]">
+                        {/* eslint-disable-next-line @next/next/no-img-element -- foto local del usuario (data:) para exportar */}
+                        <img src={customImage} alt="Foto elegida para la tarjeta" className="block h-full w-full" />
+                      </span>
+                    </span>
                   ) : (
                     <GrowingPlant week={week} size={192} animate={false} title="" className="h-[74cqw] w-[74cqw]" />
                   )}
