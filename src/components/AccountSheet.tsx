@@ -28,9 +28,9 @@ import {
 } from "@/lib/firebase/pairing";
 
 /**
- * Cuenta opcional (Google o enlace por correo) para usar PandaJR en varios dispositivos con el mismo acceso.
+ * Cuenta opcional (Google o enlace por correo) para usar PandaJr en varios dispositivos con el mismo acceso.
  * - manage: desde Ajustes. Anónimo → guardar el acceso; con cuenta → ver la cuenta y cerrar sesión aquí.
- * - signin: desde la bienvenida («Ya uso PandaJR en otro dispositivo») → entrar y restaurar el perfil.
+ * - signin: desde la bienvenida («Ya uso PandaJr en otro dispositivo») → entrar y restaurar el perfil.
  * - return: la vuelta de un enlace por correo (se completa una sola vez).
  * Nada se escribe hasta que la persona actúa (el clic o abrir el enlace que pidió).
  */
@@ -216,7 +216,7 @@ export function AccountSheet({
   };
 
   // --- Textos por vista ---
-  let title = "Usar PandaJR en otro dispositivo";
+  let title = "Usar PandaJr en otro dispositivo";
   let description: React.ReactNode =
     "Guarda tu acceso con una cuenta. Así puedes entrar desde tu celular y tu computadora, y no pierdes el acceso si borras los datos del navegador.";
   if (mode === "signin") {
@@ -239,11 +239,11 @@ export function AccountSheet({
       break;
     case "linked":
       title = "Tu acceso quedó guardado";
-      description = `${account.email ? `Cuenta: ${account.email}. ` : ""}En tu otro dispositivo, abre PandaJR y elige «Ya uso PandaJR en otro dispositivo».`;
+      description = `${account.email ? `Cuenta: ${account.email}. ` : ""}En tu otro dispositivo, abre PandaJr y elige «Ya uso PandaJr en otro dispositivo».`;
       break;
     case "account":
       title = "Tu acceso";
-      description = `Guardado con ${account.methods.map((m) => METHOD_LABEL[m]).join(" y ") || "una cuenta"}${account.email ? `: ${account.email}` : ""}. En tu otro dispositivo, abre PandaJR, elige «Ya uso PandaJR en otro dispositivo» y entra con esta misma cuenta.`;
+      description = `Guardado con ${account.methods.map((m) => METHOD_LABEL[m]).join(" y ") || "una cuenta"}${account.email ? `: ${account.email}` : ""}. En tu otro dispositivo, abre PandaJr, elige «Ya uso PandaJr en otro dispositivo» y entra con esta misma cuenta.`;
       break;
     case "signOut":
       title = "¿Cerrar sesión en este dispositivo?";

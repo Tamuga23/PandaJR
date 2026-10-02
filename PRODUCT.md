@@ -23,7 +23,7 @@ Acompañar a la pareja durante el embarazo con una sola verdad compartida: qué 
 
 ## Positioning
 
-A diferencia de las apps centradas solo en la madre, PandaJR está hecha para la pareja, con el papá como copiloto:
+A diferencia de las apps centradas solo en la madre, PandaJr está hecha para la pareja, con el papá como copiloto:
 - Misiones semanales por rol.
 - Estado compartido en tiempo real entre dos teléfonos vinculados.
 - Guía para el acompañante durante el trabajo de parto.
@@ -92,9 +92,9 @@ Todo esto se apoya en contenido clínico alineado con guías públicas (ACOG, se
 
 ## Brand Commitments
 
-- Nombre **PandaJR**, con la mascota panda (mamá con su bebé). La mascota es el logo final entregado el 2026-09-30 (sin fondo), usado tal cual; el wordmark es texto vivo en la paleta:
+- Nombre **PandaJr**, con la mascota panda (mamá con su bebé). La mascota es el logo final entregado el 2026-09-30 (sin fondo), usado tal cual; el wordmark es texto vivo en la paleta:
   - Mascota: `PandaMark` (`src/components/PandaMark.tsx`), el logo final entregado el 2026-09-30 (`scripts/brand/panda-mark-source.png`, sin fondo) en `public/brand/panda-mark-{128,384}.png`.
-  - Wordmark: `src/components/Wordmark.tsx`, «PandaJR» en Alegreya.
+  - Wordmark: `src/components/Wordmark.tsx`, «PandaJr» en Alegreya.
   - Iconos: `src/app/icon.png`, `src/app/apple-icon.png`, `public/icons/icon-{192,512}.png` e `icon-maskable-{192,512}.png`.
   - Imágenes para compartir: `src/app/opengraph-image.png` y `twitter-image.png` (1200×630).
   - Procedencia: todo se genera con `scripts/brand/render-brand.mjs` a partir de `scripts/brand/panda-mark-source.png`. El detalle está en DESIGN.md.

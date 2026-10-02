@@ -1708,7 +1708,7 @@ export function HerramientasView({ showToast, profile, openRequest }: { showToas
   return (
     <div className="flex h-full w-full flex-col bg-ground px-[var(--gutter)] pb-24 pt-6 lg:px-8 lg:pt-10">
       <div className="mb-8">
-        {/* h2: el h1 de la página es "PandaJR" (una vista, un encabezado principal). */}
+        {/* h2: el h1 de la página es "PandaJr" (una vista, un encabezado principal). */}
         <h2 className="font-display text-title text-ink">Herramientas</h2>
         <p className="mt-1 text-meta text-ink-muted">
           {priority.length > 0 ? `Semana ${hubWeek}: primero lo que más vas a usar.` : "Todo lo que necesitas a un toque de distancia."}
@@ -3121,7 +3121,7 @@ type NameCard = {
 
 function sourceLabel(card: NameCard): string {
   if (card.source === "ai") return "Sugerencia de PandaIA";
-  if (card.source === "suggestion") return "De la lista de ideas de PandaJR";
+  if (card.source === "suggestion") return "De la lista de ideas de PandaJr";
   if (card.addedByName) return `Lo agregó ${card.addedByName}`;
   return "Agregado a mano";
 }
@@ -4006,7 +4006,7 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile; showT
       if (chosen.length) lines.push("", `*${PLAN_PRINT_GROUP[pref]}*`, ...chosen);
     }
     if (patient.notes.trim()) lines.push("", `Observaciones: ${patient.notes.trim()}`);
-    lines.push("", "Hecho con PandaJR");
+    lines.push("", "Hecho con PandaJr");
     const text = lines.join("\n");
     try {
       if (navigator.share) {
@@ -4049,7 +4049,7 @@ export function PlanParto({ profile, showToast }: { profile?: UserProfile; showT
           <p className="text-xs text-stone-700 mt-0.5">Preferencias para la atención del parto y del recién nacido</p>
         </div>
         <div className="text-right text-xs text-stone-700 shrink-0">
-          <p>Hecho con PandaJR</p>
+          <p>Hecho con PandaJr</p>
           <p>Fecha: {new Date(now).toLocaleDateString("es")}</p>
         </div>
       </div>
@@ -5161,7 +5161,7 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
                   {/* eslint-disable-next-line @next/next/no-img-element -- logo de public/: html-to-image lo incrusta en el PNG */}
                   <img src={PANDA_MARK_SRC} alt="" aria-hidden="true" draggable={false} className="h-[11cqw] w-auto [filter:var(--story-mark-filter,none)]" />
                   <p className="font-display text-[6.4cqw] font-extrabold leading-none tracking-[-0.01em] text-ink">
-                    Panda<span className="text-[var(--story-accent-2)]">JR</span>
+                    Panda<span className="text-[var(--story-accent-2)]">Jr</span>
                   </p>
                 </div>
 

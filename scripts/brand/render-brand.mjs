@@ -1,4 +1,4 @@
-// Marca de PandaJR: del logo maestro a los recursos de la app (procedencia: DESIGN.md › Components › Marca (§4.2)).
+// Marca de PandaJr: del logo maestro a los recursos de la app (procedencia: DESIGN.md › Components › Marca (§4.2)).
 //
 //   node scripts/brand/render-brand.mjs
 //     → public/brand/panda-mark-{128,384}.png   (la mascota recortada, fondo transparente, para PandaMark y PandaStory)

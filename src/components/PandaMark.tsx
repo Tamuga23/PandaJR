@@ -8,7 +8,7 @@
  * En oscuro, un halo de 1px en tinta clara separa el azul carbón de las orejas y los brazos de la obsidiana.
  *
  * Caja cuadrada de `size` px (o la que fije className) con la mascota centrada (object-contain), igual que
- * el vector anterior. Decorativo por defecto (alt="" y aria-hidden): quien lo usa ya dice "PandaJR" en
+ * el vector anterior. Decorativo por defecto (alt="" y aria-hidden): quien lo usa ya dice "PandaJr" en
  * texto. Con `title`, es una imagen con ese nombre.
  */
 export const PANDA_MARK_SRC = "/brand/panda-mark-384.png";

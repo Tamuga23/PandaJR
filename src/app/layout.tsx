@@ -39,28 +39,28 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://panda-jr.vercel.app"),
-  title: "PandaJR: el embarazo en pareja, semana a semana",
+  title: "PandaJr: el embarazo en pareja, semana a semana",
   description: "Guía semanal del embarazo para la mamá y su pareja: tareas compartidas, citas con el obstetra, contador de contracciones y a quién llamar si algo es urgente.",
-  applicationName: "PandaJR",
+  applicationName: "PandaJr",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "PandaJR",
+    title: "PandaJr",
   },
-  authors: [{ name: "PandaJR" }],
+  authors: [{ name: "PandaJr" }],
   keywords: ["embarazo", "embarazo en pareja", "padres primerizos", "semanas de embarazo", "contracciones", "obstetra"],
   openGraph: {
-    title: "PandaJR: el embarazo en pareja, semana a semana",
+    title: "PandaJr: el embarazo en pareja, semana a semana",
     description: "Guía semanal del embarazo para la mamá y su pareja: tareas compartidas, citas con el obstetra, contador de contracciones y a quién llamar si algo es urgente.",
     url: "https://panda-jr.vercel.app",
-    siteName: "PandaJR",
+    siteName: "PandaJr",
     locale: "es_LA",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "PandaJR: el embarazo en pareja, semana a semana",
+    title: "PandaJr: el embarazo en pareja, semana a semana",
     description: "Guía semanal del embarazo para la mamá y su pareja: tareas compartidas, citas con el obstetra, contador de contracciones y a quién llamar si algo es urgente.",
   },
   // Iconos e imágenes para compartir: convenciones de archivo de app/ (tienen prioridad sobre este objeto):

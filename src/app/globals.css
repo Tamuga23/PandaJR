@@ -3,7 +3,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ==========================================================================
-   PandaJR — sistema visual ("Warm Botanical Sanctuary", ampliado en la fase 6)
+   PandaJr — sistema visual ("Warm Botanical Sanctuary", ampliado en la fase 6)
    Un solo valor canónico por token (DESIGN.md §1.1 repite esta tabla). Estrategia de tema:
    valores crudos en :root (claro) y .dark (obsidiana violeta), mapeados a utilidades en @theme inline.
    Contrastes medidos (WCAG 2.1): texto ≥4.5:1 sobre ground/surface/surface-raised/surface-sunken y

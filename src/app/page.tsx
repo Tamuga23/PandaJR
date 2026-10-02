@@ -1309,7 +1309,7 @@ function ProfileModal({
 
           {/* Versión publicada (commit de Vercel): para saber si la app instalada ya tomó la última. */}
           <p className="text-center text-micro text-ink-subtle">
-            PandaJR · versión <span className="font-mono tabular-nums">{APP_VERSION}</span>
+            PandaJr · versión <span className="font-mono tabular-nums">{APP_VERSION}</span>
           </p>
         </div>
       </div>
@@ -1332,7 +1332,7 @@ function ProfileModal({
             usePandaStore.getState().setProfile({ name: "", pregnancyId: "", inviteCode: "", week: 14, weekUnknown: undefined, dueDate: undefined, dueDateSource: undefined });
             usePandaStore.setState({ careTeam: {} });
             onClose();
-            showToast("Cerraste sesión en este dispositivo. Para volver, elige «Ya uso PandaJR en otro dispositivo».");
+            showToast("Cerraste sesión en este dispositivo. Para volver, elige «Ya uso PandaJr en otro dispositivo».");
           }}
         />
       )}
@@ -1384,7 +1384,7 @@ const CONNECT_FAILED = "No pudimos conectar este teléfono. Revisa tu internet e
 
 function inviteShareText(code: string): string {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  return `Hola, te invito a acompañarme en PandaJR${origin ? ` (${origin})` : ""}. Abre la app, elige «Soy el copiloto (pareja)» y escribe este código: ${code}. Vale por 14 días y solo sirve para una persona.`;
+  return `Hola, te invito a acompañarme en PandaJr${origin ? ` (${origin})` : ""}. Abre la app, elige «Soy el copiloto (pareja)» y escribe este código: ${code}. Vale por 14 días y solo sirve para una persona.`;
 }
 
 type OnbStep = "role" | "name" | "date" | "share" | "code" | "confirm";
@@ -1482,7 +1482,7 @@ function OnboardingModal({
   initial,
 }: {
   onComplete: (profile: UserProfile) => void;
-  /** «Ya uso PandaJR en otro dispositivo»: entrar con la cuenta guardada. */
+  /** «Ya uso PandaJr en otro dispositivo»: entrar con la cuenta guardada. */
   onUseAccount?: () => void;
   /** "Explorar como invitado" con el rol elegido (o ninguno). */
   onSkip?: (role: "mama" | "papa" | null) => void;
@@ -1703,7 +1703,7 @@ function OnboardingModal({
           <div className="text-center">
             {/* El panda trazado, sobre el alabastro (sin azulejo). */}
             <PandaMark size={88} className="mx-auto mb-5" />
-            <h2 id="onb-title" ref={headingRef} tabIndex={-1} className={headingClass}>Te damos la bienvenida a PandaJR</h2>
+            <h2 id="onb-title" ref={headingRef} tabIndex={-1} className={headingClass}>Te damos la bienvenida a PandaJr</h2>
             <p className={subClass}>Cuéntanos quién eres para acompañarte mejor.</p>
 
             <div className="-mx-[var(--gutter)] mt-6 divide-y divide-line border-y border-line">
@@ -1740,7 +1740,7 @@ function OnboardingModal({
                   className={`inline-flex w-full min-h-11 items-center justify-center gap-2 rounded-full text-meta font-bold text-ink transition-colors hover:bg-surface-hover ${FOCUS_RING}`}
                 >
                   <KeyRound size={16} strokeWidth={1.75} aria-hidden="true" />
-                  Ya uso PandaJR en otro dispositivo
+                  Ya uso PandaJr en otro dispositivo
                 </button>
               </div>
             )}
@@ -1750,7 +1750,7 @@ function OnboardingModal({
         {step === "name" && role && (
           <div>
             <h2 id="onb-title" ref={headingRef} tabIndex={-1} className={headingClass}>¿Cómo te llamas?</h2>
-            <p className={subClass}>Así te verá tu pareja en PandaJR.</p>
+            <p className={subClass}>Así te verá tu pareja en PandaJr.</p>
             {errorBox}
             <div className="mt-5">
               <label htmlFor={role === "mama" ? "onb-mama-name" : "onb-papa-name"} className={fieldLabel}>Tu nombre</label>
@@ -1816,7 +1816,7 @@ function OnboardingModal({
               Compartir por WhatsApp
             </button>
             <button type="button" onClick={finishMama} className={`${ONB_CTA_NEUTRAL} mt-3`}>
-              Entrar a PandaJR
+              Entrar a PandaJr
             </button>
           </div>
         )}
@@ -1824,7 +1824,7 @@ function OnboardingModal({
         {step === "code" && role === "papa" && (
           <div>
             <h2 id="onb-title" ref={headingRef} tabIndex={-1} className={headingClass}>El código de tu pareja</h2>
-            <p className={subClass}>Pídele el código que aparece en su PandaJR, en Ajustes.</p>
+            <p className={subClass}>Pídele el código que aparece en su PandaJr, en Ajustes.</p>
             {errorBox}
             <div className="mt-5">
               <label htmlFor="onb-papa-code" className={fieldLabel}>Código de invitación</label>
@@ -1960,7 +1960,7 @@ function HeaderBell({ events, onOpen }: { events: AgendaEvent[]; onOpen: (ev: Ag
   );
 }
 
-export default function PandaJRApp() {
+export default function PandaJrApp() {
   const [activeTab, setActiveTab] = useState<Tab>("planificacion");
   // Diálogos: si un toque no dio el foco al botón (iOS), el foco vuelve igualmente a él al cerrar.
   useModalOpenerTracking();
@@ -2131,7 +2131,7 @@ export default function PandaJRApp() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   // Onboarding abierto a propósito desde "Vincular con mi pareja" (se puede cancelar).
   const [linkFlowOpen, setLinkFlowOpen] = useState(false);
-  // Cuenta: «Ya uso PandaJR en otro dispositivo» y la vuelta de un enlace de acceso por correo.
+  // Cuenta: «Ya uso PandaJr en otro dispositivo» y la vuelta de un enlace de acceso por correo.
   const [signInOpen, setSignInOpen] = useState(false);
   const accessLink = useSyncExternalStore(noopSubscribe, getAccessLinkSnapshot, getServerAccessLink);
   const [accessLinkDone, setAccessLinkDone] = useState(false);
@@ -2534,7 +2534,7 @@ export default function PandaJRApp() {
         <div className={`mx-auto flex w-full items-center justify-between gap-2 lg:px-8 ${columnWidth}`}>
           <h1 className="min-w-0">
             {/* Por debajo de 380px la marca compacta deja sitio a Síntomas, la campana y Ajustes; por debajo
-                de 360px (o con zoom) solo el panda, y "PandaJR" sigue siendo el nombre del h1 (sr-only). */}
+                de 360px (o con zoom) solo el panda, y "PandaJr" sigue siendo el nombre del h1 (sr-only). */}
             <Wordmark responsive />
           </h1>
 

@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { WEEK_MAX, WEEK_MIN } from "@/lib/weeks";
 
 /**
- * GrowingPlant — la firma botánica de PandaJR: "una planta que crece contigo".
+ * GrowingPlant — la firma botánica de PandaJr: "una planta que crece contigo".
  *
  * SVG paramétrico y determinista (sin Math.random: la variación sale de un hash del número de la
  * semana en que brotó cada hoja, así que cada hoja conserva su forma mientras la planta crece).

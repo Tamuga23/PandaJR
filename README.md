@@ -1,14 +1,14 @@
-# 🐼 PandaJR — El Copiloto del Papá Primerizo
+# 🐼 PandaJr — El Copiloto del Papá Primerizo
 
 > **PWA móvil de acompañamiento prenatal y parental basada en evidencia médica materno-fetal, neurodesarrollo y corresponsabilidad familiar.**
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Tamuga23/PandaJR)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Tamuga23/PandaJr)
 
 ---
 
-## 🌟 ¿Qué es PandaJR?
+## 🌟 ¿Qué es PandaJr?
 
-La mayoría de las apps de embarazo tratan a los padres como espectadores pasivos con recordatorios triviales. **PandaJR** transforma al papá primerizo en un **copiloto activo y protector**, fundamentado en la ciencia de los primeros 1,000 días y la plasticidad epigenética.
+La mayoría de las apps de embarazo tratan a los padres como espectadores pasivos con recordatorios triviales. **PandaJr** transforma al papá primerizo en un **copiloto activo y protector**, fundamentado en la ciencia de los primeros 1,000 días y la plasticidad epigenética.
 
 ---
 
@@ -54,8 +54,8 @@ La mayoría de las apps de embarazo tratan a los padres como espectadores pasivo
 
 ```bash
 # Clonar el repositorio
-git clone https://github.com/Tamuga23/PandaJR.git
-cd PandaJR
+git clone https://github.com/Tamuga23/PandaJr.git
+cd PandaJr
 
 # Instalar dependencias
 npm install
@@ -71,5 +71,5 @@ Abre [http://localhost:3000](http://localhost:3000) en tu navegador para ver la 
 ## 🌐 Despliegue en Vercel
 
 1. Ingresa a [vercel.com/new](https://vercel.com/new).
-2. Conecta tu cuenta de GitHub y selecciona el repositorio **`Tamuga23/PandaJR`**.
+2. Conecta tu cuenta de GitHub y selecciona el repositorio **`Tamuga23/PandaJr`**.
 3. Haz clic en **Deploy** (Vercel detectará la configuración de Next.js automáticamente).

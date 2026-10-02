@@ -1,5 +1,5 @@
 ---
-name: PandaJR
+name: PandaJr
 description: Guía semanal del embarazo en pareja; un jardín compartido, cálido y legible de noche.
 colors:
   ground: "#faf9f5"
@@ -175,13 +175,13 @@ components:
     rounded: "{rounded.sheet}"
 ---
 
-# Design System: PandaJR
+# Design System: PandaJr
 
 ## Overview
 
 **Creative North Star: "Warm Botanical Sanctuary: la Guía es un jardín compartido"**
 
-PandaJR es un santuario cálido para una pareja que atraviesa un embarazo, a menudo de noche, con una mano y bajo estrés. Rechaza la estética clínica (azul hospital, gris frío, interfaces estériles) y los tropos visuales de la IA (neón, degradados púrpura, botones brillantes). El suelo es alabastro de día y obsidiana violeta de noche; la tinta es marrón cálido; hay dos acentos con oficio fijo: terracota para actuar y alarmar, sage para crecer y completar.
+PandaJr es un santuario cálido para una pareja que atraviesa un embarazo, a menudo de noche, con una mano y bajo estrés. Rechaza la estética clínica (azul hospital, gris frío, interfaces estériles) y los tropos visuales de la IA (neón, degradados púrpura, botones brillantes). El suelo es alabastro de día y obsidiana violeta de noche; la tinta es marrón cálido; hay dos acentos con oficio fijo: terracota para actuar y alarmar, sage para crecer y completar.
 
 La ampliación de la fase 6 (2026-09-27) no reemplaza el mundo: lo lee como un jardín. El embarazo es una planta que crece semana a semana (la firma, `GrowingPlant`), la tipografía es Alegreya caligráfica para títulos y Alegreya Sans para la UI, y la estructura es de secciones con título y listas con divisores, no de tarjetas. Se rechaza la ficha fetal de categoría (número gigante, fruta, tarjetas apiladas) y la sopa de tarjetas.
 
@@ -371,7 +371,7 @@ La firma del sistema. SVG paramétrico y determinista (viewBox 120; la variació
 
 ### Marca (§4.2)
 - **PandaMark** (`src/components/PandaMark.tsx`): la mascota (mamá panda con su bebé), sin azulejo, apoyada directamente en el suelo. Desde el 2026-09-30 es el logo final que entregó el equipo, tal cual (no un trazado): la fuente maestra es `scripts/brand/panda-mark-source.png` (PNG sin fondo, 1394×1673) y `node scripts/brand/render-brand.mjs` la recorta y redimensiona a `public/brand/panda-mark-{128,384}.png` (srcset). Sustituye al vector trazado del JPEG menta original (`panda-paths.json`), que suavizaba las formas. Caja cuadrada con la mascota centrada (`object-contain`); en oscuro, un halo de 1px en tinta clara (`drop-shadow`) separa el azul carbón de las orejas y los brazos de la obsidiana. Decorativo por defecto (`alt=""`); con `title`, imagen con nombre. También firma la tarjeta de PandaStory (junto al wordmark).
-- **Wordmark** (`src/components/Wordmark.tsx`): PandaMark + "PandaJR" como texto vivo en Alegreya 800: "Panda" en `ink`, "JR" en `terracotta-ink` (el único uso de marca de la terracota). Por defecto panda 34px + texto 24px; `compact` 28px + 20px; `responsive` (cabecera) compacto por debajo de 380px y solo el panda por debajo de 360px, con el texto en `sr-only` para que el `<h1>` siga diciendo "PandaJR".
+- **Wordmark** (`src/components/Wordmark.tsx`): PandaMark + "PandaJr" como texto vivo en Alegreya 800: "Panda" en `ink`, "JR" en `terracotta-ink` (el único uso de marca de la terracota). Por defecto panda 34px + texto 24px; `compact` 28px + 20px; `responsive` (cabecera) compacto por debajo de 380px y solo el panda por debajo de 360px, con el texto en `sr-only` para que el `<h1>` siga diciendo "PandaJr".
 - **Rasters que se envían y su procedencia:**
   - `src/app/icon.png` (favicon 192px: la mascota sobre alabastro con borde `line-strong`, radio 22 %) y `src/app/apple-icon.png` (180px): `node scripts/brand/render-brand.mjs`.
   - `public/icons/icon-192.png`, `icon-512.png`, `icon-maskable-192.png`, `icon-maskable-512.png` (los del manifiesto): `node scripts/brand/render-brand.mjs`, la mascota compuesta con sharp sobre `#faf9f5` (84 % del lado; 68 % en los maskable, dentro de la zona segura).

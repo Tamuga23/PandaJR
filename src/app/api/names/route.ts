@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
       try {
         const ai = new GoogleGenAI({ apiKey });
 
-        const prompt = `Actúa como experto en el origen de los nombres (antroponimia) para PandaJR, una app de embarazo en pareja.
+        const prompt = `Actúa como experto en el origen de los nombres (antroponimia) para PandaJr, una app de embarazo en pareja.
 Genera exactamente ${count} nombres de bebé únicos y sonoros, con su origen y su significado.
 Género solicitado: ${gender === "todos" ? "variado (niño, niña y neutro)" : gender}.
 

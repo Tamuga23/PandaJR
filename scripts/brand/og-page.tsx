@@ -15,7 +15,7 @@ export default function BrandOgImage() {
         <div className="flex items-center gap-5">
           <PandaMark size={124} />
           <p className="font-display text-[96px] leading-none font-extrabold tracking-[-0.01em] text-ink">
-            Panda<span className="text-terracotta-ink">JR</span>
+            Panda<span className="text-terracotta-ink">Jr</span>
           </p>
         </div>
         <p className="mt-10 font-display text-[46px] leading-[1.12] font-bold text-ink">El embarazo en pareja, semana a semana</p>

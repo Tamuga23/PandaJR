@@ -359,13 +359,13 @@ export type AccountInfo = {
 /** Mensajes humanos del acceso con cuenta (sin códigos técnicos). */
 export const ACCOUNT_MESSAGES = {
   popupClosed: "Se cerró la ventana antes de terminar. Inténtalo de nuevo cuando quieras.",
-  popupBlocked: "El navegador bloqueó la ventana de Google. Permite las ventanas emergentes para PandaJR o usa el enlace por correo.",
+  popupBlocked: "El navegador bloqueó la ventana de Google. Permite las ventanas emergentes para PandaJr o usa el enlace por correo.",
   googleUnavailable: "El acceso con Google aún no está disponible. Mientras tanto, usa el enlace por correo.",
   emailUnavailable: "El acceso por correo aún no está disponible. Mientras tanto, usa Google.",
   invalidEmail: "Ese correo no parece válido. Revísalo.",
   linkExpired: "Ese enlace ya no sirve: caducó o ya se usó. Pide uno nuevo.",
   otherBrowser:
-    "Abre el enlace en el mismo navegador donde lo pediste. Si tu correo lo abrió en su propio navegador, cópialo y pégalo en el navegador donde usas PandaJR.",
+    "Abre el enlace en el mismo navegador donde lo pediste. Si tu correo lo abrió en su propio navegador, cópialo y pégalo en el navegador donde usas PandaJr.",
   wrongEmail: "Ese enlace es de otro correo. Escribe el correo al que llegó el enlace.",
   tooMany: "Demasiados intentos seguidos. Espera unos minutos e inténtalo de nuevo.",
   mamaSwitch:

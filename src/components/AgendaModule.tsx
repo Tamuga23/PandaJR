@@ -652,7 +652,7 @@ function prepDescription(ev: AgendaEvent, prep: AppointmentPrepInfo): string {
     "",
     `Consejo: ${prep.tip}`,
     "",
-    "Preparado con PandaJR. Es una guía general: sigue las indicaciones de tu equipo de salud.",
+    "Preparado con PandaJr. Es una guía general: sigue las indicaciones de tu equipo de salud.",
   ].join("\n");
 }
 
@@ -666,7 +666,7 @@ function buildIcs(ev: AgendaEvent, prep: AppointmentPrepInfo, stamp: Date = new 
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//PandaJR//Agenda prenatal//ES",
+    "PRODID:-//PandaJr//Agenda prenatal//ES",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
