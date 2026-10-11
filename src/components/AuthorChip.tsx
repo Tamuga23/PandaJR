@@ -29,7 +29,8 @@ export function AuthorChip({
 }: {
   name?: string;
   role?: Role;
-  size?: "xs" | "sm";
+  /** xs/sm junto a lo que alguien marcó; lg solo para la pareja de la cabecera de «Juntos». */
+  size?: "xs" | "sm" | "lg";
   /** Texto accesible y tooltip con contexto ("A Luis le gusta", "Agendada por Ana"). */
   title?: string;
   /** El nombre ya está escrito al lado: el círculo se oculta al lector de pantalla. */
@@ -45,8 +46,8 @@ export function AuthorChip({
       : role === "papa"
         ? "bg-sage-ink text-on-accent"
         : "bg-ink-muted text-ground";
-  // Inicial en Alegreya (monograma de la marca), al mínimo de la escala (text-micro, 13px).
-  const dims = size === "xs" ? "h-5 w-5" : "h-6 w-6";
+  // Inicial en Alegreya (monograma de la marca), al mínimo de la escala (text-micro, 13px); en lg, 20px.
+  const dims = size === "xs" ? "h-5 w-5 text-micro" : size === "lg" ? "h-10 w-10 text-subtitle" : "h-6 w-6 text-micro";
 
   return (
     <span
@@ -54,7 +55,7 @@ export function AuthorChip({
       aria-label={decorative ? undefined : label}
       aria-hidden={decorative ? true : undefined}
       title={label}
-      className={`inline-grid shrink-0 select-none place-items-center rounded-[3px] font-display text-micro font-bold leading-none ${dims} ${tone}`}
+      className={`inline-grid shrink-0 select-none place-items-center rounded-[3px] font-display font-bold leading-none ${dims} ${tone}`}
     >
       <span aria-hidden="true">{initialOf(name, role)}</span>
     </span>

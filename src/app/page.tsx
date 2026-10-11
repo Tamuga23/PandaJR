@@ -2644,7 +2644,7 @@ export default function PandaJrApp() {
           />
         </div>
         <div className={activeTab === "herramientas" ? "block w-full h-full" : "hidden"}>
-          <HerramientasView showToast={showToast} profile={profile} openRequest={toolOpenRequest} active={activeTab === "herramientas"} />
+          <HerramientasView showToast={showToast} profile={profile} openRequest={toolOpenRequest} active={activeTab === "herramientas"} onRequestLink={startLinkFlow} />
         </div>
         <div className={activeTab === "pandaia" ? "flex-1 flex flex-col w-full h-full overflow-hidden" : "hidden"}>
           <PandaIAView

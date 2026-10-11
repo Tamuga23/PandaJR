@@ -219,7 +219,7 @@ Un solo valor canónico por token: esta tabla, el frontmatter y `src/app/globals
 | Deshabilitado | `ink-disabled` | `#9a938a` | `#6f6980` | Solo controles deshabilitados. |
 | Sobre relleno | `on-accent` | `#ffffff` | `#ffffff` | Texto sobre `bg-terracotta-ink` / `bg-sage-ink`. |
 | Terracota (tono) | `terracotta` | `#e07a64` | `#d16e5a` | Relleno del botón y la flor de la planta. No para texto. |
-| Terracota (tinta) | `terracotta-ink` | `#a54833` (5.6:1) | texto `#eb9279` (7.6:1) · relleno `#b4533d` | Acción principal, alarma, foco, pestaña activa, "JR". `bg-terracotta-ink` usa el relleno. Hover: `#8f3c2a` / `#9c4632`. |
+| Terracota (tinta) | `terracotta-ink` | `#a54833` (5.6:1) | texto `#eb9279` (7.6:1) · relleno `#b4533d` | Acción principal, alarma, foco, pestaña activa, "Jr". `bg-terracotta-ink` usa el relleno. Hover: `#8f3c2a` / `#9c4632`. |
 | Sage (tono) | `sage` | `#6c9a84` | `#619b7e` | Rellenos tenues de hojas (22–30% de opacidad). No para texto. |
 | Sage (tinta) | `sage-ink` | `#44695a` (5.8:1) | texto `#89bca0` (8.4:1) · relleno `#48705d` | Crecimiento, completado, trazo botánico, `accent-color`. Hover: `#37574a` / `#3d5f4f`. |
 | Amber | `amber` / `amber-ink` | `#f59e0b` / `#8a5708` | `#f59e0b` / `#eebd62` | Solo logística y avisos no críticos (ventana de una tarea, sincronía pendiente). |
@@ -260,7 +260,7 @@ Un solo valor canónico por token: esta tabla, el frontmatter y `src/app/globals
 
 ### Hierarchy
 Tokens `--text-*` en `globals.css`; cada utilidad trae su interlineado y los títulos su peso.
-- **Display** (`text-display`, Alegreya 700, 30px/1.1, −0.01em): la semana en la Guía ("Semana 24 + 4 días"), héroes.
+- **Display** (`text-display`, Alegreya 700, 30px/1.1, −0.01em): la semana en la Guía ("Semana 24 + 4 días"), «Juntos» junto a la pareja, héroes.
 - **Title** (`text-title`, Alegreya 700, 24px/1.2): título de pantalla o de diálogo; "Hoy".
 - **Subtitle** (`text-subtitle`, Alegreya 700, 20px/1.3): título de `Section` (h2).
 - **Section sm** (Alegreya 700, 16px): título de `Section` h3 ("Tus tareas", "Próxima cita").
@@ -283,7 +283,7 @@ Tokens `--text-*` en `globals.css`; cada utilidad trae su interlineado y los tí
 
 **Ritmo.** Secciones separadas 40px (`gap-10`, `pt-6`); con la ruta de urgencia arriba (semana 36+) el ritmo se aprieta a 32px para que llegue antes. Un `BotanicalRule` cierra el bloque de semana. Filas de 48px mínimo con 10px de padding vertical.
 
-**Cromo fijo.** Cabecera `fixed` sobre `ground` con filete inferior, `pt-[calc(var(--safe-top)+var(--edge-gap))]` y un espaciador de `--header-h` (en la app instalada de iPhone, `--edge-gap: 3rem` deja la fila fuera del desenfoque «Liquid Glass» que iOS dibuja siempre bajo la barra de estado); barra inferior fija de cuatro destinos (Guía, Agenda, Juntos, PandaIA) con `pb-[var(--safe-bottom)]`. **Juntos** (antes «Herramientas»): SOS fijo arriba, «Esta semana» (2–3 herramientas según la semana y la misión de quien lee, cada fila con su acción) y el resto por tema sin repetir; cada fila dice su estado real (lo que la pareja ya tiene dentro), nunca una descripción fija. Las misiones de la Guía que nombran una herramienta o la Agenda llevan su botón (`src/lib/tools.ts`). `--safe-top: max(0.625rem, env(safe-area-inset-top))` y `--safe-bottom: max(0.75rem, env(safe-area-inset-bottom))` dejan libres la Dynamic Island y el indicador de inicio. `scroll-padding` evita que el foco quede debajo de lo fijo; con poca altura (≤500px) la cabecera deja de ser fija.
+**Cromo fijo.** Cabecera `fixed` sobre `ground` con filete inferior, `pt-[calc(var(--safe-top)+var(--edge-gap))]` y un espaciador de `--header-h` (en la app instalada de iPhone, `--edge-gap: 3rem` deja la fila fuera del desenfoque «Liquid Glass» que iOS dibuja siempre bajo la barra de estado); barra inferior fija de cuatro destinos (Guía, Agenda, Juntos, PandaIA) con `pb-[var(--safe-bottom)]`. **Juntos** (antes «Herramientas»): la pareja en la cabecera (ver Chips), SOS fijo arriba, «Esta semana» (2–3 herramientas según la semana y la misión de quien lee, cada fila con su acción) y el resto por tema sin repetir; cada fila dice su estado real (lo que la pareja ya tiene dentro), nunca una descripción fija. Las misiones de la Guía que nombran una herramienta o la Agenda llevan su botón (`src/lib/tools.ts`). `--safe-top: max(0.625rem, env(safe-area-inset-top))` y `--safe-bottom: max(0.75rem, env(safe-area-inset-bottom))` dejan libres la Dynamic Island y el indicador de inicio. `scroll-padding` evita que el foco quede debajo de lo fijo; con poca altura (≤500px) la cabecera deja de ser fija.
 
 **Escritorio (`lg`, ≥1024px).** La barra inferior se convierte en un riel vertical de 96px a la izquierda (borde derecho `line`, iconos con etiqueta debajo) y el contenido se desplaza (`lg:ps-24`). La columna crece a 720px (`lg:max-w-[45rem]`) con 32px de padding; en `lg` el `--gutter` pasa a 0 porque la columna ya lleva su margen. En `xl` (≥1280px) la Guía se abre a dos columnas de 1120px (`xl:max-w-[70rem]`, 64px entre columnas): semana y ficha a la izquierda, "Hoy" a la derecha.
 
@@ -340,7 +340,8 @@ La estructura de toda la app. Se lee en secciones con título y listas con divis
 
 ### Chips
 - **Monograma de autor (`AuthorChip`):** cuadrado de 20–24px, radio 3px, inicial en Alegreya 13px bold; `terracotta-ink` (mamá), `sage-ink` (papá) o `ink-muted` (sin rol). Informativo, no interactivo.
-- **Estado de sincronía (`SyncBadge`):** texto `micro` con icono de 14px, en la tinta de su tono sobre su lavado.
+- **La pareja (cabecera de Juntos, `CoupleMark`):** el único uso del monograma grande (`size="lg"`: 40px, inicial Alegreya 20px). Mamá a la izquierda y papá a la derecha, la misma imagen en los dos teléfonos; el segundo monta 8px sobre el primero con un marco de 2px del color del suelo (sin sombra). El asiento sin nadie es un pozo `surface-sunken` con borde `line-strong` y el icono de persona en `ink-subtle`: no es un control. Va junto a «Juntos» en `text-display` y el `SyncBadge`, que dice el estado en palabras (la marca es decorativa); sin vínculo, debajo, «Vincular con mi pareja».
+- **Estado de sincronía (`SyncBadge`):** texto `micro` (peso 500) con icono de 14px, sin fondo: `ink-subtle` en los estados normales y `amber-ink` en los avisos (sin conexión, sin acceso). Si no cabe, baja a una segunda línea con el icono alineado a la primera; nunca se trunca (el aviso sin conexión dice qué hacer).
 
 ### Navigation
 - **Barra inferior (móvil):** cuatro destinos en rejilla sobre `ground`, filete superior `line`. Icono en un pozo de 56×32px; activo: pozo `terracotta-wash`, icono y etiqueta `terracotta-ink` bold, `aria-current="page"`; inactivo: `ink-muted`, hover `surface-hover`. Etiqueta `micro`; por debajo de 300px de ancho queda solo el icono (la etiqueta sigue como nombre accesible).
@@ -371,7 +372,7 @@ La firma del sistema. SVG paramétrico y determinista (viewBox 120; la variació
 
 ### Marca (§4.2)
 - **PandaMark** (`src/components/PandaMark.tsx`): la mascota (mamá panda con su bebé), sin azulejo, apoyada directamente en el suelo. Desde el 2026-09-30 es el logo final que entregó el equipo, tal cual (no un trazado): la fuente maestra es `scripts/brand/panda-mark-source.png` (PNG sin fondo, 1394×1673) y `node scripts/brand/render-brand.mjs` la recorta y redimensiona a `public/brand/panda-mark-{128,384}.png` (srcset). Sustituye al vector trazado del JPEG menta original (`panda-paths.json`), que suavizaba las formas. Caja cuadrada con la mascota centrada (`object-contain`); en oscuro, un halo de 1px en tinta clara (`drop-shadow`) separa el azul carbón de las orejas y los brazos de la obsidiana. Decorativo por defecto (`alt=""`); con `title`, imagen con nombre. También firma la tarjeta de PandaStory (junto al wordmark).
-- **Wordmark** (`src/components/Wordmark.tsx`): PandaMark + "PandaJr" como texto vivo en Alegreya 800: "Panda" en `ink`, "JR" en `terracotta-ink` (el único uso de marca de la terracota). Por defecto panda 34px + texto 24px; `compact` 28px + 20px; `responsive` (cabecera) compacto por debajo de 380px y solo el panda por debajo de 360px, con el texto en `sr-only` para que el `<h1>` siga diciendo "PandaJr".
+- **Wordmark** (`src/components/Wordmark.tsx`): PandaMark + "PandaJr" como texto vivo en Alegreya 800: "Panda" en `ink`, "Jr" en `terracotta-ink` (el único uso de marca de la terracota). Por defecto panda 34px + texto 24px; `compact` 28px + 20px; `responsive` (cabecera) compacto por debajo de 380px y solo el panda por debajo de 360px, con el texto en `sr-only` para que el `<h1>` siga diciendo "PandaJr".
 - **Rasters que se envían y su procedencia:**
   - `src/app/icon.png` (favicon 192px: la mascota sobre alabastro con borde `line-strong`, radio 22 %) y `src/app/apple-icon.png` (180px): `node scripts/brand/render-brand.mjs`.
   - `public/icons/icon-192.png`, `icon-512.png`, `icon-maskable-192.png`, `icon-maskable-512.png` (los del manifiesto): `node scripts/brand/render-brand.mjs`, la mascota compuesta con sharp sobre `#faf9f5` (84 % del lado; 68 % en los maskable, dentro de la zona segura).

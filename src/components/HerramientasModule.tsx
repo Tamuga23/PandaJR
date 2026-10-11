@@ -31,6 +31,7 @@ import {
   toggleGoBagItem,
   type BabyName,
   type Member,
+  type MemberRole,
   type SharedDocMeta,
 } from "@/lib/firebase/pairing";
 import { formatDateShort, formatMoney, formatRelative, repairMojibake, toDateSafe } from "@/lib/format";
@@ -53,7 +54,7 @@ import {
   Activity, AlertTriangle, ArrowLeft, ArrowRight, Baby, CalendarClock, Camera, Check, CheckCircle, CheckCircle2,
   ChevronDown, ChevronRight, ChevronUp, Circle, CircleAlert, ClipboardList, Clock, CloudOff, Edit3, FileText, Flame, HeartHandshake,
   Heart, HeartPulse, ImagePlus, Info, LoaderCircle, Minus, Moon, Music, Package, Pencil, Phone, PhoneCall, Play,
-  Plus, Printer, RefreshCw, RotateCcw, Send, Share2, Siren, Sparkles, Square, Tag, Timer, Trash2, Undo2, Users, Utensils,
+  Plus, Printer, RefreshCw, RotateCcw, Send, Share2, Siren, Sparkles, Square, Tag, Timer, Trash2, Undo2, UserRound, Users, Utensils,
   Wallet, Wand2, Waves, Wind, X,
 } from "lucide-react";
 
@@ -1762,7 +1763,33 @@ const TOOL_ACTION: Record<ToolId, string> = {
   story: "Crear",
 };
 
-export function HerramientasView({ showToast, profile, openRequest, active = true }: { showToast: ShowToast, profile?: UserProfile, openRequest?: { tool: string; nonce: number }; /** La pestaña está a la vista (el índice solo escucha datos entonces). */ active?: boolean }) {
+type Seat = { name?: string; role: MemberRole } | null;
+
+/**
+ * La pareja de la cabecera de «Juntos»: dos monogramas de 40px, mamá a la izquierda y papá a la derecha (la
+ * misma imagen en los dos teléfonos). Un asiento sin nadie es un pozo con el icono de persona, no un control.
+ * Decorativa: lo que significa ya lo dice el SyncBadge de al lado («Compartido con Luis», «Solo en este teléfono»).
+ */
+function CoupleMark({ seats }: { seats: [Seat, Seat] }) {
+  return (
+    <span aria-hidden="true" className="flex shrink-0 items-center">
+      {seats.map((seat, i) => (
+        // El segundo monta 8px sobre el primero; su marco de 2px del color del suelo los separa (sin sombra).
+        <span key={i} className={`flex rounded-[5px] bg-ground p-0.5 ${i > 0 ? "-ms-2" : ""}`}>
+          {seat ? (
+            <AuthorChip name={seat.name} role={seat.role} size="lg" title={seat.name?.trim() || (seat.role === "mama" ? "Mamá" : "Papá")} decorative />
+          ) : (
+            <span className="grid h-10 w-10 place-items-center rounded-[3px] border border-line-strong bg-surface-sunken text-ink-subtle">
+              <UserRound size={20} strokeWidth={1.75} />
+            </span>
+          )}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+export function HerramientasView({ showToast, profile, openRequest, active = true, onRequestLink }: { showToast: ShowToast, profile?: UserProfile, openRequest?: { tool: string; nonce: number }; /** La pestaña está a la vista (el índice solo escucha datos entonces). */ active?: boolean; /** Abre la vinculación (botón de la cabecera cuando este teléfono no está vinculado). */ onRequestLink?: () => void }) {
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const toolHeadingRef = useRef<HTMLHeadingElement>(null);
   const focusedRequestRef = useRef<number | null>(null);
@@ -1839,7 +1866,14 @@ export function HerramientasView({ showToast, profile, openRequest, active = tru
   const featured = weekTools(hubWeek, missionText);
   const statuses = useToolStatuses(profile, active && !activeTool);
   const hubMe = useMe();
-  const hubPartner = hubMe.pid && hubMe.members.length >= 2 ? hubMe.partner.partnerName?.trim() : undefined;
+  // La pareja de la cabecera: su asiento se llena con la misma prueba que usan las filas (vínculo y dos
+  // miembros), y nunca si este teléfono perdió el acceso (el SyncBadge diría «Sin acceso a lo compartido»).
+  const partnerSeat: Seat = hubMe.pid && !hubMe.partner.removed && hubMe.members.length >= 2
+    ? { name: hubMe.partner.partnerName, role: hubMe.partner.partnerRole ?? (reader === "mama" ? "papa" : "mama") }
+    : null;
+  const mySeat: Seat = { name: profile?.name, role: reader };
+  // Mamá a la izquierda y papá a la derecha: el papá sin pareja ve vacío el asiento de la izquierda.
+  const seats: [Seat, Seat] = reader === "papa" && partnerSeat?.role !== "papa" ? [partnerSeat, mySeat] : [mySeat, partnerSeat];
   const toolsIn = (group: ToolGroup) => tools.filter((t) => t.group === group && !featured.includes(t.id));
 
   if (activeTool) {
@@ -1886,12 +1920,24 @@ export function HerramientasView({ showToast, profile, openRequest, active = tru
   const sos = toolById("sos");
   return (
     <div className="flex h-full w-full flex-col bg-ground px-[var(--gutter)] pb-24 pt-6 lg:px-8 lg:pt-10">
+      {/* Cabecera: la pareja, el título y dónde vive lo que ven (SyncBadge solo dice lo que es verdad: solo en
+          este teléfono, conectando, compartido…). Con el texto por debajo de 10rem (zoom del 200%) la pareja
+          queda arriba, como la planta en la Guía. */}
       <div className="mb-6">
-        {/* h2: el h1 de la página es "PandaJr" (una vista, un encabezado principal). */}
-        <h2 className="font-display text-title text-ink">Juntos</h2>
-        <p className="mt-1 text-meta text-ink-muted">
-          {hubPartner ? `Lo que van armando tú y ${hubPartner} para el bebé.` : "Lo que van armando los dos para el bebé."}
-        </p>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+          <CoupleMark seats={seats} />
+          <div className="min-w-[10rem] flex-1">
+            {/* h2: el h1 de la página es "PandaJr" (una vista, un encabezado principal). */}
+            <h2 className="font-display text-display text-ink">Juntos</h2>
+            <SyncBadge className="mt-1" />
+          </div>
+        </div>
+        {!hubMe.pid && onRequestLink && (
+          <RowButton onClick={onRequestLink} aria-haspopup="dialog" className="mt-4">
+            <Users size={16} strokeWidth={1.75} className="text-sage-ink" aria-hidden="true" />
+            Vincular con mi pareja
+          </RowButton>
+        )}
       </div>
 
       {/* SOS siempre arriba, a un toque (además de «Síntomas» en la cabecera). */}

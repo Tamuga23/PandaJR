@@ -1,57 +1,824 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-29T12:00:00Z",
-  "title": "Design System: PandaJR",
+  "generatedAt": "2026-10-11T19:55:11.497Z",
+  "title": "Design System: PandaJr",
   "extensions": {
     "colorMeta": {
-      "terracotta-ink": { "role": "primary", "displayName": "Terracota tinta", "canonical": "oklch(51.9% 0.128 34.1)", "tonalRamp": ["#280000", "#4c0000", "#731c07", "#983c28", "#c0604a", "#e8866e", "#ffb09a", "#ffd8c4"] },
-      "terracotta": { "role": "primary", "displayName": "Terracota tono (relleno, no texto)" },
-      "terracotta-wash": { "role": "primary", "displayName": "Lavado terracota (alarma en calma)" },
-      "sage-ink": { "role": "secondary", "displayName": "Sage tinta", "canonical": "oklch(48.8% 0.049 167.0)", "tonalRamp": ["#001107", "#042b1f", "#24483a", "#426758", "#648a7a", "#88af9e", "#add5c4", "#d0fae8"] },
-      "sage": { "role": "secondary", "displayName": "Sage tono (hojas, no texto)" },
-      "sage-wash": { "role": "secondary", "displayName": "Lavado sage (completado)" },
-      "amber-ink": { "role": "tertiary", "displayName": "Ámbar logístico", "canonical": "oklch(50.2% 0.106 69.5)", "tonalRamp": ["#1f0100", "#401700", "#623200", "#835100", "#a97430", "#d09857", "#f3c085", "#ffe5b2"] },
-      "amber-wash": { "role": "tertiary", "displayName": "Lavado ámbar (aviso logístico)" },
-      "ground": { "role": "neutral", "displayName": "Alabastro", "canonical": "oklch(98.2% 0.005 95.1)", "tonalRamp": ["#0c0b09", "#252421", "#40403d", "#5e5e5a", "#81807d", "#a5a5a1", "#cbcac7", "#efeeea"] },
-      "ink": { "role": "neutral", "displayName": "Tinta cálida", "canonical": "oklch(28.7% 0.008 75.2)", "tonalRamp": ["#0d0b07", "#262320", "#423f3b", "#605d58", "#83807b", "#a8a49f", "#cecac5", "#f2eee8"] },
-      "ground-dark": { "role": "neutral", "displayName": "Obsidiana violeta", "canonical": "oklch(20.5% 0.022 296.9)", "tonalRamp": ["#0c0913", "#25222e", "#413d4a", "#5f5b69", "#817e8c", "#a6a2b1", "#ccc8d8", "#f0ecfc"] },
-      "line-control": { "role": "neutral", "displayName": "Borde de control (≥3:1)" }
+      "ground": {
+        "role": "neutral",
+        "displayName": "Alabastro",
+        "tonalRamp": [
+          "#0c0b09",
+          "#262522",
+          "#43423f",
+          "#62615e",
+          "#83827f",
+          "#a6a5a1",
+          "#cac9c5",
+          "#efeeea"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Alabastro claro",
+        "tonalRamp": [
+          "#0c0b09",
+          "#262522",
+          "#43423f",
+          "#63615e",
+          "#84827e",
+          "#a7a5a1",
+          "#cbc9c5",
+          "#f0eeea"
+        ]
+      },
+      "surface-raised": {
+        "role": "neutral",
+        "displayName": "Superficie elevada",
+        "tonalRamp": [
+          "#0c0b09",
+          "#262523",
+          "#434240",
+          "#62615f",
+          "#838280",
+          "#a6a5a2",
+          "#cac9c6",
+          "#efeeeb"
+        ]
+      },
+      "surface-sunken": {
+        "role": "neutral",
+        "displayName": "Pozo",
+        "tonalRamp": [
+          "#0d0b06",
+          "#28251f",
+          "#45423b",
+          "#64615a",
+          "#85827b",
+          "#a8a59d",
+          "#cdc9c1",
+          "#f2eee6"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Divisor",
+        "tonalRamp": [
+          "#0e0b04",
+          "#29241c",
+          "#464138",
+          "#666157",
+          "#878278",
+          "#aaa49a",
+          "#cec8be",
+          "#f4eee3"
+        ]
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Separador visible",
+        "tonalRamp": [
+          "#100a02",
+          "#2a2419",
+          "#484135",
+          "#676053",
+          "#898174",
+          "#aca496",
+          "#d0c8b9",
+          "#f6eede"
+        ]
+      },
+      "line-control": {
+        "role": "neutral",
+        "displayName": "Borde de control (≥3:1)",
+        "tonalRamp": [
+          "#100a04",
+          "#2a241b",
+          "#484137",
+          "#686056",
+          "#898176",
+          "#aca498",
+          "#d0c8bc",
+          "#f6ede1"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Tinta cálida",
+        "tonalRamp": [
+          "#0d0b07",
+          "#272521",
+          "#45413d",
+          "#64615c",
+          "#85827d",
+          "#a8a49f",
+          "#ccc8c3",
+          "#f2eee8"
+        ]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Texto secundario",
+        "tonalRamp": [
+          "#0f0a05",
+          "#2a241d",
+          "#474139",
+          "#676058",
+          "#888178",
+          "#aba49b",
+          "#d0c8be",
+          "#f5ede3"
+        ]
+      },
+      "ink-subtle": {
+        "role": "neutral",
+        "displayName": "Texto meta",
+        "tonalRamp": [
+          "#0f0a05",
+          "#2a241d",
+          "#474139",
+          "#676058",
+          "#888179",
+          "#aba49b",
+          "#d0c8bf",
+          "#f5ede4"
+        ]
+      },
+      "ink-disabled": {
+        "role": "neutral",
+        "displayName": "Deshabilitado",
+        "tonalRamp": [
+          "#0f0a05",
+          "#2a241d",
+          "#474139",
+          "#676058",
+          "#888178",
+          "#aba49b",
+          "#cfc8be",
+          "#f5ede3"
+        ]
+      },
+      "on-accent": {
+        "role": "neutral",
+        "displayName": "Sobre relleno",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#a5a5a5",
+          "#c9c9c9",
+          "#eeeeee"
+        ]
+      },
+      "terracotta": {
+        "role": "primary",
+        "displayName": "Terracota tono (relleno, no texto)",
+        "tonalRamp": [
+          "#1e0100",
+          "#4a0800",
+          "#781b06",
+          "#9e3f2b",
+          "#c4614c",
+          "#eb846e",
+          "#ffb4a2",
+          "#ffe9e4"
+        ]
+      },
+      "terracotta-ink": {
+        "role": "primary",
+        "displayName": "Terracota tinta",
+        "tonalRamp": [
+          "#1d0100",
+          "#490a00",
+          "#771d07",
+          "#9c402b",
+          "#c3624c",
+          "#ea866e",
+          "#ffb4a2",
+          "#ffe9e3"
+        ]
+      },
+      "terracotta-ink-hover": {
+        "role": "primary",
+        "displayName": "Terracota tinta (hover)",
+        "tonalRamp": [
+          "#1d0100",
+          "#490900",
+          "#732211",
+          "#984432",
+          "#be6652",
+          "#e48974",
+          "#ffb4a2",
+          "#ffe9e4"
+        ]
+      },
+      "terracotta-wash": {
+        "role": "primary",
+        "displayName": "Lavado terracota (alarma en calma)",
+        "tonalRamp": [
+          "#120805",
+          "#2e221d",
+          "#4b3f39",
+          "#6b5e58",
+          "#8d7f79",
+          "#b0a19b",
+          "#d5c5bf",
+          "#fbebe4"
+        ]
+      },
+      "sage": {
+        "role": "secondary",
+        "displayName": "Sage tono (hojas, no texto)",
+        "tonalRamp": [
+          "#000f07",
+          "#002d1d",
+          "#1f4c39",
+          "#3f6c58",
+          "#608e78",
+          "#83b19b",
+          "#a6d6be",
+          "#cbfce3"
+        ]
+      },
+      "sage-ink": {
+        "role": "secondary",
+        "displayName": "Sage tinta",
+        "tonalRamp": [
+          "#000f08",
+          "#062c20",
+          "#264a3c",
+          "#456a5b",
+          "#668c7c",
+          "#88af9f",
+          "#acd4c2",
+          "#d0fae8"
+        ]
+      },
+      "sage-ink-hover": {
+        "role": "secondary",
+        "displayName": "Sage tinta (hover)",
+        "tonalRamp": [
+          "#000f08",
+          "#0b2c20",
+          "#2a4a3d",
+          "#49695c",
+          "#698b7d",
+          "#8cae9f",
+          "#afd3c3",
+          "#d4f8e8"
+        ]
+      },
+      "sage-wash": {
+        "role": "secondary",
+        "displayName": "Lavado sage (completado)",
+        "tonalRamp": [
+          "#070d09",
+          "#202723",
+          "#3d443f",
+          "#5c635e",
+          "#7d857f",
+          "#9fa7a2",
+          "#c3ccc6",
+          "#e8f1eb"
+        ]
+      },
+      "amber": {
+        "role": "tertiary",
+        "displayName": "Ámbar tono (aviso)",
+        "tonalRamp": [
+          "#140800",
+          "#361f00",
+          "#5d3900",
+          "#875400",
+          "#b37200",
+          "#e29100",
+          "#ffba64",
+          "#ffebd5"
+        ]
+      },
+      "amber-ink": {
+        "role": "tertiary",
+        "displayName": "Ámbar logístico",
+        "tonalRamp": [
+          "#140800",
+          "#371f00",
+          "#5e3900",
+          "#875402",
+          "#ab7633",
+          "#d09957",
+          "#f6bd7b",
+          "#ffebd5"
+        ]
+      },
+      "amber-wash": {
+        "role": "tertiary",
+        "displayName": "Lavado ámbar (aviso logístico)",
+        "tonalRamp": [
+          "#110a01",
+          "#2b2415",
+          "#494131",
+          "#69604f",
+          "#8a816f",
+          "#ada491",
+          "#d2c8b5",
+          "#f7edd9"
+        ]
+      },
+      "selection": {
+        "role": "neutral",
+        "displayName": "Selección",
+        "tonalRamp": [
+          "#170602",
+          "#332018",
+          "#523c34",
+          "#725b52",
+          "#957c72",
+          "#b89f94",
+          "#ddc3b8",
+          "#ffe9e0"
+        ]
+      },
+      "placeholder": {
+        "role": "neutral",
+        "displayName": "Placeholder",
+        "tonalRamp": [
+          "#0f0a07",
+          "#292420",
+          "#46413c",
+          "#66605b",
+          "#87817c",
+          "#aaa49e",
+          "#cec8c2",
+          "#f4ede7"
+        ]
+      },
+      "ground-dark": {
+        "role": "neutral",
+        "displayName": "Obsidiana violeta",
+        "tonalRamp": [
+          "#0c0913",
+          "#26232f",
+          "#43404d",
+          "#625f6d",
+          "#83808e",
+          "#a6a2b2",
+          "#cac6d6",
+          "#f0ecfc"
+        ]
+      },
+      "surface-dark": {
+        "role": "neutral",
+        "displayName": "Alabastro claro (oscuro)",
+        "tonalRamp": [
+          "#0d0816",
+          "#272232",
+          "#443f50",
+          "#635e71",
+          "#847f93",
+          "#a7a1b6",
+          "#cbc5db",
+          "#f0ebff"
+        ]
+      },
+      "surface-raised-dark": {
+        "role": "neutral",
+        "displayName": "Superficie elevada (oscuro)",
+        "tonalRamp": [
+          "#0d0818",
+          "#272134",
+          "#443e52",
+          "#645d73",
+          "#857e95",
+          "#a8a1b9",
+          "#ccc5dd",
+          "#f1ebff"
+        ]
+      },
+      "surface-sunken-dark": {
+        "role": "neutral",
+        "displayName": "Pozo (oscuro)",
+        "tonalRamp": [
+          "#0c0915",
+          "#262330",
+          "#433f4e",
+          "#625f6f",
+          "#838090",
+          "#a6a2b4",
+          "#cac6d9",
+          "#efecfe"
+        ]
+      },
+      "line-dark": {
+        "role": "neutral",
+        "displayName": "Divisor (oscuro)",
+        "tonalRamp": [
+          "#0d071a",
+          "#272037",
+          "#443d56",
+          "#645c77",
+          "#857d99",
+          "#a8a0bd",
+          "#ccc4e2",
+          "#f0ebff"
+        ]
+      },
+      "line-strong-dark": {
+        "role": "neutral",
+        "displayName": "Separador visible (oscuro)",
+        "tonalRamp": [
+          "#0e051e",
+          "#281f3b",
+          "#453c5b",
+          "#645b7c",
+          "#857c9e",
+          "#a89fc3",
+          "#ccc3e8",
+          "#f0ebff"
+        ]
+      },
+      "line-control-dark": {
+        "role": "neutral",
+        "displayName": "Borde de control (≥3:1, oscuro)",
+        "tonalRamp": [
+          "#0e061b",
+          "#282038",
+          "#453d57",
+          "#645c78",
+          "#857d9a",
+          "#a8a0be",
+          "#ccc4e3",
+          "#f0ebff"
+        ]
+      },
+      "ink-dark": {
+        "role": "neutral",
+        "displayName": "Tinta cálida (oscuro)",
+        "tonalRamp": [
+          "#0d0b08",
+          "#272521",
+          "#45413d",
+          "#64615c",
+          "#85827d",
+          "#a8a4a0",
+          "#ccc8c4",
+          "#f2eee9"
+        ]
+      },
+      "ink-muted-dark": {
+        "role": "neutral",
+        "displayName": "Texto secundario (oscuro)",
+        "tonalRamp": [
+          "#0d0911",
+          "#27232c",
+          "#443f4a",
+          "#645f6a",
+          "#85808c",
+          "#a8a2af",
+          "#ccc6d3",
+          "#f2ebf9"
+        ]
+      },
+      "ink-subtle-dark": {
+        "role": "neutral",
+        "displayName": "Texto meta (oscuro)",
+        "tonalRamp": [
+          "#0d0914",
+          "#272230",
+          "#443f4e",
+          "#635e6e",
+          "#847f90",
+          "#a7a2b3",
+          "#cbc6d8",
+          "#f0ebfd"
+        ]
+      },
+      "ink-disabled-dark": {
+        "role": "neutral",
+        "displayName": "Deshabilitado (oscuro)",
+        "tonalRamp": [
+          "#0d0718",
+          "#272135",
+          "#443e53",
+          "#635d74",
+          "#847e96",
+          "#a7a1ba",
+          "#cbc5de",
+          "#f0ebff"
+        ]
+      },
+      "terracotta-dark": {
+        "role": "primary",
+        "displayName": "Terracota tono (relleno, no texto, oscuro)",
+        "tonalRamp": [
+          "#1e0100",
+          "#4a0700",
+          "#781c0a",
+          "#9d3f2e",
+          "#c3624e",
+          "#ea8570",
+          "#ffb4a3",
+          "#ffe9e4"
+        ]
+      },
+      "terracotta-ink-dark": {
+        "role": "primary",
+        "displayName": "Terracota tinta de texto (oscuro)",
+        "tonalRamp": [
+          "#1c0200",
+          "#470e00",
+          "#72250d",
+          "#97462f",
+          "#bc6850",
+          "#e38a72",
+          "#ffb49f",
+          "#ffe9e3"
+        ]
+      },
+      "terracotta-ink-fill-dark": {
+        "role": "primary",
+        "displayName": "Terracota tinta de relleno (oscuro)",
+        "tonalRamp": [
+          "#1d0100",
+          "#490a00",
+          "#781b04",
+          "#9e3f2a",
+          "#c4614b",
+          "#eb846c",
+          "#ffb4a2",
+          "#ffe9e3"
+        ]
+      },
+      "terracotta-ink-hover-dark": {
+        "role": "primary",
+        "displayName": "Terracota tinta (hover, oscuro)",
+        "tonalRamp": [
+          "#1d0100",
+          "#490a00",
+          "#74210d",
+          "#99432f",
+          "#bf6550",
+          "#e68872",
+          "#ffb4a1",
+          "#ffe9e3"
+        ]
+      },
+      "terracotta-wash-dark": {
+        "role": "primary",
+        "displayName": "Lavado terracota (alarma en calma, oscuro)",
+        "tonalRamp": [
+          "#170509",
+          "#331e23",
+          "#523a40",
+          "#73595f",
+          "#957a80",
+          "#b99da2",
+          "#dec0c6",
+          "#ffe8ec"
+        ]
+      },
+      "sage-dark": {
+        "role": "secondary",
+        "displayName": "Sage tono (hojas, no texto, oscuro)",
+        "tonalRamp": [
+          "#000f07",
+          "#002e1c",
+          "#104e35",
+          "#356f54",
+          "#579174",
+          "#79b496",
+          "#9dd9ba",
+          "#c2ffdf"
+        ]
+      },
+      "sage-ink-dark": {
+        "role": "secondary",
+        "displayName": "Sage tinta de texto (oscuro)",
+        "tonalRamp": [
+          "#000f06",
+          "#002e1b",
+          "#1b4d36",
+          "#3c6d54",
+          "#5e8f75",
+          "#80b397",
+          "#a3d7ba",
+          "#c8fddf"
+        ]
+      },
+      "sage-ink-fill-dark": {
+        "role": "secondary",
+        "displayName": "Sage tinta de relleno (oscuro)",
+        "tonalRamp": [
+          "#000f07",
+          "#022d1d",
+          "#244b3a",
+          "#436b58",
+          "#648d79",
+          "#86b09b",
+          "#aad5bf",
+          "#cefbe4"
+        ]
+      },
+      "sage-ink-hover-dark": {
+        "role": "secondary",
+        "displayName": "Sage tinta (hover, oscuro)",
+        "tonalRamp": [
+          "#000f07",
+          "#092c1e",
+          "#294a3b",
+          "#486a5a",
+          "#688c7a",
+          "#8aaf9d",
+          "#aed3c1",
+          "#d3f9e6"
+        ]
+      },
+      "sage-wash-dark": {
+        "role": "secondary",
+        "displayName": "Lavado sage (completado, oscuro)",
+        "tonalRamp": [
+          "#020e0c",
+          "#1a2826",
+          "#364643",
+          "#556562",
+          "#758783",
+          "#98aaa6",
+          "#bbceca",
+          "#e0f3ef"
+        ]
+      },
+      "amber-ink-dark": {
+        "role": "tertiary",
+        "displayName": "Ámbar logístico (oscuro)",
+        "tonalRamp": [
+          "#120900",
+          "#322200",
+          "#573d00",
+          "#7e5a00",
+          "#a7790c",
+          "#cc9c3f",
+          "#f2c166",
+          "#ffeccb"
+        ]
+      },
+      "amber-wash-dark": {
+        "role": "tertiary",
+        "displayName": "Lavado ámbar (aviso logístico, oscuro)",
+        "tonalRamp": [
+          "#120901",
+          "#2d2314",
+          "#4b4031",
+          "#6b5f4f",
+          "#8c806f",
+          "#b0a391",
+          "#d4c7b5",
+          "#faedd9"
+        ]
+      },
+      "selection-dark": {
+        "role": "neutral",
+        "displayName": "Selección (oscuro)",
+        "tonalRamp": [
+          "#1c010a",
+          "#3b1824",
+          "#5b3541",
+          "#7d5460",
+          "#a07481",
+          "#c497a4",
+          "#eabac8",
+          "#ffe7ee"
+        ]
+      }
     },
     "typographyMeta": {
-      "display": { "displayName": "Display", "purpose": "La semana en la Guía, héroes. Alegreya 700." },
-      "title": { "displayName": "Title", "purpose": "Título de pantalla o de diálogo; «Hoy»." },
-      "subtitle": { "displayName": "Subtitle", "purpose": "Título de Section (h2)." },
-      "body": { "displayName": "Body", "purpose": "Cuerpo; cifras de caja alta (lining-nums)." },
-      "row-title": { "displayName": "Título de fila", "purpose": "Título de ListRow; 500 en listas largas y tranquilas." },
-      "meta": { "displayName": "Meta", "purpose": "Línea secundaria, descripciones, botones compactos; ink-muted." },
-      "micro": { "displayName": "Micro", "purpose": "Horas, autores, contadores, etiquetas de la barra; ink-subtle. Suelo de la escala (13px)." },
-      "wordmark": { "displayName": "Wordmark", "purpose": "«PandaJR» en Alegreya 800; «JR» en terracotta-ink." }
+      "display": {
+        "displayName": "Display",
+        "purpose": "La semana en la Guía, «Juntos» junto a la pareja, héroes. Alegreya 700."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Título de pantalla o de diálogo; «Hoy»."
+      },
+      "subtitle": {
+        "displayName": "Subtitle",
+        "purpose": "Título de Section (h2); también la inicial del monograma grande de la pareja."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Cuerpo; cifras de caja alta (lining-nums) en toda la app."
+      },
+      "row-title": {
+        "displayName": "Título de fila",
+        "purpose": "Título de ListRow; 500 en listas largas y tranquilas."
+      },
+      "meta": {
+        "displayName": "Meta",
+        "purpose": "Línea secundaria, descripciones, botones compactos; ink-muted."
+      },
+      "micro": {
+        "displayName": "Micro",
+        "purpose": "Horas, autores, contadores, etiquetas de la barra y estado de sincronía; ink-subtle. Suelo de la escala (13px)."
+      },
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "«PandaJr» en Alegreya 800; «Jr» en terracotta-ink (el único uso de marca de la terracota)."
+      }
     },
     "shadows": [
-      { "name": "sheet", "value": "0 -8px 32px -8px rgba(24,21,32,0.28)", "purpose": "Hojas que suben desde abajo." },
-      { "name": "dialog", "value": "0 16px 48px -16px rgba(24,21,32,0.35)", "purpose": "Diálogos centrados." },
-      { "name": "toast", "value": "0 12px 32px -12px rgba(24,21,32,0.5)", "purpose": "Aviso invertido (bg-ink)." },
-      { "name": "emergency-halo", "value": "0 3px 10px -3px color-mix(in srgb, var(--terracotta-ink-fill) 55%, transparent)", "purpose": "Solo el botón Emergencias." },
-      { "name": "tool-piece", "value": "0 18px 40px -20px rgb(45 42 38 / 0.6)", "purpose": "Grandes botones táctiles de conteo." }
+      {
+        "name": "shadow-sheet",
+        "value": "0 -8px 32px -8px rgb(24 21 32 / 0.28)",
+        "purpose": "Hojas que suben desde abajo en móvil (Nueva cita, Equipo de salud, Ajustes, Presupuesto, Panda Audio)."
+      },
+      {
+        "name": "shadow-dialog",
+        "value": "0 16px 48px -16px rgb(24 21 32 / 0.35)",
+        "purpose": "Diálogos de confirmación y selección, PandaStory."
+      },
+      {
+        "name": "shadow-toast",
+        "value": "0 12px 32px -12px rgb(24 21 32 / 0.5)",
+        "purpose": "Aviso invertido (bg-ink, texto ground)."
+      },
+      {
+        "name": "shadow-emergency",
+        "value": "0 3px 10px -3px color-mix(in srgb, var(--terracotta-ink-fill) 55%, transparent)",
+        "purpose": "Solo el botón Emergencias (CallActions y el de SOS)."
+      },
+      {
+        "name": "shadow-tool",
+        "value": "0 18px 40px -20px rgb(45 42 38 / 0.6)",
+        "purpose": "Grandes objetos táctiles de las herramientas: botón de movimientos, botón de contracciones, tarjeta del votador de nombres."
+      }
     ],
     "motion": [
-      { "name": "plant-grow", "value": "600ms cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Única animación de autor: la planta al avanzar de semana. Desactivada con prefers-reduced-motion." },
-      { "name": "state-color", "value": "color/background-color 200ms", "purpose": "Cambios de estado por color y opacidad; se conservan con movimiento reducido." },
-      { "name": "press", "value": "scale(0.98)", "purpose": "Pressed de los botones de llamada; anulado con movimiento reducido." }
+      {
+        "name": "plant-grow",
+        "value": "600ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Única animación de autor: la planta al avanzar de semana. Desactivada con prefers-reduced-motion."
+      },
+      {
+        "name": "state-color",
+        "value": "color/background-color 200ms",
+        "purpose": "Cambios de estado por color y opacidad; se conservan con movimiento reducido."
+      },
+      {
+        "name": "press",
+        "value": "scale(0.98)",
+        "purpose": "Pressed de los botones de llamada; anulado con movimiento reducido."
+      }
     ],
     "breakpoints": [
-      { "name": "sm", "value": "640px" },
-      { "name": "lg", "value": "1024px" },
-      { "name": "xl", "value": "1280px" }
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      }
     ],
     "layers": [
-      { "name": "header", "value": "40" },
-      { "name": "nav", "value": "50" },
-      { "name": "sheet/dialog", "value": "60" },
-      { "name": "careTeam", "value": "70" },
-      { "name": "toast", "value": "80" }
+      {
+        "name": "header",
+        "value": "40",
+        "purpose": "Cabecera fija."
+      },
+      {
+        "name": "nav",
+        "value": "50",
+        "purpose": "Barra inferior / riel."
+      },
+      {
+        "name": "sheet",
+        "value": "60",
+        "purpose": "Hojas de primer nivel (Ajustes, Nueva cita, Presupuesto, PandaStory…)."
+      },
+      {
+        "name": "dialog",
+        "value": "60",
+        "purpose": "Diálogos de primer nivel (alias semántico de sheet)."
+      },
+      {
+        "name": "careTeam",
+        "value": "70",
+        "purpose": "Diálogo sobre otro diálogo (Ajustes → Equipo de salud)."
+      },
+      {
+        "name": "toast",
+        "value": "80",
+        "purpose": "Avisos: por encima de cualquier diálogo; nada más alto."
+      }
     ],
-    "focus": { "value": "outline: 2px solid var(--terracotta-ink); outline-offset: 2px", "purpose": "Anillo de foco global; en filas, contorno interior (offset -2px)." }
+    "focus": {
+      "value": "outline: 2px solid var(--terracotta-ink); outline-offset: 2px",
+      "purpose": "Anillo de foco global; en filas, contorno interior (offset -2px)."
+    }
   },
   "components": [
     {
@@ -60,7 +827,7 @@
       "refersTo": "button-primary",
       "description": "Acción principal de una fila o sección; una por vista.",
       "html": "<button class=\"ds-btn-primary\">Guardar</button>",
-      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; border: 0; border-radius: 9999px; background: var(--terracotta-ink-fill, #a54833); color: var(--on-accent, #fff); font: 700 0.875rem/1.45 'Alegreya Sans', system-ui, sans-serif; transition: background-color .15s; cursor: pointer; } .ds-btn-primary:hover { background: var(--terracotta-ink-hover, #8f3c2a); } .ds-btn-primary:focus-visible { outline: 2px solid var(--terracotta-ink, #a54833); outline-offset: 2px; }"
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; border: 0; border-radius: 9999px; background: var(--terracotta-ink-fill, #a54833); color: var(--on-accent, #fff); font: 700 0.875rem/1.45 var(--font-alegreya-sans, 'Alegreya Sans'), system-ui, sans-serif; transition: background-color .15s; cursor: pointer; } .ds-btn-primary:hover { background: var(--terracotta-ink-hover, #8f3c2a); } .ds-btn-primary:focus-visible { outline: 2px solid var(--terracotta-ink, #a54833); outline-offset: 2px; }"
     },
     {
       "name": "Botón contorno (RowButton default)",
@@ -68,7 +835,7 @@
       "refersTo": "button-outline",
       "description": "Acción secundaria en el trailing de una fila estática («Preparar»).",
       "html": "<button class=\"ds-btn-outline\">Preparar</button>",
-      "css": ".ds-btn-outline { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border: 1px solid var(--line-control, #8c8479); border-radius: 9999px; background: transparent; color: var(--ink, #2d2a26); font: 700 0.875rem/1.45 'Alegreya Sans', system-ui, sans-serif; transition: background-color .15s; cursor: pointer; } .ds-btn-outline:hover { background: var(--surface-hover, rgb(45 42 38 / .05)); } .ds-btn-outline:focus-visible { outline: 2px solid var(--terracotta-ink, #a54833); outline-offset: 2px; }"
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border: 1px solid var(--line-control, #8c8479); border-radius: 9999px; background: transparent; color: var(--ink, #2d2a26); font: 700 0.875rem/1.45 var(--font-alegreya-sans, 'Alegreya Sans'), system-ui, sans-serif; transition: background-color .15s; cursor: pointer; } .ds-btn-outline:hover { background: var(--surface-hover, rgb(45 42 38 / .05)); } .ds-btn-outline:focus-visible { outline: 2px solid var(--terracotta-ink, #a54833); outline-offset: 2px; }"
     },
     {
       "name": "Fila de lista (ListRow en ListGroup)",
@@ -76,7 +843,7 @@
       "refersTo": "list-row",
       "description": "La unidad estructural de la app: filas ≥48px con divisores que empiezan tras el icono.",
       "html": "<ul class=\"ds-list\"><li><button class=\"ds-row\"><span class=\"ds-row-icon\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\"><circle cx=\"12\" cy=\"12\" r=\"9\"/></svg></span><span class=\"ds-row-body\"><span><span class=\"ds-row-title\">Prueba de glucosa</span><span class=\"ds-row-meta\">Tú · semanas 24–28</span></span></span></button></li><li><button class=\"ds-row\"><span class=\"ds-row-icon\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\"><circle cx=\"12\" cy=\"12\" r=\"9\"/></svg></span><span class=\"ds-row-body\"><span><span class=\"ds-row-title\">Vacuna de la influenza</span><span class=\"ds-row-meta\">Papá</span></span></span></button></li></ul>",
-      "css": ".ds-list { list-style: none; margin: 0; padding: 0; } .ds-list > li + li .ds-row-body { border-top: 1px solid var(--line, #e8e2d7); } .ds-row { display: flex; width: 100%; min-height: 48px; align-items: stretch; padding: 0 0 0 16px; border: 0; background: transparent; text-align: left; color: var(--ink, #2d2a26); cursor: pointer; transition: background-color .15s; } .ds-row:hover { background: var(--surface-hover, rgb(45 42 38 / .05)); } .ds-row:focus-visible { outline: 2px solid var(--terracotta-ink, #a54833); outline-offset: -2px; } .ds-row-icon { display: flex; align-items: center; padding-right: 12px; color: var(--ink-muted, #5c554d); } .ds-row-body { display: flex; flex: 1; align-items: center; padding: 10px 16px 10px 0; } .ds-row-title { display: block; font: 700 1rem/1.5 'Alegreya Sans', system-ui, sans-serif; } .ds-row-meta { display: block; margin-top: 2px; font: 400 0.875rem/1.45 'Alegreya Sans', system-ui, sans-serif; color: var(--ink-muted, #5c554d); }"
+      "css": ".ds-list { list-style: none; margin: 0; padding: 0; } .ds-list > li + li .ds-row-body { border-top: 1px solid var(--line, #e8e2d7); } .ds-row { display: flex; width: 100%; min-height: 48px; align-items: stretch; padding: 0 0 0 16px; border: 0; background: transparent; text-align: left; color: var(--ink, #2d2a26); cursor: pointer; transition: background-color .15s; } .ds-row:hover { background: var(--surface-hover, rgb(45 42 38 / .05)); } .ds-row:focus-visible { outline: 2px solid var(--terracotta-ink, #a54833); outline-offset: -2px; } .ds-row-icon { display: flex; align-items: center; padding-right: 12px; color: var(--ink-muted, #5c554d); } .ds-row-body { display: flex; flex: 1; align-items: center; padding: 10px 16px 10px 0; } .ds-row-title { display: block; font: 700 1rem/1.5 var(--font-alegreya-sans, 'Alegreya Sans'), system-ui, sans-serif; } .ds-row-meta { display: block; margin-top: 2px; font: 400 0.875rem/1.45 var(--font-alegreya-sans, 'Alegreya Sans'), system-ui, sans-serif; color: var(--ink-muted, #5c554d); }"
     },
     {
       "name": "Llamada de emergencia (CallActions)",
@@ -84,15 +851,15 @@
       "refersTo": "call-emergency",
       "description": "Siempre la acción más fuerte de la pantalla: relleno terracota, ≥56px, halo.",
       "html": "<a class=\"ds-call-sos\" href=\"tel:911\"><span class=\"ds-call-well\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z\"/></svg></span><span class=\"ds-call-label\">Emergencias · 911</span></a>",
-      "css": ".ds-call-sos { display: flex; width: 100%; min-height: 56px; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 16px; background: var(--terracotta-ink-fill, #a54833); color: var(--on-accent, #fff); text-decoration: none; box-shadow: 0 3px 10px -3px color-mix(in srgb, var(--terracotta-ink-fill, #a54833) 55%, transparent); transition: background-color .15s, transform .15s; } .ds-call-sos:hover { background: var(--terracotta-ink-hover, #8f3c2a); } .ds-call-sos:active { transform: scale(.98); } .ds-call-sos:focus-visible { outline: 2px solid var(--terracotta-ink, #a54833); outline-offset: 2px; } .ds-call-well { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 9999px; background: rgb(255 255 255 / .15); } .ds-call-label { font: 700 1.125rem/1.25 'Alegreya Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums; }"
+      "css": ".ds-call-sos { display: flex; width: 100%; min-height: 56px; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 16px; background: var(--terracotta-ink-fill, #a54833); color: var(--on-accent, #fff); text-decoration: none; box-shadow: 0 3px 10px -3px color-mix(in srgb, var(--terracotta-ink-fill, #a54833) 55%, transparent); transition: background-color .15s, transform .15s; } .ds-call-sos:hover { background: var(--terracotta-ink-hover, #8f3c2a); } .ds-call-sos:active { transform: scale(.98); } .ds-call-sos:focus-visible { outline: 2px solid var(--terracotta-ink, #a54833); outline-offset: 2px; } .ds-call-well { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 9999px; background: rgb(255 255 255 / .15); } .ds-call-label { font: 700 1.125rem/1.25 var(--font-alegreya-sans, 'Alegreya Sans'), system-ui, sans-serif; font-variant-numeric: tabular-nums; }"
     },
     {
       "name": "Destino de navegación (barra / riel)",
       "kind": "nav",
       "refersTo": "nav-item-active",
-      "description": "Cuatro destinos; activo con pozo terracota-wash y tinta terracota.",
-      "html": "<nav class=\"ds-nav\"><button class=\"ds-nav-item is-active\" aria-current=\"page\"><span class=\"ds-nav-well\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m15.5 8.5-2 5-5 2 2-5z\"/></svg></span><span>Guía</span></button><button class=\"ds-nav-item\"><span class=\"ds-nav-well\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\"><rect x=\"4\" y=\"5\" width=\"16\" height=\"15\" rx=\"2\"/><path d=\"M4 10h16M9 3v4M15 3v4\"/></svg></span><span>Agenda</span></button></nav>",
-      "css": ".ds-nav { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; padding: 6px 8px; background: var(--ground, #faf9f5); border-top: 1px solid var(--line, #e8e2d7); } .ds-nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px; padding: 6px 0; border: 0; border-radius: 12px; background: transparent; color: var(--ink-muted, #5c554d); font: 500 0.8125rem/1.35 'Alegreya Sans', system-ui, sans-serif; cursor: pointer; transition: color .2s; } .ds-nav-item:hover { color: var(--ink, #2d2a26); } .ds-nav-item:focus-visible { outline: 2px solid var(--terracotta-ink, #a54833); outline-offset: -2px; } .ds-nav-well { display: grid; place-items: center; width: 56px; height: 32px; border-radius: 9999px; transition: background-color .2s; } .ds-nav-item:hover .ds-nav-well { background: var(--surface-hover, rgb(45 42 38 / .05)); } .ds-nav-item.is-active { color: var(--terracotta-ink, #a54833); font-weight: 700; } .ds-nav-item.is-active .ds-nav-well { background: var(--terracotta-wash, #f6e6df); }"
+      "description": "Cuatro destinos (Guía, Agenda, Juntos, PandaIA); el activo con pozo terracota-wash, tinta terracota y negrita.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Navegación principal\"><button class=\"ds-nav-item is-active\" aria-current=\"page\"><span class=\"ds-nav-well\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z\"/></svg></span><span>Guía</span></button><button class=\"ds-nav-item\"><span class=\"ds-nav-well\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8 2v3\"/><path d=\"M16 2v3\"/><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M3 9h18\"/></svg></span><span>Agenda</span></button><button class=\"ds-nav-item\"><span class=\"ds-nav-well\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M19.414 14.414C21 12.828 22 11.5 22 9.5a5.5 5.5 0 0 0-9.591-3.676.6.6 0 0 1-.818.001A5.5 5.5 0 0 0 2 9.5c0 2.3 1.5 4 3 5.5l5.535 5.362a2 2 0 0 0 2.879.052 2.12 2.12 0 0 0-.004-3 2.124 2.124 0 1 0 3-3 2.124 2.124 0 0 0 3.004 0 2 2 0 0 0 0-2.828l-1.881-1.882a2.41 2.41 0 0 0-3.409 0l-1.71 1.71a2 2 0 0 1-2.828 0 2 2 0 0 1 0-2.828l2.823-2.762\"/></svg></span><span>Juntos</span></button><button class=\"ds-nav-item\"><span class=\"ds-nav-well\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 8V4H8\"/><rect width=\"16\" height=\"12\" x=\"4\" y=\"8\" rx=\"2\"/><path d=\"M2 14h2\"/><path d=\"M20 14h2\"/><path d=\"M15 13v2\"/><path d=\"M9 13v2\"/></svg></span><span>PandaIA</span></button></nav>",
+      "css": ".ds-nav { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 6px 8px; background: var(--ground, #faf9f5); border-top: 1px solid var(--line, #e8e2d7); } .ds-nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 0; min-height: 48px; padding: 6px 0; border: 0; border-radius: 12px; background: transparent; color: var(--ink-muted, #5c554d); font-family: var(--font-alegreya-sans, 'Alegreya Sans'), system-ui, sans-serif; font-size: 0.8125rem; font-weight: 500; line-height: 1.35; letter-spacing: 0.01em; cursor: pointer; transition: color .2s; } .ds-nav-item:hover { color: var(--ink, #2d2a26); } .ds-nav-item:focus-visible { outline: 2px solid var(--terracotta-ink, #a54833); outline-offset: -2px; } .ds-nav-well { display: grid; place-items: center; width: 56px; height: 32px; border-radius: 9999px; transition: background-color .2s; } .ds-nav-item:hover .ds-nav-well { background: var(--surface-hover, rgb(45 42 38 / .05)); } .ds-nav-item.is-active { color: var(--terracotta-ink, #a54833); font-weight: 700; } .ds-nav-item.is-active .ds-nav-well { background: var(--terracotta-wash, #f6e6df); }"
     },
     {
       "name": "Campo de texto",
@@ -100,7 +867,7 @@
       "refersTo": "field",
       "description": "Campo sobre surface-raised con borde de control ≥3:1.",
       "html": "<input class=\"ds-field\" placeholder=\"Nombre de tu obstetra\" />",
-      "css": ".ds-field { width: 100%; min-height: 48px; padding: 10px 14px; border: 1px solid var(--line-control, #8c8479); border-radius: 16px; background: var(--surface-raised, #fffefb); color: var(--ink, #2d2a26); font: 400 1rem/1.5 'Alegreya Sans', system-ui, sans-serif; caret-color: var(--terracotta-ink, #a54833); } .ds-field::placeholder { color: var(--placeholder, #6f6964); opacity: 1; } .ds-field:focus-visible { outline: 2px solid var(--terracotta-ink, #a54833); outline-offset: 2px; }"
+      "css": ".ds-field { width: 100%; min-height: 48px; padding: 10px 14px; border: 1px solid var(--line-control, #8c8479); border-radius: 16px; background: var(--surface-raised, #fffefb); color: var(--ink, #2d2a26); font: 400 1rem/1.5 var(--font-alegreya-sans, 'Alegreya Sans'), system-ui, sans-serif; caret-color: var(--terracotta-ink, #a54833); } .ds-field::placeholder { color: var(--placeholder, #6f6964); opacity: 1; } .ds-field:focus-visible { outline: 2px solid var(--terracotta-ink, #a54833); outline-offset: 2px; }"
     },
     {
       "name": "Grupo inset (ListGroup inset)",
@@ -108,7 +875,7 @@
       "refersTo": "list-group-inset",
       "description": "La única caja del sistema: agrupa filas dentro de un fondo largo; nunca anidada.",
       "html": "<ul class=\"ds-inset\"><li class=\"ds-inset-row\">Tema · Sistema</li><li class=\"ds-inset-row\">Equipo de salud</li></ul>",
-      "css": ".ds-inset { list-style: none; margin: 0; padding: 0; overflow: hidden; border: 1px solid var(--line-strong, #d8d0c1); border-radius: 16px; background: var(--surface, #fdfbf7); } .ds-inset-row { min-height: 48px; display: flex; align-items: center; padding: 0 16px; font: 700 1rem/1.5 'Alegreya Sans', system-ui, sans-serif; color: var(--ink, #2d2a26); } .ds-inset-row + .ds-inset-row { border-top: 1px solid var(--line, #e8e2d7); }"
+      "css": ".ds-inset { list-style: none; margin: 0; padding: 0; overflow: hidden; border: 1px solid var(--line-strong, #d8d0c1); border-radius: 16px; background: var(--surface, #fdfbf7); } .ds-inset-row { min-height: 48px; display: flex; align-items: center; padding: 0 16px; font: 700 1rem/1.5 var(--font-alegreya-sans, 'Alegreya Sans'), system-ui, sans-serif; color: var(--ink, #2d2a26); } .ds-inset-row + .ds-inset-row { border-top: 1px solid var(--line, #e8e2d7); }"
     },
     {
       "name": "Separador botánico (BotanicalRule)",
@@ -117,11 +884,27 @@
       "description": "Filete con un ramito en trazo sage-ink de 1.5px; máximo uno por pantalla.",
       "html": "<div class=\"ds-rule\" aria-hidden=\"true\"><span></span><svg width=\"30\" height=\"14\" viewBox=\"0 0 30 14\" fill=\"none\"><path d=\"M3 11.5 C9 11.5 15 10 27 4.5\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\"/><path d=\"M11 10.6 C10.4 7.6 12.4 5.4 15.2 5.2 C15.4 8 13.6 10.2 11 10.6Z\" fill=\"#6c9a84\" fill-opacity=\"0.25\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linejoin=\"round\"/><path d=\"M18.6 8.6 C19.8 10.8 22.6 11.4 24.6 10.2 C23.4 8 20.8 7.4 18.6 8.6Z\" fill=\"#6c9a84\" fill-opacity=\"0.25\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linejoin=\"round\"/></svg><span></span></div>",
       "css": ".ds-rule { display: flex; align-items: center; gap: 12px; color: var(--sage-ink, #44695a); } .ds-rule > span { flex: 1; height: 1px; background: var(--line-strong, #d8d0c1); }"
+    },
+    {
+      "name": "La pareja (cabecera de Juntos)",
+      "kind": "custom",
+      "refersTo": "couple-mark",
+      "description": "Dos monogramas de 40px, mamá a la izquierda y papá a la derecha, junto a «Juntos» y su estado en palabras; el asiento sin nadie es un pozo, no un control.",
+      "html": "<div class=\"ds-couple\"><div class=\"ds-couple-row\"><span class=\"ds-couple-mark\" aria-hidden=\"true\"><span class=\"ds-seat\"><span class=\"ds-mono ds-mono-mama\">A</span></span><span class=\"ds-seat\"><span class=\"ds-mono ds-mono-papa\">L</span></span></span><div class=\"ds-couple-text\"><h2 class=\"ds-couple-title\">Juntos</h2><span class=\"ds-sync\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/><path d=\"M16 3.128a4 4 0 0 1 0 7.744\"/><path d=\"M22 21v-2a4 4 0 0 0-3-3.87\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/></svg><span>Compartido con Luis</span></span></div></div><div class=\"ds-couple-row\"><span class=\"ds-couple-mark\" aria-hidden=\"true\"><span class=\"ds-seat\"><span class=\"ds-mono ds-mono-mama\">A</span></span><span class=\"ds-seat\"><span class=\"ds-mono ds-mono-empty\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"8\" r=\"5\"/><path d=\"M20 21a8 8 0 0 0-16 0\"/></svg></span></span></span><div class=\"ds-couple-text\"><h2 class=\"ds-couple-title\">Juntos</h2><span class=\"ds-sync\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect width=\"14\" height=\"20\" x=\"5\" y=\"2\" rx=\"2\" ry=\"2\"/><path d=\"M12 18h.01\"/></svg><span>Solo en este teléfono</span></span></div></div></div>",
+      "css": ".ds-couple { display: grid; gap: 24px; } .ds-couple-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; } .ds-couple-mark { display: flex; flex-shrink: 0; align-items: center; } .ds-seat { display: flex; padding: 2px; border-radius: 5px; background: var(--ground, #faf9f5); } .ds-seat + .ds-seat { margin-inline-start: -8px; } .ds-mono { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 3px; font-family: var(--font-alegreya, 'Alegreya'), Georgia, serif; font-size: 1.25rem; font-weight: 700; line-height: 1; color: var(--on-accent, #fff); user-select: none; } .ds-mono-mama { background: var(--terracotta-ink-fill, #a54833); } .ds-mono-papa { background: var(--sage-ink-fill, #44695a); } .ds-mono-empty { box-sizing: border-box; border: 1px solid var(--line-strong, #d8d0c1); background: var(--surface-sunken, #f3efe7); color: var(--ink-subtle, #6d665e); } .ds-couple-text { flex: 1; min-width: 10rem; } .ds-couple-title { margin: 0; font-family: var(--font-alegreya, 'Alegreya'), Georgia, serif; font-size: 1.875rem; font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; color: var(--ink, #2d2a26); } .ds-couple-text .ds-sync { margin-top: 4px; } .ds-sync { display: inline-flex; min-width: 0; max-width: 100%; align-items: flex-start; gap: 6px; font-family: var(--font-alegreya-sans, 'Alegreya Sans'), system-ui, sans-serif; font-size: 0.8125rem; font-weight: 500; line-height: 20px; letter-spacing: 0.01em; color: var(--ink-subtle, #6d665e); } .ds-sync svg { flex-shrink: 0; margin-top: 3px; } .ds-sync-warn { color: var(--amber-ink, #8a5708); }"
+    },
+    {
+      "name": "Estado de sincronía (SyncBadge)",
+      "kind": "chip",
+      "refersTo": "sync-badge",
+      "description": "Dónde vive un dato, dicho en palabras (solo en este teléfono, conectando, compartido, sin conexión); si no cabe baja a otra línea, nunca se trunca.",
+      "html": "<div class=\"ds-sync-demo\"><span class=\"ds-sync\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/><path d=\"M16 3.128a4 4 0 0 1 0 7.744\"/><path d=\"M22 21v-2a4 4 0 0 0-3-3.87\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/></svg><span>Compartido con Luis · hace 5 minutos</span></span><span class=\"ds-sync ds-sync-warn\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.94 5.274A7 7 0 0 1 15.71 10h1.79a4.5 4.5 0 0 1 4.222 6.057\"/><path d=\"M18.796 18.81A4.5 4.5 0 0 1 17.5 19H9A7 7 0 0 1 5.79 5.78\"/><path d=\"m2 2 20 20\"/></svg><span>Sin conexión: no cierres la app hasta enviar</span></span></div>",
+      "css": ".ds-sync-demo { display: grid; gap: 8px; max-width: 220px; } .ds-sync { display: inline-flex; min-width: 0; max-width: 100%; align-items: flex-start; gap: 6px; font-family: var(--font-alegreya-sans, 'Alegreya Sans'), system-ui, sans-serif; font-size: 0.8125rem; font-weight: 500; line-height: 20px; letter-spacing: 0.01em; color: var(--ink-subtle, #6d665e); } .ds-sync svg { flex-shrink: 0; margin-top: 3px; } .ds-sync-warn { color: var(--amber-ink, #8a5708); }"
     }
   ],
   "narrative": {
     "northStar": "Warm Botanical Sanctuary: la Guía es un jardín compartido",
-    "overview": "PandaJR es un santuario cálido para una pareja que atraviesa un embarazo, a menudo de noche, con una mano y bajo estrés. Rechaza la estética clínica (azul hospital, gris frío, interfaces estériles) y los tropos visuales de la IA (neón, degradados púrpura, botones brillantes). El suelo es alabastro de día y obsidiana violeta de noche; la tinta es marrón cálido; hay dos acentos con oficio fijo: terracota para actuar y alarmar, sage para crecer y completar.\n\nLa ampliación de la fase 6 (2026-09-27) no reemplaza el mundo: lo lee como un jardín. El embarazo es una planta que crece semana a semana (la firma, `GrowingPlant`), la tipografía es Alegreya caligráfica para títulos y Alegreya Sans para la UI, y la estructura es de secciones con título y listas con divisores, no de tarjetas. Se rechaza la ficha fetal de categoría (número gigante, fruta, tarjetas apiladas) y la sopa de tarjetas.\n\nLa densidad es de lista tranquila: filas de 48px mínimo, texto de 16px, secundarias de 14px, divisores finos, mucho suelo entre secciones (40px). Lo urgente no se decora: sube arriba y se vuelve el botón más fuerte de la pantalla.",
+    "overview": "PandaJr es un santuario cálido para una pareja que atraviesa un embarazo, a menudo de noche, con una mano y bajo estrés. Rechaza la estética clínica (azul hospital, gris frío, interfaces estériles) y los tropos visuales de la IA (neón, degradados púrpura, botones brillantes). El suelo es alabastro de día y obsidiana violeta de noche; la tinta es marrón cálido; hay dos acentos con oficio fijo: terracota para actuar y alarmar, sage para crecer y completar.\n\nLa ampliación de la fase 6 (2026-09-27) no reemplaza el mundo: lo lee como un jardín. El embarazo es una planta que crece semana a semana (la firma, `GrowingPlant`), la tipografía es Alegreya caligráfica para títulos y Alegreya Sans para la UI, y la estructura es de secciones con título y listas con divisores, no de tarjetas. Se rechaza la ficha fetal de categoría (número gigante, fruta, tarjetas apiladas) y la sopa de tarjetas.\n\nLa densidad es de lista tranquila: filas de 48px mínimo, texto de 16px, secundarias de 14px, divisores finos, mucho suelo entre secciones (40px). Lo urgente no se decora: sube arriba y se vuelve el botón más fuerte de la pantalla.",
     "keyCharacteristics": [
       "Suelo cálido (nunca blanco puro en fondos largos) y modo oscuro violeta que sube en luminosidad, no invierte el claro.",
       "Terracota = acción y alarma; sage = crecimiento y completado; amber = solo avisos logísticos.",
@@ -131,13 +914,41 @@
       "Contraste de texto ≥4.5:1 en los dos temas; objetivos ≥44px, llamadas ≥56px."
     ],
     "rules": [
-      { "name": "The Two Voices Rule", "body": "Terracota es acción y alarma; sage es crecimiento y completado; amber es solo logística. Un color no cambia de oficio. La única excepción es el monograma de autor (`AuthorChip`): terracota para la mamá, sage para el papá, y vive solo ahí.", "section": "colors" },
-      { "name": "The Ink-For-Text Rule", "body": "Los tonos (`terracotta`, `sage`, `amber`) no llegan a 4.5:1: son relleno y decoración. Todo texto de color usa la tinta (`*-ink`); en oscuro la tinta de texto y la de relleno se separan (`--*-ink-fill`).", "section": "colors" },
-      { "name": "The Warm Ground Rule", "body": "Nunca `#ffffff` como fondo largo; el blanco puro solo es texto sobre relleno (`on-accent`). Ningún color fuera de la paleta (sky, emerald, blue, indigo, rose, stone…).", "section": "colors" },
-      { "name": "The Lining Figures Rule", "body": "Las dos Alegreya traen cifras de estilo antiguo; el body fija `lining-nums` y todo contador u hora que cambia añade `tabular-nums`.", "section": "typography" },
-      { "name": "The Thirteen Floor Rule", "body": "Nada por debajo de 13px. La escala de títulos sube en pasos ≥1.2 (16 → 20 → 24 → 30); títulos con `text-wrap: balance`, párrafos con `pretty`.", "section": "typography" },
-      { "name": "The Title Speaks Alone Rule", "body": "Sin eyebrows ni kickers en mayúsculas sobre un título; sin mayúsculas forzadas ni tracking amplio en etiquetas. Una etiqueta de estado va en `text-micro font-bold` con su tinta sobre su lavado, dentro de la fila. (Solo los códigos en mono llevan tracking.)", "section": "typography" },
-      { "name": "The Flat Ground Rule", "body": "Nada que viva en el flujo de la página lleva sombra; una sombra significa \"esto flota sobre la app\" o \"esta es la llamada de emergencia\".", "section": "elevation" }
+      {
+        "name": "The Two Voices Rule",
+        "body": "Terracota es acción y alarma; sage es crecimiento y completado; amber es solo logística. Un color no cambia de oficio. Las excepciones son el color por rol: el monograma de autor (`AuthorChip`) y el onboarding (botón principal y barra de progreso según el rol elegido) usan terracota para la mamá y sage para el papá. Es una seña de identidad del producto (la pareja desde la primera pantalla) y no se extiende a otros componentes.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ink-For-Text Rule",
+        "body": "Los tonos (`terracotta`, `sage`, `amber`) no llegan a 4.5:1: son relleno y decoración. Todo texto de color usa la tinta (`*-ink`); en oscuro la tinta de texto y la de relleno se separan (`--*-ink-fill`).",
+        "section": "colors"
+      },
+      {
+        "name": "The Warm Ground Rule",
+        "body": "Nunca `#ffffff` como fondo largo; el blanco puro solo es texto sobre relleno (`on-accent`). Ningún color fuera de la paleta (sky, emerald, blue, indigo, rose, stone…).",
+        "section": "colors"
+      },
+      {
+        "name": "The Lining Figures Rule",
+        "body": "Las dos Alegreya traen cifras de estilo antiguo; el body fija `lining-nums` y todo contador u hora que cambia añade `tabular-nums`.",
+        "section": "typography"
+      },
+      {
+        "name": "The Thirteen Floor Rule",
+        "body": "Nada por debajo de 13px. La escala de títulos sube en pasos ≥1.2 (16 → 20 → 24 → 30); títulos con `text-wrap: balance`, párrafos con `pretty`.",
+        "section": "typography"
+      },
+      {
+        "name": "The Title Speaks Alone Rule",
+        "body": "Sin eyebrows ni kickers en mayúsculas sobre un título; sin mayúsculas forzadas ni tracking amplio en etiquetas. Una etiqueta de estado va en `text-micro font-bold` con su tinta sobre su lavado, dentro de la fila. (Solo los códigos en mono llevan tracking.)",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Ground Rule",
+        "body": "Nada que viva en el flujo de la página lleva sombra; una sombra significa \"esto flota sobre la app\" o \"esta es la llamada de emergencia\".",
+        "section": "elevation"
+      }
     ],
     "dos": [
       "**Do** estructurar cada vista en `Section` + `ListGroup` + `ListRow`; usar `inset` solo para agrupar dentro de un fondo largo.",

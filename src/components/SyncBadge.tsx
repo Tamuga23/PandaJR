@@ -132,7 +132,9 @@ export function SyncBadge({
   const now = useMinuteTick(!!lastSyncedAt);
 
   // Rol micro (13px, peso 500) con caja de 20px: la misma altura que la línea reservada antes de hidratar.
-  const base = "inline-flex min-w-0 max-w-full items-center gap-1.5 text-micro font-medium leading-5";
+  // Si no cabe, el texto baja a otra línea en vez de cortarse (WCAG 1.4.10): el aviso sin conexión dice qué
+  // hacer y no puede perder el final. El icono queda alineado con la primera línea.
+  const base = "inline-flex min-w-0 max-w-full items-start gap-1.5 text-micro font-medium leading-5";
 
   // Antes de hidratar el perfil no sabemos si hay vínculo: reservamos la línea sin texto.
   if (!hasHydrated) {
@@ -176,8 +178,8 @@ export function SyncBadge({
   // el lector de pantalla lo anunciaría una y otra vez. Se lee al recorrer la página.
   return (
     <span className={`${base} ${tone}${className ? ` ${className}` : ""}`}>
-      <Icon size={14} strokeWidth={2} aria-hidden="true" className="shrink-0" />
-      <span className="truncate">
+      <Icon size={14} strokeWidth={2} aria-hidden="true" className="mt-[3px] shrink-0" />
+      <span className="min-w-0">
         <span role="status" aria-live="polite">{text}</span>
         {relative && <span> · {relative}</span>}
       </span>
