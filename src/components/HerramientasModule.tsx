@@ -39,7 +39,7 @@ import { formatDateShort, formatMoney, formatRelative, repairMojibake, toDateSaf
 import { LEGACY_SEED_NAMES, isLegacySeedKickSession, isLegacySeedNameItem, linkedFromLocalKey, localToSharedFlag } from "@/lib/seeds";
 import { AuthorChip } from "@/components/AuthorChip";
 import { CoupleMark, type Seat } from "@/components/CoupleMark";
-import { EASE_OUT_EXPO, canAnimate, playEmbrace } from "@/lib/motion";
+import { EASE_OUT_EXPO, canAnimate, playEmbrace, prefersReducedMotion } from "@/lib/motion";
 import { CheckGlyph } from "@/components/ui/CheckGlyph";
 import { SyncBadge, useOnline, usePartner } from "@/components/SyncBadge";
 import { CallActions, CrisisLineAction, EmergencyCallLink } from "@/components/CallActions";
@@ -55,9 +55,9 @@ import { PANDA_MARK_SRC } from "@/components/PandaMark";
 import { TOOL_LABEL, weekTools, type ToolId } from "@/lib/tools";
 import { ListGroup, ListRow, RowButton, Section, SectionAction } from "@/components/ui/List";
 import {
-  Activity, AlertTriangle, ArrowLeft, ArrowRight, Baby, CalendarClock, Camera, Check, CheckCircle, CheckCircle2,
+  Activity, AlertTriangle, ArrowDown, ArrowLeft, ArrowRight, Baby, CalendarClock, Camera, Check, CheckCircle, CheckCircle2,
   ChevronDown, ChevronRight, ChevronUp, CircleAlert, ClipboardList, Clock, CloudOff, Edit3, FileText, Flame, HeartHandshake,
-  Heart, HeartPulse, ImagePlus, Info, LoaderCircle, Minus, Moon, Music, Package, Pencil, Phone, PhoneCall, Play,
+  Heart, HeartPulse, ImagePlus, Info, Leaf, LoaderCircle, Minus, Moon, Music, Package, Pencil, Phone, PhoneCall, Play,
   Plus, Printer, RefreshCw, RotateCcw, Send, Share2, Siren, Sparkles, Square, Tag, Timer, Trash2, Undo2, Users, Utensils,
   Wallet, Wand2, Waves, Wind, X,
 } from "lucide-react";
@@ -821,11 +821,12 @@ const COMMON_DISCOMFORTS: {
 ];
 
 /**
- * SOS Síntomas: ruta de urgencia. Las señales urgentes son una lista estática siempre
- * visible (fuente única: URGENT_SIGNS en src/lib/urgency.ts) con las llamadas justo
- * debajo del título; después salud emocional (la señal de hacerse daño, con Emergencias y la línea de
- * crisis del país), "llama hoy" y, al final, molestias comunes.
- * La cabecera de la herramienta ya muestra "SOS Síntomas": aquí no se repite.
+ * SOS Síntomas: ruta de urgencia. Primero las llamadas (Principio 1: a un toque, también con zoom al
+ * 200 %) y un índice de la página; después las señales urgentes, una lista estática siempre visible
+ * (fuente única: URGENT_SIGNS en src/lib/urgency.ts), la salud emocional (la señal de hacerse daño, con
+ * Emergencias y la línea de crisis del país), "llama hoy" y, al final, molestias comunes.
+ * Vive en la herramienta de «Juntos» y en la hoja «Síntomas» de la cabecera (SintomasSheet), que ya
+ * muestran su título: aquí no se repite.
  */
 export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; onOpenTool?: (tool: SosLinkTool) => void }) {
   const [openDiscomfort, setOpenDiscomfort] = React.useState<string | null>(null);
@@ -902,11 +903,82 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
     return null;
   };
 
+  // Índice: cada quien salta a su sección sin leer antes las diez señales urgentes (la mayoría de las dudas
+  // de la noche son molestias comunes). El salto deja el foco en el título de la sección, para que teclado
+  // y lector de pantalla sigan desde ahí; con movimiento reducido no se desliza.
+  const urgentRef = React.useRef<HTMLHeadingElement>(null);
+  const moodRef = React.useRef<HTMLHeadingElement>(null);
+  const todayRef = React.useRef<HTMLHeadingElement>(null);
+  const discomfortRef = React.useRef<HTMLHeadingElement>(null);
+  const jumpTo = (target: React.RefObject<HTMLHeadingElement | null>) => {
+    const el = target.current;
+    if (!el) return;
+    el.scrollIntoView({ block: "start", behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    el.focus({ preventScroll: true });
+  };
+  // Las descripciones resumen las propias listas de abajo (nada que no esté en la sección); los puntos
+  // suspensivos solo cuando la lista sigue.
+  const discomfortSample =
+    COMMON_DISCOMFORTS.slice(0, 3)
+      .map((d, i) => (i === 0 ? d.title : d.title.charAt(0).toLocaleLowerCase("es") + d.title.slice(1)))
+      .join(", ") + (COMMON_DISCOMFORTS.length > 3 ? "…" : "");
+  const index: { ref: React.RefObject<HTMLHeadingElement | null>; title: string; meta: string; icon: React.ReactNode; tone?: "danger" }[] = [
+    {
+      ref: urgentRef,
+      title: isPapa ? "Vayan a urgencias ya" : "Ve a urgencias ya",
+      meta: "Sangrado, dolor fuerte, fiebre, menos movimientos…",
+      icon: <Siren size={20} strokeWidth={1.75} />,
+      tone: "danger",
+    },
+    {
+      ref: moodRef,
+      title: isPapa ? "Su salud emocional" : "Tu salud emocional",
+      meta: isPapa
+        ? "Tristeza o ansiedad casi todos los días, pensamientos de hacerse daño"
+        : "Tristeza o ansiedad casi todos los días, pensamientos de hacerte daño",
+      icon: <HeartHandshake size={20} strokeWidth={1.75} />,
+    },
+    {
+      ref: todayRef,
+      title: isPapa ? "Llama hoy a su obstetra" : "Llama hoy a tu obstetra",
+      // Las cuatro de CALL_TODAY_SIGNS (sin el ánimo, que va en la salud emocional).
+      meta: "Cambios en el flujo, ardor al orinar, picazón, cansancio que no mejora",
+      icon: <CalendarClock size={20} strokeWidth={1.75} />,
+    },
+    { ref: discomfortRef, title: "Molestias comunes", meta: discomfortSample, icon: <Leaf size={20} strokeWidth={1.75} /> },
+  ];
+
   return (
     <div className="mx-auto flex w-full max-w-lg flex-col gap-10 pb-8">
-      {/* Señales urgentes + llamadas */}
+      {/* Llamar, a un toque (Principio 1): lo primero, antes de cualquier texto; con zoom al 200 % sigue en
+          la primera pantalla. Debajo, el índice de la página. */}
+      <div>
+        <CallActions context="sos" />
+        <nav aria-label="Secciones de Síntomas" className="mt-6">
+          <ListGroup>
+            {index.map((s) => (
+              <ListRow
+                key={s.title}
+                onClick={() => jumpTo(s.ref)}
+                tone={s.tone}
+                leading={s.icon}
+                title={s.title}
+                meta={s.meta}
+                trailing={<ArrowDown size={18} strokeWidth={1.75} aria-hidden="true" />}
+              />
+            ))}
+          </ListGroup>
+        </nav>
+      </div>
+
+      {/* Señales urgentes */}
       <section aria-labelledby={`${baseId}-urgente`}>
-        <h3 id={`${baseId}-urgente`} className="flex items-center gap-2 font-display text-title text-terracotta-ink">
+        <h3
+          ref={urgentRef}
+          id={`${baseId}-urgente`}
+          tabIndex={-1}
+          className="flex scroll-mt-4 items-center gap-2 font-display text-title text-terracotta-ink"
+        >
           <Siren size={24} className="shrink-0" aria-hidden="true" />
           {isPapa ? "Vayan a urgencias ya" : "Ve a urgencias ya"}
         </h3>
@@ -916,9 +988,7 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
             : "Si tienes cualquiera de estas señales, llama a emergencias o ve al hospital ahora. No esperes a ver si se pasa."}
         </p>
 
-        <CallActions context="sos" className="mt-4" />
-
-        <ul className={`mt-6 ${bleedList}`}>
+        <ul className={`mt-3 ${bleedList}`}>
           {/* «Pensamientos de hacerte daño» va una sola vez, en «Tu salud emocional» (justo debajo), con
               Emergencias y la línea de crisis del país: aquí no se repite (R2 · paso 4). */}
           {URGENT_SIGNS.filter((sign) => sign.id !== "salud-mental").map((sign) => {
@@ -952,7 +1022,7 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
 
       {/* Salud emocional */}
       <section aria-labelledby={`${baseId}-emocional`}>
-        <h3 id={`${baseId}-emocional`} className={`flex items-center gap-2 ${blockTitle}`}>
+        <h3 ref={moodRef} id={`${baseId}-emocional`} tabIndex={-1} className={`flex scroll-mt-4 items-center gap-2 ${blockTitle}`}>
           <HeartHandshake size={22} className="shrink-0 text-sage-ink" aria-hidden="true" />
           {isPapa ? "Su salud emocional" : "Tu salud emocional"}
         </h3>
@@ -995,7 +1065,7 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
 
       {/* Llama hoy */}
       <section aria-labelledby={`${baseId}-hoy`}>
-        <h3 id={`${baseId}-hoy`} className={`flex items-center gap-2 ${blockTitle}`}>
+        <h3 ref={todayRef} id={`${baseId}-hoy`} tabIndex={-1} className={`flex scroll-mt-4 items-center gap-2 ${blockTitle}`}>
           <CalendarClock size={22} className="shrink-0 text-terracotta-ink" aria-hidden="true" />
           {isPapa ? "Llama hoy a su obstetra" : "Llama hoy a tu obstetra"}
         </h3>
@@ -1032,7 +1102,7 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
 
       {/* Molestias comunes (secundario) */}
       <section aria-labelledby={`${baseId}-molestias`}>
-        <h3 id={`${baseId}-molestias`} className={blockTitle}>
+        <h3 ref={discomfortRef} id={`${baseId}-molestias`} tabIndex={-1} className={`scroll-mt-4 ${blockTitle}`}>
           Molestias comunes
         </h3>
         <p className="mt-1 text-meta text-ink-muted">
@@ -1090,6 +1160,60 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
         </p>
       </section>
     </div>
+  );
+}
+
+/**
+ * «Síntomas» de la cabecera (y de donde se pida fuera de «Juntos»): la misma ruta de urgencia, como hoja
+ * sobre la pestaña en la que estás. Al cerrarla vuelves exactamente a donde estabas; antes te llevaba a
+ * «Juntos» y «Volver» no te regresaba. Las llamadas quedan en la primera pantalla de la hoja, también con
+ * zoom al 200 %. Abrir un contador cierra la hoja y lleva a «Juntos» (`onOpenTool`).
+ */
+export function SintomasSheet({
+  profile,
+  onClose,
+  onOpenTool,
+}: {
+  profile?: UserProfile;
+  onClose: () => void;
+  onOpenTool?: (tool: SosLinkTool) => void;
+}) {
+  const titleId = React.useId();
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const { dialogProps } = useModalDialog({ open: true, onClose, labelledBy: titleId, initialFocusRef: panelRef });
+  const { ref: dialogRef, ...dialogRest } = dialogProps;
+  const setPanel = useCallback(
+    (el: HTMLDivElement | null) => {
+      panelRef.current = el;
+      dialogRef(el);
+    },
+    [dialogRef]
+  );
+  return (
+    <ModalPortal>
+      <div className={`fixed inset-0 ${Z_CLASS.sheet} flex items-end justify-center sm:items-center sm:p-4`}>
+        <div className="absolute inset-0 bg-scrim" onClick={onClose} aria-hidden="true" />
+        <div
+          ref={setPanel}
+          {...dialogRest}
+          className="relative flex max-h-[min(92dvh,var(--sheet-max))] w-full max-w-lg flex-col rounded-t-3xl border border-line bg-surface-raised text-ink shadow-sheet outline-none sm:rounded-3xl"
+        >
+          <div className="flex items-start justify-between gap-3 border-b border-line px-5 pt-5 pb-4">
+            <div className="min-w-0">
+              <h2 id={titleId} className="font-display text-title text-ink">Síntomas</h2>
+              {/* Con zoom al 200 % cede su sitio a las llamadas (sigue para el lector de pantalla). */}
+              <p className="text-meta text-ink-muted max-[300px]:sr-only">Señales de alarma y a quién llamar</p>
+            </div>
+            <button type="button" onClick={onClose} aria-label="Cerrar Síntomas" className={dialogClose}>
+              <X size={20} aria-hidden="true" />
+            </button>
+          </div>
+          <div className="overflow-y-auto overscroll-contain px-5 pt-5 pb-[calc(1.25rem+var(--safe-bottom))] [--gutter:1.25rem]">
+            <SOSSintomas profile={profile} onOpenTool={onOpenTool} />
+          </div>
+        </div>
+      </div>
+    </ModalPortal>
   );
 }
 

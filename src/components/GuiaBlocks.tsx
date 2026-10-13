@@ -502,33 +502,46 @@ export function WeekHeader({
 // =====================================================================================
 
 /**
- * Cuándo llamar, según la semana (y en la voz de quien lee):
+ * Cuándo llamar, según la semana (y en la voz de quien lee), en dos partes: `lead` dice en qué punto
+ * están (va antes de las llamadas) y `detail` dice cuándo llamar (va después: llamar no espera a leer).
  * - 36: regla pretérmino (4 o más contracciones en una hora), no la 5-1-1.
  * - 37–40: regla 5-1-1.
  * - 41–42: término tardío / postérmino: seguir el plan de controles.
  * - Más de 42 + 6 (fecha dudosa): revisar la fecha; las señales que valen en cualquier semana.
  */
-export function laborReadyText(weeks: number, reader: Role, partnerName?: string, dateInDoubt = false): string {
+export function laborReadyParts(weeks: number, reader: Role, partnerName?: string, dateInDoubt = false): { lead: string; detail: string } {
   const isMama = reader === "mama";
   const her = partnerName?.trim() || "tu pareja";
   if (dateInDoubt) {
-    return isMama
-      ? "Revisa la fecha en Ajustes: con la fecha guardada serían más de 42 semanas. Mientras tanto, si se rompe la fuente, tienes sangrado o el bebé se mueve menos, llama ya a tu obstetra."
-      : `Revisa la fecha en Ajustes: con la fecha guardada serían más de 42 semanas. Mientras tanto, si a ${her} se le rompe la fuente, tiene sangrado o el bebé se mueve menos, llama ya a su obstetra.`;
+    return {
+      lead: "Revisa la fecha en Ajustes: con la fecha guardada serían más de 42 semanas.",
+      detail: isMama
+        ? "Mientras tanto, si se rompe la fuente, tienes sangrado o el bebé se mueve menos, llama ya a tu obstetra."
+        : `Mientras tanto, si a ${her} se le rompe la fuente, tiene sangrado o el bebé se mueve menos, llama ya a su obstetra.`,
+    };
   }
   if (weeks < 37) {
-    return isMama
-      ? `Semana ${weeks}: el parto se acerca. Llama a tu obstetra si se rompe la fuente, tienes sangrado, el bebé se mueve menos o tienes 4 o más contracciones en una hora: antes de la semana 37 no esperes a la regla 5-1-1 (contracciones cada 5 minutos, de 1 minuto, durante 1 hora).`
-      : `Semana ${weeks}: el parto se acerca. Llama a su obstetra si a ${her} se le rompe la fuente, tiene sangrado, el bebé se mueve menos o tiene 4 o más contracciones en una hora: antes de la semana 37 no esperen a la regla 5-1-1 (contracciones cada 5 minutos, de 1 minuto, durante 1 hora).`;
+    return {
+      lead: `Semana ${weeks}: el parto se acerca.`,
+      detail: isMama
+        ? "Llama a tu obstetra si se rompe la fuente, tienes sangrado, el bebé se mueve menos o tienes 4 o más contracciones en una hora: antes de la semana 37 no esperes a la regla 5-1-1 (contracciones cada 5 minutos, de 1 minuto, durante 1 hora)."
+        : `Llama a su obstetra si a ${her} se le rompe la fuente, tiene sangrado, el bebé se mueve menos o tiene 4 o más contracciones en una hora: antes de la semana 37 no esperen a la regla 5-1-1 (contracciones cada 5 minutos, de 1 minuto, durante 1 hora).`,
+    };
   }
   if (weeks <= 40) {
-    return isMama
-      ? `Semana ${weeks}: el parto puede empezar cualquier día. Llama a tu obstetra o ve al hospital si se rompe la fuente, tienes sangrado, el bebé se mueve menos o las contracciones llegan cada 5 minutos, duran 1 minuto y siguen así durante 1 hora.`
-      : `Semana ${weeks}: el parto puede empezar cualquier día. Llama a su obstetra o vayan al hospital si a ${her} se le rompe la fuente, tiene sangrado, el bebé se mueve menos o las contracciones llegan cada 5 minutos, duran 1 minuto y siguen así durante 1 hora.`;
+    return {
+      lead: `Semana ${weeks}: el parto puede empezar cualquier día.`,
+      detail: isMama
+        ? "Llama a tu obstetra o ve al hospital si se rompe la fuente, tienes sangrado, el bebé se mueve menos o las contracciones llegan cada 5 minutos, duran 1 minuto y siguen así durante 1 hora."
+        : `Llama a su obstetra o vayan al hospital si a ${her} se le rompe la fuente, tiene sangrado, el bebé se mueve menos o las contracciones llegan cada 5 minutos, duran 1 minuto y siguen así durante 1 hora.`,
+    };
   }
-  return isMama
-    ? `Semana ${weeks}: ya pasó la fecha probable. Sigue el plan de controles de tu obstetra y llama si se rompe la fuente, tienes sangrado o el bebé se mueve menos.`
-    : `Semana ${weeks}: ya pasó la fecha probable. Sigan el plan de controles de su obstetra. Llama si a ${her} se le rompe la fuente, tiene sangrado o el bebé se mueve menos.`;
+  return {
+    lead: `Semana ${weeks}: ya pasó la fecha probable.`,
+    detail: isMama
+      ? "Sigue el plan de controles de tu obstetra y llama si se rompe la fuente, tienes sangrado o el bebé se mueve menos."
+      : `Sigan el plan de controles de su obstetra. Llama si a ${her} se le rompe la fuente, tiene sangrado o el bebé se mueve menos.`,
+  };
 }
 
 export function LaborReadyBlock({
@@ -547,27 +560,36 @@ export function LaborReadyBlock({
   onReviewDate?: () => void;
 }) {
   const dateInDoubt = typeof totalDays === "number" && totalDays > MAX_VALID_GESTATION_DAYS;
+  const { lead, detail } = laborReadyParts(weeks, reader, partnerName, dateInDoubt);
   return (
     // Solo el criterio y las llamadas: así la planta, la semana y el inicio de «Hoy» caben en la primera
     // pantalla (390×844). Cronometrar y la maleta viven en «Hoy» («Para el parto»); las señales de alarma,
-    // en «Síntomas» de la cabecera. ≥1280px: texto a la izquierda y llamadas a la derecha.
-    <section aria-labelledby="guia-labor-title" className="xl:grid xl:grid-cols-2 xl:items-start xl:gap-x-16">
-      <div>
-        <div>
-          <h2 id="guia-labor-title" className="font-display text-title text-ink">
-            ¿Es la hora?
-          </h2>
-          <p className="mt-1.5 text-body text-ink">{laborReadyText(weeks, reader, partnerName, dateInDoubt)}</p>
-        </div>
+    // en «Síntomas» de la cabecera. Orden: en qué punto están → llamar → cuándo llamar. Llamar no espera a
+    // leer: con zoom al 200 % (195px) Emergencias sigue en la primera pantalla. ≥1280px: texto a la
+    // izquierda y llamadas a la derecha (el DOM conserva el orden de lectura).
+    // La primera fila mide lo que su texto (auto); la segunda absorbe el alto de las llamadas (1fr): así el
+    // criterio sigue justo debajo de la frase de la semana y no deja un hueco.
+    <section aria-labelledby="guia-labor-title" className="xl:grid xl:grid-cols-2 xl:grid-rows-[auto_1fr] xl:items-start xl:gap-x-16">
+      <div className="xl:col-start-1 xl:row-start-1">
+        <h2 id="guia-labor-title" className="font-display text-title text-ink">
+          ¿Es la hora?
+        </h2>
+        <p className="mt-1.5 text-body text-ink">{lead}</p>
+      </div>
+      {/* Llamar, a un toque (Principio 1): la acción más fuerte de la pantalla, fuera de cualquier lista.
+          Antes de la 37 manda la regla pretérmino. */}
+      <CallActions
+        context={weeks >= 37 ? "contracciones" : "pretermino"}
+        className="mt-3 xl:col-start-2 xl:row-span-2 xl:row-start-1 xl:mt-1"
+      />
+      <div className="mt-4 xl:col-start-1 xl:row-start-2 xl:mt-1.5">
+        <p className="text-body text-ink">{detail}</p>
         {dateInDoubt && onReviewDate && (
           <button type="button" onClick={onReviewDate} className={`mt-1 -mx-2 ${TEXT_ACTION} underline`}>
             Revisar la fecha
           </button>
         )}
       </div>
-      {/* Llamar, a un toque (Principio 1): la acción más fuerte de la pantalla, fuera de cualquier lista.
-          Antes de la 37 manda la regla pretérmino. */}
-      <CallActions context={weeks >= 37 ? "contracciones" : "pretermino"} className="mt-3 xl:mt-1" />
     </section>
   );
 }

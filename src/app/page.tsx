@@ -1,7 +1,7 @@
 "use client";
 
 import { AgendaView, AppointmentPrepModal, parseEventDate } from "@/components/AgendaModule";
-import { HerramientasView } from "@/components/HerramientasModule";
+import { HerramientasView, SintomasSheet } from "@/components/HerramientasModule";
 import React, { useState, useEffect, useRef, useCallback, useSyncExternalStore } from "react";
 import { usePandaStore, type ThemePreference } from "@/store/usePandaStore";
 import { ModalPortal } from "@/components/ModalPortal";
@@ -2138,13 +2138,21 @@ export default function PandaJrApp() {
   // Pide a Herramientas que abra una herramienta concreta (ej. 'sos'); el nonce permite repetir la petición.
   const [toolOpenRequest, setToolOpenRequest] = useState<{ tool: string; nonce: number } | undefined>(undefined);
 
-  /** Abre una herramienta concreta (SOS, Contracciones, Maleta…) desde cualquier pestaña. */
+  // «Síntomas» (la ruta de urgencia) es una capa de seguridad global: una hoja sobre la pestaña actual. Al
+  // cerrarla vuelves a donde estabas. En «Juntos», la fila SOS sigue abriendo la herramienta en su sitio.
+  const [symptomsOpen, setSymptomsOpen] = useState(false);
+
+  /** Abre una herramienta concreta (Contracciones, Maleta…) desde cualquier pestaña; SOS, como hoja. */
   const openTool = (tool: string) => {
+    if (tool === "sos") {
+      setSymptomsOpen(true);
+      return;
+    }
     setActiveTab("herramientas");
     setToolOpenRequest({ tool, nonce: Date.now() });
     window.scrollTo({ top: 0 });
   };
-  const openSymptoms = () => openTool("sos");
+  const openSymptoms = () => setSymptomsOpen(true);
   // Ajustes abiertos directamente en "Fecha" (desde "Confirmar mi fecha" de la Guía).
   const [settingsFocusDating, setSettingsFocusDating] = useState(false);
   const openDateSettings = () => {
@@ -2604,6 +2612,7 @@ export default function PandaJrApp() {
             <button
               type="button"
               onClick={openSymptoms}
+              aria-haspopup="dialog"
               aria-label="Síntomas: señales de alarma y a quién llamar"
               className={`inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-line-strong px-3.5 text-meta font-bold text-ink transition-colors hover:bg-surface-hover max-[300px]:w-11 max-[300px]:px-0 ${FOCUS_RING}`}
             >
@@ -2814,6 +2823,17 @@ export default function PandaJrApp() {
           when={hugMoment.when}
           onReturn={returnHug}
           onClose={() => setHugMoment(null)}
+        />
+      )}
+
+      {symptomsOpen && (
+        <SintomasSheet
+          profile={profile}
+          onClose={() => setSymptomsOpen(false)}
+          onOpenTool={(tool) => {
+            setSymptomsOpen(false);
+            openTool(tool);
+          }}
         />
       )}
 

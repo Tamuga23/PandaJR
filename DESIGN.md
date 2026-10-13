@@ -346,13 +346,16 @@ La estructura de toda la app. Se lee en secciones con título y listas con divis
 ### Navigation
 - **Barra inferior (móvil):** cuatro destinos en rejilla sobre `ground`, filete superior `line`. Icono en un pozo de 56×32px; activo: pozo `terracotta-wash`, icono y etiqueta `terracotta-ink` bold, `aria-current="page"`; inactivo: `ink-muted`, hover `surface-hover`. Etiqueta `micro`; por debajo de 300px de ancho queda solo el icono (la etiqueta sigue como nombre accesible).
 - **Riel (escritorio):** la misma barra en columna de 96px a la izquierda, con los mismos estados.
-- **Cabecera:** `Wordmark` responsive como `<h1>` y, a la derecha, "Síntomas" (píldora contorno con icono terracota), avisos y ajustes como botones redondos de 44px. Por debajo de 300px (zoom del 200%) "Síntomas" queda con su icono y la etiqueta sigue como nombre accesible, igual que en la barra.
+- **Cabecera:** `Wordmark` responsive como `<h1>` y, a la derecha, "Síntomas" (píldora contorno con icono terracota, abre la hoja de Síntomas sobre la pestaña actual), avisos y ajustes como botones redondos de 44px. Por debajo de 300px (zoom del 200%) "Síntomas" queda con su icono y la etiqueta sigue como nombre accesible, igual que en la barra.
 
 ### Ruta de urgencia (`src/components/CallActions.tsx`)
 - **Emergencias siempre es la acción más fuerte:** relleno `terracotta-ink`, texto `on-accent` 18px bold, alto ≥56px, radio 16px, halo terracota, pozo de icono `on-accent` al 15%. Número con `tabular-nums`; si la región no está confirmada, una nota `meta` pide revisarlo.
 - **Secundarias** (obstetra, hospital): `surface-raised` con borde `line-strong`, ≥56px (48px en compacto), pozo de icono `sage-wash`/`sage-ink` o `surface-sunken`. "Agregar teléfono" usa borde discontinuo `line-control`.
 - **Pressed:** `scale(0.98)`, anulado con movimiento reducido. Con el botón muy estrecho (zoom 200%) los iconos ceden su sitio a la etiqueta (consultas `@container`); el texto nunca se trunca.
-- Desde la semana 36, "¿Es la hora?" sube a lo alto de la Guía con estas acciones.
+- **La llamada antes del texto.** Llamar no espera a leer, y Emergencias queda en la primera pantalla también con zoom al 200 % (195px):
+  - **«¿Es la hora?»:** desde la semana 36 sube a lo alto de la Guía. Va el título, una frase de en qué punto están («Semana 37: el parto puede empezar cualquier día.»), las llamadas y, después, el criterio de cuándo llamar (`laborReadyParts`). Desde `xl` el texto va a la izquierda y las llamadas a la derecha, con el mismo orden de lectura.
+  - **Síntomas (`SOSSintomas`):** primero las llamadas y debajo un índice de cuatro filas con su descripción: «Ve a urgencias ya» (tono `danger`), «Tu salud emocional», «Llama hoy a tu obstetra» y «Molestias comunes». Cada fila lleva a su sección y deja el foco en su título. Las descripciones resumen la propia lista, y los puntos suspensivos solo aparecen cuando la lista sigue.
+- **«Síntomas» de la cabecera es una hoja** (`SintomasSheet`) sobre la pestaña actual. También se abre así desde PandaIA y desde cualquier `openTool("sos")`. Al cerrarla vuelves al mismo punto y el foco regresa al botón. En «Juntos», la fila SOS sigue abriendo la herramienta en su sitio.
 
 ### Hojas y diálogos (`useModalDialog` + `ModalPortal`)
 - **Visual:** `surface-raised`, borde `line`, radio 24px, sombra de hoja o de diálogo; en móvil las hojas suben desde abajo, en `sm+` se centran.
@@ -417,6 +420,7 @@ La app se siente viva porque responde, no porque se decore.
 - **Do** mantener todo texto ≥4.5:1 y todo borde de control ≥3:1 en claro y en oscuro; medir antes de añadir un par nuevo.
 - **Do** dar a cada objetivo táctil ≥44px de alto (filas ≥48px, llamadas ≥56px) y un foco visible `terracotta-ink` de 2px.
 - **Do** dejar "Emergencias" como el botón más fuerte de cualquier pantalla donde aparece.
+- **Do** poner la llamada antes del texto en toda ruta de urgencia, y comprobar que con zoom al 200 % (195px) siga en la primera pantalla.
 - **Do** montar todo diálogo con `ModalPortal` + `useModalDialog` y su capa de `layers.ts`.
 - **Do** usar iconos lucide con trazo 1.75 y `tabular-nums` en contadores y horas.
 - **Do** regenerar los rasters de marca con `scripts/brand/` cuando cambie un token del panda o del suelo.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-13T04:53:46.779Z",
+  "generatedAt": "2026-10-13T13:19:55.402Z",
   "title": "Design System: PandaJr",
   "extensions": {
     "colorMeta": {
@@ -1001,6 +1001,7 @@
       "**Do** mantener todo texto ≥4.5:1 y todo borde de control ≥3:1 en claro y en oscuro; medir antes de añadir un par nuevo.",
       "**Do** dar a cada objetivo táctil ≥44px de alto (filas ≥48px, llamadas ≥56px) y un foco visible `terracotta-ink` de 2px.",
       "**Do** dejar \"Emergencias\" como el botón más fuerte de cualquier pantalla donde aparece.",
+      "**Do** poner la llamada antes del texto en toda ruta de urgencia, y comprobar que con zoom al 200 % (195px) siga en la primera pantalla.",
       "**Do** montar todo diálogo con `ModalPortal` + `useModalDialog` y su capa de `layers.ts`.",
       "**Do** usar iconos lucide con trazo 1.75 y `tabular-nums` en contadores y horas.",
       "**Do** regenerar los rasters de marca con `scripts/brand/` cuando cambie un token del panda o del suelo."
