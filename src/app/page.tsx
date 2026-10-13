@@ -3567,6 +3567,8 @@ interface ChatMessage {
 }
 
 const CHAT_TIMEOUT_MS = 45000;
+/** Mismo texto que el 429 de /api/chat: el cupo de Gemini es de toda la app, no culpa de quien pregunta. */
+const CHAT_RATE_LIMITED = "PandaIA está recibiendo muchas consultas en este momento. Espera un minuto y vuelve a intentarlo.";
 
 // Respuesta de /api/chat (también en 4xx/5xx trae `reply` y, si aplica, `urgency`).
 type ChatApiResponse = {
@@ -4073,6 +4075,8 @@ function PandaIAView({
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), CHAT_TIMEOUT_MS);
+    // 429: Gemini sin cupo por un momento (es de toda la app): el aviso dice que espere, no que falló.
+    let rateLimited = false;
 
     try {
       const response = await fetch("/api/chat", {
@@ -4112,6 +4116,7 @@ function PandaIAView({
       }
 
       const reply = typeof data?.reply === "string" ? data.reply.trim() : "";
+      rateLimited = response.status === 429;
       if (!response.ok || !data || !reply) {
         throw new Error("PandaIA respondió " + response.status);
       }
@@ -4151,14 +4156,14 @@ function PandaIAView({
         id: makeId(),
         sender: "ai",
         kind: "error",
-        text: "PandaIA no pudo responder esta vez.",
+        text: rateLimited ? CHAT_RATE_LIMITED : "PandaIA no pudo responder esta vez.",
         retryText: text,
         sourceId,
         retrySuggestion: source === "suggestion",
         hadAlarm: urgencyShown,
         offline
       }]);
-      setAnnouncement(`PandaIA no pudo responder esta vez.${offline ? " Parece que no tienes conexión a internet." : ""} Si es urgente, llama a emergencias.`);
+      setAnnouncement(`${rateLimited ? CHAT_RATE_LIMITED : "PandaIA no pudo responder esta vez."}${offline ? " Parece que no tienes conexión a internet." : ""} Si es urgente, llama a emergencias.`);
     } finally {
       clearTimeout(timeout);
       setIsTyping(false);
