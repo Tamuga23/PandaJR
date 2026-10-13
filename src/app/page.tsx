@@ -48,7 +48,7 @@ import { AvisosBell, AvisosSheet, HugMoment, type NextAppointment } from "@/comp
 import { formatDateShort, formatDayCountdown, formatRelative, repairMojibake } from "@/lib/format";
 import { isLegacySeedEvent, linkedFromLocalKey, localToSharedFlag } from "@/lib/seeds";
 import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, ChevronRight, ChevronLeft, HeartPulse, Baby, Info, ChevronDown, ChevronUp, Sparkles, Heart, X, Users, AlertTriangle, AlertCircle, FileText, Settings, Paperclip, Share2, RotateCcw, RotateCw, Stethoscope, PhoneCall, Check, Copy, Edit3, Sun, Moon, SunMoon, RefreshCw, UserMinus, Lightbulb, CalendarCheck, CalendarClock, CalendarX, Smartphone, Sprout, KeyRound, HeartHandshake } from "lucide-react";
-import { CallActions, EmergencyCallLink } from "@/components/CallActions";
+import { CallActions } from "@/components/CallActions";
 import { CareTeamSheet } from "@/components/CareTeamForm";
 import { AccountSheet } from "@/components/AccountSheet";
 import { useAccount } from "@/lib/useAccount";
@@ -4089,7 +4089,7 @@ function PandaIAView({
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [smartChips, setSmartChips] = useState<string[]>(() => getContextualChips(chatWeek, profile.role));
   const [isUltrasoundModalOpen, setIsUltrasoundModalOpen] = useState(false);
-  const messagesEndRef = React.useRef<HTMLDivElement>(null);
+  const chatScrollRef = React.useRef<HTMLElement>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   // Ids crecientes (por encima de los restaurados): el mensaje del usuario y la tarjeta de urgencia se crean en el mismo instante.
   const [initialMaxId] = useState(() => messages.reduce((max, m) => Math.max(max, m.id), 1));
@@ -4112,19 +4112,18 @@ function PandaIAView({
   // Semana para las reglas clínicas: sin confirmar (o de relleno) → undefined (aplican todas las señales).
   const ruleWeek = clinicalWeek(profile);
 
-  // Auto-scroll al recibir o enviar mensajes
+  // Auto-scroll al recibir o enviar mensajes. Solo se desplaza la conversación: scrollIntoView movía también
+  // los contenedores de arriba (overflow-hidden también se desplaza por código) y, tras un error y una
+  // alarma, la cabecera de PandaIA quedaba 63 px fuera de la vista sin forma de volver.
   useEffect(() => {
-    const reduceMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    const behavior: ScrollBehavior = reduceMotion ? "auto" : "smooth";
+    const sc = chatScrollRef.current;
+    if (!sc) return;
+    const behavior: ScrollBehavior = prefersReducedMotion() ? "auto" : "smooth";
     const anchorId = urgencyAnchorRef.current;
-    if (anchorId !== null) {
-      const anchor = document.getElementById(`pandaia-msg-${anchorId}`);
-      if (anchor) {
-        anchor.scrollIntoView({ block: "start", behavior });
-        return;
-      }
-    }
-    messagesEndRef.current?.scrollIntoView({ behavior });
+    const anchor = anchorId !== null ? document.getElementById(`pandaia-msg-${anchorId}`) : null;
+    // La tarjeta de urgencia queda arriba (con el respiro del padding); si no, el final de la conversación.
+    const top = anchor ? sc.scrollTop + anchor.getBoundingClientRect().top - sc.getBoundingClientRect().top - 16 : sc.scrollHeight;
+    sc.scrollTo({ top, behavior });
   }, [messages, isTyping]);
 
   // Actualizar chips cuando cambia el perfil o semana
@@ -4327,18 +4326,19 @@ function PandaIAView({
       // Fallo esperado y manejado (sin red, 503, timeout): warn, no error.
       console.warn("PandaIA no respondió:", err);
       const offline = typeof navigator !== "undefined" && navigator.onLine === false;
+      const errorText = rateLimited ? CHAT_RATE_LIMITED : "No pude responder ahora.";
       setMessages(prev => [...prev, {
         id: makeId(),
         sender: "ai",
         kind: "error",
-        text: rateLimited ? CHAT_RATE_LIMITED : "PandaIA no pudo responder esta vez.",
+        text: errorText,
         retryText: text,
         sourceId,
         retrySuggestion: source === "suggestion",
         hadAlarm: urgencyShown,
         offline
       }]);
-      setAnnouncement(`${rateLimited ? CHAT_RATE_LIMITED : "PandaIA no pudo responder esta vez."}${offline ? " Parece que no tienes conexión a internet." : ""} Si es urgente, llama a emergencias.`);
+      setAnnouncement(`PandaIA: ${errorText}${offline ? " Parece que no tienes conexión a internet." : ""}${urgencyShown ? " Si es urgente, usa los botones de llamada de arriba." : " Puedes reintentar."}`);
     } finally {
       clearTimeout(timeout);
       setIsTyping(false);
@@ -4447,6 +4447,7 @@ function PandaIAView({
       {/* El contenedor no es región viva: anunciaría también cada botón de llamada. */}
       <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">{announcement}</div>
       <section
+        ref={chatScrollRef}
         aria-label="Conversación con PandaIA"
         className="no-scrollbar flex flex-1 flex-col space-y-4 overflow-y-auto p-4 lg:px-8"
       >
@@ -4476,41 +4477,38 @@ function PandaIAView({
                 id={`pandaia-msg-${msg.id}`}
                 className="flex max-w-[88%] items-end gap-2"
               >
+                {/* Un fallo de red no es una alarma: tono sereno, icono neutro y Reintentar sin tono de peligro.
+                    El botón grande de Emergencias queda para el detector local (ChatUrgencyBubble), que funciona
+                    sin IA ni red; aquí, solo el camino a Síntomas, en el último fallo. */}
                 <div className="rounded-3xl rounded-bl-md border border-line bg-surface p-4 text-body text-ink">
-                  <p className="flex items-start gap-2 font-bold">
-                    <AlertCircle size={18} strokeWidth={1.75} className="mt-0.5 shrink-0 text-terracotta-ink" aria-hidden="true" />
+                  <p className="flex items-start gap-2">
+                    <AlertCircle size={18} strokeWidth={1.75} className="mt-0.5 shrink-0 text-ink-subtle" aria-hidden="true" />
                     <span>{msg.text}</span>
                   </p>
                   {msg.offline && (
                     <p className="mt-1 text-ink-muted">Parece que no tienes conexión a internet.</p>
                   )}
-                  {msg.hadAlarm ? (
+                  {msg.hadAlarm && (
                     <p className="mt-1 font-bold text-ink">Usa los botones de llamada de arriba si es urgente.</p>
-                  ) : index !== messages.length - 1 ? (
-                    // Fallos anteriores: el botón se queda solo en el último, para no repetirlo.
-                    <p className="mt-1 text-ink-muted">Si es urgente, llama a emergencias.</p>
-                  ) : (
-                    <div className="mt-3">
-                      <p className="font-bold text-ink">Si es urgente, no esperes:</p>
-                      <EmergencyCallLink className="mt-2" withNote compact />
-                      {onOpenSymptoms && (
-                        <button type="button" onClick={onOpenSymptoms} className={`mt-1 ${TEXT_ACTION}`}>
-                          Ver señales de alarma
+                  )}
+                  {(canRetry || (index === messages.length - 1 && !msg.hadAlarm && onOpenSymptoms)) && (
+                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1">
+                      {canRetry && (
+                        <RowButton
+                          onClick={() => handleSend(msg.retryText as string, { errorId: msg.id, sourceId: msg.sourceId as number }, msg.retrySuggestion ? "suggestion" : undefined)}
+                          disabled={isTyping}
+                        >
+                          <RotateCw size={16} strokeWidth={1.75} aria-hidden="true" />
+                          Reintentar
+                        </RowButton>
+                      )}
+                      {index === messages.length - 1 && !msg.hadAlarm && onOpenSymptoms && (
+                        <button type="button" onClick={onOpenSymptoms} aria-haspopup="dialog" className={TEXT_ACTION}>
+                          ¿Es urgente? Ver Síntomas
                           <ChevronRight size={16} strokeWidth={1.75} aria-hidden="true" />
                         </button>
                       )}
                     </div>
-                  )}
-                  {canRetry && (
-                    <RowButton
-                      tone="danger"
-                      onClick={() => handleSend(msg.retryText as string, { errorId: msg.id, sourceId: msg.sourceId as number }, msg.retrySuggestion ? "suggestion" : undefined)}
-                      disabled={isTyping}
-                      className="mt-2"
-                    >
-                      <RotateCw size={16} strokeWidth={1.75} aria-hidden="true" />
-                      Reintentar
-                    </RowButton>
                   )}
                 </div>
               </div>
@@ -4646,7 +4644,6 @@ function PandaIAView({
           </div>
         )}
 
-        <div ref={messagesEndRef} />
       </section>
 
       {/* Entrada: sugerencias por trimestre y campo de pregunta */}
