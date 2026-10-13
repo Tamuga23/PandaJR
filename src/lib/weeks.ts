@@ -418,7 +418,7 @@ export const WEEKS: readonly WeekInfo[] = [
     weightG: 2850,
     milestone: "Término temprano: el parto puede empezar en cualquier momento",
     forMom: "Repasa la regla 5-1-1: contracciones cada 5 minutos, que duran 1 minuto, durante 1 hora. Ante sangrado, salida de líquido o menos movimientos, no esperes: llama. Si no es tu primer parto, pregúntale a tu obstetra si debes salir antes.",
-    forDad: "Ten el teléfono cargado y con sonido, y acuerda en tu trabajo cómo avisarás si tienes que salir de golpe. Repasa la guía rápida para el acompañante del contador de contracciones.",
+    forDad: "Ten el teléfono cargado y con sonido, y acuerda en tu trabajo cómo avisarás si tienes que salir de golpe. Repasa la guía del acompañante en el contador de contracciones.",
     together: "Aprendan las señales de alarma después del parto (sangrado abundante, fiebre, dolor de cabeza fuerte, tristeza que no se va): también importan cuando el bebé ya nació.",
   },
   {

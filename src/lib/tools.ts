@@ -5,8 +5,11 @@
 
 export type ToolId = "sos" | "contracciones" | "patadas" | "maleta" | "parto" | "nombres" | "presupuesto" | "diario" | "reproductor" | "story";
 
-/** Destino de un enlace desde la Guía: una herramienta o la pestaña Agenda. */
-export type GuiaLinkTarget = ToolId | "agenda";
+/**
+ * Destino de un enlace desde la Guía: una herramienta, la pestaña Agenda o la «Guía del acompañante»
+ * (dentro de Contracciones: abre el contador directamente en esa sección).
+ */
+export type GuiaLinkTarget = ToolId | "agenda" | "acompanante";
 
 export const TOOL_LABEL: Record<ToolId, string> = {
   sos: "SOS Síntomas",
@@ -34,6 +37,7 @@ export const LINK_LABEL: Record<GuiaLinkTarget, string> = {
   reproductor: "Abrir Panda Audio",
   story: "Abrir PandaStory",
   agenda: "Abrir la Agenda",
+  acompanante: "Abrir la guía del acompañante",
 };
 
 /**
@@ -42,6 +46,8 @@ export const LINK_LABEL: Record<GuiaLinkTarget, string> = {
  * semanas × 2 roles de weeks.ts. Si hay varias, gana la que aparece antes en el texto.
  */
 const MISSION_LINKS: readonly (readonly [GuiaLinkTarget, RegExp])[] = [
+  // Antes que «contador de contracciones»: la misión de la semana 37 del papá nombra las dos y lleva a la guía.
+  ["acompanante", /gu[ií]a (?:r[aá]pida )?(?:para el|del) acompañante/i],
   ["presupuesto", /\bPresupuesto\b/],
   ["nombres", /\ben Nombres\b/],
   ["diario", /\bDiario\b/],
@@ -81,6 +87,7 @@ export function weekTools(week: number | undefined, missionText?: string | null)
               ? ["nombres", "presupuesto", "story"]
               : ["nombres", "presupuesto", "diario"];
   const fromMission = missionLink(missionText);
-  const first: ToolId[] = fromMission && fromMission !== "agenda" && fromMission !== "sos" ? [fromMission] : [];
+  const first: ToolId[] =
+    fromMission === "acompanante" ? ["contracciones"] : fromMission && fromMission !== "agenda" && fromMission !== "sos" ? [fromMission] : [];
   return [...first, ...base.filter((t) => !first.includes(t))].slice(0, 3);
 }

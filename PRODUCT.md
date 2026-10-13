@@ -52,7 +52,7 @@ Todo esto se apoya en contenido clínico alineado con guías públicas (ACOG, se
   - Estado de ánimo de la mamá, abrazos en las dos direcciones y «Avisos» con lo que hace la pareja.
   - Agenda médica con sugerencias según la semana y preparación de cita compartida.
   - SOS de síntomas.
-  - Contador de patadas y contador de contracciones.
+  - Contador de patadas y contador de contracciones. El de contracciones lleva la «Guía del acompañante» (antes de salir, durante, entre contracciones y cuándo llamar): abierta para el copiloto y plegada para la mamá. La misión del papá de la semana 37 lleva directo a ella.
   - Diario, votador de nombres, maleta, plan de parto, presupuesto, lecturas, audios y PandaStory compartible.
   - PandaIA.
 - **Alcance gestacional: semanas 1–42.** Decisión confirmada el 2026-09-26: se amplía de 1–40 para incluir el postérmino (41–42). Implementación pendiente.

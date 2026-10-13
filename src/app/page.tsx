@@ -2169,20 +2169,23 @@ export default function PandaJrApp() {
   const [selectedPrepEvent, setSelectedPrepEvent] = useState<AgendaEvent | null>(null);
   const [aiInitialQuery, setAiInitialQuery] = useState<string>("");
   // Pide a Herramientas que abra una herramienta concreta (ej. 'sos'); el nonce permite repetir la petición.
-  const [toolOpenRequest, setToolOpenRequest] = useState<{ tool: string; nonce: number } | undefined>(undefined);
+  const [toolOpenRequest, setToolOpenRequest] = useState<{ tool: string; nonce: number; section?: string } | undefined>(undefined);
 
   // «Síntomas» (la ruta de urgencia) es una capa de seguridad global: una hoja sobre la pestaña actual. Al
   // cerrarla vuelves a donde estabas. En «Juntos», la fila SOS sigue abriendo la herramienta en su sitio.
   const [symptomsOpen, setSymptomsOpen] = useState(false);
 
-  /** Abre una herramienta concreta (Contracciones, Maleta…) desde cualquier pestaña; SOS, como hoja. */
-  const openTool = (tool: string) => {
+  /**
+   * Abre una herramienta concreta (Contracciones, Maleta…) desde cualquier pestaña; SOS, como hoja.
+   * `section`: el id de una sección dentro de la herramienta (la guía del acompañante) para abrirla ahí.
+   */
+  const openTool = (tool: string, section?: string) => {
     if (tool === "sos") {
       setSymptomsOpen(true);
       return;
     }
     goToTab("herramientas", true);
-    setToolOpenRequest({ tool, nonce: Date.now() });
+    setToolOpenRequest({ tool, nonce: Date.now(), section });
   };
   const openSymptoms = () => setSymptomsOpen(true);
   // Ajustes abiertos directamente en "Fecha" (desde "Confirmar mi fecha" de la Guía).
@@ -3272,7 +3275,7 @@ function GuiaPapaView({
   events: AgendaEvent[];
   eventsLoading: boolean;
   onOpenPrep: (ev: AgendaEvent) => void;
-  onOpenTool: (tool: GuiaTool) => void;
+  onOpenTool: (tool: GuiaTool, section?: string) => void;
   onGoToAgenda: () => void;
 }) {
   const reader: "mama" | "papa" = profile.role === "papa" ? "papa" : "mama";
@@ -3625,7 +3628,13 @@ function GuiaPapaView({
           needsReview={dueDateNeedsReview}
           explorer={explorer}
           partnerName={partnerName}
-          onOpenLink={(target) => (target === "agenda" ? onGoToAgenda() : onOpenTool(target))}
+          onOpenLink={(target) =>
+            target === "agenda"
+              ? onGoToAgenda()
+              : target === "acompanante"
+                ? onOpenTool("contracciones", "guia-acompanante")
+                : onOpenTool(target)
+          }
         />
         <BotanicalRule className={rhythm.rule} />
       </div>

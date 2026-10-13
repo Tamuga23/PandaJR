@@ -1884,7 +1884,7 @@ const TOOL_ACTION: Record<ToolId, string> = {
   story: "Crear",
 };
 
-export function HerramientasView({ showToast, profile, openRequest, active = true, onRequestLink }: { showToast: ShowToast, profile?: UserProfile, openRequest?: { tool: string; nonce: number }; /** La pestaña está a la vista (el índice solo escucha datos entonces). */ active?: boolean; /** Abre la vinculación (botón de la cabecera cuando este teléfono no está vinculado). */ onRequestLink?: () => void }) {
+export function HerramientasView({ showToast, profile, openRequest, active = true, onRequestLink }: { showToast: ShowToast, profile?: UserProfile, openRequest?: { tool: string; nonce: number; section?: string }; /** La pestaña está a la vista (el índice solo escucha datos entonces). */ active?: boolean; /** Abre la vinculación (botón de la cabecera cuando este teléfono no está vinculado). */ onRequestLink?: () => void }) {
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const toolHeadingRef = useRef<HTMLHeadingElement>(null);
   const focusedRequestRef = useRef<number | null>(null);
@@ -1908,14 +1908,22 @@ export function HerramientasView({ showToast, profile, openRequest, active = tru
     if (requestedTool && OPENABLE_TOOLS.includes(requestedTool)) setActiveTool(requestedTool);
   }
 
-  // Ya abierta: vuelve arriba y lleva el foco al título de la herramienta (una vez por petición).
+  // Ya abierta: vuelve arriba y lleva el foco al título de la herramienta (una vez por petición). Si la
+  // petición nombra una sección (la guía del acompañante desde la misión del papá), lleva ahí.
+  const requestedSection = openRequest?.section;
   useEffect(() => {
     if (requestNonce === undefined || focusedRequestRef.current === requestNonce) return;
     if (!requestedTool || activeTool !== requestedTool) return;
     focusedRequestRef.current = requestNonce;
+    const section = requestedSection ? document.getElementById(requestedSection) : null;
+    if (section) {
+      section.scrollIntoView({ block: "start" });
+      section.focus({ preventScroll: true });
+      return;
+    }
     window.scrollTo({ top: 0 });
     toolHeadingRef.current?.focus({ preventScroll: true });
-  }, [activeTool, requestNonce, requestedTool]);
+  }, [activeTool, requestNonce, requestedTool, requestedSection]);
 
   // Antes del primer pintado de la vista nueva: así no se ve ni un cuadro a media página.
   useLayoutEffect(() => {
@@ -1945,7 +1953,9 @@ export function HerramientasView({ showToast, profile, openRequest, active = tru
     setActiveTool(null);
   };
 
-  const openToolFromSos = (tool: "patadas" | "contracciones") => {
+  // De una herramienta a otra (SOS → contadores, la guía del acompañante → Maleta): abre arriba y no toca
+  // la posición guardada del hub, que sigue siendo la de antes de entrar.
+  const jumpToTool = (tool: ToolId) => {
     pendingFocusRef.current = { to: "heading" };
     setActiveTool(tool);
   };
@@ -2008,9 +2018,9 @@ export function HerramientasView({ showToast, profile, openRequest, active = tru
         <div className="flex-1 overflow-y-auto px-[var(--gutter)] py-4 lg:px-8">
           {activeTool === 'diario' && profile && <DiarioView profile={profile} showToast={showToast} />}
           {activeTool === 'maleta' && profile && <MaletaView profile={profile} />}
-          {activeTool === 'sos' && <SOSSintomas profile={profile} onOpenTool={openToolFromSos} />}
+          {activeTool === 'sos' && <SOSSintomas profile={profile} onOpenTool={jumpToTool} />}
           {activeTool === 'patadas' && <ContadorPatadas showToast={showToast} profile={profile} />}
-          {activeTool === 'contracciones' && <ContadorContracciones showToast={showToast} profile={profile} />}
+          {activeTool === 'contracciones' && <ContadorContracciones showToast={showToast} profile={profile} onOpenTool={jumpToTool} />}
           {activeTool === 'nombres' && <VotadorNombres showToast={showToast} />}
           {activeTool === 'parto' && <PlanParto profile={profile} showToast={showToast} />}
           {activeTool === 'lecturas' && <LecturasView profile={profile} />}
@@ -2961,7 +2971,164 @@ function loadActiveContraction(): number | null {
   return age >= 0 && age <= ACTIVE_CONTRACTION_MAX_MS ? t : null;
 }
 
-export function ContadorContracciones({ showToast, profile }: { showToast: ShowToast, profile?: UserProfile }) {
+/**
+ * «Guía del acompañante»: qué tener listo, cómo acompañar durante y entre contracciones, y cuándo llamar o
+ * ir ya. Siempre a la vista para el copiloto (su misión de la semana 37 lo manda aquí; antes solo existía
+ * tras registrar una contracción) y plegada para la mamá, en su voz, para enseñársela o pasarle el teléfono.
+ * Los criterios son los mismos que dice el resto de la app («¿Es la hora?», las alertas del contador).
+ */
+function CompanionGuide({ isPapa, her, onOpenMaleta }: { isPapa: boolean; her: string; onOpenMaleta?: () => void }) {
+  const [open, setOpen] = useState(isPapa);
+  const baseId = React.useId();
+  const blocks: { title: string; items: string[]; maleta?: boolean }[] = isPapa
+    ? [
+        {
+          title: "Antes de salir",
+          items: [
+            `Ten el teléfono cargado y con sonido, y los números de su obstetra y del hospital a mano.`,
+            "Conozcan la ruta al hospital y cuánto tardan a distintas horas del día.",
+            "La maleta, lista junto a la puerta.",
+          ],
+          maleta: true,
+        },
+        {
+          title: "Durante la contracción",
+          items: [
+            `Toca el botón al empezar y al terminar: tú llevas el tiempo para que ${her} no tenga que mirar el teléfono.`,
+            "Acompáñala con tu presencia: respiren juntos y háblale poco, con calma.",
+            "Si te lo pide, contrapresión firme con el talón de la mano en el sacro (espalda baja).",
+          ],
+        },
+        {
+          title: "Entre contracciones",
+          items: [
+            "Ofrece un sorbo pequeño de agua fresca o bálsamo labial.",
+            "Recuérdale soltar la mandíbula y los hombros.",
+            "Con voz serena: «Respira profundo, lo estás haciendo genial».",
+          ],
+        },
+        {
+          title: "Cuándo llamar o ir ya",
+          items: [
+            "Antes de la semana 37: si tiene 4 o más contracciones en una hora, llama a su obstetra.",
+            "Desde la semana 37: si las contracciones llegan cada 5 minutos, duran 1 minuto y siguen así durante 1 hora (la regla 5-1-1), llama a su obstetra o vayan al hospital.",
+            `Si a ${her} se le rompe la fuente, tiene sangrado o el bebé se mueve menos, no esperen a contar: llama ya.`,
+          ],
+        },
+      ]
+    : [
+        {
+          title: "Antes de salir",
+          items: [
+            "Tener el teléfono cargado y con sonido, y los números de tu obstetra y del hospital a mano.",
+            "Conocer la ruta al hospital y cuánto tardan a distintas horas del día.",
+            "Dejar la maleta lista junto a la puerta.",
+          ],
+          maleta: true,
+        },
+        {
+          title: "Durante la contracción",
+          items: [
+            "Llevar el tiempo con el botón, para que no tengas que mirar el teléfono.",
+            "Acompañarte con su presencia: respirar contigo y hablarte poco, con calma.",
+            "Si se lo pides, hacer contrapresión firme con el talón de la mano en tu sacro (espalda baja).",
+          ],
+        },
+        {
+          title: "Entre contracciones",
+          items: [
+            "Ofrecerte un sorbo pequeño de agua fresca o bálsamo labial.",
+            "Recordarte soltar la mandíbula y los hombros.",
+            "Decirte con voz serena: «Respira profundo, lo estás haciendo genial».",
+          ],
+        },
+        {
+          title: "Cuándo llamar o ir ya",
+          items: [
+            "Antes de la semana 37: si tienes 4 o más contracciones en una hora, llama a tu obstetra.",
+            "Desde la semana 37: si las contracciones llegan cada 5 minutos, duran 1 minuto y siguen así durante 1 hora (la regla 5-1-1), llama a tu obstetra o ve al hospital.",
+            "Si se rompe la fuente, tienes sangrado o el bebé se mueve menos, no esperes a contar: llama ya.",
+          ],
+        },
+      ];
+
+  const body = (
+    <div className="mt-4 space-y-5">
+      {blocks.map((b) => (
+        <div key={b.title}>
+          <h4 className="text-body font-bold text-ink">{b.title}</h4>
+          <ul className="mt-1.5 list-disc space-y-1 ps-5 text-meta text-ink-muted marker:text-sage-ink">
+            {b.items.map((t) => (
+              <li key={t}>{t}</li>
+            ))}
+          </ul>
+          {b.maleta && onOpenMaleta && (
+            <button
+              type="button"
+              onClick={onOpenMaleta}
+              className={`mt-1 -ms-1 inline-flex min-h-11 items-center gap-1 rounded-lg px-1 text-meta font-bold text-terracotta-ink underline-offset-4 hover:underline ${sosFocusRing}`}
+            >
+              Revisar la maleta
+              <ChevronRight size={16} aria-hidden="true" />
+            </button>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+
+  if (isPapa) {
+    return (
+      <section aria-labelledby="guia-acompanante">
+        {/* id fijo: la misión de la semana 37 abre el contador directamente aquí (openRequest.section). */}
+        <h3 id="guia-acompanante" tabIndex={-1} className={`flex scroll-mt-4 items-center gap-2 ${blockTitle}`}>
+          <HeartHandshake size={22} className="shrink-0 text-sage-ink" aria-hidden="true" />
+          Guía del acompañante
+        </h3>
+        <p className="mt-1 text-meta text-ink-muted">Para repasar antes del parto y tener a mano durante.</p>
+        {body}
+      </section>
+    );
+  }
+  return (
+    <section aria-labelledby={`${baseId}-t`}>
+      <h3 id={`${baseId}-t`} className={blockTitle}>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={`${baseId}-panel`}
+          onClick={() => setOpen((v) => !v)}
+          className={`flex min-h-12 w-full items-center justify-between gap-3 rounded-lg text-left ${sosFocusRing}`}
+        >
+          <span className="flex items-center gap-2">
+            <HeartHandshake size={22} className="shrink-0 text-sage-ink" aria-hidden="true" />
+            Lo que puede hacer tu acompañante
+          </span>
+          <ChevronDown
+            size={20}
+            aria-hidden="true"
+            className={`shrink-0 text-ink-subtle transition-transform duration-200 motion-reduce:transition-none ${open ? "rotate-180" : ""}`}
+          />
+        </button>
+      </h3>
+      <div id={`${baseId}-panel`} hidden={!open}>
+        <p className="mt-1 text-meta text-ink-muted">Enséñale esta lista o pásale el teléfono: así sabe cómo ayudarte.</p>
+        {body}
+      </div>
+    </section>
+  );
+}
+
+export function ContadorContracciones({
+  showToast,
+  profile,
+  onOpenTool,
+}: {
+  showToast: ShowToast;
+  profile?: UserProfile;
+  /** Otra herramienta de «Juntos» desde aquí (la Maleta, desde la guía del acompañante). */
+  onOpenTool?: (tool: ToolId) => void;
+}) {
   const week = knownWeek(profile);
   const me = useMe();
   const { isPapa, her, Her } = companionVoice(me);
@@ -3266,6 +3433,8 @@ export function ContadorContracciones({ showToast, profile }: { showToast: ShowT
           </div>
         </div>
       )}
+
+      <CompanionGuide isPapa={isPapa} her={her} onOpenMaleta={onOpenTool ? () => onOpenTool("maleta") : undefined} />
 
       {/* Dónde vive el historial y avisos de guardado */}
       <div className="flex flex-col gap-2">
