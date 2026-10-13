@@ -28,6 +28,9 @@ import {
   listenToChecklistProgress,
   sendNudge,
   listenToNudges,
+  logActivity,
+  listenToActivity,
+  type Activity,
   currentUid,
   readAccessLink,
   PAIRING_MESSAGES,
@@ -40,6 +43,7 @@ import {
 } from "@/lib/firebase/pairing";
 import { SyncBadge, useOnline, usePartner, type PartnerInfo } from "@/components/SyncBadge";
 import { AuthorChip } from "@/components/AuthorChip";
+import { AvisosBell, AvisosSheet, HugMoment, type NextAppointment } from "@/components/Avisos";
 import { formatDateShort, formatDayCountdown, formatRelative, repairMojibake } from "@/lib/format";
 import { isLegacySeedEvent, linkedFromLocalKey, localToSharedFlag } from "@/lib/seeds";
 import { Compass, Calendar, Bot, Send, CheckCircle2, Circle, ChevronRight, ChevronLeft, HeartPulse, Baby, Info, ChevronDown, ChevronUp, Sparkles, Heart, X, Users, AlertTriangle, AlertCircle, FileText, Settings, Paperclip, Share2, RotateCcw, RotateCw, Stethoscope, PhoneCall, Check, Copy, Edit3, Sun, Moon, SunMoon, RefreshCw, UserMinus, Lightbulb, CalendarCheck, CalendarClock, CalendarX, Smartphone, Sprout, KeyRound, HeartHandshake } from "lucide-react";
@@ -175,6 +179,8 @@ const LS_LAST_PREGNANCY = "pandajr_last_pregnancy";
 type LastPregnancy = { pid: string; inviteCode?: string };
 /** Último abrazo recibido y ya mostrado, por embarazo (para mostrar los que llegaron con la app cerrada). */
 const nudgeSeenKey = (pid: string) => `pandajr_nudge_seen_${pid}`;
+/** Hasta cuándo se leyeron los «Avisos» en este teléfono (ms), por embarazo: lo posterior cuenta como nuevo. */
+const avisosSeenKey = (pid: string) => `pandajr_avisos_seen_${pid}`;
 const NUDGE_LOOKBACK_MS = 48 * 60 * 60 * 1000;
 const chatStorageKey = (pid?: string) => `pandajr_chat_${pid || "local"}`;
 const CHAT_MAX_STORED = 60;
@@ -1915,12 +1921,12 @@ function opReflected(list: AgendaEvent[], key: string, op: PendingEventOp): bool
 }
 
 /**
- * Botón «Preparar cita» del encabezado (R2 · paso 5: CalendarClock, antes una campana que hacía pensar en
- * avisos). Solo aparece con una cita FUTURA (nunca cae a una pasada).
- * Punto fijo, sin parpadeo, cuando la cita es en 48 h o menos; si no, estado neutro.
- * Las citas sin hora cuentan hasta el final de su día. Tiene su propio reloj por minuto.
+ * Próxima cita FUTURA (nunca cae a una pasada; las citas sin hora cuentan hasta el final de su día), con
+ * su propio reloj por minuto. Antes era un botón propio en la cabecera (CalendarClock: una campana hacía
+ * pensar en avisos que no existían); ahora que «Avisos» existe, va fijada arriba en su hoja y pinta el
+ * punto fijo de la campana cuando falta 48 h o menos.
  */
-function HeaderBell({ events, onOpen }: { events: AgendaEvent[]; onOpen: (ev: AgendaEvent) => void }) {
+function useNextAppointment(events: AgendaEvent[]): (NextAppointment & { ev: AgendaEvent }) | null {
   const now = useNow(60_000);
   const next = React.useMemo(() => {
     const startOfToday = new Date(now);
@@ -1937,27 +1943,15 @@ function HeaderBell({ events, onOpen }: { events: AgendaEvent[]; onOpen: (ev: Ag
 
   if (!next) return null;
   const soon = next.at.getTime() - now.getTime() <= 48 * 60 * 60 * 1000;
-  const when = formatDayCountdown(next.at, now);
-  const label = `Preparar cita: ${next.ev.title}, ${when}, ${next.ev.date}${hasClockTime(next.ev.time) ? ` a las ${next.ev.time}` : ""}`;
-
-  return (
-    <button
-      type="button"
-      onClick={() => onOpen(next.ev)}
-      className={`relative inline-flex size-11 shrink-0 items-center justify-center rounded-full border transition-colors ${FOCUS_RING} ${
-        soon
-          ? "border-transparent bg-terracotta-wash text-terracotta-ink hover:bg-terracotta-wash/80"
-          : "border-line-strong text-ink-muted hover:bg-surface-hover hover:text-ink"
-      }`}
-      title={label}
-      aria-label={label}
-    >
-      <CalendarClock size={18} strokeWidth={1.75} aria-hidden="true" />
-      {soon && (
-        <span aria-hidden="true" className="absolute top-2 right-2 size-2 rounded-full bg-terracotta-ink ring-2 ring-ground"></span>
-      )}
-    </button>
-  );
+  const countdown = formatDayCountdown(next.at, now);
+  const time = hasClockTime(next.ev.time) ? ` a las ${next.ev.time}` : "";
+  return {
+    ev: next.ev,
+    title: next.ev.title,
+    soon,
+    when: `${countdown} · ${next.ev.date}${time}`,
+    label: `Preparar cita: ${next.ev.title}, ${countdown}, ${next.ev.date}${time}`,
+  };
 }
 
 export default function PandaJrApp() {
@@ -2092,7 +2086,9 @@ export default function PandaJrApp() {
 
   // Abrazos de la pareja: también los que llegaron con la app cerrada (últimas 48 h, sin repetir).
   const nudgeSinceRef = useRef<{ pid: string; since: Date } | null>(null);
-  const pendingHugsRef = useRef<{ who: string; at: Date }[]>([]);
+  const pendingHugsRef = useRef<{ who: string; role?: "mama" | "papa"; at: Date }[]>([]);
+  // El abrazo que llegó: tarjeta visible hasta que se cierra (antes, un aviso de 6 s al pie).
+  const [hugMoment, setHugMoment] = useState<{ from: string; role?: "mama" | "papa"; message: string; when?: string } | null>(null);
   const hugFlushRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (hugFlushRef.current) clearTimeout(hugFlushRef.current); }, []);
   useEffect(() => {
@@ -2107,7 +2103,7 @@ export default function PandaJrApp() {
       const seen = readStored<number | null>(nudgeSeenKey(pid), null);
       if (typeof seen !== "number" || n.createdAt.getTime() > seen) writeStored(nudgeSeenKey(pid), n.createdAt.getTime());
       // Los que llegan juntos (al abrir la app) se anuncian en un solo aviso.
-      pendingHugsRef.current.push({ who, at: n.createdAt });
+      pendingHugsRef.current.push({ who, role: n.fromRole === "mama" || n.fromRole === "papa" ? n.fromRole : undefined, at: n.createdAt });
       if (hugFlushRef.current) clearTimeout(hugFlushRef.current);
       hugFlushRef.current = setTimeout(() => {
         const hugs = pendingHugsRef.current;
@@ -2118,13 +2114,13 @@ export default function PandaJrApp() {
         const names = Array.from(new Set(hugs.map((h) => h.who)));
         const from = names.length === 1 ? names[0] : "Tu pareja";
         const message = hugs.length === 1
-          ? `${from} te mandó un abrazo${old ? ` ${formatRelative(last.at)}` : ""}`
+          ? `${from} te mandó un abrazo`
           : `${from} te mandó ${hugs.length} abrazos${old ? " mientras no estabas" : ""}`;
-        showToast(message, undefined, { duration: 6500 });
+        setHugMoment({ from, role: names.length === 1 ? last.role : undefined, message, when: old ? formatRelative(last.at) : "Ahora" });
         try { navigator.vibrate?.([40, 60, 40]); } catch { /* sin vibración */ }
       }, 80);
     });
-  }, [pid, myUid, showToast]);
+  }, [pid, myUid]);
   // -------------------------------
 
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -2418,6 +2414,7 @@ export default function PandaJrApp() {
       ...(ev.createdBy || uid ? { createdBy: ev.createdBy ?? uid ?? undefined } : {}),
       ...(ev.createdByName || profile.name ? { createdByName: ev.createdByName ?? profile.name } : {}),
     };
+    if (uid) logActivity(pid, { uid, name: profile.name, role: profile.role }, "event", `agendó «${full.title}»${full.date ? ` para el ${full.date}` : ""}`);
     return commitEventOp(pid, key, { kind: "upsert", ev: full }, (items) => [...items.filter((e) => String(e.id) !== key), full]);
   };
 
@@ -2513,6 +2510,65 @@ export default function PandaJrApp() {
 
   // Escape de Ajustes y de la preparación de cita: lo gestiona cada diálogo (solo cierra el de arriba).
 
+  // --- Avisos: lo que hizo la pareja (pregnancies/{pid}/activity) + la próxima cita ---
+  const nextAppointment = useNextAppointment(events);
+  const [activity, setActivity] = useState<{ pid: string; items: Activity[] } | null>(null);
+  useEffect(() => {
+    if (!pid) return;
+    return listenToActivity(pid, (items) => setActivity({ pid, items }));
+  }, [pid]);
+  // Solo lo de la otra persona y de los últimos 30 días (sin uid confirmado no se puede saber qué es mío).
+  const avisosNow = useNow(60_000);
+  const partnerActivity = React.useMemo(() => {
+    if (!pid || !myUid || activity?.pid !== pid) return [];
+    const floor = avisosNow.getTime() - 30 * 24 * 60 * 60 * 1000;
+    return activity.items.filter((a) => a.actorUid !== myUid && a.createdAt.getTime() > floor);
+  }, [activity, pid, myUid, avisosNow]);
+  // Marca de leídos por embarazo (en este teléfono). La hoja recuerda la marca anterior para pintar «Nuevo».
+  const [avisosSeen, setAvisosSeen] = useState(() => ({ pid, at: pid ? readStored<number | null>(avisosSeenKey(pid), null) ?? 0 : 0 }));
+  if (avisosSeen.pid !== pid) setAvisosSeen({ pid, at: pid ? readStored<number | null>(avisosSeenKey(pid), null) ?? 0 : 0 });
+  const unreadAvisos = partnerActivity.filter((a) => a.createdAt.getTime() > avisosSeen.at).length;
+  const [avisosOpen, setAvisosOpen] = useState<{ seenBefore: number } | null>(null);
+  const avisosButtonRef = useRef<HTMLButtonElement>(null);
+  const openAvisos = () => {
+    setAvisosOpen({ seenBefore: avisosSeen.at });
+    if (pid) {
+      const at = Date.now();
+      writeStored(avisosSeenKey(pid), at);
+      setAvisosSeen({ pid, at });
+    }
+  };
+  // Cada aviso abre lo que cambió: la herramienta de Juntos, la Agenda o la Guía (tareas y ánimo).
+  const openAviso = (item: Activity) => {
+    setAvisosOpen(null);
+    const tool = item.kind === "journal" ? "diario" : item.kind === "name" || item.kind === "match" ? "nombres" : item.kind === "kicks" ? "patadas" : null;
+    if (tool) {
+      openTool(tool);
+      return;
+    }
+    setActiveTab(item.kind === "event" ? "agenda" : "planificacion");
+    window.scrollTo({ top: 0 });
+  };
+
+  /** «Devolver el abrazo» desde la tarjeta del abrazo: el mismo envío que «Mandar un abrazo». */
+  const returnHug = () => {
+    const to = hugMoment?.from || partner.partnerName || "tu pareja";
+    setHugMoment(null);
+    const uid = myUid ?? currentUid();
+    if (!pid || !uid) {
+      showToast("Aún estamos conectando este teléfono. Inténtalo en unos segundos.");
+      return;
+    }
+    const me = { uid, name: profile.name, role: profile.role };
+    const attempt = () => {
+      sendNudge(pid, me, "hug").catch(() => showToast(`No pudimos enviar el abrazo a ${to}.`, attempt, "Reintentar"));
+    };
+    attempt();
+    logActivity(pid, me, "hug", "te mandó un abrazo");
+    showToast(isOffline() ? `Sin conexión: el abrazo a ${to} se enviará al volver la señal (no cierres la app)` : `Abrazo enviado a ${to}`);
+    try { navigator.vibrate?.(30); } catch { /* sin vibración */ }
+  };
+
   if (!hasHydrated) return null;
 
   // Ancho de la columna de contenido. Móvil: la columna de siempre (max-w-md). Escritorio (≥1024px):
@@ -2551,7 +2607,7 @@ export default function PandaJrApp() {
               <span className="max-[300px]:sr-only">Síntomas</span>
             </button>
 
-            <HeaderBell events={events} onOpen={(ev) => setSelectedPrepEvent(ev)} />
+            <AvisosBell unread={unreadAvisos} soon={!!nextAppointment?.soon} onOpen={openAvisos} buttonRef={avisosButtonRef} />
 
             {/* Solo icono: con el acceso a Síntomas, nombre y emoji ya no caben en un teléfono de 360-430px */}
             <button
@@ -2744,6 +2800,38 @@ export default function PandaJrApp() {
         />
       )}
 
+      {hugMoment && (
+        <HugMoment
+          from={hugMoment.from}
+          role={hugMoment.role}
+          message={hugMoment.message}
+          when={hugMoment.when}
+          onReturn={returnHug}
+          onClose={() => setHugMoment(null)}
+        />
+      )}
+
+      {avisosOpen && (
+        <AvisosSheet
+          items={partnerActivity}
+          seenBefore={avisosOpen.seenBefore}
+          linked={!!pid}
+          partnerName={partner.partnerName}
+          next={nextAppointment}
+          onClose={() => setAvisosOpen(null)}
+          onOpenAppointment={() => {
+            setAvisosOpen(null);
+            if (nextAppointment) setSelectedPrepEvent(nextAppointment.ev);
+          }}
+          onOpenItem={openAviso}
+          onRequestLink={() => {
+            setAvisosOpen(null);
+            startLinkFlow();
+          }}
+          returnFocusRef={avisosButtonRef}
+        />
+      )}
+
       {/* Toast global: la región viva existe siempre para que el lector de pantalla anuncie cada mensaje.
           Exenta de inert y por encima de los diálogos: "Deshacer"/"Reintentar" se anuncian y se tocan con uno abierto.
           Superficie inversa (tinta con texto alabastro; en oscuro, al revés): se lee sobre cualquier pantalla. */}
@@ -2901,6 +2989,8 @@ function MomStatusCard({
         saveMomStatus(pid, statusText, chosen).catch(() => showToast("No pudimos compartir tu estado.", attempt, "Reintentar"));
       };
       attempt();
+      const uid = partner.myUid ?? currentUid();
+      if (uid) logActivity(pid, { uid, name: profile.name, role: profile.role }, "mood", `actualizó cómo se siente: «${moodLabel(chosen) || statusText}»`);
       showToast(
         isOffline()
           ? "Sin conexión: tu estado se compartirá al volver la señal (no cierres la app)"
@@ -2936,6 +3026,7 @@ function MomStatusCard({
       );
     };
     attempt();
+    logActivity(pid, { uid, name: profile.name, role: profile.role }, "hug", "te mandó un abrazo");
     showToast(isOffline()
       ? `Sin conexión: el abrazo a ${to} se enviará al volver la señal (no cierres la app)`
       : `Abrazo enviado a ${to}. Lo verá aunque ahora no tenga la app abierta`);
@@ -3044,17 +3135,27 @@ function MomStatusCard({
       </p>
 
       {isMama ? (
-        <RowButton
-          onClick={() => {
-            setText(status?.text || "");
-            setEmoji(status?.emoji || "");
-            setIsEditing(true);
-          }}
-          className="mt-4"
-        >
-          <Edit3 size={16} strokeWidth={1.75} aria-hidden="true" />
-          Actualizar mi estado
-        </RowButton>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <RowButton
+            onClick={() => {
+              setText(status?.text || "");
+              setEmoji(status?.emoji || "");
+              setIsEditing(true);
+            }}
+          >
+            <Edit3 size={16} strokeWidth={1.75} aria-hidden="true" />
+            Actualizar mi estado
+          </RowButton>
+          {/* Los abrazos también van de la mamá al copiloto (antes solo él podía mandarlos). */}
+          {linked && (
+            <RowButton onClick={sendHug} disabled={hugSent} className="disabled:cursor-default disabled:opacity-100!">
+              {hugSent
+                ? <Check size={16} strokeWidth={2} className="text-sage-ink" aria-hidden="true" />
+                : <Heart size={16} strokeWidth={1.75} className="text-terracotta-ink" aria-hidden="true" />}
+              {hugSent ? `Abrazo enviado a ${partner.partnerName || "tu pareja"}` : "Mandar un abrazo"}
+            </RowButton>
+          )}
+        </div>
       ) : linked ? (
         <RowButton onClick={sendHug} disabled={hugSent} className="mt-4 disabled:cursor-default disabled:opacity-100!">
           {hugSent
@@ -3220,6 +3321,8 @@ function GuiaPapaView({
     setChecklistItem(pid, key, next, uid ? { uid, name: profile.name || undefined } : undefined).catch(() => {
       showToast(`No pudimos guardar «${label}».`, () => writeTask(key, next, label), "Reintentar");
     });
+    // Solo al completar: desmarcar no es noticia para la pareja.
+    if (uid && next === "completed") logActivity(pid, { uid, name: profile.name, role: profile.role }, "task", `marcó «${label}»`);
   };
 
   const toggleTask = (row: TaskRowModel) => {

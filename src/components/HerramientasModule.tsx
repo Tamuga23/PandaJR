@@ -30,6 +30,8 @@ import {
   listenToGoBag,
   toggleGoBagItem,
   type BabyName,
+  logActivity,
+  type ActivityKind,
   type Member,
   type MemberRole,
   type SharedDocMeta,
@@ -239,6 +241,11 @@ function companionVoice(me: Me) {
 function authorStamp(me: Me): Authored {
   if (!me.pid) return {};
   return { byUid: me.myUid ?? undefined, byName: me.name?.trim() || undefined, byRole: me.role };
+}
+
+/** Aviso para la bandeja de la pareja (solo con vínculo y uid confirmado). Llamar desde manejadores de eventos. */
+function notifyPartner(me: Me, kind: ActivityKind, text: string) {
+  if (me.pid && me.myUid) logActivity(me.pid, { uid: me.myUid, name: me.name, role: me.role }, kind, text);
 }
 
 /** Inicial de quien marcó el ítem. Usa el nombre actual del miembro si sigue en el embarazo. */
@@ -1223,6 +1230,7 @@ export function DiarioView({ profile, showToast }: { profile: UserProfile; onClo
       });
     }
     send();
+    notifyPartner(me, "journal", "escribió un recuerdo en el Diario");
   };
 
   const handlePost = (e: React.FormEvent) => {
@@ -2205,6 +2213,7 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
       setCompletedSession(newSessionItem);
       // Registro nuevo: si no llega al servidor queda "Sin enviar" en este teléfono y se reenvía solo.
       void history.add(newSessionItem);
+      notifyPartner(me, "kicks", `contó 10 movimientos en ${formatDurationText(durSecs)}`);
       setStartTime(null);
       showToast("Listo: 10 movimientos contados");
     }
@@ -3522,6 +3531,10 @@ export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
   const vote = (target: NameCard, v: NameVote) => {
     setLastVote({ id: target.id, name: target.name, prev: target.myVote });
     setVote(target, v);
+    // Aviso solo cuando MI «me gusta» convierte el nombre en coincidencia (no lo era antes).
+    if (v === "like" && canMatch && myUid && !isMatch(target, members) && isMatch({ votes: { ...target.votes, [myUid]: "like" } }, members)) {
+      notifyPartner(me, "match", `también eligió «${target.name}»: ¡coinciden!`);
+    }
   };
 
   const unlike = (target: NameCard) => {
@@ -3561,6 +3574,7 @@ export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
         .finally(() => setAdding((a) => a.filter((x) => x !== name)));
     }
     send();
+    notifyPartner(me, "name", `agregó «${name}» a Nombres`);
   };
 
   const addName = (e: React.FormEvent) => {

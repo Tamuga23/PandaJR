@@ -29,7 +29,7 @@ export function AuthorChip({
 }: {
   name?: string;
   role?: Role;
-  /** xs/sm junto a lo que alguien marcó; lg solo para la pareja de la cabecera de «Juntos». */
+  /** xs/sm junto a lo que alguien marcó; lg solo para la pareja de «Juntos» y el abrazo que llega. */
   size?: "xs" | "sm" | "lg";
   /** Texto accesible y tooltip con contexto ("A Luis le gusta", "Agendada por Ana"). */
   title?: string;

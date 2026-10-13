@@ -2021,6 +2021,79 @@ export function listenToNudges(
 }
 
 // =====================================================================================
+// Avisos de la pareja: pregnancies/{id}/activity (la bandeja de «Avisos» de la cabecera)
+// =====================================================================================
+// La regla de «resto de subcolecciones» de firestore.rules ya la deja a los miembros.
+
+export type ActivityKind = "hug" | "mood" | "event" | "task" | "journal" | "name" | "match" | "kicks";
+const ACTIVITY_KINDS: readonly ActivityKind[] = ["hug", "mood", "event", "task", "journal", "name", "match", "kicks"];
+
+/** Algo que hizo un miembro, contado sin su nombre («agendó «Ecografía»»): quien lee le antepone el nombre. */
+export type Activity = {
+  id: string;
+  kind: ActivityKind;
+  actorUid: string;
+  actorName?: string;
+  actorRole?: MemberRole;
+  text: string;
+  createdAt: Date;
+};
+
+/**
+ * Deja constancia de una acción para la bandeja de la pareja. Solo desde manejadores de eventos (nunca
+ * desde efectos que reaccionen a lo escuchado) y sin bloquear: si falla, la acción principal ya se hizo
+ * y el aviso simplemente no llega.
+ */
+export function logActivity(
+  pregnancyId: string,
+  actor: { uid: string; name?: string; role: MemberRole },
+  kind: ActivityKind,
+  text: string
+): void {
+  if (!pregnancyId || !actor.uid) return;
+  const ref = doc(collection(db, "pregnancies", pregnancyId, "activity"));
+  setDoc(
+    ref,
+    stripUndefined({
+      kind,
+      actorUid: actor.uid,
+      actorName: cleanText(actor.name, 60),
+      actorRole: actor.role,
+      text: cleanText(text, 160),
+      createdAt: serverTimestamp(),
+    })
+  ).catch((error) => console.warn("[activity] no se registró el aviso:", error));
+}
+
+/** Los últimos avisos del embarazo, de los dos miembros (quien lee descarta los suyos). */
+export function listenToActivity(pregnancyId: string, cb: (items: Activity[]) => void, onError?: ErrorCallback): () => void {
+  const q = query(collection(db, "pregnancies", pregnancyId, "activity"), orderBy("createdAt", "desc"), limit(40));
+  return onSnapshot(
+    q,
+    (snap) => {
+      const items: Activity[] = [];
+      for (const d of snap.docs) {
+        const v = d.data({ serverTimestamps: "estimate" });
+        const createdAt = toDate(v.createdAt);
+        const text = cleanText(v.text, 160);
+        if (!createdAt || !text || typeof v.actorUid !== "string" || !ACTIVITY_KINDS.includes(v.kind)) continue;
+        items.push({
+          id: d.id,
+          kind: v.kind,
+          actorUid: v.actorUid,
+          actorName: cleanText(v.actorName, 60),
+          actorRole: v.actorRole === "mama" || v.actorRole === "papa" ? v.actorRole : undefined,
+          text,
+          createdAt,
+        });
+      }
+      cb(items);
+    },
+    onError ?? warnListener("activity")
+  );
+}
+
+// =====================================================================================
 // CARE TEAM (obstetra, hospital y número de emergencias; compartido mamá/copiloto)
 // =====================================================================================
 // Se sobrescribe el documento completo (sin merge) para que un campo borrado

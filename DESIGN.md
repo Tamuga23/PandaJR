@@ -297,7 +297,7 @@ Plano por defecto: la profundidad se lee por tono (ground → surface → raised
 Tokens `--shadow-*` en `globals.css`; se usan solo como utilidades (`shadow-sheet`…), nunca como valores sueltos.
 - **Hoja inferior** (`shadow-sheet`: `0 -8px 32px -8px rgba(24,21,32,0.28)`): hojas que suben desde abajo en móvil (Nueva cita, Equipo de salud, Ajustes, Presupuesto, Panda Audio).
 - **Diálogo centrado** (`shadow-dialog`: `0 16px 48px -16px rgba(24,21,32,0.35)`): diálogos de confirmación y selección, PandaStory.
-- **Toast** (`shadow-toast`: `0 12px 32px -12px rgba(24,21,32,0.5)`): aviso invertido (`bg-ink`, texto `ground`).
+- **Toast** (`shadow-toast`: `0 12px 32px -12px rgba(24,21,32,0.5)`): aviso invertido (`bg-ink`, texto `ground`) y la tarjeta flotante del abrazo que llega.
 - **Halo de emergencia** (`shadow-emergency`: `0 3px 10px -3px color-mix(in srgb, var(--terracotta-ink-fill) 55%, transparent)`): solo el botón "Emergencias" (CallActions y el de SOS).
 - **Pieza de herramienta** (`shadow-tool`: `0 18px 40px -20px rgb(45 42 38 / 0.6)`): los grandes objetos táctiles de las herramientas (botón de movimientos, botón de contracciones, tarjeta del votador de nombres).
 
@@ -340,7 +340,7 @@ La estructura de toda la app. Se lee en secciones con título y listas con divis
 
 ### Chips
 - **Monograma de autor (`AuthorChip`):** cuadrado de 20–24px, radio 3px, inicial en Alegreya 13px bold; `terracotta-ink` (mamá), `sage-ink` (papá) o `ink-muted` (sin rol). Informativo, no interactivo.
-- **La pareja (cabecera de Juntos, `CoupleMark`):** el único uso del monograma grande (`size="lg"`: 40px, inicial Alegreya 20px). Mamá a la izquierda y papá a la derecha, la misma imagen en los dos teléfonos; el segundo monta 8px sobre el primero con un marco de 2px del color del suelo (sin sombra). El asiento sin nadie es un pozo `surface-sunken` con borde `line-strong` y el icono de persona en `ink-subtle`: no es un control. Va junto a «Juntos» en `text-display` y el `SyncBadge`, que dice el estado en palabras (la marca es decorativa); sin vínculo, debajo, «Vincular con mi pareja».
+- **La pareja (cabecera de Juntos, `CoupleMark`):** uno de los dos usos del monograma grande (`size="lg"`: 40px, inicial Alegreya 20px; el otro es el abrazo que llega, ver Avisos). Mamá a la izquierda y papá a la derecha, la misma imagen en los dos teléfonos; el segundo monta 8px sobre el primero con un marco de 2px del color del suelo (sin sombra). El asiento sin nadie es un pozo `surface-sunken` con borde `line-strong` y el icono de persona en `ink-subtle`: no es un control. Va junto a «Juntos» en `text-display` y el `SyncBadge`, que dice el estado en palabras (la marca es decorativa); sin vínculo, debajo, «Vincular con mi pareja».
 - **Estado de sincronía (`SyncBadge`):** texto `micro` (peso 500) con icono de 14px, sin fondo: `ink-subtle` en los estados normales y `amber-ink` en los avisos (sin conexión, sin acceso). Si no cabe, baja a una segunda línea con el icono alineado a la primera; nunca se trunca (el aviso sin conexión dice qué hacer).
 
 ### Navigation
@@ -357,6 +357,13 @@ La estructura de toda la app. Se lee en secciones con título y listas con divis
 ### Hojas y diálogos (`useModalDialog` + `ModalPortal`)
 - **Visual:** `surface-raised`, borde `line`, radio 24px, sombra de hoja o de diálogo; en móvil las hojas suben desde abajo, en `sm+` se centran.
 - **Patrón accesible obligatorio:** todo diálogo se monta en `<ModalPortal>` (portal a `body`, capa `data-modal-layer`, centinelas de foco) y usa `useModalDialog` (`role="dialog"` o `alertdialog`, `aria-modal`, `aria-labelledby`). Escape cierra solo el superior; Tab queda atrapado (incluye el toast exento); el resto queda `inert`; bloqueo de scroll con contador; el foco vuelve a quien abrió (en iOS, al último control tocado vía `useModalOpenerTracking`). Capa z según `layers.ts`.
+
+### Avisos (`src/components/Avisos.tsx`)
+La app cuenta lo que hace la pareja sin que haya que buscarlo.
+- **Campana de la cabecera:** botón redondo de 44px con borde `line-strong`; punto terracota fijo (sin parpadeo) si hay avisos nuevos de la pareja o una cita en 48 h o menos.
+- **Hoja «Avisos»** (`ModalPortal` + `useModalDialog`, capa de hojas): la próxima cita fijada arriba («Preparar cita: …», icono terracota si es pronto) y debajo lo que hizo la pareja en los últimos 30 días, cada fila con su monograma. Lo nuevo va en negrita con «Nuevo» al inicio de la meta; lo leído, en peso 500. Cada aviso abre lo que cambió (los abrazos no llevan a ningún sitio). Sin vínculo, un estado vacío honesto con «Vincular con mi pareja».
+- **El abrazo que llega:** tarjeta flotante bajo la cabecera (`surface-raised`, borde `line-strong`, radio 16px, `shadow-toast`, capa de la barra 50: bajo hojas y diálogos) con el monograma grande de quien lo manda, el mensaje en Alegreya 20px y «Devolver el abrazo» (relleno terracota). Se queda hasta cerrarla; sin animación de entrada. Los abrazos van en las dos direcciones.
+- **Origen:** `pregnancies/{pid}/activity`, escrito solo en manejadores de eventos (abrazo, ánimo, cita agendada, tarea completada, recuerdo, nombre agregado, coincidencia, conteo de patadas) y nunca bloqueante: si el aviso falla, la acción ya se hizo.
 
 ### Tema (`ThemeSync`)
 - Preferencia **Sistema / Claro / Oscuro** (`themePreference`). Un script síncrono en `<head>` pone `.dark` antes del primer pintado; `ThemeSync` la mantiene y sigue a `prefers-color-scheme` solo con "Sistema".
