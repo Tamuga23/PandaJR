@@ -2,12 +2,12 @@
 
 import { AgendaView, AppointmentPrepModal, parseEventDate } from "@/components/AgendaModule";
 import { HerramientasView, SintomasSheet } from "@/components/HerramientasModule";
-import React, { useState, useEffect, useRef, useCallback, useSyncExternalStore } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback, useSyncExternalStore } from "react";
 import { usePandaStore, type ThemePreference } from "@/store/usePandaStore";
 import { ModalPortal } from "@/components/ModalPortal";
 import { focusIntoTopDialog, useModalDialog, useModalOpenerTracking } from "@/lib/useModalDialog";
 import { Z_CLASS } from "@/lib/layers";
-import { arriveMessage } from "@/lib/motion";
+import { arriveMessage, prefersReducedMotion } from "@/lib/motion";
 import {
   ensureAuth,
   ensureMembership,
@@ -1957,6 +1957,39 @@ function useNextAppointment(events: AgendaEvent[]): (NextAppointment & { ev: Age
 
 export default function PandaJrApp() {
   const [activeTab, setActiveTab] = useState<Tab>("planificacion");
+  // Cada pestaña recuerda dónde ibas (como las pestañas de iOS): al volver a una regresas a ese punto, y
+  // ninguna hereda el scroll de otra (antes «Juntos» se abría a media página, sin la fila de SOS). Lo que
+  // llega con destino (un aviso, una cita, una herramienta) abre arriba: `goToTab(tab, true)`.
+  const tabScrollRef = useRef<Partial<Record<Tab, number>>>({});
+  const tabTopRef = useRef(false);
+  const shownTabRef = useRef<Tab>(activeTab);
+  useEffect(() => {
+    const record = () => {
+      tabScrollRef.current[shownTabRef.current] = window.scrollY;
+    };
+    window.addEventListener("scroll", record, { passive: true });
+    return () => window.removeEventListener("scroll", record);
+  }, []);
+  useLayoutEffect(() => {
+    if (shownTabRef.current === activeTab) return;
+    shownTabRef.current = activeTab;
+    const top = tabTopRef.current;
+    tabTopRef.current = false;
+    window.scrollTo(0, top ? 0 : (tabScrollRef.current[activeTab] ?? 0));
+  }, [activeTab]);
+  const goToTab = (tab: Tab, top = false) => {
+    if (tab === activeTab) {
+      if (top) window.scrollTo(0, 0);
+      return;
+    }
+    tabTopRef.current = top;
+    setActiveTab(tab);
+  };
+  // Tocar la pestaña activa sube al inicio (como en iOS); otra pestaña vuelve a donde ibas en ella.
+  const onNav = (tab: Tab) => {
+    if (tab === activeTab) window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    else goToTab(tab);
+  };
   // Diálogos: si un toque no dio el foco al botón (iOS), el foco vuelve igualmente a él al cerrar.
   useModalOpenerTracking();
 
@@ -2148,9 +2181,8 @@ export default function PandaJrApp() {
       setSymptomsOpen(true);
       return;
     }
-    setActiveTab("herramientas");
+    goToTab("herramientas", true);
     setToolOpenRequest({ tool, nonce: Date.now() });
-    window.scrollTo({ top: 0 });
   };
   const openSymptoms = () => setSymptomsOpen(true);
   // Ajustes abiertos directamente en "Fecha" (desde "Confirmar mi fecha" de la Guía).
@@ -2558,8 +2590,7 @@ export default function PandaJrApp() {
       openTool(tool);
       return;
     }
-    setActiveTab(item.kind === "event" ? "agenda" : "planificacion");
-    window.scrollTo({ top: 0 });
+    goToTab(item.kind === "event" ? "agenda" : "planificacion", true);
   };
 
   /** «Devolver el abrazo» desde la tarjeta del abrazo: el mismo envío que «Mandar un abrazo». */
@@ -2694,7 +2725,7 @@ export default function PandaJrApp() {
             eventsLoading={eventsLoading}
             onOpenPrep={(ev) => setSelectedPrepEvent(ev)}
             onOpenTool={openTool}
-            onGoToAgenda={() => { setActiveTab("agenda"); window.scrollTo({ top: 0 }); }}
+            onGoToAgenda={() => goToTab("agenda", true)}
           />
         </div>
         <div className={activeTab === "agenda" ? "block w-full h-full" : "hidden"}>
@@ -2724,7 +2755,7 @@ export default function PandaJrApp() {
             profile={profile}
             initialQuery={aiInitialQuery}
             clearInitialQuery={() => setAiInitialQuery("")}
-            setActiveTab={setActiveTab}
+            setActiveTab={(tab) => goToTab(tab, true)}
             onOpenSymptoms={openSymptoms}
           />
         </div>
@@ -2802,12 +2833,12 @@ export default function PandaJrApp() {
           onAskPandaIA={(question) => {
             setSelectedPrepEvent(null);
             setAiInitialQuery(question);
-            setActiveTab("pandaia");
+            goToTab("pandaia");
           }}
           onMarkTasks={() => {
             // «Para comentar en esta cita» → el grupo de «Hoy» en la Guía, desplegado y con el foco.
             setSelectedPrepEvent(null);
-            setActiveTab("planificacion");
+            goToTab("planificacion");
             requestOpenDiscuss();
           }}
         />
@@ -2900,25 +2931,25 @@ export default function PandaJrApp() {
           icon={<Compass size={22} strokeWidth={1.75} />}
           label="Guía"
           isActive={activeTab === "planificacion"}
-          onClick={() => setActiveTab("planificacion")}
+          onClick={() => onNav("planificacion")}
         />
         <NavItem
           icon={<Calendar size={22} strokeWidth={1.75} />}
           label="Agenda"
           isActive={activeTab === "agenda"}
-          onClick={() => setActiveTab("agenda")}
+          onClick={() => onNav("agenda")}
         />
         <NavItem
           icon={<HeartHandshake size={22} strokeWidth={1.75} />}
           label="Juntos"
           isActive={activeTab === "herramientas"}
-          onClick={() => setActiveTab("herramientas")}
+          onClick={() => onNav("herramientas")}
         />
         <NavItem
           icon={<Bot size={22} strokeWidth={1.75} />}
           label="PandaIA"
           isActive={activeTab === "pandaia"}
-          onClick={() => setActiveTab("pandaia")}
+          onClick={() => onNav("pandaia")}
         />
       </nav>
     </div>

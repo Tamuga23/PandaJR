@@ -347,7 +347,9 @@ export function RowButton({
     <button
       type={type}
       className={cx(
-        "inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full px-4 text-meta font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-60",
+        // py-2: con zoom al 200 % la etiqueta pasa a dos líneas y no debe tocar el borde de la píldora
+        // (con una línea manda min-h-11 y no cambia nada).
+        "inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full px-4 py-2 text-center text-meta font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-60",
         tone === "primary" && "bg-terracotta-ink text-on-accent hover:bg-terracotta-ink-hover",
         tone === "default" && "border border-line-control text-ink hover:bg-surface-hover",
         tone === "danger" && "border border-line-control text-terracotta-ink hover:bg-terracotta-wash",

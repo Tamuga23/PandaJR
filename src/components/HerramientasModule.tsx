@@ -1891,7 +1891,10 @@ export function HerramientasView({ showToast, profile, openRequest, active = tru
   const tileRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   // Al cambiar de vista el botón pulsado desaparece: el foco va al título de la herramienta al abrirla
   // y a su tarjeta del hub al volver (también al cerrar Presupuesto, PandaStory o Panda Audio).
-  const pendingFocusRef = useRef<{ to: "heading" } | { to: "tile"; id: string } | null>(null);
+  // Una herramienta es una página nueva: abre arriba (antes heredaba el scroll del hub y Contracciones
+  // aparecía con «Iniciar contracción» cortado). Al volver, el hub regresa a donde lo dejaste (`restore`).
+  const pendingFocusRef = useRef<{ to: "heading" } | { to: "tile"; id: string; restore: boolean } | null>(null);
+  const hubScrollRef = useRef(0);
 
   const requestedTool = openRequest?.tool;
   const requestNonce = openRequest?.nonce;
@@ -1914,29 +1917,37 @@ export function HerramientasView({ showToast, profile, openRequest, active = tru
     toolHeadingRef.current?.focus({ preventScroll: true });
   }, [activeTool, requestNonce, requestedTool]);
 
-  useEffect(() => {
+  // Antes del primer pintado de la vista nueva: así no se ve ni un cuadro a media página.
+  useLayoutEffect(() => {
     const want = pendingFocusRef.current;
     if (!want) return;
     pendingFocusRef.current = null;
-    if (want.to === "heading") toolHeadingRef.current?.focus({ preventScroll: true });
-    else tileRefs.current[want.id]?.focus();
+    if (want.to === "heading") {
+      window.scrollTo(0, 0);
+      toolHeadingRef.current?.focus({ preventScroll: true });
+      return;
+    }
+    if (want.restore) window.scrollTo(0, hubScrollRef.current);
+    tileRefs.current[want.id]?.focus({ preventScroll: want.restore });
   }, [activeTool]);
 
   const openTool = (id: string) => {
-    // Los diálogos (Presupuesto, PandaStory, Panda Audio) llevan el foco dentro por su cuenta.
-    pendingFocusRef.current = MODAL_TOOLS.includes(id) ? null : { to: "heading" };
+    // Los diálogos (Presupuesto, PandaStory, Panda Audio) llevan el foco dentro por su cuenta y no
+    // mueven el hub.
+    const modal = MODAL_TOOLS.includes(id);
+    if (!modal) hubScrollRef.current = window.scrollY;
+    pendingFocusRef.current = modal ? null : { to: "heading" };
     setActiveTool(id);
   };
 
   const closeTool = () => {
-    if (activeTool) pendingFocusRef.current = { to: "tile", id: activeTool };
+    if (activeTool) pendingFocusRef.current = { to: "tile", id: activeTool, restore: !MODAL_TOOLS.includes(activeTool) };
     setActiveTool(null);
   };
 
   const openToolFromSos = (tool: "patadas" | "contracciones") => {
     pendingFocusRef.current = { to: "heading" };
     setActiveTool(tool);
-    if (typeof window !== "undefined") window.scrollTo({ top: 0 });
   };
 
   // `desc` acompaña al nombre en la barra de la herramienta; en «Juntos» cada fila dice su estado real.
