@@ -320,6 +320,8 @@ function WeekHeart({
   const isMama = reader === "mama";
   const mission = isMama ? info.forMom : info.forDad;
   const link = onOpenLink ? missionLink(mission) : null;
+  // La misión de los dos: su botón solo si lleva a otro sitio que el de la misión propia (sin repetir).
+  const togetherLink = onOpenLink ? missionLink(info.together) : null;
   return (
     <>
       <p className="mt-4 font-display text-subtitle font-normal text-pretty text-ink">{info.milestone}</p>
@@ -328,6 +330,13 @@ function WeekHeart({
       {link && onOpenLink && (
         <RowButton onClick={() => onOpenLink(link)} className="mt-3">
           {LINK_LABEL[link]}
+        </RowButton>
+      )}
+      <h3 className="mt-5 font-display text-body font-bold text-ink">Juntos esta semana</h3>
+      <p className="mt-1 text-body text-pretty text-ink">{info.together}</p>
+      {togetherLink && togetherLink !== link && onOpenLink && (
+        <RowButton onClick={() => onOpenLink(togetherLink)} className="mt-3">
+          {LINK_LABEL[togetherLink]}
         </RowButton>
       )}
       {typical && (

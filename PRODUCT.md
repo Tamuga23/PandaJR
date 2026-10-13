@@ -47,7 +47,7 @@ Todo esto se apoya en contenido clínico alineado con guías públicas (ACOG, se
 ## Capabilities and Constraints
 
 - **Módulos:**
-  - Guía semanal: tamaño, hito y misiones por rol.
+  - Guía semanal: tamaño, hito, una misión accionable por rol y una para los dos («Juntos esta semana»).
   - Checklists por trimestre.
   - Estado de ánimo de la mamá y abrazos para la pareja.
   - Agenda médica con sugerencias según la semana y preparación de cita compartida.
