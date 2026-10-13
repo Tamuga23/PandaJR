@@ -2978,7 +2978,8 @@ function loadActiveContraction(): number | null {
  * Los criterios son los mismos que dice el resto de la app («¿Es la hora?», las alertas del contador).
  */
 function CompanionGuide({ isPapa, her, onOpenMaleta }: { isPapa: boolean; her: string; onOpenMaleta?: () => void }) {
-  const [open, setOpen] = useState(isPapa);
+  // Solo la versión plegada de la mamá se abre y se cierra; la del copiloto siempre está abierta.
+  const [open, setOpen] = useState(false);
   const baseId = React.useId();
   const blocks: { title: string; items: string[]; maleta?: boolean }[] = isPapa
     ? [
@@ -3132,6 +3133,7 @@ export function ContadorContracciones({
   const week = knownWeek(profile);
   const me = useMe();
   const { isPapa, her, Her } = companionVoice(me);
+  const companionGuide = <CompanionGuide isPapa={isPapa} her={her} onOpenMaleta={onOpenTool ? () => onOpenTool("maleta") : undefined} />;
   const alertId = React.useId();
   // Contracción en curso restaurada: abrir Síntomas u otra herramienta no la pierde.
   const [restoredStart] = useState(loadActiveContraction);
@@ -3434,7 +3436,9 @@ export function ContadorContracciones({
         </div>
       )}
 
-      <CompanionGuide isPapa={isPapa} her={her} onOpenMaleta={onOpenTool ? () => onOpenTool("maleta") : undefined} />
+      {/* Antes del parto (sin historial), la guía va aquí, para repasarla; con contracciones registradas
+          baja tras el historial: entonces importa el patrón, y la caja de descanso ya trae lo del momento. */}
+      {history.length === 0 && companionGuide}
 
       {/* Dónde vive el historial y avisos de guardado */}
       <div className="flex flex-col gap-2">
@@ -3519,6 +3523,8 @@ export function ContadorContracciones({
           </div>
         </div>
       )}
+
+      {history.length > 0 && companionGuide}
     </div>
   );
 }

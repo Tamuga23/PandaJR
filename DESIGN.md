@@ -295,8 +295,8 @@ Plano por defecto: la profundidad se lee por tono (ground → surface → raised
 
 ### Shadow Vocabulary
 Tokens `--shadow-*` en `globals.css`; se usan solo como utilidades (`shadow-sheet`…), nunca como valores sueltos.
-- **Hoja inferior** (`shadow-sheet`: `0 -8px 32px -8px rgba(24,21,32,0.28)`): hojas que suben desde abajo en móvil (Nueva cita, Equipo de salud, Ajustes, Presupuesto, Panda Audio).
-- **Diálogo centrado** (`shadow-dialog`: `0 16px 48px -16px rgba(24,21,32,0.35)`): diálogos de confirmación y selección, PandaStory.
+- **Hoja inferior** (`shadow-sheet`: `0 -8px 32px -8px rgba(24,21,32,0.28)`): hojas que suben desde abajo en móvil (Nueva cita, Equipo de salud, Avisos, Síntomas, Presupuesto, Panda Audio).
+- **Diálogo centrado** (`shadow-dialog`: `0 16px 48px -16px rgba(24,21,32,0.35)`): diálogos de confirmación y selección, Ajustes, PandaStory.
 - **Toast** (`shadow-toast`: `0 12px 32px -12px rgba(24,21,32,0.5)`): aviso invertido (`bg-ink`, texto `ground`) y la tarjeta flotante del abrazo que llega.
 - **Halo de emergencia** (`shadow-emergency`: `0 3px 10px -3px color-mix(in srgb, var(--terracotta-ink-fill) 55%, transparent)`): solo el botón "Emergencias" (CallActions y el de SOS).
 - **Pieza de herramienta** (`shadow-tool`: `0 18px 40px -20px rgb(45 42 38 / 0.6)`): los grandes objetos táctiles de las herramientas (botón de movimientos, botón de contracciones, tarjeta del votador de nombres).

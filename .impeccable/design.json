@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-13T13:19:55.402Z",
+  "generatedAt": "2026-10-13T13:55:49.951Z",
   "title": "Design System: PandaJr",
   "extensions": {
     "colorMeta": {
@@ -729,12 +729,12 @@
       {
         "name": "shadow-sheet",
         "value": "0 -8px 32px -8px rgb(24 21 32 / 0.28)",
-        "purpose": "Hojas que suben desde abajo en móvil (Nueva cita, Equipo de salud, Ajustes, Presupuesto, Panda Audio)."
+        "purpose": "Hojas que suben desde abajo en móvil (Nueva cita, Equipo de salud, Avisos, Síntomas, Presupuesto, Panda Audio)."
       },
       {
         "name": "shadow-dialog",
         "value": "0 16px 48px -16px rgb(24 21 32 / 0.35)",
-        "purpose": "Diálogos de confirmación y selección, PandaStory."
+        "purpose": "Diálogos de confirmación y selección, Ajustes, PandaStory."
       },
       {
         "name": "shadow-toast",
