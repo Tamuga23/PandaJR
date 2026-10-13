@@ -210,6 +210,12 @@
   --shadow-tool: 0 18px 40px -20px rgb(45 42 38 / 0.6);    /* pieza de herramienta (conteo, votador) */
 }
 
+/* Curva de llegada (la de la planta, src/lib/motion.ts): sale rápido y se asienta despacio. Utilidad:
+   ease-out-expo. */
+@theme {
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 /* Escala tipográfica (roles, no tamaños). Pasos de la escala de títulos ≥1.2 (16 → 20 → 24 → 30);
    el tramo de lectura (16 / 14 / 13) se distingue además por color (ink / ink-muted / ink-subtle).
    Utilidades: text-display, text-title, text-subtitle, text-body, text-meta, text-micro. Cada una trae
@@ -309,15 +315,101 @@ body {
   }
 }
 
+/* Movimiento (DESIGN.md › Movimiento): solo se mueve lo que acaba de pasar. Nada anima al cargar ni al
+   cambiar de pestaña. Las entradas usan @starting-style: sin soporte, el elemento aparece quieto en su
+   sitio; las que dependen de un evento (abrazo, campana, patadas, nombres, PandaIA) están en
+   src/lib/motion.ts. */
+
+/* Hojas y diálogos (siempre en ModalPortal): el velo se funde, la hoja sube desde el borde en el teléfono
+   y el diálogo centrado se asienta. La sombra ya dice cuál es cuál (shadow-sheet sube, shadow-dialog va
+   centrado). Al cerrar se van al instante: salir más rápido que entrar. */
+[data-modal-layer] .bg-scrim {
+  transition: background-color 240ms ease-out;
+}
+[data-modal-layer] .shadow-sheet,
+[data-modal-layer] .shadow-dialog {
+  transition:
+    translate 420ms var(--ease-out-expo),
+    scale 320ms var(--ease-out-expo),
+    opacity 200ms ease-out;
+}
+@starting-style {
+  [data-modal-layer] .bg-scrim {
+    background-color: transparent;
+  }
+  [data-modal-layer] .shadow-sheet {
+    translate: 0 100%;
+  }
+  [data-modal-layer] .shadow-dialog {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+/* Desde sm la hoja va centrada: se asienta como un diálogo en vez de cruzar la pantalla. */
+@media (min-width: 40rem) {
+  @starting-style {
+    [data-modal-layer] .shadow-sheet {
+      translate: 0 1.5rem;
+      opacity: 0;
+    }
+  }
+}
+
+/* Toast: cada aviso es un elemento nuevo (key): sube un poco y se funde, para que no pase desapercibido. */
+.pj-toast {
+  transition:
+    translate 320ms var(--ease-out-expo),
+    opacity 180ms ease-out;
+}
+@starting-style {
+  .pj-toast {
+    translate: 0 0.75rem;
+    opacity: 0;
+  }
+}
+
+/* El abrazo que llega (HugMoment): la tarjeta baja de la cabecera y se funde; dentro, los monogramas se
+   juntan (src/lib/motion.ts › playEmbrace). */
+.pj-hug {
+  transition:
+    translate 380ms var(--ease-out-expo),
+    opacity 200ms ease-out;
+}
+@starting-style {
+  .pj-hug {
+    translate: 0 -0.75rem;
+    opacity: 0;
+  }
+}
+
+/* Casilla que se dibuja (CheckGlyph): el círculo cambia de tinta y la palomita se traza. Es transición, no
+   animación: corre solo cuando cambia el estado (al marcar aquí o cuando la marca la pareja), nunca al
+   montar ni al volver a la pestaña. */
+.pj-tick {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  /* ease-out cúbica, no exponencial: el trazo tiene que alcanzar a verse. */
+  transition:
+    stroke-dashoffset 300ms cubic-bezier(0.33, 1, 0.68, 1),
+    opacity 90ms linear;
+}
+.pj-check[data-checked="true"] .pj-tick {
+  stroke-dashoffset: 0;
+  opacity: 1;
+}
+
 /* Movimiento reducido: nada se desplaza, escala ni late; los cambios de estado siguen visibles.
    - Latidos decorativos (animate-pulse): quietos.
-   - Transiciones: se anulan las de movimiento (transform, translate, scale, tamaño, posición);
-     los fundidos de color y opacidad que ya tenía cada componente se conservan (no son movimiento
-     y marcan el cambio de estado). Nada gana una transición que no tenía.
+   - Transiciones: se anulan las de movimiento (transform, translate, scale, tamaño, posición, trazo);
+     los fundidos de color y opacidad se conservan (no son movimiento y marcan el cambio de estado):
+     las hojas, el toast y la palomita aparecen fundiéndose, ya en su sitio. Nada gana una transición
+     que no tenía.
    - animate-spin se mantiene: es el aviso de "cargando" (los componentes pueden apagarlo con
      motion-reduce:animate-none si el texto ya lo dice).
-   - GrowingPlant (la única animación de autor) consulta prefers-reduced-motion en JS: con movimiento
-     reducido no anima nada; la planta aparece directamente en su estado final. */
+   - Las animaciones con Web Animations (la planta, el abrazo de los monogramas, la campana, las
+     patadas, los nombres, los mensajes de PandaIA) consultan prefers-reduced-motion en JS y no corren:
+     todo aparece directamente en su estado final. */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto !important;
@@ -333,6 +425,13 @@ body {
 
   .animate-pulse {
     animation: none !important;
+  }
+
+  /* La hoja no sube: aparece fundiéndose en su sitio (el velo y el diálogo ya se funden). */
+  @starting-style {
+    [data-modal-layer] .shadow-sheet {
+      opacity: 0;
+    }
   }
 }
 

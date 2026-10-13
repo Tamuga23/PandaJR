@@ -192,7 +192,7 @@ La densidad es de lista tranquila: filas de 48px mínimo, texto de 16px, secunda
 - Terracota = acción y alarma; sage = crecimiento y completado; amber = solo avisos logísticos.
 - Alegreya (títulos) + Alegreya Sans (UI), cifras de caja alta en toda la app.
 - Secciones y listas con divisores; una sola caja `inset` como máximo por grupo, nunca anidada.
-- Una sola animación de autor: la planta al avanzar de semana.
+- Dos momentos de autor: la planta al avanzar de semana y los monogramas que se juntan (el abrazo que llega, la coincidencia). El resto del movimiento solo responde a lo que acaba de pasar.
 - Contraste de texto ≥4.5:1 en los dos temas; objetivos ≥44px, llamadas ≥56px.
 
 ## Colors
@@ -340,7 +340,7 @@ La estructura de toda la app. Se lee en secciones con título y listas con divis
 
 ### Chips
 - **Monograma de autor (`AuthorChip`):** cuadrado de 20–24px, radio 3px, inicial en Alegreya 13px bold; `terracotta-ink` (mamá), `sage-ink` (papá) o `ink-muted` (sin rol). Informativo, no interactivo.
-- **La pareja (cabecera de Juntos, `CoupleMark`):** uno de los dos usos del monograma grande (`size="lg"`: 40px, inicial Alegreya 20px; el otro es el abrazo que llega, ver Avisos). Mamá a la izquierda y papá a la derecha, la misma imagen en los dos teléfonos; el segundo monta 8px sobre el primero con un marco de 2px del color del suelo (sin sombra). El asiento sin nadie es un pozo `surface-sunken` con borde `line-strong` y el icono de persona en `ink-subtle`: no es un control. Va junto a «Juntos» en `text-display` y el `SyncBadge`, que dice el estado en palabras (la marca es decorativa); sin vínculo, debajo, «Vincular con mi pareja».
+- **La pareja (`src/components/CoupleMark.tsx`):** el monograma grande (`size="lg"`: 40px, inicial Alegreya 20px), en la cabecera de «Juntos» (quieta) y en el abrazo que llega (donde se juntan; ver Avisos). Mamá a la izquierda y papá a la derecha, la misma imagen en los dos teléfonos; el segundo monta 8px sobre el primero con un marco de 2px del color de la superficie de debajo (`frame`: suelo o `surface-raised`; sin sombra). El asiento sin nadie es un pozo `surface-sunken` con borde `line-strong` y el icono de persona en `ink-subtle`: no es un control. Va junto a «Juntos» en `text-display` y el `SyncBadge`, que dice el estado en palabras (la marca es decorativa); sin vínculo, debajo, «Vincular con mi pareja».
 - **Estado de sincronía (`SyncBadge`):** texto `micro` (peso 500) con icono de 14px, sin fondo: `ink-subtle` en los estados normales y `amber-ink` en los avisos (sin conexión, sin acceso). Si no cabe, baja a una segunda línea con el icono alineado a la primera; nunca se trunca (el aviso sin conexión dice qué hacer).
 
 ### Navigation
@@ -356,13 +356,14 @@ La estructura de toda la app. Se lee en secciones con título y listas con divis
 
 ### Hojas y diálogos (`useModalDialog` + `ModalPortal`)
 - **Visual:** `surface-raised`, borde `line`, radio 24px, sombra de hoja o de diálogo; en móvil las hojas suben desde abajo, en `sm+` se centran.
+- **Movimiento:** al abrirse, el velo se funde (240ms) y la hoja sube desde el borde de la pantalla (420ms, `ease-out-expo`); desde `sm` se asienta 24px, como un diálogo. El diálogo centrado se funde y crece desde 0.96 (320ms). La sombra decide cuál es cuál (`shadow-sheet` / `shadow-dialog`). Al cerrar se van al instante. Es CSS (`@starting-style` sobre `[data-modal-layer]` en `globals.css`): sin soporte, aparecen quietos.
 - **Patrón accesible obligatorio:** todo diálogo se monta en `<ModalPortal>` (portal a `body`, capa `data-modal-layer`, centinelas de foco) y usa `useModalDialog` (`role="dialog"` o `alertdialog`, `aria-modal`, `aria-labelledby`). Escape cierra solo el superior; Tab queda atrapado (incluye el toast exento); el resto queda `inert`; bloqueo de scroll con contador; el foco vuelve a quien abrió (en iOS, al último control tocado vía `useModalOpenerTracking`). Capa z según `layers.ts`.
 
 ### Avisos (`src/components/Avisos.tsx`)
 La app cuenta lo que hace la pareja sin que haya que buscarlo.
-- **Campana de la cabecera:** botón redondo de 44px con borde `line-strong`; punto terracota fijo (sin parpadeo) si hay avisos nuevos de la pareja o una cita en 48 h o menos.
+- **Campana de la cabecera:** botón redondo de 44px con borde `line-strong`; punto terracota fijo (sin parpadeo) si hay avisos nuevos de la pareja o una cita en 48 h o menos. Cuando llega algo de la pareja con la app abierta, la campana se balancea una vez, colgada del asa (800ms), y el punto aparece creciendo. Lo que ya había al abrir la app no la mueve, y el abrazo tampoco: tiene su propia tarjeta.
 - **Hoja «Avisos»** (`ModalPortal` + `useModalDialog`, capa de hojas): la próxima cita fijada arriba («Preparar cita: …», icono terracota si es pronto) y debajo lo que hizo la pareja en los últimos 30 días, cada fila con su monograma. Lo nuevo va en negrita con «Nuevo» al inicio de la meta; lo leído, en peso 500. Cada aviso abre lo que cambió (los abrazos no llevan a ningún sitio). Sin vínculo, un estado vacío honesto con «Vincular con mi pareja».
-- **El abrazo que llega:** tarjeta flotante bajo la cabecera (`surface-raised`, borde `line-strong`, radio 16px, `shadow-toast`, capa de la barra 50: bajo hojas y diálogos) con el monograma grande de quien lo manda, el mensaje en Alegreya 20px y «Devolver el abrazo» (relleno terracota). Se queda hasta cerrarla; sin animación de entrada. Los abrazos van en las dos direcciones.
+- **El abrazo que llega:** tarjeta flotante bajo la cabecera (`surface-raised`, borde `line-strong`, radio 16px, `shadow-toast`, capa de la barra 50: bajo hojas y diálogos). Arriba, la pareja (`CoupleMark` con marco `surface-raised`): el monograma de quien lo manda y el de quien lo recibe, mamá a la izquierda; debajo, el mensaje en Alegreya 20px y «Devolver el abrazo» (relleno terracota). Es el segundo momento de autor: la tarjeta baja de la cabecera y se funde (380ms) y los dos monogramas llegan desde los lados, se juntan y se aprietan una vez (ver Movimiento). Cada abrazo nuevo repite el momento. Se queda hasta cerrarla. Los abrazos van en las dos direcciones.
 - **Origen:** `pregnancies/{pid}/activity`, escrito solo en manejadores de eventos (abrazo, ánimo, cita agendada, tarea completada, recuerdo, nombre agregado, coincidencia, conteo de patadas) y nunca bloqueante: si el aviso falla, la acción ya se hizo.
 
 ### Tema (`ThemeSync`)
@@ -374,8 +375,30 @@ La firma del sistema. SVG paramétrico y determinista (viewBox 120; la variació
 - **Etapas:** semilla (1–2; en la 2 asoma la raíz) → brote con cotiledones (3–6) → tallo que se alarga cada semana con una hoja nueva cada 4 semanas, alternando lados, que siguen creciendo (7–35) → botón terracota que engorda (36–39) → flor abierta de cinco pétalos (40–42). Sin semana conocida: brote neutro.
 - **Trazo:** 1.5px en pantalla a cualquier tamaño en `sage-ink`; hojas con relleno `sage` al 22%; terracota (`terracotta` con contorno `terracotta-ink`) solo en botón y flor; montículo de tierra mínimo.
 - **Tamaños en uso:** 120px en el bloque de semana de la Guía, 88px en la bienvenida (sin animar), 56px en el selector de semana.
-- **Animación única de autor:** al avanzar de semana (no al montar ni al retroceder) el tallo se alarga, la punta sube y la hoja más joven crece desde su nudo: 600ms, `cubic-bezier(0.16, 1, 0.3, 1)`, Web Animations. Con `prefers-reduced-motion` no se anima: la planta aparece ya en su estado final (el estado por defecto es la planta completa).
+- **Animación de autor** (la otra es el abrazo de los monogramas): al avanzar de semana (no al montar ni al retroceder) el tallo se alarga, la punta sube y la hoja más joven crece desde su nudo: 600ms, `cubic-bezier(0.16, 1, 0.3, 1)`, Web Animations. Con `prefers-reduced-motion` no se anima: la planta aparece ya en su estado final (el estado por defecto es la planta completa).
 - **Accesibilidad:** `role="img"` ("Planta de la semana 24"); `title=""` la vuelve decorativa cuando el texto de al lado ya dice la semana.
+
+### Movimiento (`src/lib/motion.ts`)
+La app se siente viva porque responde, no porque se decore.
+
+**The Just-Happened Rule.** Solo se mueve lo que acaba de pasar: un toque, un cambio de estado, algo que llega de la pareja. Nada anima al cargar ni al cambiar de pestaña, nada late en bucle (salvo «cargando» y «PandaIA está respondiendo…») y la ruta de urgencia aparece al instante.
+
+- **Curva:** `ease-out-expo` (`cubic-bezier(0.16, 1, 0.3, 1)`), la de la planta. Es token y utilidad en `globals.css` y `EASE_OUT_EXPO` en JS. Salir es más rápido que entrar: hojas, diálogos y toast se van al instante.
+- **Dos momentos de autor:**
+  - La planta al avanzar de semana.
+  - El abrazo de los monogramas (`playEmbrace`): los dos cuadrados llegan desde los lados, se encuentran donde los dibuja la pareja de «Juntos» (el segundo monta sobre el primero) y se aprietan una vez. Dura 900ms y empieza 200ms después de que la tarjeta aterriza. Se usa en el abrazo que llega (14px de recorrido) y en una coincidencia de nombres que aparece con la lista a la vista (6px; las que ya estaban al abrir Nombres no se mueven).
+- **Respuesta (100–300ms):**
+  - La casilla de una tarea se dibuja (`CheckGlyph`): el círculo pasa a sage y la palomita se traza. Es una transición, así que corre también cuando la marca la pareja desde su teléfono, y nunca al montar.
+  - Cada patada suelta una onda desde el anillo del botón (la décima llega más lejos) y su paso de la sesión se llena con un pequeño salto.
+  - El pozo de la pestaña activa crece desde el centro.
+  - La campana se balancea cuando llega un aviso.
+- **Continuidad (220–420ms):**
+  - Las hojas suben desde el borde y los diálogos se asientan.
+  - El toast sube 12px y se funde.
+  - La tarjeta del votador sale hacia su voto (me gusta a la derecha) y el nombre siguiente se asienta; sigue siendo el mismo elemento, así que el foco se queda en el botón.
+  - Los mensajes nuevos de PandaIA suben 6px; el historial restaurado, los errores y la tarjeta de urgencia aparecen quietos.
+- **Implementación:** las entradas declarativas usan `@starting-style` y transiciones CSS; las que dependen de un evento usan Web Animations y se cancelan al desmontar. Sin librerías. El estado por defecto es el final: si una animación no corre, no falta nada.
+- **Movimiento reducido:** nada se desplaza, escala ni gira. Las hojas, los diálogos, el toast y la tarjeta del abrazo se funden en su sitio; la palomita aparece ya trazada, con su cambio de color; los monogramas ya están juntos.
 
 ### Marca (§4.2)
 - **PandaMark** (`src/components/PandaMark.tsx`): la mascota (mamá panda con su bebé), sin azulejo, apoyada directamente en el suelo. Desde el 2026-09-30 es el logo final que entregó el equipo, tal cual (no un trazado): la fuente maestra es `scripts/brand/panda-mark-source.png` (PNG sin fondo, 1394×1673) y `node scripts/brand/render-brand.mjs` la recorta y redimensiona a `public/brand/panda-mark-{128,384}.png` (srcset). Sustituye al vector trazado del JPEG menta original (`panda-paths.json`), que suavizaba las formas. Caja cuadrada con la mascota centrada (`object-contain`); en oscuro, un halo de 1px en tinta clara (`drop-shadow`) separa el azul carbón de las orejas y los brazos de la obsidiana. Decorativo por defecto (`alt=""`); con `title`, imagen con nombre. También firma la tarjeta de PandaStory (junto al wordmark).
@@ -404,6 +427,6 @@ La firma del sistema. SVG paramétrico y determinista (viewBox 120; la variació
 - **Don't** usar emoji ni glifos como iconos; un emoji guardado como dato (el estado de ánimo) se muestra por su nombre.
 - **Don't** usar colores fuera de la paleta (sky, emerald, blue, indigo, rose, stone…), degradados de texto ni glassmorphism decorativo.
 - **Don't** marcar estado con un `border-left` de color.
-- **Don't** añadir animaciones de entrada deslizantes ni otra animación de autor: los cambios de estado se marcan con color y opacidad; las utilidades heredadas `animate-in`/`slide-in-from-*` se retiraron de `globals.css` y no deben volver.
+- **Don't** añadir coreografía de carga, secciones que entran deslizando, bucles decorativos ni un tercer momento de autor. Solo se mueve lo que acaba de pasar (ver Movimiento), y la ruta de urgencia y las señales de alarma aparecen al instante. Las utilidades heredadas `animate-in`/`slide-in-from-*` se retiraron de `globals.css` y no deben volver.
 - **Don't** reintroducir la ficha fetal de categoría (número gigante, fruta como héroe, tarjetas apiladas).
 - **Don't** usar los alias de compatibilidad (`--background`, `--foreground`, `--surface-card`, `--surface-muted`, `--border-subtle`) en código nuevo.

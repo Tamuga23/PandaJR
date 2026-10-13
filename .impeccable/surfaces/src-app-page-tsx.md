@@ -21,6 +21,6 @@ STORY: Abren la app, ven en qué semana van (la planta), qué toca hoy y quién 
 
 FIRST VIEWPORT: Guía a 390px. Cabecera: wordmark en Alegreya y «Síntomas». Bloque de semana: planta SVG (~120px) a la izquierda, «Semana 24 + 3 días» en Alegreya 28–32px, FPP debajo. Debajo, «Hoy» como lista con divisores (tus tareas, las de tu pareja, próxima cita). Desde la semana 36, «¿Es la hora?» arriba con CallActions.
 
-FORM: Expansión del mundo que fija DESIGN.md (sin tirada de concept-seed: el brief fija el mundo). Firma: la planta que crece (semanas 1–42), con una única animación al cambiar de semana.
+FORM: Expansión del mundo que fija DESIGN.md (sin tirada de concept-seed: el brief fija el mundo). Firma: la planta que crece (semanas 1–42), que se anima al cambiar de semana. Desde el 2026-10-12 (decisión del usuario: «Plan completo») hay un segundo momento de autor, los monogramas de la pareja que se juntan (el abrazo que llega, la coincidencia), y movimiento de oficio que solo responde a lo que acaba de pasar (DESIGN.md › Movimiento).
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance

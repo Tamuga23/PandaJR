@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo, useCallback, useSyncExternalStore } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { toPng } from "html-to-image";
 import { getWeekData } from "./weekData";
@@ -33,12 +33,14 @@ import {
   logActivity,
   type ActivityKind,
   type Member,
-  type MemberRole,
   type SharedDocMeta,
 } from "@/lib/firebase/pairing";
 import { formatDateShort, formatMoney, formatRelative, repairMojibake, toDateSafe } from "@/lib/format";
 import { LEGACY_SEED_NAMES, isLegacySeedKickSession, isLegacySeedNameItem, linkedFromLocalKey, localToSharedFlag } from "@/lib/seeds";
 import { AuthorChip } from "@/components/AuthorChip";
+import { CoupleMark, type Seat } from "@/components/CoupleMark";
+import { EASE_OUT_EXPO, canAnimate, playEmbrace } from "@/lib/motion";
+import { CheckGlyph } from "@/components/ui/CheckGlyph";
 import { SyncBadge, useOnline, usePartner } from "@/components/SyncBadge";
 import { CallActions, CrisisLineAction, EmergencyCallLink } from "@/components/CallActions";
 import { useCallTargets } from "@/lib/useCareTeam";
@@ -54,9 +56,9 @@ import { TOOL_LABEL, weekTools, type ToolId } from "@/lib/tools";
 import { ListGroup, ListRow, RowButton, Section, SectionAction } from "@/components/ui/List";
 import {
   Activity, AlertTriangle, ArrowLeft, ArrowRight, Baby, CalendarClock, Camera, Check, CheckCircle, CheckCircle2,
-  ChevronDown, ChevronRight, ChevronUp, Circle, CircleAlert, ClipboardList, Clock, CloudOff, Edit3, FileText, Flame, HeartHandshake,
+  ChevronDown, ChevronRight, ChevronUp, CircleAlert, ClipboardList, Clock, CloudOff, Edit3, FileText, Flame, HeartHandshake,
   Heart, HeartPulse, ImagePlus, Info, LoaderCircle, Minus, Moon, Music, Package, Pencil, Phone, PhoneCall, Play,
-  Plus, Printer, RefreshCw, RotateCcw, Send, Share2, Siren, Sparkles, Square, Tag, Timer, Trash2, Undo2, UserRound, Users, Utensils,
+  Plus, Printer, RefreshCw, RotateCcw, Send, Share2, Siren, Sparkles, Square, Tag, Timer, Trash2, Undo2, Users, Utensils,
   Wallet, Wand2, Waves, Wind, X,
 } from "lucide-react";
 
@@ -1507,7 +1509,7 @@ export function MaletaView({ profile }: { profile: UserProfile; onClose?: () => 
                   onClick={() => toggleItem(item.id)}
                   aria-pressed={!!bag[item.id]}
                   weight="medium"
-                  leading={<CheckMark checked={!!bag[item.id]} />}
+                  leading={<CheckGlyph tone="filled" checked={!!bag[item.id]} />}
                   title={item.label}
                   titleClassName={bag[item.id] ? "text-ink-subtle! line-through" : undefined}
                 />
@@ -1517,19 +1519,6 @@ export function MaletaView({ profile }: { profile: UserProfile; onClose?: () => 
         );
       })}
     </div>
-  );
-}
-
-/** Círculo de lista de verificación (decorativo: el estado va en aria-pressed). Sin marcar ≥3:1 con el fondo. */
-function CheckMark({ checked }: { checked: boolean }) {
-  return (
-    <span
-      className={`grid h-6 w-6 place-items-center rounded-full border-2 transition-colors ${
-        checked ? "border-transparent bg-sage-ink text-on-accent" : "border-line-control"
-      }`}
-    >
-      {checked && <Check size={14} strokeWidth={3} />}
-    </span>
   );
 }
 
@@ -1770,32 +1759,6 @@ const TOOL_ACTION: Record<ToolId, string> = {
   reproductor: "Escuchar",
   story: "Crear",
 };
-
-type Seat = { name?: string; role: MemberRole } | null;
-
-/**
- * La pareja de la cabecera de «Juntos»: dos monogramas de 40px, mamá a la izquierda y papá a la derecha (la
- * misma imagen en los dos teléfonos). Un asiento sin nadie es un pozo con el icono de persona, no un control.
- * Decorativa: lo que significa ya lo dice el SyncBadge de al lado («Compartido con Luis», «Solo en este teléfono»).
- */
-function CoupleMark({ seats }: { seats: [Seat, Seat] }) {
-  return (
-    <span aria-hidden="true" className="flex shrink-0 items-center">
-      {seats.map((seat, i) => (
-        // El segundo monta 8px sobre el primero; su marco de 2px del color del suelo los separa (sin sombra).
-        <span key={i} className={`flex rounded-[5px] bg-ground p-0.5 ${i > 0 ? "-ms-2" : ""}`}>
-          {seat ? (
-            <AuthorChip name={seat.name} role={seat.role} size="lg" title={seat.name?.trim() || (seat.role === "mama" ? "Mamá" : "Papá")} decorative />
-          ) : (
-            <span className="grid h-10 w-10 place-items-center rounded-[3px] border border-line-strong bg-surface-sunken text-ink-subtle">
-              <UserRound size={20} strokeWidth={1.75} />
-            </span>
-          )}
-        </span>
-      ))}
-    </span>
-  );
-}
 
 export function HerramientasView({ showToast, profile, openRequest, active = true, onRequestLink }: { showToast: ShowToast, profile?: UserProfile, openRequest?: { tool: string; nonce: number }; /** La pestaña está a la vista (el índice solo escucha datos entonces). */ active?: boolean; /** Abre la vinculación (botón de la cabecera cuando este teléfono no está vinculado). */ onRequestLink?: () => void }) {
   const [activeTool, setActiveTool] = useState<string | null>(null);
@@ -2167,6 +2130,10 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
     return `Hoy, ${time}`;
   };
 
+  // La patada se ve: una onda sale del botón y el paso de la sesión se llena (src/lib/motion.ts).
+  const rippleRef = useRef<HTMLSpanElement>(null);
+  const stepsRef = useRef<HTMLDivElement>(null);
+
   const handleKick = () => {
     const now = Date.now();
     const newCount = count + 1;
@@ -2187,6 +2154,18 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
         // sin vibración
       }
     }
+
+    // Toques seguidos reinician la onda; la décima, la que completa el conteo, llega más lejos.
+    const ripple = rippleRef.current;
+    if (canAnimate(ripple)) {
+      ripple.getAnimations?.().forEach((a) => a.cancel());
+      ripple.animate(
+        [{ transform: "scale(1.06)", opacity: 0.5 }, { transform: `scale(${newCount === 10 ? 1.45 : 1.3})`, opacity: 0 }],
+        { duration: newCount === 10 ? 900 : 650, easing: EASE_OUT_EXPO }
+      );
+    }
+    const step = stepsRef.current?.children[count];
+    if (canAnimate(step)) step.animate([{ transform: "scale(0.7)" }, { transform: "scale(1)" }], { duration: 280, easing: EASE_OUT_EXPO });
 
     const timeStr = new Date(now).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const intervalSecs = kicks.length > 0 && actualStart 
@@ -2452,7 +2431,7 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
         </div>
 
         {/* 10 pasos (decorativos: el conteo ya se dice en texto) */}
-        <div className="grid grid-cols-10 gap-1.5" aria-hidden="true">
+        <div ref={stepsRef} className="grid grid-cols-10 gap-1.5" aria-hidden="true">
           {Array.from({ length: 10 }).map((_, idx) => {
             const isDone = idx < count;
             const isCurrent = idx === count && startTime !== null;
@@ -2476,6 +2455,12 @@ export function ContadorPatadas({ showToast, profile }: { showToast: ShowToast, 
 
       {/* BOTÓN PRINCIPAL DE CONTEO ERGONÓMICO (240px) */}
       <div className="relative flex flex-col items-center justify-center py-2">
+        {/* Onda de cada patada (handleKick): nace en el borde del anillo y se desvanece. Quieta e invisible por defecto. */}
+        <span
+          ref={rippleRef}
+          aria-hidden="true"
+          className="pointer-events-none absolute top-2 left-1/2 size-60 -translate-x-1/2 rounded-full border-2 border-sage-ink opacity-0"
+        />
         <button
           ref={kickButtonRef}
           type="button"
@@ -3396,6 +3381,30 @@ function sourceLabel(card: NameCard): string {
   return "Agregado a mano";
 }
 
+/**
+ * Los monogramas de quienes eligieron un nombre (en «¡Coincidieron!»). Si la coincidencia llega con la lista
+ * ya a la vista, se juntan con el mismo abrazo que el aviso (src/lib/motion.ts › playEmbrace); las que ya
+ * estaban al abrir Nombres no se mueven (`readyAt`: cuándo llegó el primer dato de la lista).
+ */
+function MatchChips({ likers, readyAt }: { likers: Member[]; readyAt: React.RefObject<number> }) {
+  const firstRef = useRef<HTMLSpanElement>(null);
+  const secondRef = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!readyAt.current || performance.now() - readyAt.current < 400) return;
+    const running = playEmbrace(firstRef.current, secondRef.current, { distance: 6 });
+    return () => running.forEach((a) => a.cancel());
+  }, [readyAt]);
+  return (
+    <span className="flex -space-x-1">
+      {likers.map((liker, i) => (
+        <span key={liker.uid} ref={i === 0 ? firstRef : i === 1 ? secondRef : undefined} className="flex">
+          <AuthorChip name={liker.name} role={liker.role} title={`A ${liker.name ?? "esta persona"} le gusta`} />
+        </span>
+      ))}
+    </span>
+  );
+}
+
 export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
   const me = useMe();
   const { pid, myUid, members } = me;
@@ -3534,6 +3543,8 @@ export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
     // Aviso solo cuando MI «me gusta» convierte el nombre en coincidencia (no lo era antes).
     if (v === "like" && canMatch && myUid && !isMatch(target, members) && isMatch({ votes: { ...target.votes, [myUid]: "like" } }, members)) {
       notifyPartner(me, "match", `también eligió «${target.name}»: ¡coinciden!`);
+      // La lista de coincidencias suele quedar fuera de la vista bajo la tarjeta: el momento se dice aquí.
+      showToast(`¡Coinciden! A ti y a ${partnerName ?? "tu pareja"} les gusta «${target.name}».`);
     }
   };
 
@@ -3648,12 +3659,65 @@ export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
   // Deslizar: derecha = me gusta, izquierda = no.
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [swipeOffset, setSwipeOffset] = useState(0);
+  // El voto se ve: la tarjeta sale hacia su lado (me gusta a la derecha, no a la izquierda) y el nombre
+  // siguiente se asienta en su sitio. El voto se guarda al terminar la salida (220 ms); mientras, otro toque
+  // no vota dos veces. La tarjeta es el mismo elemento (el foco se queda en el botón). Sin animación
+  // (movimiento reducido), se vota al instante.
+  const cardRef = useRef<HTMLElement>(null);
+  const throwRef = useRef<Animation | null>(null);
+  const settleRef = useRef(false);
+  const throwCard = (target: NameCard, v: NameVote, fromX = 0) => {
+    const el = cardRef.current;
+    if (throwRef.current) return;
+    if (!canAnimate(el)) {
+      vote(target, v);
+      return;
+    }
+    const side = v === "like" ? 1 : -1;
+    const out = el.animate(
+      [
+        { transform: `translateX(${fromX}px) rotate(${fromX * 0.05}deg)`, opacity: 1 },
+        { transform: `translateX(${side * (el.offsetWidth + 48)}px) rotate(${side * 12}deg)`, opacity: 0 },
+      ],
+      { duration: 220, easing: "cubic-bezier(0.4, 0, 1, 1)", fill: "forwards" }
+    );
+    throwRef.current = out;
+    out.onfinish = () => {
+      settleRef.current = true;
+      vote(target, v);
+    };
+  };
+  // Tras el render del voto: la tarjeta vuelve a su sitio, ya con el nombre siguiente, y se asienta.
+  useLayoutEffect(() => {
+    if (!settleRef.current) return;
+    settleRef.current = false;
+    throwRef.current?.cancel();
+    throwRef.current = null;
+    const el = cardRef.current;
+    if (canAnimate(el)) el.animate([{ opacity: 0, transform: "scale(0.96)" }, { opacity: 1, transform: "none" }], { duration: 280, easing: EASE_OUT_EXPO });
+  });
+
   const onTouchEnd = () => {
-    if (card && swipeOffset > 80) vote(card, "like");
-    else if (card && swipeOffset < -80) vote(card, "nope");
+    const offset = swipeOffset;
     setTouchStart(null);
     setSwipeOffset(0);
+    if (card && offset > 80) throwCard(card, "like", offset);
+    else if (card && offset < -80) throwCard(card, "nope", offset);
+    else if (offset !== 0 && canAnimate(cardRef.current)) {
+      // No llegó a votar: vuelve al centro.
+      cardRef.current.animate([{ transform: `translateX(${offset}px) rotate(${offset * 0.05}deg)` }, { transform: "none" }], {
+        duration: 300,
+        easing: EASE_OUT_EXPO,
+      });
+    }
   };
+
+  // Coincidencias que llegan con la lista ya a la vista (mi voto o el de la pareja): sus monogramas se
+  // juntan. Las que había al abrir Nombres no se mueven.
+  const matchesReadyAt = useRef(0);
+  useEffect(() => {
+    if (loaded && !matchesReadyAt.current) matchesReadyAt.current = performance.now();
+  }, [loaded]);
 
   const likersOf = (c: NameCard) => members.filter((m) => c.votes[m.uid] === "like");
 
@@ -3707,16 +3771,15 @@ export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
       ) : card ? (
         // La única caja de la pantalla: el nombre se toca y se desliza como una unidad.
         <article
+          ref={cardRef}
           aria-labelledby={`${baseId}-nombre`}
           onTouchStart={(e) => setTouchStart(e.targetTouches[0].clientX)}
           onTouchMove={(e) => {
             if (touchStart !== null) setSwipeOffset(e.targetTouches[0].clientX - touchStart);
           }}
           onTouchEnd={onTouchEnd}
-          style={{
-            transform: touchStart !== null ? `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.05}deg)` : undefined,
-            transition: touchStart !== null ? "none" : "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-          }}
+          // Sigue al dedo; la vuelta al centro y la salida del voto son Web Animations (throwCard, onTouchEnd).
+          style={{ transform: touchStart !== null ? `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.05}deg)` : undefined }}
           className="w-full touch-pan-y select-none rounded-3xl border border-line-strong bg-surface px-6 pb-6 pt-9 text-center shadow-tool"
         >
           <h4 id={`${baseId}-nombre`} className="break-words font-display text-[2.5rem] font-bold leading-[1.1] text-ink">
@@ -3735,7 +3798,7 @@ export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
           <div className="mt-7 flex justify-center gap-6">
             <button
               type="button"
-              onClick={() => vote(card, "nope")}
+              onClick={() => throwCard(card, "nope")}
               aria-label={`No me gusta ${card.name}`}
               className={`grid h-16 w-16 place-items-center rounded-full border border-line-control bg-surface-raised text-ink-muted transition-[background-color,transform] hover:bg-surface-hover hover:text-ink active:scale-90 motion-reduce:active:scale-100 ${sosFocusRing}`}
             >
@@ -3743,7 +3806,7 @@ export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
             </button>
             <button
               type="button"
-              onClick={() => vote(card, "like")}
+              onClick={() => throwCard(card, "like")}
               aria-label={`Me gusta ${card.name}`}
               className={`grid h-16 w-16 place-items-center rounded-full bg-terracotta-ink text-on-accent transition-[background-color,transform] hover:bg-terracotta-ink-hover active:scale-90 motion-reduce:active:scale-100 ${sosFocusRing}`}
             >
@@ -3835,13 +3898,7 @@ export function VotadorNombres({ showToast }: { showToast: ShowToast }) {
               <ListRow
                 key={m.id}
                 title={<span className="font-display text-subtitle">{m.name}</span>}
-                trailing={
-                  <span className="flex -space-x-1">
-                    {likersOf(m).map((liker) => (
-                      <AuthorChip key={liker.uid} name={liker.name} role={liker.role} title={`A ${liker.name ?? "esta persona"} le gusta`} />
-                    ))}
-                  </span>
-                }
+                trailing={<MatchChips likers={likersOf(m)} readyAt={matchesReadyAt} />}
               />
             ))}
           </ListGroup>
@@ -5110,11 +5167,7 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
                     aria-label={`${expense.name}: ya comprado`}
                     className={`grid h-11 w-11 shrink-0 place-items-center rounded-full transition-colors hover:bg-surface-hover ${sosFocusRing}`}
                   >
-                    {expense.isPurchased ? (
-                      <CheckCircle2 size={22} className="text-sage-ink" aria-hidden="true" />
-                    ) : (
-                      <Circle size={22} className="text-line-control" aria-hidden="true" />
-                    )}
+                    <CheckGlyph checked={expense.isPurchased} />
                   </button>
                   <div className="min-w-0 flex-1 ps-1">
                     <p className={`truncate text-body font-bold ${expense.isPurchased ? "text-ink-subtle line-through" : "text-ink"}`}>

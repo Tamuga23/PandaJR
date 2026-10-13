@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-13T03:50:50.588Z",
+  "generatedAt": "2026-10-13T04:53:46.779Z",
   "title": "Design System: PandaJr",
   "extensions": {
     "colorMeta": {
@@ -739,7 +739,7 @@
       {
         "name": "shadow-toast",
         "value": "0 12px 32px -12px rgb(24 21 32 / 0.5)",
-        "purpose": "Aviso invertido (bg-ink, texto ground)."
+        "purpose": "Aviso invertido (bg-ink, texto ground) y la tarjeta flotante del abrazo que llega."
       },
       {
         "name": "shadow-emergency",
@@ -754,9 +754,49 @@
     ],
     "motion": [
       {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Curva de llegada de la app, la de la planta (token --ease-out-expo y utilidad ease-out-expo; EASE_OUT_EXPO en src/lib/motion.ts)."
+      },
+      {
         "name": "plant-grow",
         "value": "600ms cubic-bezier(0.16, 1, 0.3, 1)",
-        "purpose": "Única animación de autor: la planta al avanzar de semana. Desactivada con prefers-reduced-motion."
+        "purpose": "Momento de autor: la planta al avanzar de semana. Desactivada con prefers-reduced-motion."
+      },
+      {
+        "name": "embrace",
+        "value": "900ms tras 200ms; recorrido 14px (abrazo) / 6px (coincidencia)",
+        "purpose": "Momento de autor: los monogramas de la pareja llegan desde los lados, se juntan y se aprietan una vez (el abrazo que llega; una coincidencia nueva con la lista a la vista). Desactivado con prefers-reduced-motion."
+      },
+      {
+        "name": "sheet-rise",
+        "value": "translate 420ms ease-out-expo; velo 240ms",
+        "purpose": "Las hojas suben desde el borde en móvil y desde sm se asientan 24px; al cerrar se van al instante. Con movimiento reducido, solo se funden."
+      },
+      {
+        "name": "dialog-settle",
+        "value": "scale 0.96→1 320ms; opacity 200ms",
+        "purpose": "Diálogos centrados al abrirse."
+      },
+      {
+        "name": "toast-rise",
+        "value": "translate 12px 320ms; opacity 180ms",
+        "purpose": "Cada toast nuevo sube y se funde."
+      },
+      {
+        "name": "check-draw",
+        "value": "stroke-dashoffset 300ms cubic-bezier(0.33, 1, 0.68, 1)",
+        "purpose": "La palomita de una tarea se traza al marcarla, aquí o desde el teléfono de la pareja; nunca al montar."
+      },
+      {
+        "name": "kick-ripple",
+        "value": "scale 1.06→1.3 650ms (la décima 1.45, 900ms)",
+        "purpose": "Onda de cada patada desde el anillo del botón; el paso de la sesión se llena con un salto de 280ms."
+      },
+      {
+        "name": "bell-ring",
+        "value": "rotate ±14° amortiguado, 800ms",
+        "purpose": "Llega un aviso de la pareja con la app abierta (no al abrirla, no con los abrazos)."
       },
       {
         "name": "state-color",
@@ -889,7 +929,7 @@
       "name": "La pareja (cabecera de Juntos)",
       "kind": "custom",
       "refersTo": "couple-mark",
-      "description": "Dos monogramas de 40px, mamá a la izquierda y papá a la derecha, junto a «Juntos» y su estado en palabras; el asiento sin nadie es un pozo, no un control.",
+      "description": "Dos monogramas de 40px, mamá a la izquierda y papá a la derecha, junto a «Juntos» y su estado en palabras; el asiento sin nadie es un pozo, no un control. En el abrazo que llega, los dos se juntan (momento de autor).",
       "html": "<div class=\"ds-couple\"><div class=\"ds-couple-row\"><span class=\"ds-couple-mark\" aria-hidden=\"true\"><span class=\"ds-seat\"><span class=\"ds-mono ds-mono-mama\">A</span></span><span class=\"ds-seat\"><span class=\"ds-mono ds-mono-papa\">L</span></span></span><div class=\"ds-couple-text\"><h2 class=\"ds-couple-title\">Juntos</h2><span class=\"ds-sync\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/><path d=\"M16 3.128a4 4 0 0 1 0 7.744\"/><path d=\"M22 21v-2a4 4 0 0 0-3-3.87\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/></svg><span>Compartido con Luis</span></span></div></div><div class=\"ds-couple-row\"><span class=\"ds-couple-mark\" aria-hidden=\"true\"><span class=\"ds-seat\"><span class=\"ds-mono ds-mono-mama\">A</span></span><span class=\"ds-seat\"><span class=\"ds-mono ds-mono-empty\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"8\" r=\"5\"/><path d=\"M20 21a8 8 0 0 0-16 0\"/></svg></span></span></span><div class=\"ds-couple-text\"><h2 class=\"ds-couple-title\">Juntos</h2><span class=\"ds-sync\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect width=\"14\" height=\"20\" x=\"5\" y=\"2\" rx=\"2\" ry=\"2\"/><path d=\"M12 18h.01\"/></svg><span>Solo en este teléfono</span></span></div></div></div>",
       "css": ".ds-couple { display: grid; gap: 24px; } .ds-couple-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; } .ds-couple-mark { display: flex; flex-shrink: 0; align-items: center; } .ds-seat { display: flex; padding: 2px; border-radius: 5px; background: var(--ground, #faf9f5); } .ds-seat + .ds-seat { margin-inline-start: -8px; } .ds-mono { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 3px; font-family: var(--font-alegreya, 'Alegreya'), Georgia, serif; font-size: 1.25rem; font-weight: 700; line-height: 1; color: var(--on-accent, #fff); user-select: none; } .ds-mono-mama { background: var(--terracotta-ink-fill, #a54833); } .ds-mono-papa { background: var(--sage-ink-fill, #44695a); } .ds-mono-empty { box-sizing: border-box; border: 1px solid var(--line-strong, #d8d0c1); background: var(--surface-sunken, #f3efe7); color: var(--ink-subtle, #6d665e); } .ds-couple-text { flex: 1; min-width: 10rem; } .ds-couple-title { margin: 0; font-family: var(--font-alegreya, 'Alegreya'), Georgia, serif; font-size: 1.875rem; font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; color: var(--ink, #2d2a26); } .ds-couple-text .ds-sync { margin-top: 4px; } .ds-sync { display: inline-flex; min-width: 0; max-width: 100%; align-items: flex-start; gap: 6px; font-family: var(--font-alegreya-sans, 'Alegreya Sans'), system-ui, sans-serif; font-size: 0.8125rem; font-weight: 500; line-height: 20px; letter-spacing: 0.01em; color: var(--ink-subtle, #6d665e); } .ds-sync svg { flex-shrink: 0; margin-top: 3px; } .ds-sync-warn { color: var(--amber-ink, #8a5708); }"
     },
@@ -910,7 +950,7 @@
       "Terracota = acción y alarma; sage = crecimiento y completado; amber = solo avisos logísticos.",
       "Alegreya (títulos) + Alegreya Sans (UI), cifras de caja alta en toda la app.",
       "Secciones y listas con divisores; una sola caja `inset` como máximo por grupo, nunca anidada.",
-      "Una sola animación de autor: la planta al avanzar de semana.",
+      "Dos momentos de autor: la planta al avanzar de semana y los monogramas que se juntan (el abrazo que llega, la coincidencia). El resto del movimiento solo responde a lo que acaba de pasar.",
       "Contraste de texto ≥4.5:1 en los dos temas; objetivos ≥44px, llamadas ≥56px."
     ],
     "rules": [
@@ -948,6 +988,11 @@
         "name": "The Flat Ground Rule",
         "body": "Nada que viva en el flujo de la página lleva sombra; una sombra significa \"esto flota sobre la app\" o \"esta es la llamada de emergencia\".",
         "section": "elevation"
+      },
+      {
+        "name": "The Just-Happened Rule",
+        "body": "Solo se mueve lo que acaba de pasar: un toque, un cambio de estado, algo que llega de la pareja. Nada anima al cargar ni al cambiar de pestaña, nada late en bucle (salvo «cargando» y «PandaIA está respondiendo…») y la ruta de urgencia aparece al instante.",
+        "section": "components"
       }
     ],
     "dos": [
@@ -966,7 +1011,7 @@
       "**Don't** usar emoji ni glifos como iconos; un emoji guardado como dato (el estado de ánimo) se muestra por su nombre.",
       "**Don't** usar colores fuera de la paleta (sky, emerald, blue, indigo, rose, stone…), degradados de texto ni glassmorphism decorativo.",
       "**Don't** marcar estado con un `border-left` de color.",
-      "**Don't** añadir animaciones de entrada deslizantes ni otra animación de autor: los cambios de estado se marcan con color y opacidad; las utilidades heredadas `animate-in`/`slide-in-from-*` se retiraron de `globals.css` y no deben volver.",
+      "**Don't** añadir coreografía de carga, secciones que entran deslizando, bucles decorativos ni un tercer momento de autor. Solo se mueve lo que acaba de pasar (ver Movimiento), y la ruta de urgencia y las señales de alarma aparecen al instante. Las utilidades heredadas `animate-in`/`slide-in-from-*` se retiraron de `globals.css` y no deben volver.",
       "**Don't** reintroducir la ficha fetal de categoría (número gigante, fruta como héroe, tarjetas apiladas).",
       "**Don't** usar los alias de compatibilidad (`--background`, `--foreground`, `--surface-card`, `--surface-muted`, `--border-subtle`) en código nuevo."
     ]

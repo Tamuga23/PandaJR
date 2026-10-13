@@ -7,6 +7,7 @@ import { usePandaStore, type ThemePreference } from "@/store/usePandaStore";
 import { ModalPortal } from "@/components/ModalPortal";
 import { focusIntoTopDialog, useModalDialog, useModalOpenerTracking } from "@/lib/useModalDialog";
 import { Z_CLASS } from "@/lib/layers";
+import { arriveMessage } from "@/lib/motion";
 import {
   ensureAuth,
   ensureMembership,
@@ -2087,8 +2088,9 @@ export default function PandaJrApp() {
   // Abrazos de la pareja: también los que llegaron con la app cerrada (últimas 48 h, sin repetir).
   const nudgeSinceRef = useRef<{ pid: string; since: Date } | null>(null);
   const pendingHugsRef = useRef<{ who: string; role?: "mama" | "papa"; at: Date }[]>([]);
-  // El abrazo que llegó: tarjeta visible hasta que se cierra (antes, un aviso de 6 s al pie).
-  const [hugMoment, setHugMoment] = useState<{ from: string; role?: "mama" | "papa"; message: string; when?: string } | null>(null);
+  // El abrazo que llegó: tarjeta visible hasta que se cierra (antes, un aviso de 6 s al pie). `id` (la hora
+  // del último abrazo) vuelve a montar la tarjeta con cada abrazo nuevo, y el momento se repite.
+  const [hugMoment, setHugMoment] = useState<{ id: number; from: string; role?: "mama" | "papa"; message: string; when?: string } | null>(null);
   const hugFlushRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (hugFlushRef.current) clearTimeout(hugFlushRef.current); }, []);
   useEffect(() => {
@@ -2116,7 +2118,7 @@ export default function PandaJrApp() {
         const message = hugs.length === 1
           ? `${from} te mandó un abrazo`
           : `${from} te mandó ${hugs.length} abrazos${old ? " mientras no estabas" : ""}`;
-        setHugMoment({ from, role: names.length === 1 ? last.role : undefined, message, when: old ? formatRelative(last.at) : "Ahora" });
+        setHugMoment({ id: last.at.getTime(), from, role: names.length === 1 ? last.role : undefined, message, when: old ? formatRelative(last.at) : "Ahora" });
         try { navigator.vibrate?.([40, 60, 40]); } catch { /* sin vibración */ }
       }, 80);
     });
@@ -2528,6 +2530,8 @@ export default function PandaJrApp() {
   const [avisosSeen, setAvisosSeen] = useState(() => ({ pid, at: pid ? readStored<number | null>(avisosSeenKey(pid), null) ?? 0 : 0 }));
   if (avisosSeen.pid !== pid) setAvisosSeen({ pid, at: pid ? readStored<number | null>(avisosSeenKey(pid), null) ?? 0 : 0 });
   const unreadAvisos = partnerActivity.filter((a) => a.createdAt.getTime() > avisosSeen.at).length;
+  // La campana suena con lo nuevo de la pareja; el abrazo no, porque ya llega con su propia tarjeta.
+  const latestAvisoAt = partnerActivity.find((a) => a.kind !== "hug")?.createdAt.getTime() ?? 0;
   const [avisosOpen, setAvisosOpen] = useState<{ seenBefore: number } | null>(null);
   const avisosButtonRef = useRef<HTMLButtonElement>(null);
   const openAvisos = () => {
@@ -2607,7 +2611,7 @@ export default function PandaJrApp() {
               <span className="max-[300px]:sr-only">Síntomas</span>
             </button>
 
-            <AvisosBell unread={unreadAvisos} soon={!!nextAppointment?.soon} onOpen={openAvisos} buttonRef={avisosButtonRef} />
+            <AvisosBell unread={unreadAvisos} soon={!!nextAppointment?.soon} latestAt={latestAvisoAt} onOpen={openAvisos} buttonRef={avisosButtonRef} />
 
             {/* Solo icono: con el acceso a Síntomas, nombre y emoji ya no caben en un teléfono de 360-430px */}
             <button
@@ -2802,8 +2806,10 @@ export default function PandaJrApp() {
 
       {hugMoment && (
         <HugMoment
+          key={hugMoment.id}
           from={hugMoment.from}
           role={hugMoment.role}
+          me={{ name: profile.name, role: profile.role }}
           message={hugMoment.message}
           when={hugMoment.when}
           onReturn={returnHug}
@@ -2846,7 +2852,7 @@ export default function PandaJrApp() {
         {toast && (
           <div
             key={toast.id}
-            className="pointer-events-auto flex min-h-13 items-center justify-between gap-3 rounded-2xl bg-ink py-2 ps-4 pe-2 text-ground shadow-toast"
+            className="pj-toast pointer-events-auto flex min-h-13 items-center justify-between gap-3 rounded-2xl bg-ink py-2 ps-4 pe-2 text-ground shadow-toast"
           >
             <span className="min-w-0 py-1 text-meta font-medium">{toast.message}</span>
             {toast.onAction && (
@@ -2901,6 +2907,7 @@ export default function PandaJrApp() {
 
 function NavItem({ icon, label, isActive, onClick }: { icon: React.ReactNode, label: string, isActive: boolean, onClick: () => void }) {
   // Activa: tinta terracota + pastilla de lavado tras el icono + negrita (el estado no depende solo del color).
+  // La pastilla crece desde el centro al elegir la pestaña (con movimiento reducido, solo se funde).
   return (
     <button
       type="button"
@@ -2912,8 +2919,13 @@ function NavItem({ icon, label, isActive, onClick }: { icon: React.ReactNode, la
     >
       <span
         aria-hidden="true"
-        className={`grid h-8 w-14 place-items-center rounded-full transition-colors max-[300px]:w-11 ${isActive ? "bg-terracotta-wash" : "group-hover:bg-surface-hover"}`}
+        className={`relative isolate grid h-8 w-14 place-items-center rounded-full transition-colors max-[300px]:w-11 ${isActive ? "" : "group-hover:bg-surface-hover"}`}
       >
+        <span
+          className={`absolute inset-0 -z-10 rounded-full bg-terracotta-wash transition-[scale,opacity] duration-300 ease-out-expo ${
+            isActive ? "scale-x-100 opacity-100" : "scale-x-50 opacity-0"
+          }`}
+        />
         {icon}
       </span>
       {/* Por debajo de 300px (zoom del 200% en un teléfono) no caben cuatro etiquetas: el icono queda
@@ -4449,6 +4461,8 @@ function PandaIAView({
           <div
             key={msg.id}
             id={`pandaia-msg-${msg.id}`}
+            // Lo que llega en esta conversación sube y se funde; el historial restaurado aparece quieto.
+            ref={msg.id > initialMaxId ? arriveMessage : undefined}
             className={`flex max-w-[88%] items-end gap-2 ${
               msg.sender === 'user' ? 'self-end flex-row-reverse' : ''
             }`}

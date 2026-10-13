@@ -1,14 +1,16 @@
 "use client";
 
-import React, { useCallback, useId, useRef } from "react";
+import React, { useCallback, useEffect, useId, useRef } from "react";
 import { Bell, CalendarClock, Heart, X } from "lucide-react";
 import { AuthorChip } from "@/components/AuthorChip";
+import { CoupleMark, type Seat } from "@/components/CoupleMark";
 import { ModalPortal } from "@/components/ModalPortal";
 import { ListGroup, ListRow, RowButton } from "@/components/ui/List";
 import { useModalDialog } from "@/lib/useModalDialog";
 import { Z_CLASS } from "@/lib/layers";
 import { formatRelative } from "@/lib/format";
-import type { Activity, ActivityKind } from "@/lib/firebase/pairing";
+import { EASE_OUT_EXPO, canAnimate } from "@/lib/motion";
+import type { Activity, ActivityKind, MemberRole } from "@/lib/firebase/pairing";
 
 /*
  * «Avisos»: la campana de la cabecera, su hoja (lo que hizo la pareja y la próxima cita) y el momento del
@@ -33,16 +35,48 @@ export const AVISO_OPENS: Record<ActivityKind, boolean> = {
 export function AvisosBell({
   unread,
   soon,
+  latestAt = 0,
   onOpen,
   buttonRef,
 }: {
   unread: number;
   /** Hay una cita en las próximas 48 h. */
   soon: boolean;
+  /** Cuándo se creó el aviso más nuevo de la pareja (sin los abrazos: esos tienen su propia tarjeta). */
+  latestAt?: number;
   onOpen: () => void;
   buttonRef?: React.Ref<HTMLButtonElement>;
 }) {
   const label = unread > 0 ? `Avisos: ${unread} ${unread === 1 ? "nuevo" : "nuevos"}` : soon ? "Avisos: tienes una cita pronto" : "Avisos";
+  const bellRef = useRef<SVGSVGElement>(null);
+  const dotRef = useRef<HTMLSpanElement>(null);
+  const openedAt = useRef(0);
+  const rungFor = useRef(0);
+  useEffect(() => {
+    openedAt.current = Date.now();
+  }, []);
+  // Suena una vez cuando llega algo de la pareja con la app abierta; lo que ya había al abrirla no la mueve.
+  // El punto se queda fijo después (sin parpadeo).
+  useEffect(() => {
+    if (!latestAt || latestAt <= openedAt.current || latestAt <= rungFor.current) return;
+    rungFor.current = latestAt;
+    const bell = bellRef.current;
+    if (canAnimate(bell)) {
+      bell.animate(
+        [
+          { transform: "rotate(0deg)" },
+          { transform: "rotate(14deg)", offset: 0.15 },
+          { transform: "rotate(-11deg)", offset: 0.35 },
+          { transform: "rotate(7deg)", offset: 0.55 },
+          { transform: "rotate(-3deg)", offset: 0.75 },
+          { transform: "rotate(0deg)" },
+        ],
+        { duration: 800, easing: "ease-out" }
+      );
+    }
+    const dot = dotRef.current;
+    if (canAnimate(dot)) dot.animate([{ transform: "scale(0)" }, { transform: "scale(1)" }], { duration: 320, easing: EASE_OUT_EXPO });
+  }, [latestAt]);
   return (
     <button
       ref={buttonRef}
@@ -53,9 +87,10 @@ export function AvisosBell({
       title="Avisos"
       className={`relative inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-line-strong text-ink-muted transition-colors hover:bg-surface-hover hover:text-ink ${FOCUS_RING}`}
     >
-      <Bell size={18} strokeWidth={1.75} aria-hidden="true" />
+      {/* Cuelga de arriba: el giro nace en el asa. */}
+      <Bell ref={bellRef} size={18} strokeWidth={1.75} className="origin-top" aria-hidden="true" />
       {(unread > 0 || soon) && (
-        <span aria-hidden="true" className="absolute top-2 right-2 size-2 rounded-full bg-terracotta-ink ring-2 ring-ground" />
+        <span ref={dotRef} aria-hidden="true" className="absolute top-2 right-2 size-2 rounded-full bg-terracotta-ink ring-2 ring-ground" />
       )}
     </button>
   );
@@ -178,29 +213,49 @@ export function AvisosSheet({
 }
 
 /**
- * El abrazo que llega: una tarjeta flotante bajo la cabecera que se queda hasta que la cierras (antes era
- * un aviso de 6 s al pie). Sin animación de entrada: aparece, como el resto de cambios de estado.
+ * El abrazo que llega: una tarjeta flotante bajo la cabecera que se queda hasta que la cierras. Es el
+ * momento de autor de la pareja: la tarjeta baja de la cabecera (globals.css › .pj-hug) y los monogramas
+ * de quien lo manda y de quien lo recibe llegan desde los lados y se juntan (CoupleMark `embrace`). Con
+ * movimiento reducido, la tarjeta se funde y los monogramas ya están juntos. Cada abrazo nuevo monta la
+ * tarjeta otra vez (key en page.tsx) y el momento se repite.
  */
 export function HugMoment({
   from,
   role,
+  me,
   message,
   when,
   onReturn,
   onClose,
 }: {
   from: string;
-  role?: "mama" | "papa";
+  role?: MemberRole;
+  /** Quien lo recibe (este teléfono). */
+  me: { name?: string; role?: MemberRole };
   message: string;
   when?: string;
   onReturn: () => void;
   onClose: () => void;
 }) {
+  // Mamá a la izquierda y papá a la derecha, como en «Juntos». Sin rol conocido, el contrario del propio.
+  const mine: Seat = { name: me.name, role: me.role ?? (role === "mama" ? "papa" : "mama") };
+  const sender: Seat = { name: from, role: role ?? (mine.role === "mama" ? "papa" : "mama") };
+  const seats: [Seat, Seat] = sender.role === "mama" ? [sender, mine] : [mine, sender];
   return (
-    <div className={`fixed inset-x-0 top-[calc(var(--header-h)+0.5rem)] mx-auto w-full max-w-md px-4 ${Z_CLASS.nav} lg:left-24 lg:max-w-[45rem] lg:px-8`}>
-      <div className="flex items-start gap-3 rounded-2xl border border-line-strong bg-surface-raised p-4 text-ink shadow-toast">
-        <AuthorChip name={from} role={role} size="lg" title={from} decorative />
-        <div className="min-w-0 flex-1" role="status" aria-live="polite">
+    <div className={`pj-hug fixed inset-x-0 top-[calc(var(--header-h)+0.5rem)] mx-auto w-full max-w-md px-4 ${Z_CLASS.nav} lg:left-24 lg:max-w-[45rem] lg:px-8`}>
+      <div className="rounded-2xl border border-line-strong bg-surface-raised p-4 text-ink shadow-toast">
+        <div className="flex items-start justify-between gap-3">
+          <CoupleMark seats={seats} frame="raised" embrace />
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar el aviso del abrazo"
+            className={`-mt-1 -mr-1 inline-flex size-11 shrink-0 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-surface-hover hover:text-ink ${FOCUS_RING}`}
+          >
+            <X size={20} aria-hidden="true" />
+          </button>
+        </div>
+        <div className="mt-2" role="status" aria-live="polite">
           <p className="font-display text-subtitle text-ink text-pretty">{message}</p>
           {when && <p className="text-micro font-medium text-ink-subtle">{when}</p>}
           <RowButton tone="primary" onClick={onReturn} className="mt-3">
@@ -208,14 +263,6 @@ export function HugMoment({
             Devolver el abrazo
           </RowButton>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Cerrar el aviso del abrazo"
-          className={`-mt-1 -mr-1 inline-flex size-11 shrink-0 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-surface-hover hover:text-ink ${FOCUS_RING}`}
-        >
-          <X size={20} aria-hidden="true" />
-        </button>
       </div>
     </div>
   );

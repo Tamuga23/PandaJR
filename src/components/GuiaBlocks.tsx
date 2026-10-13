@@ -15,11 +15,9 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   CalendarClock,
   CalendarPlus,
-  CheckCircle2,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Circle,
   ListChecks,
   Luggage,
   Stethoscope,
@@ -31,6 +29,7 @@ import { CallActions } from "@/components/CallActions";
 import { formatDateLong } from "@/components/DatingPicker";
 import { GrowingPlant } from "@/components/GrowingPlant";
 import { ModalPortal } from "@/components/ModalPortal";
+import { CheckGlyph } from "@/components/ui/CheckGlyph";
 import { ListGroup, ListRow, RowButton } from "@/components/ui/List";
 import { LINK_LABEL, missionLink, type GuiaLinkTarget, type ToolId } from "@/lib/tools";
 import { Z_CLASS } from "@/lib/layers";
@@ -162,11 +161,7 @@ export function TaskRow({
           onClick={onToggleDone}
           className={`-ms-2.5 mt-0.5 grid size-11 shrink-0 place-items-center rounded-full transition-colors hover:bg-surface-hover disabled:cursor-wait disabled:opacity-60 ${FOCUS}`}
         >
-          {completed ? (
-            <CheckCircle2 size={22} strokeWidth={1.75} className="text-sage-ink" aria-hidden="true" />
-          ) : (
-            <Circle size={22} strokeWidth={1.75} className="text-line-control" aria-hidden="true" />
-          )}
+          <CheckGlyph checked={completed} />
         </button>
         <div className="pj-row-body ms-0.5 flex min-w-0 flex-1">
           <button

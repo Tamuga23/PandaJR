@@ -7,9 +7,7 @@ import {
   CalendarDays,
   CalendarPlus,
   Check,
-  CheckCircle2,
   ChevronDown,
-  Circle,
   CircleAlert,
   CalendarClock,
   Clock,
@@ -35,6 +33,7 @@ import { localToSharedFlag } from "@/lib/seeds";
 import { AuthorChip } from "@/components/AuthorChip";
 import { SyncBadge, usePartner } from "@/components/SyncBadge";
 import { ModalPortal } from "@/components/ModalPortal";
+import { CheckGlyph } from "@/components/ui/CheckGlyph";
 import { ListGroup, ListRow, RowButton, Section } from "@/components/ui/List";
 import { useModalDialog } from "@/lib/useModalDialog";
 import { Z_CLASS } from "@/lib/layers";
@@ -1044,8 +1043,8 @@ export function AppointmentPrepModal({
               onClick={() => setItem(kind, text, !checked)}
               className={`flex w-full min-h-12 items-stretch ps-[var(--gutter)] text-left transition-colors hover:bg-surface-hover active:bg-surface-hover disabled:cursor-wait disabled:opacity-70 disabled:hover:bg-transparent ${focusInset}`}
             >
-              <span className={`flex shrink-0 items-start pt-3 pe-3 ${checked ? "text-sage-ink" : "text-line-control"}`} aria-hidden="true">
-                {checked ? <CheckCircle2 size={20} strokeWidth={1.75} /> : <Circle size={20} strokeWidth={1.75} />}
+              <span className="flex shrink-0 items-start pt-3 pe-3" aria-hidden="true">
+                <CheckGlyph checked={checked} size={20} />
               </span>
               <span
                 className={`pj-row-body min-w-0 flex-1 py-3 pe-[var(--gutter)] text-body break-words ${

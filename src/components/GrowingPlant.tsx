@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { EASE_OUT_EXPO } from "@/lib/motion";
 import { WEEK_MAX, WEEK_MIN } from "@/lib/weeks";
 
 /**
@@ -20,10 +21,11 @@ import { WEEK_MAX, WEEK_MIN } from "@/lib/weeks";
  * sage-ink para tallo y hojas, rellenos tenues de sage, terracota solo en el botón/flor. Todo por
  * tokens (var(--sage-ink), var(--sage), var(--terracotta)…): correcto en claro y oscuro sin props.
  *
- * Animación única de autor: al AVANZAR de semana (no al montar ni al retroceder) el tallo se alarga
- * hasta su nueva punta, la punta sube con él y la hoja más joven crece desde su nudo; 600ms,
- * ease-out exponencial. Desactivada con prefers-reduced-motion o animate={false}. El estado por
- * defecto es la planta completa: si la animación no corre, no falta nada.
+ * Animación de autor (la otra es el abrazo de los monogramas, src/lib/motion.ts): al AVANZAR de
+ * semana (no al montar ni al retroceder) el tallo se alarga hasta su nueva punta, la punta sube con
+ * él y la hoja más joven crece desde su nudo; 600ms, ease-out exponencial. Desactivada con
+ * prefers-reduced-motion o animate={false}. El estado por defecto es la planta completa: si la
+ * animación no corre, no falta nada.
  *
  * Accesibilidad: role="img" + aria-label ("Planta de la semana 24"). title personaliza la etiqueta;
  * title="" la vuelve decorativa (aria-hidden) cuando el texto de al lado ya dice la semana.
@@ -32,7 +34,6 @@ import { WEEK_MAX, WEEK_MIN } from "@/lib/weeks";
 const VB = 120;
 const BASE_X = 60;
 const SOIL_Y = 100; // cima del montículo de tierra, bajo el tallo
-const EASE_OUT_EXPO = "cubic-bezier(0.16, 1, 0.3, 1)";
 const GROW_MS = 600;
 
 const r2 = (v: number) => Math.round(v * 100) / 100;
