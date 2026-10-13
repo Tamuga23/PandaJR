@@ -263,7 +263,7 @@ Tokens `--text-*` en `globals.css`; cada utilidad trae su interlineado y los tí
 - **Display** (`text-display`, Alegreya 700, 30px/1.1, −0.01em): la semana en la Guía ("Semana 24 + 4 días"), «Juntos» junto a la pareja, héroes.
 - **Title** (`text-title`, Alegreya 700, 24px/1.2): título de pantalla o de diálogo; "Hoy".
 - **Subtitle** (`text-subtitle`, Alegreya 700, 20px/1.3): título de `Section` (h2).
-- **Section sm** (Alegreya 700, 16px): título de `Section` h3 ("Tus tareas", "Próxima cita").
+- **Section sm** (Alegreya 700, 16px): título de `Section` h3 ("Próxima cita", "Lo que toca esta semana").
 - **Body** (`text-body`, Alegreya Sans 400, 16px/1.5): cuerpo; título de fila en 700 (500 en listas largas y tranquilas).
 - **Meta** (`text-meta`, Alegreya Sans 400–700, 14px/1.45, `ink-muted`): línea secundaria, descripciones, botones compactos.
 - **Micro** (`text-micro`, Alegreya Sans 500+, 13px/1.35, +0.01em, `ink-subtle`): horas, autores, contadores, etiquetas de la barra.
@@ -318,7 +318,7 @@ Radios suaves solo en lo que se toca; lo informativo es recto o casi recto.
 
 ### Secciones y listas (`src/components/ui/List.tsx`)
 La estructura de toda la app. Se lee en secciones con título y listas con divisores.
-- **`Section`**: título Alegreya (h2 20px por defecto; h3 16px), acción opcional a la derecha (`SectionAction`: texto `terracotta-ink` 14px bold, ≥44px) y descripción en `meta`/`ink-muted`. Úsala para cada bloque con nombre ("Hoy", "Tus tareas", "Tareas por trimestre").
+- **`Section`**: título Alegreya (h2 20px por defecto; h3 16px), acción opcional a la derecha (`SectionAction`: texto `terracotta-ink` 14px bold, ≥44px) y descripción en `meta`/`ink-muted`. Úsala para cada bloque con nombre ("Hoy", "Próxima cita", "Lo que toca esta semana").
 - **`ListGroup`**: un solo `<ul role="list">` de filas con divisores internos `line` que empiezan tras el icono. Tono `plain` (por defecto): sin caja, sangra hasta el gutter; `edges` añade filetes arriba y abajo. Tono `inset`: una caja `surface` con borde `line-strong` y radio 16px, para agrupar dentro de un fondo largo. Nunca dentro de otro `ListGroup` ni de una tarjeta.
 - **`ListRow`**: fila ≥48px. Interactiva como `<button>`, `<a>` (trailing `chevron` o `external`) o switch (la fila entera es `role="switch"`); estática si no, con un control al final. Icono lucide de 20px en `ink-muted` (un icono no es estado; si marca completado, lleva `sage-ink`). Tono `danger` pone título e icono en `terracotta-ink`. Hover y pressed: `surface-hover`. Foco: contorno interior de 2px `terracotta-ink`.
 - **`RowButton`**: botón compacto (≥44px, píldora, 14px bold) para el trailing de una fila estática o la acción de una sección. Con zoom al 200 % la etiqueta puede partirse: va centrada y con 8px de margen vertical. `primary` relleno `terracotta-ink`; `default` contorno `line-control`; `danger` contorno con tinta terracota y hover `terracotta-wash`.
@@ -423,6 +423,7 @@ La app se siente viva porque responde, no porque se decore.
 - **Do** dar a cada objetivo táctil ≥44px de alto (filas ≥48px, llamadas ≥56px) y un foco visible `terracotta-ink` de 2px.
 - **Do** dejar "Emergencias" como el botón más fuerte de cualquier pantalla donde aparece.
 - **Do** poner la llamada antes del texto en toda ruta de urgencia, y comprobar que con zoom al 200 % (195px) siga en la primera pantalla.
+- **Do** reunir lo que toca en una sola lista. En «Hoy» va primero «Próxima cita» y después «Lo que toca esta semana»: la misión de quien lee y «Juntos esta semana» encabezan la lista con casilla, dueño y botón a su herramienta, y debajo van las tareas. Mientras no llega el progreso (al abrir, sin conexión), la misión se lee con su botón y sin casilla: no se afirma si está hecha. La misión de la semana real no se repite en el bloque de semana; ahí solo aparece al explorar otra semana.
 - **Do** montar todo diálogo con `ModalPortal` + `useModalDialog` y su capa de `layers.ts`.
 - **Do** usar iconos lucide con trazo 1.75 y `tabular-nums` en contadores y horas.
 - **Do** regenerar los rasters de marca con `scripts/brand/` cuando cambie un token del panda o del suelo.

@@ -238,6 +238,108 @@ export function TaskRow({
 }
 
 // =====================================================================================
+// Misiones como filas de «Lo que toca esta semana» (crítica 2026-10-13, P2 #5): la misión de quien lee y
+// la de los dos («Juntos esta semana») se marcan igual que las tareas, en el mismo progreso compartido
+// (claves propias, sin tocar el catálogo ni las reglas), con su dueño y su botón a la herramienta.
+// =====================================================================================
+
+/** Clave en el progreso compartido de la misión de un rol en una semana. */
+export const missionKey = (week: number, role: Role) => `mision-${week}-${role}`;
+/** Clave de «Juntos esta semana» (una para los dos). */
+export const togetherKey = (week: number) => `juntos-${week}`;
+
+/** Título legible de una clave de misión (para «Desde tu última visita»); null si no es una misión. */
+export function missionKeyTitle(key: string): string | null {
+  const m = /^mision-(\d+)-(mama|papa)$/.exec(key);
+  if (m) return `Su misión de la semana ${m[1]}`;
+  const j = /^juntos-(\d+)$/.exec(key);
+  if (j) return `Juntos esta semana (semana ${j[1]})`;
+  return null;
+}
+
+export type MissionRowModel = {
+  /** Clave en el progreso compartido (missionKey / togetherKey). */
+  key: string;
+  /** «Tu misión», «Tu misión de copiloto» o «Juntos esta semana». */
+  label: string;
+  text: string;
+  completed: boolean;
+  /** El rol de quien lee (su misión) o «ambos» (la de los dos). */
+  owner: TaskOwner;
+  /** Herramienta o Agenda que nombra (su botón); nunca repite la de otra fila. */
+  link: GuiaLinkTarget | null;
+  author: { name?: string; role?: Role; title: string } | null;
+};
+
+export function MissionRow({
+  row,
+  ownerLabels,
+  disabled,
+  statusUnknown = false,
+  onToggleDone,
+  onOpenLink,
+}: {
+  row: MissionRowModel;
+  ownerLabels: OwnerLabels;
+  disabled: boolean;
+  /** Aún sin el progreso (al abrir, sin conexión): la misión se lee, pero no se afirma si está hecha. */
+  statusUnknown?: boolean;
+  onToggleDone: () => void;
+  onOpenLink?: (target: GuiaLinkTarget) => void;
+}) {
+  const { label, text, owner, link } = row;
+  const completed = !statusUnknown && row.completed;
+  const author = statusUnknown ? null : row.author;
+  return (
+    <li className="relative">
+      <div className="flex items-start ps-[var(--gutter)]">
+        {statusUnknown ? (
+          // El hueco de la casilla: el texto no se mueve cuando llega el dato.
+          <span aria-hidden="true" className="-ms-2.5 mt-0.5 size-11 shrink-0" />
+        ) : (
+          <button
+            type="button"
+            role="checkbox"
+            aria-checked={completed}
+            aria-label={`${label}: ${text}`}
+            disabled={disabled}
+            onClick={onToggleDone}
+            className={`-ms-2.5 mt-0.5 grid size-11 shrink-0 place-items-center rounded-full transition-colors hover:bg-surface-hover disabled:cursor-wait disabled:opacity-60 ${FOCUS}`}
+          >
+            <CheckGlyph checked={completed} />
+          </button>
+        )}
+        <div className="pj-row-body ms-0.5 flex min-w-0 flex-1 items-start gap-3 py-2.5 pe-[var(--gutter)]">
+          <div className="min-w-0 flex-1">
+            {/* Qué es (y de quién) primero: la misión no es una tarea del catálogo. */}
+            <p className="text-meta text-ink-muted">
+              <span className="font-bold">{ownerLabels[owner]}</span> · {label}
+            </p>
+            <p
+              className={`mt-0.5 text-body text-pretty ${
+                completed ? "text-ink-subtle line-through decoration-line-control" : "font-medium text-ink"
+              }`}
+            >
+              {text}
+            </p>
+            {link && onOpenLink && !completed && (
+              <RowButton onClick={() => onOpenLink(link)} className="mt-2">
+                {LINK_LABEL[link]}
+              </RowButton>
+            )}
+          </div>
+          {author && (
+            <span className="mt-0.5 shrink-0">
+              <AuthorChip size="xs" name={author.name} role={author.role} title={author.title} />
+            </span>
+          )}
+        </div>
+      </div>
+    </li>
+  );
+}
+
+// =====================================================================================
 // Bloque de semana (R2 · paso 2: «la semana manda»): la planta (semana REAL), la semana en Alegreya con
 // las flechas de explorar al lado, el hito como frase y la misión de quien lee. Es lo primero que se ve
 // (390×844): el corazón de la semana ya no queda debajo de las tareas. La ficha (longitud, peso,
@@ -302,12 +404,15 @@ function WeekHeart({
   typical,
   partnerName,
   onOpenLink,
+  missions = true,
 }: {
   week: number;
   reader: Role;
   /** Sin semana confirmada: es lo típico de esa semana, no necesariamente la suya. */
   typical: boolean;
   partnerName?: string;
+  /** false en la semana real: la misión y «Juntos» viven en «Lo que toca esta semana» (con casilla). */
+  missions?: boolean;
   /** La misión nombra una herramienta (o la Agenda): un botón lleva directo a ella. */
   onOpenLink?: (target: GuiaLinkTarget) => void;
 }) {
@@ -320,19 +425,23 @@ function WeekHeart({
   return (
     <>
       <p className="mt-4 font-display text-subtitle font-normal text-pretty text-ink">{info.milestone}</p>
-      <h3 className="mt-5 font-display text-body font-bold text-ink">{isMama ? "Tu misión" : "Tu misión de copiloto"}</h3>
-      <p className="mt-1 text-body text-pretty text-ink">{mission}</p>
-      {link && onOpenLink && (
-        <RowButton onClick={() => onOpenLink(link)} className="mt-3">
-          {LINK_LABEL[link]}
-        </RowButton>
-      )}
-      <h3 className="mt-5 font-display text-body font-bold text-ink">Juntos esta semana</h3>
-      <p className="mt-1 text-body text-pretty text-ink">{info.together}</p>
-      {togetherLink && togetherLink !== link && onOpenLink && (
-        <RowButton onClick={() => onOpenLink(togetherLink)} className="mt-3">
-          {LINK_LABEL[togetherLink]}
-        </RowButton>
+      {missions && (
+        <>
+          <h3 className="mt-5 font-display text-body font-bold text-ink">{isMama ? "Tu misión" : "Tu misión de copiloto"}</h3>
+          <p className="mt-1 text-body text-pretty text-ink">{mission}</p>
+          {link && onOpenLink && (
+            <RowButton onClick={() => onOpenLink(link)} className="mt-3">
+              {LINK_LABEL[link]}
+            </RowButton>
+          )}
+          <h3 className="mt-5 font-display text-body font-bold text-ink">Juntos esta semana</h3>
+          <p className="mt-1 text-body text-pretty text-ink">{info.together}</p>
+          {togetherLink && togetherLink !== link && onOpenLink && (
+            <RowButton onClick={() => onOpenLink(togetherLink)} className="mt-3">
+              {LINK_LABEL[togetherLink]}
+            </RowButton>
+          )}
+        </>
       )}
       {typical && (
         <p className="mt-2 text-micro font-medium text-ink-subtle">
@@ -353,6 +462,7 @@ export function WeekHeader({
   explorer,
   partnerName,
   onOpenLink,
+  missionsInToday = false,
 }: {
   ga: GestationalAgeState;
   reader: Role;
@@ -364,6 +474,8 @@ export function WeekHeader({
   partnerName?: string;
   /** Botón bajo la misión cuando nombra una herramienta o la Agenda. */
   onOpenLink?: (target: GuiaLinkTarget) => void;
+  /** La misión de la semana real vive en «Hoy» (lista con casilla): aquí solo al explorar otra semana. */
+  missionsInToday?: boolean;
 }) {
   const isMama = reader === "mama";
   // La planta dice la semana real; sin confirmar, un brote neutro (no se inventa una semana).
@@ -490,7 +602,14 @@ export function WeekHeader({
               </button>
             </div>
           )}
-          <WeekHeart week={explorer.display} reader={reader} typical={false} partnerName={partnerName} onOpenLink={onOpenLink} />
+          <WeekHeart
+            week={explorer.display}
+            reader={reader}
+            typical={false}
+            partnerName={partnerName}
+            onOpenLink={onOpenLink}
+            missions={!missionsInToday || explorer.exploring}
+          />
         </>
       )}
     </section>
@@ -773,6 +892,9 @@ export function TodayBlock({
   onOpenTool,
   allTasks,
   discuss = [],
+  missions = [],
+  onToggleMission,
+  onOpenLink,
 }: {
   weekKnown: boolean;
   reader: Role;
@@ -794,6 +916,11 @@ export function TodayBlock({
   allTasks?: AllTasksEntry;
   /** Ventanas cerradas hace poco y sin marcar (más las marcadas en esta sesión): van con la próxima cita. */
   discuss?: TaskRowModel[];
+  /** Misión de quien lee y «Juntos esta semana» (semana real): las primeras filas de «Lo que toca». */
+  missions?: MissionRowModel[];
+  onToggleMission?: (row: MissionRowModel) => void;
+  /** Botón de la misión a su herramienta (o a la Agenda). */
+  onOpenLink?: (target: GuiaLinkTarget) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const todayText = new Intl.DateTimeFormat("es", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
@@ -813,8 +940,9 @@ export function TodayBlock({
   const featured = featuredIds.map((id) => byId.get(id)).filter((r): r is TaskRowModel => !!r);
   const rest = weekRows.filter((r) => !featuredIds.includes(String(r.task.id)));
   const shown = expanded ? [...featured, ...rest] : featured;
-  const pending = weekRows.filter((r) => !r.completed).length;
-  const hasRows = weekKnown && !loading && weekRows.length > 0;
+  const missionRows = weekKnown ? missions : [];
+  const pending = weekRows.filter((r) => !r.completed).length + missionRows.filter((m) => !m.completed).length;
+  const hasRows = weekKnown && !loading && weekRows.length + missionRows.length > 0;
 
   return (
     <section aria-labelledby="guia-hoy-title">
@@ -862,61 +990,7 @@ export function TodayBlock({
         </div>
       )}
 
-      {/* Tareas de la semana: dos a la vista (quién hace qué se lee en cada fila) y el resto a un toque. */}
-      <div className="mt-6">
-        <GroupHeading
-          title="Tareas de la semana"
-          aside={hasRows ? (pending === 0 ? "Todo hecho" : pending === 1 ? "1 pendiente" : `${pending} pendientes`) : undefined}
-        />
-        {!weekKnown ? (
-          <p className="mt-1 text-body text-ink-muted">
-            {reader === "mama"
-              ? "Cuando confirmes tu fecha, aquí verás qué toca esta semana y a quién le toca."
-              : "Cuando confirmen la fecha, aquí verás qué toca esta semana y a quién le toca."}
-          </p>
-        ) : loading ? (
-          <p className="mt-1 text-body text-ink-muted" aria-live="polite">
-            {loadingText}
-          </p>
-        ) : weekRows.length === 0 ? (
-          <p className="mt-1 text-body text-ink-muted">
-            No hay tareas con fecha para esta semana.{allTasks ? " En «Todas las tareas» están las de cada trimestre." : ""}
-          </p>
-        ) : (
-          <ListGroup className="mt-1">
-            {shown.map((row) => (
-              <TaskRow
-                key={row.task.id}
-                idBase={`hoy-${row.task.id}`}
-                row={row}
-                ownerLabels={ownerLabels}
-                disabled={disabled}
-                onToggleDone={() => onToggleDone(row)}
-                onAssign={(o) => onAssign(row, o)}
-              />
-            ))}
-          </ListGroup>
-        )}
-        {hasRows && (rest.length > 0 || allTasks?.syncBadge) && (
-          <div className="mt-1 flex flex-wrap items-center justify-between gap-x-4">
-            {rest.length > 0 && (
-              <button
-                type="button"
-                aria-expanded={expanded}
-                onClick={() => setExpanded((v) => !v)}
-                className={`-mx-2 ${TEXT_ACTION}`}
-              >
-                {/* «Ver las 8», no «Ver todas»: «Todas las tareas» (todo el embarazo) es la fila del final. */}
-                {expanded ? "Ver menos" : `Ver las ${weekRows.length}`}
-              </button>
-            )}
-            {/* Dónde vive este progreso: solo aquí o compartido con la pareja. */}
-            {allTasks?.syncBadge && <div className="ms-auto flex min-h-11 min-w-0 items-center">{allTasks.syncBadge}</div>}
-          </div>
-        )}
-      </div>
-
-      {/* Próxima cita (solo futura) */}
+      {/* Próxima cita (solo futura): lo más urgente del día va antes que la lista (crítica 2026-10-13). */}
       <div className="mt-6">
         <GroupHeading title="Próxima cita" />
         <ListGroup className="mt-1">
@@ -963,6 +1037,82 @@ export function TodayBlock({
             topRule
             listenOpenRequest
           />
+        )}
+      </div>
+
+      {/* Lo que toca esta semana (una sola lista): la misión de quien lee, la de los dos y las tareas, cada
+          una con casilla y dueño. Dos tareas a la vista y el resto a un toque. */}
+      <div className="mt-6">
+        <GroupHeading
+          title="Lo que toca esta semana"
+          aside={hasRows ? (pending === 0 ? "Todo hecho" : pending === 1 ? "1 pendiente" : `${pending} pendientes`) : undefined}
+        />
+        {!weekKnown ? (
+          <p className="mt-1 text-body text-ink-muted">
+            {reader === "mama"
+              ? "Cuando confirmes tu fecha, aquí verás qué toca esta semana y a quién le toca."
+              : "Cuando confirmen la fecha, aquí verás qué toca esta semana y a quién le toca."}
+          </p>
+        ) : (
+          <>
+            {/* La misión es el texto de la semana: se lee aunque el progreso no haya llegado (al abrir, sin
+                conexión); solo su casilla espera al dato. Las tareas sí esperan. */}
+            {(missionRows.length > 0 || (!loading && shown.length > 0)) && (
+              <ListGroup className="mt-1">
+                {missionRows.map((m) => (
+                  <MissionRow
+                    key={m.key}
+                    row={m}
+                    ownerLabels={ownerLabels}
+                    disabled={disabled}
+                    statusUnknown={loading}
+                    onToggleDone={() => onToggleMission?.(m)}
+                    onOpenLink={onOpenLink}
+                  />
+                ))}
+                {!loading &&
+                  shown.map((row) => (
+                    <TaskRow
+                      key={row.task.id}
+                      idBase={`hoy-${row.task.id}`}
+                      row={row}
+                      ownerLabels={ownerLabels}
+                      disabled={disabled}
+                      onToggleDone={() => onToggleDone(row)}
+                      onAssign={(o) => onAssign(row, o)}
+                    />
+                  ))}
+              </ListGroup>
+            )}
+            {loading ? (
+              <p className="mt-1 text-body text-ink-muted" aria-live="polite">
+                {loadingText}
+              </p>
+            ) : (
+              weekRows.length === 0 && (
+                <p className="mt-1 text-body text-ink-muted">
+                  No hay tareas con fecha para esta semana.{allTasks ? " En «Todas las tareas» están las de cada trimestre." : ""}
+                </p>
+              )
+            )}
+          </>
+        )}
+        {hasRows && (rest.length > 0 || allTasks?.syncBadge) && (
+          <div className="mt-1 flex flex-wrap items-center justify-between gap-x-4">
+            {rest.length > 0 && (
+              <button
+                type="button"
+                aria-expanded={expanded}
+                onClick={() => setExpanded((v) => !v)}
+                className={`-mx-2 ${TEXT_ACTION}`}
+              >
+                {/* «Ver las 8», no «Ver todas»: «Todas las tareas» (todo el embarazo) es la fila del final. */}
+                {expanded ? "Ver menos" : `Ver las ${weekRows.length + missionRows.length}`}
+              </button>
+            )}
+            {/* Dónde vive este progreso: solo aquí o compartido con la pareja. */}
+            {allTasks?.syncBadge && <div className="ms-auto flex min-h-11 min-w-0 items-center">{allTasks.syncBadge}</div>}
+          </div>
         )}
       </div>
 

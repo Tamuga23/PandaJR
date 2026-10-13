@@ -104,10 +104,14 @@ import {
   TodayBlock,
   WeekHeader,
   discussAtControl,
+  missionKey,
+  missionKeyTitle,
   overdueAsk,
   taskWindowNote,
+  togetherKey,
   useWeekExplorer,
   type GuiaTool,
+  type MissionRowModel,
   type OwnerLabels,
   type SinceLastVisit,
   type TaskRowModel,
@@ -115,6 +119,8 @@ import {
   type TrimesterModel,
 } from "@/components/GuiaBlocks";
 import { publishDiscuss, requestOpenDiscuss } from "@/lib/guiaDiscuss";
+import { missionLink, type GuiaLinkTarget } from "@/lib/tools";
+import { getWeek } from "@/lib/weeks";
 import { GrowingPlant } from "@/components/GrowingPlant";
 import { Wordmark } from "@/components/Wordmark";
 import { PandaMark } from "@/components/PandaMark";
@@ -3438,7 +3444,7 @@ function GuiaPapaView({
   };
 
   /** Quién marcó la tarea (solo con vínculo y si el dato existe). */
-  const taskAuthor = (taskId: number) => {
+  const taskAuthor = (taskId: number | string) => {
     if (!pid) return null;
     const meta = taskMeta[String(taskId)];
     const who = whoFromMeta(meta);
@@ -3562,9 +3568,39 @@ function GuiaPapaView({
       name,
       role: who?.role ?? partner.partnerRole,
       text: `Desde tu última visita, ${name || "tu pareja"} ${parts.join(" y ")}`,
-      titles: marked.slice(0, 3).map(([k]) => ALL_TASKS.find(t => String(t.id) === k)?.text).filter((t): t is string => !!t),
+      titles: marked.slice(0, 3).map(([k]) => ALL_TASKS.find(t => String(t.id) === k)?.text ?? missionKeyTitle(k)).filter((t): t is string => !!t),
     };
   })();
+
+  // --- «Lo que toca esta semana» (crítica 2026-10-13, P2 #5): la misión de quien lee y la de los dos, con
+  // casilla en el mismo progreso compartido que las tareas (claves mision-N-rol / juntos-N) ---
+  const missions: MissionRowModel[] = (() => {
+    if (realWeek === undefined) return [];
+    const info = getWeek(realWeek);
+    const mineText = reader === "mama" ? info.forMom : info.forDad;
+    const mineLink = missionLink(mineText);
+    const togetherLinkTarget = missionLink(info.together);
+    const row = (key: string, label: string, text: string, owner: TaskOwner, link: GuiaLinkTarget | null): MissionRowModel => {
+      const completed = isTaskDone(taskStatus[key]);
+      return { key, label, text, owner, link, completed, author: completed ? taskAuthor(key) : null };
+    };
+    return [
+      row(missionKey(realWeek, reader), reader === "mama" ? "Tu misión" : "Tu misión de copiloto", mineText, reader, mineLink),
+      // Su botón solo si lleva a otro sitio que el de la misión propia (sin repetir).
+      row(togetherKey(realWeek), "Juntos esta semana", info.together, "ambos", togetherLinkTarget && togetherLinkTarget !== mineLink ? togetherLinkTarget : null),
+    ];
+  })();
+  const toggleMission = (m: MissionRowModel) => {
+    if (!checklistLoaded || realWeek === undefined) return;
+    const label = m.owner === "ambos" ? "Juntos esta semana" : `su misión de la semana ${realWeek}`;
+    writeTask(m.key, m.completed ? null : "completed", label);
+  };
+  const openLink = (target: GuiaLinkTarget) =>
+    target === "agenda"
+      ? onGoToAgenda()
+      : target === "acompanante"
+        ? onOpenTool("contracciones", "guia-acompanante")
+        : onOpenTool(target);
 
   // --- Checklists completos por trimestre ---
   const trimesters: TrimesterModel[] = ([1, 2, 3] as const).map(t => ({
@@ -3628,13 +3664,8 @@ function GuiaPapaView({
           needsReview={dueDateNeedsReview}
           explorer={explorer}
           partnerName={partnerName}
-          onOpenLink={(target) =>
-            target === "agenda"
-              ? onGoToAgenda()
-              : target === "acompanante"
-                ? onOpenTool("contracciones", "guia-acompanante")
-                : onOpenTool(target)
-          }
+          onOpenLink={openLink}
+          missionsInToday
         />
         <BotanicalRule className={rhythm.rule} />
       </div>
@@ -3657,6 +3688,9 @@ function GuiaPapaView({
           sinceLastVisit={sinceLastVisit}
           onOpenTool={laborReady ? onOpenTool : undefined}
           discuss={discussTodayRows}
+          missions={missions}
+          onToggleMission={toggleMission}
+          onOpenLink={openLink}
           allTasks={{
             done: doneCount,
             total: allRows.length,
