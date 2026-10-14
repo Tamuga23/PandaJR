@@ -53,7 +53,7 @@ Todo esto se apoya en contenido clínico alineado con guías públicas (ACOG, se
   - Agenda médica con preparación de cita compartida. Los estudios por agendar viven en «Lo que toca esta semana» (Guía), con su botón «Agendar»; la Agenda lleva a esa lista y solo sugiere las citas que no son tareas (tamizaje del primer trimestre, control semanal desde la 36) y, la semana antes de su ventana, los estudios que aún no están en la lista.
   - SOS de síntomas.
   - Contador de patadas y contador de contracciones. El de contracciones lleva la «Guía del acompañante» (antes de salir, durante, entre contracciones y cuándo llamar): abierta para el copiloto y plegada para la mamá. La misión del papá de la semana 37 lleva directo a ella, dentro del modo parto.
-  - Modo parto (desde la semana 36): la pantalla del día del parto, con el cronómetro, las llamadas, la respiración guiada y la guía del acompañante; la pantalla se queda encendida mientras está abierta.
+  - Modo parto (desde la semana 36): la pantalla del día del parto, con el cronómetro, las llamadas, la respiración guiada, la maleta de quien lee y la guía del acompañante; si el teléfono lo permite, la pantalla se queda encendida mientras está a la vista. En la Maleta, el copiloto ve «Para papá» primero.
   - Diario, votador de nombres, maleta, plan de parto, presupuesto, lecturas, audios y PandaStory compartible.
   - PandaIA.
 - **Alcance gestacional: semanas 1–42.** Decisión confirmada el 2026-09-26: se amplía de 1–40 para incluir el postérmino (41–42). Implementación pendiente.

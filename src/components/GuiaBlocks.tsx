@@ -1061,7 +1061,7 @@ export function TodayBlock({
             <ListRow
               leading={<HeartHandshake {...ICON} />}
               title="Modo parto"
-              meta="Cronómetro, llamadas y respiración en una pantalla"
+              meta="Cronómetro, llamadas, respiración y tu maleta"
               onClick={() => onOpenTool("modoparto")}
               trailing="chevron"
             />

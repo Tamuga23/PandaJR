@@ -109,11 +109,14 @@ export function weekTools(week: number | undefined, missionText?: string | null)
               : ["nombres", "presupuesto", "diario"];
   // La guía del acompañante vive en el modo parto (con el cronómetro); antes de la 36, el contador basta.
   const fromMission = laborTarget(missionLink(missionText), week);
+  const missionTool: ToolId | null =
+    fromMission === "acompanante" ? "modoparto" : fromMission && fromMission !== "agenda" && fromMission !== "sos" ? fromMission : null;
+  // Desde la 36 el modo parto va siempre primero; la herramienta que pide la misión, justo después.
   const first: ToolId[] =
-    fromMission === "acompanante"
-      ? ["modoparto"]
-      : fromMission && fromMission !== "agenda" && fromMission !== "sos"
-        ? [fromMission]
+    week !== undefined && week >= 36
+      ? ["modoparto", ...(missionTool && missionTool !== "modoparto" ? [missionTool] : [])]
+      : missionTool
+        ? [missionTool]
         : [];
   return [...first, ...base.filter((t) => !first.includes(t))].slice(0, 3);
 }

@@ -79,7 +79,7 @@ export interface UserProfile {
 }
 
 
-type SosLinkTool = "patadas" | "contracciones";
+type SosLinkTool = "patadas" | "contracciones" | "modoparto";
 
 /**
  * Semana gestacional usable (entera y positiva) o undefined si no se conoce o no está
@@ -886,20 +886,21 @@ export function SOSSintomas({ profile, onOpenTool }: { profile?: UserProfile; on
       }
     }
     if (sign.id === "pretermino") {
+      // Desde la 36 el cronómetro vive en el modo parto (pantalla encendida, respiración y la maleta).
+      const laborLink: { tool: SosLinkTool; toolLabel: string } =
+        week >= 36 ? { tool: "modoparto", toolLabel: "Abrir el modo parto" } : { tool: "contracciones", toolLabel: "Abrir el contador de contracciones" };
       return preterm
         ? {
             text: isPapa
               ? `Están en la semana ${week}: si ella tiene 4 o más contracciones en 1 hora, llama ya.`
               : `Estás en la semana ${week}: si cuentas 4 o más contracciones en 1 hora, llama ya.`,
-            tool: "contracciones",
-            toolLabel: "Abrir el contador de contracciones",
+            ...laborLink,
           }
         : {
             text: isPapa
               ? `Ya están en la semana ${week}: las contracciones regulares pueden ser trabajo de parto. El contador te indica cuándo llamar.`
               : `Ya estás en la semana ${week}: las contracciones regulares pueden ser trabajo de parto. El contador te indica cuándo llamar.`,
-            tool: "contracciones",
-            toolLabel: "Abrir el contador de contracciones",
+            ...laborLink,
           };
     }
     return null;
@@ -1571,8 +1572,16 @@ const GOBAG_ITEMS = {
   ]
 };
 
-export function MaletaView({ profile }: { profile: UserProfile; onClose?: () => void }) {
-  const pid = profile.pregnancyId;
+type GoBagCategory = keyof typeof GOBAG_ITEMS;
+const GOBAG_TITLE: Record<GoBagCategory, string> = { mama: "Para mamá", bebe: "Para el bebé", papa: "Para papá" };
+
+/**
+ * La maleta: compartida con vínculo (cada casilla se escribe sola, en el manejador del toque) y en este
+ * teléfono sin él. La usan la Maleta y «Tu maleta» del modo parto. `loaded`: con vínculo, ya llegó el dato
+ * (antes no se afirma que algo falta).
+ */
+function useGoBag(profile?: UserProfile) {
+  const pid = profile?.pregnancyId;
   const [localBag, setLocalBag] = useState<Record<string, boolean>>(() => {
     const saved = readStored<unknown>(LOCAL_GOBAG_KEY);
     return isRecord(saved) ? (saved as Record<string, boolean>) : {};
@@ -1580,11 +1589,22 @@ export function MaletaView({ profile }: { profile: UserProfile; onClose?: () => 
   const [remote, setRemote] = useState<{ pid: string; bag: Record<string, boolean> } | null>(null);
   const [overlay, setOverlay] = useState<Record<string, boolean>>({});
   const { retryState, fail, clearRetry } = useRetry();
+  // Lectura que falló (sin acceso, reglas): se dice y se puede reintentar; nunca «Cargando…» sin fin.
+  const [attempt, setAttempt] = useState(0);
+  const [loadError, setLoadError] = useState<{ pid: string; attempt: number } | null>(null);
 
   useEffect(() => {
     if (!pid) return;
-    return listenToGoBag(pid, (data) => setRemote({ pid, bag: isRecord(data) ? (data as Record<string, boolean>) : {} }));
-  }, [pid]);
+    return listenToGoBag(
+      pid,
+      (data, meta) => {
+        // Sin red y sin nada en caché no es «vacía»: es «no se sabe» (se espera al servidor).
+        if (meta?.fromCache && meta.empty) return;
+        setRemote({ pid, bag: isRecord(data) ? (data as Record<string, boolean>) : {} });
+      },
+      () => setLoadError({ pid, attempt })
+    );
+  }, [pid, attempt]);
 
   const bag: Record<string, boolean> = pid ? { ...(remote?.pid === pid ? remote.bag : {}), ...overlay } : localBag;
 
@@ -1606,9 +1626,34 @@ export function MaletaView({ profile }: { profile: UserProfile; onClose?: () => 
     );
   };
 
-  const items = GOBAG_ITEMS;
+  const loaded = !pid || remote?.pid === pid;
+  const failed = !loaded && !!pid && loadError?.pid === pid && loadError.attempt === attempt;
+  return { bag, toggleItem, loaded, failed, retryLoad: () => setAttempt((a) => a + 1), retryState, clearRetry };
+}
 
-  const categoryTitle: Record<keyof typeof items, string> = { mama: "Para mamá", bebe: "Para el bebé", papa: "Para papá" };
+/** Una lista de la maleta: cada fila marca y desmarca su cosa. */
+function GoBagList({ category, bag, onToggle }: { category: GoBagCategory; bag: Record<string, boolean>; onToggle: (id: string) => void }) {
+  return (
+    <ListGroup>
+      {GOBAG_ITEMS[category].map((item) => (
+        <ListRow
+          key={item.id}
+          onClick={() => onToggle(item.id)}
+          aria-pressed={!!bag[item.id]}
+          weight="medium"
+          leading={<CheckGlyph tone="filled" checked={!!bag[item.id]} />}
+          title={item.label}
+          titleClassName={bag[item.id] ? "text-ink-subtle! line-through" : undefined}
+        />
+      ))}
+    </ListGroup>
+  );
+}
+
+export function MaletaView({ profile }: { profile: UserProfile; onClose?: () => void }) {
+  const { bag, toggleItem, retryState, clearRetry } = useGoBag(profile);
+  // Lo de quien lee primero: el copiloto ve «Para papá» arriba (crítica 2026-10-13: iba al final).
+  const order: GoBagCategory[] = profile.role === "papa" ? ["papa", "mama", "bebe"] : ["mama", "bebe", "papa"];
 
   return (
     <div className="mx-auto flex w-full max-w-lg flex-col gap-8 pb-20">
@@ -1617,34 +1662,81 @@ export function MaletaView({ profile }: { profile: UserProfile; onClose?: () => 
         <RetryNotice state={retryState} onDismiss={clearRetry} />
       </div>
 
-      {(Object.keys(items) as (keyof typeof items)[]).map((category) => {
-        const list = items[category];
+      {order.map((category) => {
+        const list = GOBAG_ITEMS[category];
         const done = list.filter((item) => bag[item.id]).length;
         return (
           <Section
             key={category}
             as="h3"
             size="md"
-            title={categoryTitle[category]}
+            title={GOBAG_TITLE[category]}
             action={<span className="text-micro font-medium tabular-nums text-ink-subtle">{done} de {list.length}</span>}
           >
-            <ListGroup>
-              {list.map((item) => (
-                <ListRow
-                  key={item.id}
-                  onClick={() => toggleItem(item.id)}
-                  aria-pressed={!!bag[item.id]}
-                  weight="medium"
-                  leading={<CheckGlyph tone="filled" checked={!!bag[item.id]} />}
-                  title={item.label}
-                  titleClassName={bag[item.id] ? "text-ink-subtle! line-through" : undefined}
-                />
-              ))}
-            </ListGroup>
+            <GoBagList category={category} bag={bag} onToggle={toggleItem} />
           </Section>
         );
       })}
     </div>
+  );
+}
+
+/**
+ * «Tu maleta» del modo parto: lo de quien lee («Para papá» o «Para mamá»), a mano el día del parto. Lo demás
+ * (lo de la pareja y lo del bebé) se despliega aquí mismo: no se sale del modo parto (la pantalla seguiría
+ * encendida y la respiración en marcha). Con vínculo, sin el dato no hay conteo ni casillas.
+ */
+function TuMaleta({ profile, isPapa }: { profile?: UserProfile; isPapa: boolean }) {
+  const { bag, toggleItem, loaded, failed, retryLoad, retryState, clearRetry } = useGoBag(profile);
+  const online = useOnline();
+  const [showAll, setShowAll] = useState(false);
+  const panelId = React.useId();
+  const mine: GoBagCategory = isPapa ? "papa" : "mama";
+  const others: GoBagCategory[] = isPapa ? ["mama", "bebe"] : ["bebe", "papa"];
+  const count = (c: GoBagCategory) => `${GOBAG_ITEMS[c].filter((item) => bag[item.id]).length} de ${GOBAG_ITEMS[c].length}`;
+  return (
+    <Section
+      as="h3"
+      size="md"
+      title="Tu maleta"
+      action={loaded ? <span className="text-micro font-medium tabular-nums text-ink-subtle">{count(mine)}</span> : undefined}
+    >
+      <RetryNotice state={retryState} onDismiss={clearRetry} />
+      {loaded ? (
+        <>
+          <GoBagList category={mine} bag={bag} onToggle={toggleItem} />
+          <button
+            type="button"
+            aria-expanded={showAll}
+            aria-controls={panelId}
+            onClick={() => setShowAll((v) => !v)}
+            className={`mt-1 -ms-1 inline-flex min-h-11 items-center gap-1 rounded-lg px-1 text-meta font-bold text-terracotta-ink underline-offset-4 hover:underline ${sosFocusRing}`}
+          >
+            {showAll ? "Ocultar lo demás" : isPapa ? "Ver lo de ella y lo del bebé" : "Ver lo del bebé y lo de tu acompañante"}
+            <ChevronDown size={16} aria-hidden="true" className={`transition-transform motion-reduce:transition-none ${showAll ? "rotate-180" : ""}`} />
+          </button>
+          <div id={panelId} hidden={!showAll}>
+            {showAll &&
+              others.map((c) => (
+                <div key={c} className="mt-4">
+                  <h4 className="flex items-baseline justify-between gap-3 text-body font-bold text-ink">
+                    {GOBAG_TITLE[c]}
+                    <span className="sr-only">, </span>
+                    <span className="text-micro font-medium tabular-nums text-ink-subtle">{count(c)}</span>
+                  </h4>
+                  <GoBagList category={c} bag={bag} onToggle={toggleItem} />
+                </div>
+              ))}
+          </div>
+        </>
+      ) : failed ? (
+        <LoadErrorNotice what="la maleta compartida" onRetry={retryLoad} />
+      ) : (
+        <p className="text-meta text-ink-muted" aria-live="polite">
+          {online ? "Cargando la maleta compartida…" : "Sin conexión: no podemos mostrar la maleta compartida ahora."}
+        </p>
+      )}
+    </Section>
   );
 }
 
@@ -1774,7 +1866,7 @@ function useToolStatuses(profile: UserProfile | undefined, active: boolean): Par
     const patch = (p: Partial<StatusData>) =>
       setShared((s) => ({ pid, data: { ...(s?.pid === pid ? s.data : EMPTY_STATUS), ...p } }));
     const offs = [
-      listenToGoBag(pid, (data) => patch({ bag: isRecord(data) ? (data as Record<string, boolean>) : {} }), () => undefined),
+      listenToGoBag(pid, (data, meta) => { if (meta?.fromCache && meta.empty) return; patch({ bag: isRecord(data) ? (data as Record<string, boolean>) : {} }); }, () => undefined),
       listenToBirthPlan(pid, (data, meta) => { if (meta.fromCache && !meta.exists) return; patch({ planMarked: meta.exists ? Object.keys(parsePlanSections(asArray(data.sections))).length : 0 }); }, () => undefined),
       listenToBudget(pid, (items, meta) => { if (meta.fromCache && !meta.exists) return; patch({ budget: budgetSummary(sanitizeBudget(asArray(items))) }); }, () => undefined),
       listenToBudgetCap(pid, (cap, meta) => { if (meta.fromCache && !meta.exists) return; patch({ cap }); }, () => undefined),
@@ -1868,6 +1960,8 @@ function useToolStatuses(profile: UserProfile | undefined, active: boolean): Par
   }
   if (data.contractionsLoaded) {
     out.contracciones = data.contraction ? `Última ${rel(data.contraction.start)}` : "Sin contracciones registradas";
+    // El modo parto lleva el cronómetro: su fila dice cuándo fue la última (sin ninguna, su descripción).
+    if (data.contraction) out.modoparto = `Última contracción ${rel(data.contraction.start)}`;
   }
   return out;
 }
@@ -1957,7 +2051,7 @@ export function HerramientasView({ showToast, profile, openRequest, active = tru
     { id: "maleta", desc: "Para el hospital", icon: <Package size={20} strokeWidth={1.75} />, group: "preparacion" },
     { id: "parto", desc: "Preferencias para el hospital", icon: <ClipboardList size={20} strokeWidth={1.75} />, group: "preparacion" },
     // A mano desde la semana 36 (weekTools); antes, en «Preparación», para conocerlo y practicar la respiración.
-    { id: "modoparto", desc: "Cronómetro, llamadas y respiración", icon: <HeartHandshake size={20} strokeWidth={1.75} />, group: "preparacion" },
+    { id: "modoparto", desc: "Cronómetro, llamadas, respiración y tu maleta", icon: <HeartHandshake size={20} strokeWidth={1.75} />, group: "preparacion" },
     { id: "patadas", desc: "Conteo desde la semana 28", icon: <Baby size={20} strokeWidth={1.75} />, group: "contadores" },
     { id: "contracciones", desc: "Frecuencia y duración", icon: <Timer size={20} strokeWidth={1.75} />, group: "contadores" },
     { id: "reproductor", desc: "Música para relajarte", icon: <Music size={20} strokeWidth={1.75} />, group: "calma" },
@@ -3111,20 +3205,20 @@ export function ContadorContracciones({
   showToast,
   profile,
   onOpenTool,
-  lead,
   pacer,
+  after,
 }: {
   showToast: ShowToast;
   profile?: UserProfile;
   /** Otra herramienta de «Juntos» desde aquí (la Maleta, desde la guía del acompañante). */
   onOpenTool?: (tool: ToolId) => void;
-  /** Modo parto: una línea arriba de todo (p. ej., que la pantalla se queda encendida). */
-  lead?: React.ReactNode;
   /**
    * Modo parto: la respiración guiada, justo después de la regla y las llamadas. Con ella, el descanso entre
    * contracciones no repite la frase de respirar.
    */
   pacer?: React.ReactNode;
+  /** Modo parto: lo que va tras el descanso entre contracciones (la maleta de quien lee). */
+  after?: React.ReactNode;
 }) {
   const week = knownWeek(profile);
   const me = useMe();
@@ -3256,7 +3350,6 @@ export function ContadorContracciones({
 
   return (
     <div className="mx-auto flex w-full max-w-lg flex-col gap-6 py-2">
-      {lead}
 
       {/* Alerta: 4 o más contracciones en 1 hora antes de la semana 37 (posible parto pretérmino desde
           la 20; antes, contracciones o cólicos regulares) */}
@@ -3440,6 +3533,8 @@ export function ContadorContracciones({
         </div>
       )}
 
+      {after}
+
       {/* Antes del parto (sin historial), la guía va aquí, para repasarla; con contracciones registradas
           baja tras el historial: entonces importa el patrón, y la caja de descanso ya trae lo del momento. */}
       {history.length === 0 && companionGuide}
@@ -3552,24 +3647,39 @@ function ModoParto({
   active: boolean;
 }) {
   const me = useMe();
-  const { isPapa, her } = companionVoice(me);
+  const { isPapa } = companionVoice(me);
   const wake = useWakeLock(active);
+  const bagId = React.useId();
+  // «Revisar la maleta» de la guía del acompañante: aquí la maleta está en la misma pantalla (salir apagaría la
+  // pantalla y pararía la respiración); a otra herramienta, como siempre.
+  const openTool = (tool: ToolId) => {
+    if (tool !== "maleta") return onOpenTool?.(tool);
+    const el = document.getElementById(bagId);
+    el?.scrollIntoView({ block: "start" });
+    el?.focus({ preventScroll: true });
+  };
   return (
-    <ContadorContracciones
-      showToast={showToast}
-      profile={profile}
-      onOpenTool={onOpenTool}
-      lead={
-        // Solo si el teléfono lo concedió: nunca se afirma lo que no pasa.
-        wake === "on" ? (
-          <p className="flex items-center gap-2 text-micro font-medium text-ink-subtle">
-            <Sun size={14} strokeWidth={1.75} className="shrink-0" aria-hidden="true" />
-            La pantalla se queda encendida mientras el modo parto esté abierto.
-          </p>
-        ) : undefined
-      }
-      pacer={<BreathingPacer together={isPapa} her={her} />}
-    />
+    <>
+      <ContadorContracciones
+        showToast={showToast}
+        profile={profile}
+        onOpenTool={openTool}
+        pacer={<BreathingPacer together={isPapa} />}
+        after={
+          <div id={bagId} tabIndex={-1} className="scroll-mt-4 outline-none">
+            <TuMaleta profile={profile} isPapa={isPapa} />
+          </div>
+        }
+      />
+      {/* Al final, no arriba: si apareciera sobre el cronómetro lo empujaría al volver de una llamada. Solo si el
+          teléfono lo concedió (nunca se afirma lo que no pasa). */}
+      {wake === "on" && (
+        <p className="mx-auto mt-6 flex w-full max-w-lg items-center gap-2 text-micro font-medium text-ink-subtle">
+          <Sun size={14} strokeWidth={1.75} className="shrink-0" aria-hidden="true" />
+          La pantalla se queda encendida mientras estés en esta pantalla.
+        </p>
+      )}
+    </>
   );
 }
 

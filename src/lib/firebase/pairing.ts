@@ -1447,7 +1447,15 @@ export async function toggleGoBagItem(pregnancyId: string, itemId: string, check
   await setDoc(ref, { checked, updatedAt: serverTimestamp() }, { merge: true });
 }
 
-export function listenToGoBag(pregnancyId: string, callback: (items: LegacyData) => void, onError?: ErrorCallback) {
+/**
+ * La maleta compartida. `meta.fromCache && meta.empty`: sin red y sin nada en caché (no es «vacía», es «no se
+ * sabe»): quien la muestra no afirma que falta todo.
+ */
+export function listenToGoBag(
+  pregnancyId: string,
+  callback: (items: LegacyData, meta: { fromCache: boolean; empty: boolean }) => void,
+  onError?: ErrorCallback
+) {
   const ref = collection(db, "pregnancies", pregnancyId, "gobag");
   return onSnapshot(
     ref,
@@ -1456,7 +1464,7 @@ export function listenToGoBag(pregnancyId: string, callback: (items: LegacyData)
       snapshot.docs.forEach((d) => {
         bag[d.id] = d.data().checked;
       });
-      callback(bag);
+      callback(bag, { fromCache: snapshot.metadata.fromCache, empty: snapshot.empty });
     },
     onError ?? warnListener("gobag")
   );

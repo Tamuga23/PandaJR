@@ -11,7 +11,7 @@ import { RowButton } from "@/components/ui/List";
 const INHALE = 4;
 const EXHALE = 6;
 
-export function BreathingPacer({ together, her }: { together: boolean; her?: string }) {
+export function BreathingPacer({ together }: { together: boolean }) {
   const titleId = useId();
   const [running, setRunning] = useState(false);
   // Segundos desde que empezó: de ahí salen la fase y la cuenta.
@@ -38,9 +38,10 @@ export function BreathingPacer({ together, her }: { together: boolean; her?: str
         {together ? "Respirar juntos" : "Respirar"}
       </h3>
       <p className="mt-0.5 text-meta text-ink-muted">
+        {/* Los dos siguen el círculo (la misión de la semana 39: «ella marca el ritmo» de las contracciones). */}
         {together
-          ? `Entre contracciones: inhalen 4 segundos y exhalen 6. Tú marcas el ritmo; ${her || "ella"} lo sigue.`
-          : "Entre contracciones: inhala 4 segundos y exhala 6. Suelta la mandíbula y los hombros."}
+          ? "Entre contracciones, sigan juntos el círculo: inhalen 4 segundos mientras crece y exhalen 6 mientras se encoge."
+          : "Entre contracciones, sigue el círculo: inhala 4 segundos mientras crece y exhala 6 mientras se encoge. Suelta la mandíbula y los hombros."}
       </p>
       <div className="mt-4 flex items-center gap-5">
         {/* Crece al inhalar (4 s) y se encoge al exhalar (6 s); quieto si no está en marcha. */}
