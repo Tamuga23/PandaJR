@@ -1870,21 +1870,7 @@ function useToolStatuses(profile: UserProfile | undefined, active: boolean): Par
   return out;
 }
 
-/** Verbo del botón de cada herramienta en «Esta semana». */
-const TOOL_ACTION: Record<ToolId, string> = {
-  sos: "Abrir",
-  contracciones: "Cronometrar",
-  patadas: "Contar",
-  maleta: "Revisar",
-  parto: "Abrir",
-  nombres: "Votar",
-  presupuesto: "Anotar",
-  diario: "Escribir",
-  reproductor: "Escuchar",
-  story: "Crear",
-};
-
-export function HerramientasView({ showToast, profile, openRequest, active = true, onRequestLink }: { showToast: ShowToast, profile?: UserProfile, openRequest?: { tool: string; nonce: number; section?: string }; /** La pestaña está a la vista (el índice solo escucha datos entonces). */ active?: boolean; /** Abre la vinculación (botón de la cabecera cuando este teléfono no está vinculado). */ onRequestLink?: () => void }) {
+export function HerramientasView({ showToast, profile, openRequest, active = true, onRequestLink, onOpenWeekList }: { showToast: ShowToast, profile?: UserProfile, openRequest?: { tool: string; nonce: number; section?: string }; /** La pestaña está a la vista (el índice solo escucha datos entonces). */ active?: boolean; /** Abre la vinculación (botón de la cabecera cuando este teléfono no está vinculado). */ onRequestLink?: () => void; /** Lleva a «Lo que toca esta semana» en la Guía (la lista única; aquí no se repite). */ onOpenWeekList?: () => void }) {
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const toolHeadingRef = useRef<HTMLHeadingElement>(null);
   const focusedRequestRef = useRef<number | null>(null);
@@ -1975,7 +1961,8 @@ export function HerramientasView({ showToast, profile, openRequest, active = tru
   ];
   const toolById = (id: ToolId) => tools.find((t) => t.id === id)!;
 
-  // «Esta semana» (la semana manda): lo que pide la misión de quien lee, y lo propio de la semana.
+  // «A mano esta semana» (la semana manda): la herramienta que pide la misión de quien lee y las propias de la
+  // semana. Lo que toca (misiones y tareas, con su casilla) vive en la Guía: aquí se enlaza, no se repite.
   const hubWeek = knownWeek(profile);
   const reader = profile?.role === "mama" ? "mama" : "papa";
   const missionText = hubWeek !== undefined ? (reader === "mama" ? getWeek(hubWeek).forMom : getWeek(hubWeek).forDad) : null;
@@ -2070,12 +2057,13 @@ export function HerramientasView({ showToast, profile, openRequest, active = tru
       </ListGroup>
 
       <div className="mt-8 flex flex-col gap-8">
-        {/* Lo que toca esta semana: cada fila dice su estado y lleva su acción (el botón es la acción). */}
+        {/* A mano esta semana: cada fila dice su estado y toda la fila abre la herramienta. Lo que toca está en
+            la Guía, a un toque. */}
         <Section
           as="h3"
           size="md"
-          title={hubWeek !== undefined ? `Esta semana · semana ${hubWeek}` : "Para empezar"}
-          description={hubWeek !== undefined ? "Lo que más les sirve ahora." : undefined}
+          title={hubWeek !== undefined ? "A mano esta semana" : "Para empezar"}
+          action={hubWeek !== undefined && onOpenWeekList ? <SectionAction onClick={onOpenWeekList}>Ver lo que toca</SectionAction> : undefined}
         >
           <ListGroup>
             {featured.map((id) => {
@@ -2083,26 +2071,20 @@ export function HerramientasView({ showToast, profile, openRequest, active = tru
               return (
                 <ListRow
                   key={id}
+                  buttonRef={(el) => { tileRefs.current[id] = el; }}
+                  onClick={() => openTool(id)}
+                  aria-haspopup={MODAL_TOOLS.includes(id) ? "dialog" : undefined}
                   leading={t.icon}
                   title={TOOL_LABEL[id]}
                   meta={statuses[id] ?? t.desc}
-                  trailing={
-                    <RowButton
-                      ref={(el: HTMLButtonElement | null) => { tileRefs.current[id] = el; }}
-                      onClick={() => openTool(id)}
-                      aria-label={`${TOOL_ACTION[id]}: ${TOOL_LABEL[id]}`}
-                      aria-haspopup={MODAL_TOOLS.includes(id) ? "dialog" : undefined}
-                    >
-                      {TOOL_ACTION[id]}
-                    </RowButton>
-                  }
+                  trailing="chevron"
                 />
               );
             })}
           </ListGroup>
         </Section>
 
-        {/* El resto, por tema y sin repetir lo de «Esta semana»: cada fila dice lo que ya tienen dentro. */}
+        {/* El resto, por tema y sin repetir lo de «A mano esta semana»: cada fila dice lo que ya tienen dentro. */}
         {TOOL_GROUPS.map((group) => {
           const list = toolsIn(group.id);
           if (list.length === 0) return null;
@@ -2131,7 +2113,7 @@ export function HerramientasView({ showToast, profile, openRequest, active = tru
 }
 
 type ToolGroup = "pareja" | "preparacion" | "contadores" | "calma";
-/** Grupos de «Juntos» (SOS va aparte, arriba del todo; lo de «Esta semana» no se repite aquí). */
+/** Grupos de «Juntos» (SOS va aparte, arriba del todo; lo de «A mano esta semana» no se repite aquí). */
 const TOOL_GROUPS: { id: ToolGroup; title: string }[] = [
   { id: "pareja", title: "En pareja" },
   { id: "preparacion", title: "Preparación" },

@@ -35,6 +35,7 @@ import { LINK_LABEL, missionLink, type GuiaLinkTarget, type ToolId } from "@/lib
 import { Z_CLASS } from "@/lib/layers";
 import { useModalDialog } from "@/lib/useModalDialog";
 import { useOpenDiscussRequest } from "@/lib/guiaDiscuss";
+import { useOpenLoQueTocaRequest } from "@/lib/loQueToca";
 import { MAX_VALID_GESTATION_DAYS, PREGNANCY_DAYS, dueDateSummary, type GestationalAgeState } from "@/lib/pregnancy";
 import { TASK_OWNERS, taskWindow, type TaskKind, type TaskOwner, type TaskWithCategory } from "@/lib/tasks";
 import { WEEK_MAX, WEEK_MIN, formatLength, formatWeight, getWeek, lengthMeasure } from "@/lib/weeks";
@@ -127,6 +128,11 @@ export type TaskRowModel = {
   author: { name?: string; role?: Role; title: string } | null;
   /** "Luis la asignó a Ana hace 2 días" (solo si alguien la reasignó). */
   ownerNote?: string | null;
+  /**
+   * Estudio que se agenda (morfológica, glucosa, Tdap, SGB), solo en «Lo que toca esta semana» y sin marcar:
+   * sin cita («Agendar»), con una próxima («Preparar la cita del 20 oct») o con una que ya pasó.
+   */
+  booking?: { status: "none"; name: string } | { status: "upcoming"; when: string } | { status: "past"; when: string };
 };
 
 export function TaskRow({
@@ -136,6 +142,9 @@ export function TaskRow({
   onToggleDone,
   onAssign,
   idBase,
+  onBook,
+  onOpenBooking,
+  onSkipBooking,
 }: {
   row: TaskRowModel;
   ownerLabels: OwnerLabels;
@@ -144,10 +153,31 @@ export function TaskRow({
   onToggleDone: () => void;
   onAssign: (owner: TaskOwner) => void;
   idBase: string;
+  /** «Agendar»: abre «Nueva cita» con el estudio ya escrito. */
+  onBook?: () => void;
+  /** «Preparar la cita del…» / «Ver la cita del…»: la preparación de la cita que ya cubre el estudio. */
+  onOpenBooking?: () => void;
+  /** «No hace falta cita»: quita «Agendar» de este estudio en este teléfono (con deshacer). */
+  onSkipBooking?: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const detailRef = useRef<HTMLButtonElement>(null);
   const { task, completed, owner, windowNote, author } = row;
   const panelId = `${idBase}-panel`;
+  const booking = completed ? undefined : row.booking;
+  // Siempre el mismo botón en el mismo sitio («Agendar» → «Preparar la cita del…», o «Ver la cita del…» si
+  // ya pasó): al guardar la cita y cerrarse la hoja, el foco vuelve a él.
+  const bookingAction =
+    booking?.status === "none" && onBook
+      ? { label: "Agendar", aria: `Agendar: ${booking.name}`, onClick: onBook }
+      : booking && booking.status !== "none" && onOpenBooking
+        ? { label: `${booking.status === "upcoming" ? "Preparar" : "Ver"} la cita del ${booking.when}`, aria: undefined, onClick: onOpenBooking }
+        : null;
+  const skipBooking = () => {
+    onSkipBooking?.();
+    // Sin «Agendar» ni este botón, el foco sigue en la fila (su detalle), no en el inicio de la página.
+    detailRef.current?.focus();
+  };
   return (
     <li className="relative">
       <div className="flex items-start ps-[var(--gutter)]">
@@ -163,8 +193,9 @@ export function TaskRow({
         >
           <CheckGlyph checked={completed} />
         </button>
-        <div className="pj-row-body ms-0.5 flex min-w-0 flex-1">
+        <div className="pj-row-body ms-0.5 flex min-w-0 flex-1 flex-col">
           <button
+            ref={detailRef}
             type="button"
             aria-expanded={expanded}
             aria-controls={panelId}
@@ -199,6 +230,23 @@ export function TaskRow({
               className={`mt-0.5 shrink-0 text-ink-subtle transition-transform motion-reduce:transition-none ${expanded ? "rotate-180" : ""}`}
             />
           </button>
+          {/* El estudio se agenda desde aquí (la Agenda no lo repite); fuera del botón de detalle. */}
+          {bookingAction && (
+            <div className="-mt-1 flex flex-wrap items-center gap-x-2 pb-2.5 pe-[var(--gutter)]">
+              <RowButton onClick={bookingAction.onClick} aria-label={bookingAction.aria} aria-haspopup="dialog">
+                {bookingAction.label}
+              </RowButton>
+              {booking?.status === "none" && onSkipBooking && (
+                <button
+                  type="button"
+                  onClick={skipBooking}
+                  className={`inline-flex min-h-11 items-center rounded-full px-2 text-meta font-medium text-ink-muted underline-offset-4 hover:underline ${FOCUS}`}
+                >
+                  No hace falta cita
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
       <div id={panelId} hidden={!expanded} className="ps-[calc(var(--gutter)+2.25rem)] pe-[var(--gutter)] pb-4">
@@ -864,11 +912,21 @@ export function featuredTaskIds(groups: TodayGroup[]): string[] {
   return out;
 }
 
-/** Subtítulo de un grupo de «Hoy» (h3). La lista va justo después (el h3 y su lista son hermanos). */
-function GroupHeading({ title, aside }: { title: string; aside?: string }) {
+/**
+ * Subtítulo de un grupo de «Hoy» (h3). La lista va justo después (el h3 y su lista son hermanos). Con
+ * `headingRef` recibe el foco al llegar desde otra pestaña; el scroll-padding de html ya lo deja bajo la
+ * cabecera fija (aquí solo un respiro).
+ */
+function GroupHeading({ title, aside, headingRef }: { title: string; aside?: string; headingRef?: React.Ref<HTMLHeadingElement> }) {
   return (
-    <h3 className="flex items-baseline justify-between gap-3">
+    <h3
+      ref={headingRef}
+      tabIndex={headingRef ? -1 : undefined}
+      className="flex scroll-mt-4 items-baseline justify-between gap-3 outline-none"
+    >
       <span className="font-display text-body font-bold text-ink">{title}</span>
+      {/* La coma solo se oye: sin ella el lector decía «Lo que toca esta semana7 pendientes». */}
+      {aside && <span className="sr-only">, </span>}
       {aside && <span className="shrink-0 text-micro font-medium text-ink-subtle tabular-nums">{aside}</span>}
     </h3>
   );
@@ -895,6 +953,9 @@ export function TodayBlock({
   missions = [],
   onToggleMission,
   onOpenLink,
+  onBook,
+  onOpenBooking,
+  onSkipBooking,
 }: {
   weekKnown: boolean;
   reader: Role;
@@ -921,9 +982,33 @@ export function TodayBlock({
   onToggleMission?: (row: MissionRowModel) => void;
   /** Botón de la misión a su herramienta (o a la Agenda). */
   onOpenLink?: (target: GuiaLinkTarget) => void;
+  /** «Agendar» de un estudio de la lista (abre «Nueva cita» con el estudio ya escrito). */
+  onBook?: (row: TaskRowModel) => void;
+  /** «Preparar la cita del…» de un estudio que ya tiene cita. */
+  onOpenBooking?: (row: TaskRowModel) => void;
+  /** «No hace falta cita» de un estudio (solo en este teléfono). */
+  onSkipBooking?: (row: TaskRowModel) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const todayText = new Intl.DateTimeFormat("es", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
+
+  // Juntos y la Agenda llevan aquí (la lista no se repite allá): llega desplegada, a la vista y con el foco
+  // en su título. Al montar no hace nada.
+  const listHeadingRef = useRef<HTMLHeadingElement>(null);
+  const openRequest = useOpenLoQueTocaRequest();
+  const [seenOpenRequest, setSeenOpenRequest] = useState(openRequest);
+  const [mountOpenRequest] = useState(openRequest);
+  if (openRequest !== seenOpenRequest) {
+    setSeenOpenRequest(openRequest);
+    setExpanded(true);
+  }
+  useEffect(() => {
+    if (openRequest === mountOpenRequest) return;
+    const el = listHeadingRef.current;
+    if (!el) return;
+    el.focus({ preventScroll: true });
+    el.scrollIntoView?.({ block: "start" });
+  }, [openRequest, mountOpenRequest]);
 
   // Todas las de la semana, por dueño (tuyas, de tu pareja, de los dos) y, dentro, por relevancia.
   const weekRows = (["mine", "partner", "both"] as const).flatMap((id) => groups.find((g) => g.id === id)?.rows ?? []);
@@ -1046,6 +1131,7 @@ export function TodayBlock({
         <GroupHeading
           title="Lo que toca esta semana"
           aside={hasRows ? (pending === 0 ? "Todo hecho" : pending === 1 ? "1 pendiente" : `${pending} pendientes`) : undefined}
+          headingRef={listHeadingRef}
         />
         {!weekKnown ? (
           <p className="mt-1 text-body text-ink-muted">
@@ -1080,6 +1166,9 @@ export function TodayBlock({
                       disabled={disabled}
                       onToggleDone={() => onToggleDone(row)}
                       onAssign={(o) => onAssign(row, o)}
+                      onBook={onBook ? () => onBook(row) : undefined}
+                      onOpenBooking={onOpenBooking ? () => onOpenBooking(row) : undefined}
+                      onSkipBooking={onSkipBooking ? () => onSkipBooking(row) : undefined}
                     />
                   ))}
               </ListGroup>

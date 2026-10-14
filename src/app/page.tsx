@@ -1,6 +1,17 @@
 "use client";
 
-import { AgendaView, AppointmentPrepModal, parseEventDate } from "@/components/AgendaModule";
+import {
+  AgendaView,
+  AppointmentPrepModal,
+  isStudyTask,
+  parseEventDate,
+  setSuggestionDismissed,
+  studyBooking,
+  useDismissedSuggestions,
+  type AgendaEventType,
+  type AgendaHandle,
+  type StudyBooking,
+} from "@/components/AgendaModule";
 import { HerramientasView, SintomasSheet } from "@/components/HerramientasModule";
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback, useSyncExternalStore } from "react";
 import { usePandaStore, type ThemePreference } from "@/store/usePandaStore";
@@ -119,6 +130,7 @@ import {
   type TrimesterModel,
 } from "@/components/GuiaBlocks";
 import { publishDiscuss, requestOpenDiscuss } from "@/lib/guiaDiscuss";
+import { publishLoQueToca, requestOpenLoQueToca } from "@/lib/loQueToca";
 import { missionLink, type GuiaLinkTarget } from "@/lib/tools";
 import { getWeek } from "@/lib/weeks";
 import { GrowingPlant } from "@/components/GrowingPlant";
@@ -2194,6 +2206,14 @@ export default function PandaJrApp() {
     setToolOpenRequest({ tool, nonce: Date.now(), section });
   };
   const openSymptoms = () => setSymptomsOpen(true);
+  // «Lo que toca esta semana» es una sola lista, en la Guía: Juntos y la Agenda llevan a ella (desplegada y
+  // con el foco en su título) en lugar de repetirla.
+  const openLoQueToca = () => {
+    goToTab("planificacion");
+    requestOpenLoQueToca();
+  };
+  // «Agendar» un estudio desde esa lista abre «Nueva cita» de la Agenda sobre la Guía (la hoja va en un portal).
+  const agendaRef = useRef<AgendaHandle>(null);
   // Ajustes abiertos directamente en "Fecha" (desde "Confirmar mi fecha" de la Guía).
   const [settingsFocusDating, setSettingsFocusDating] = useState(false);
   const openDateSettings = () => {
@@ -2735,10 +2755,13 @@ export default function PandaJrApp() {
             onOpenPrep={(ev) => setSelectedPrepEvent(ev)}
             onOpenTool={openTool}
             onGoToAgenda={() => goToTab("agenda", true)}
+            onBookStudy={(preset) => agendaRef.current?.openNew(preset)}
           />
         </div>
         <div className={activeTab === "agenda" ? "block w-full h-full" : "hidden"}>
           <AgendaView
+            ref={agendaRef}
+            onOpenWeekList={openLoQueToca}
             showToast={showToast}
             events={events}
             onAddEvent={onAddEvent}
@@ -2753,7 +2776,7 @@ export default function PandaJrApp() {
           />
         </div>
         <div className={activeTab === "herramientas" ? "block w-full h-full" : "hidden"}>
-          <HerramientasView showToast={showToast} profile={profile} openRequest={toolOpenRequest} active={activeTab === "herramientas"} onRequestLink={startLinkFlow} />
+          <HerramientasView showToast={showToast} profile={profile} openRequest={toolOpenRequest} active={activeTab === "herramientas"} onRequestLink={startLinkFlow} onOpenWeekList={openLoQueToca} />
         </div>
         <div className={activeTab === "pandaia" ? "flex-1 flex flex-col w-full h-full overflow-hidden" : "hidden"}>
           <PandaIAView
@@ -3267,6 +3290,7 @@ function GuiaPapaView({
   onOpenPrep,
   onOpenTool,
   onGoToAgenda,
+  onBookStudy,
 }: {
   showToast: ShowToast;
   profile: UserProfile;
@@ -3283,6 +3307,8 @@ function GuiaPapaView({
   onOpenPrep: (ev: AgendaEvent) => void;
   onOpenTool: (tool: GuiaTool, section?: string) => void;
   onGoToAgenda: () => void;
+  /** «Agendar» un estudio de «Lo que toca esta semana»: «Nueva cita» con el estudio ya escrito. */
+  onBookStudy: (preset: { title: string; type: AgendaEventType }) => void;
 }) {
   const reader: "mama" | "papa" = profile.role === "papa" ? "papa" : "mama";
   const otherRole: "mama" | "papa" = reader === "mama" ? "papa" : "mama";
@@ -3497,6 +3523,22 @@ function GuiaPapaView({
   // las más antiguas siguen en «Todas las tareas».
   const discussTodayRows = discussAllRows.filter(r => (realWeek ?? 0) - taskWindow(r.task).to <= 4);
 
+  // Los estudios de la lista se agendan desde ella (morfológica, glucosa, Tdap, SGB): la Agenda ya no los
+  // repite. Sin la agenda todavía no se ofrece nada: quizá ya están agendados. «No hace falta cita» (o la X de
+  // la Agenda, la misma lista en este teléfono) quita «Agendar», pero no la cita si ya la hay.
+  const now = useNow(60_000);
+  const dismissedStudies = useDismissedSuggestions(pid || undefined);
+  const studies = new Map<string, StudyBooking>();
+  const withBooking = (row: TaskRowModel): TaskRowModel => {
+    if (row.completed || eventsLoading) return row;
+    const b = studyBooking(row.task.id, events, realWeek, now.getTime());
+    if (!b) return row;
+    studies.set(String(row.task.id), b);
+    if (!b.at) return dismissedStudies.has(b.id) ? row : { ...row, booking: { status: "none", name: b.name } };
+    const when = formatDateShort(b.at);
+    return { ...row, booking: b.upcoming ? { status: "upcoming", when } : { status: "past", when } };
+  };
+
   // --- «Hoy»: ventana activa (pendientes primero) + ventanas pasadas sin hacer, por dueño ---
   const forWeek = tasksForWeek(realWeek, taskStatus);
   const todayRows = [
@@ -3506,7 +3548,31 @@ function GuiaPapaView({
     // Las de comentar en el control van en su grupo; aquí queda la logística («mejor cuanto antes»).
     ...forWeek.overdue.filter(t => (t.weekFrom !== undefined || t.weekTo !== undefined) && (forWeek.week ?? 0) - t.window.to <= 4),
     ...forWeek.now.filter(t => t.completed),
-  ].filter(t => !discussIds.has(String(t.id))).map(t => buildRow(t));
+  ].filter(t => !discussIds.has(String(t.id))).map(t => withBooking(buildRow(t)));
+  const bookStudy = (row: TaskRowModel) => {
+    const b = studies.get(String(row.task.id));
+    if (b) onBookStudy(b.preset);
+  };
+  const openStudyBooking = (row: TaskRowModel) => {
+    const ev = studies.get(String(row.task.id))?.event;
+    if (ev) onOpenPrep(ev);
+  };
+  const skipStudyBooking = (row: TaskRowModel) => {
+    const b = studies.get(String(row.task.id));
+    if (!b) return;
+    setSuggestionDismissed(pid || undefined, b.id, true);
+    showToast(`Sin cita para «${b.name}» en este teléfono`, () => setSuggestionDismissed(pid || undefined, b.id, false), "Deshacer");
+  };
+  // La Agenda nombra en su enlace lo que queda por agendar, solo cuando la Guía lo sabe (memoria, no Firebase).
+  const toSchedule =
+    realWeek !== undefined && checklistLoaded && !eventsLoading
+      ? todayRows.filter(r => r.booking?.status === "none").map(r => studies.get(String(r.task.id))?.name).filter((n): n is string => !!n)
+      : null;
+  const toScheduleKey = toSchedule ? toSchedule.join("\n") : null;
+  useEffect(() => {
+    publishLoQueToca(toScheduleKey === null ? null : { known: true, toSchedule: toScheduleKey ? toScheduleKey.split("\n") : [] });
+  }, [toScheduleKey]);
+  useEffect(() => () => publishLoQueToca(null), []);
   const todayGroups: TodayGroup[] = [
     { id: "mine", title: "Tus tareas", rows: todayRows.filter(r => r.owner === reader) },
     { id: "partner", title: `Las de ${partnerName || (otherRole === "mama" ? "mamá" : "papá")}`, rows: todayRows.filter(r => r.owner === otherRole) },
@@ -3514,7 +3580,6 @@ function GuiaPapaView({
   ];
 
   // --- Próxima cita (solo futura; las de "todo el día" cuentan hasta que termina el día) ---
-  const now = useNow(60_000);
   const nextEvent = React.useMemo(() => {
     const startOfToday = new Date(now);
     startOfToday.setHours(0, 0, 0, 0);
@@ -3580,12 +3645,16 @@ function GuiaPapaView({
     const mineText = reader === "mama" ? info.forMom : info.forDad;
     const mineLink = missionLink(mineText);
     const togetherLinkTarget = missionLink(info.together);
+    // Con un estudio pendiente en la lista, «Abrir la Agenda» de la misión no se repite: su fila trae «Agendar»
+    // (o su cita), y la Agenda ya no lo sugiere. Así no hay ida y vuelta Guía → Agenda → Guía.
+    const studyPending = todayRows.some(r => !r.completed && isStudyTask(r.task.id));
+    const mineButton = mineLink === "agenda" && studyPending ? null : mineLink;
     const row = (key: string, label: string, text: string, owner: TaskOwner, link: GuiaLinkTarget | null): MissionRowModel => {
       const completed = isTaskDone(taskStatus[key]);
       return { key, label, text, owner, link, completed, author: completed ? taskAuthor(key) : null };
     };
     return [
-      row(missionKey(realWeek, reader), reader === "mama" ? "Tu misión" : "Tu misión de copiloto", mineText, reader, mineLink),
+      row(missionKey(realWeek, reader), reader === "mama" ? "Tu misión" : "Tu misión de copiloto", mineText, reader, mineButton),
       // Su botón solo si lleva a otro sitio que el de la misión propia (sin repetir).
       row(togetherKey(realWeek), "Juntos esta semana", info.together, "ambos", togetherLinkTarget && togetherLinkTarget !== mineLink ? togetherLinkTarget : null),
     ];
@@ -3691,6 +3760,9 @@ function GuiaPapaView({
           missions={missions}
           onToggleMission={toggleMission}
           onOpenLink={openLink}
+          onBook={bookStudy}
+          onOpenBooking={openStudyBooking}
+          onSkipBooking={skipStudyBooking}
           allTasks={{
             done: doneCount,
             total: allRows.length,

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import React, { useCallback, useEffect, useId, useImperativeHandle, useMemo, useRef, useState, useSyncExternalStore, type Ref } from "react";
 import {
   Bot,
   Calendar,
@@ -14,6 +14,7 @@ import {
   Download,
   FlaskConical,
   Lightbulb,
+  ListChecks,
   LoaderCircle,
   Pencil,
   Plus,
@@ -38,6 +39,8 @@ import { ListGroup, ListRow, RowButton, Section } from "@/components/ui/List";
 import { useModalDialog } from "@/lib/useModalDialog";
 import { Z_CLASS } from "@/lib/layers";
 import { useDiscussForEvent } from "@/lib/guiaDiscuss";
+import { useLoQueToca } from "@/lib/loQueToca";
+import { getTask, taskWindow } from "@/lib/tasks";
 
 export type { UserProfile };
 
@@ -1298,6 +1301,12 @@ type SuggestionDef = {
   eventTitle: string;
   /** Cambia cada semana (se puede descartar esta semana y vuelve la siguiente). */
   weekly?: boolean;
+  /**
+   * La tarea del catálogo que ya lo nombra (src/lib/tasks.ts): desde que abre su ventana vive en «Lo que toca
+   * esta semana» (Guía), con su casilla, su dueño y «Agendar», y la Agenda no la repite (crítica 2026-10-13,
+   * P2 #5). La semana anterior, cuando aún no está en esa lista, la Agenda la anticipa para poder agendar.
+   */
+  taskId?: number;
   /** true si ya hay una cita que cubre esta sugerencia. */
   covers: (ev: AgendaEvent, date: Date | null, cw: number, now: number) => boolean;
 };
@@ -1315,8 +1324,12 @@ function coveredByWeek(type: AgendaEventType, from: number, to: number, named?: 
     const isNamed = !!named && named.test(t);
     if (!isNamed && (eventKind(ev) !== type || (!!other && other.test(t)))) return false;
     const w = weekAtDate(cw, date, now);
-    if (w === undefined || w < from || w >= to) return false;
-    return isNamed || dayDiff(date as Date, now) >= 0;
+    if (w === undefined || w < from) return false;
+    const upcoming = dayDiff(date as Date, now) >= 0;
+    // Una cita próxima que nombra el estudio es esa cita aunque caiga después de la ventana (agendada en su
+    // última semana): si no, «Agendar» seguiría ofreciéndose tras guardarla.
+    if (w >= to && !(isNamed && upcoming)) return false;
+    return isNamed || upcoming;
   };
 }
 
@@ -1342,6 +1355,7 @@ const SUGGESTIONS: SuggestionDef[] = [
     title: "Ecografía morfológica",
     detail: "Revisa con detalle los órganos, la placenta y el líquido amniótico. Se hace entre las semanas 18 y 22.",
     eventTitle: "Ecografía morfológica",
+    taskId: 212,
     covers: coveredByWeek("ecografia", 17, 25, RX.ecoT2, /\b(tamizaje|translucencia|nucal|3d|4d|5d|crecimiento)\b/),
   },
   {
@@ -1352,6 +1366,7 @@ const SUGGESTIONS: SuggestionDef[] = [
     title: "Prueba de glucosa (diabetes gestacional)",
     detail: "Detecta la diabetes gestacional. Se hace entre las semanas 24 y 28.",
     eventTitle: "Prueba de glucosa (diabetes gestacional)",
+    taskId: 213,
     covers: coveredByWeek("laboratorio", 23, 29, RX.glucosa, RX.sgb),
   },
   {
@@ -1362,6 +1377,7 @@ const SUGGESTIONS: SuggestionDef[] = [
     title: "Vacuna Tdap",
     detail: "Protege al bebé contra la tos ferina en sus primeros meses. Se aplica en cada embarazo, entre las semanas 27 y 36.",
     eventTitle: "Vacuna Tdap",
+    taskId: 310,
     covers: coveredByWeek("vacuna", 26, 37, RX_TDAP, RX_OTHER_VACCINE),
   },
   {
@@ -1372,6 +1388,7 @@ const SUGGESTIONS: SuggestionDef[] = [
     title: "Cultivo de estreptococo del grupo B (SGB)",
     detail: "Busca una bacteria común que puede pasar al bebé en el parto. Es una toma rápida con hisopo; si sale positivo, se da antibiótico durante el parto. Se hace entre las semanas 36 y 37.",
     eventTitle: "Cultivo de estreptococo del grupo B",
+    taskId: 311,
     covers: coveredByWeek("laboratorio", 34, 38, RX.sgb, RX.glucosa),
   },
   {
@@ -1390,6 +1407,72 @@ const SUGGESTIONS: SuggestionDef[] = [
     },
   },
 ];
+
+/** Cita de un estudio de «Lo que toca esta semana» (Guía): con qué se prellena «Agendar» y la que ya lo cubre. */
+export type StudyBooking = {
+  /** El de la sugerencia («glucosa»): su descarte en este teléfono vale en la Agenda y en la Guía. */
+  id: string;
+  /** Nombre corto del estudio («Prueba de glucosa (diabetes gestacional)»). */
+  name: string;
+  preset: { title: string; type: AgendaEventType };
+  event: AgendaEvent | null;
+  at: Date | null;
+  /** La cita aún no pasó (el mismo criterio que «Próximas citas»). */
+  upcoming: boolean;
+};
+
+/**
+ * null si la tarea no es un estudio que se agenda. La cita que lo cubre sigue las mismas reglas que ocultan la
+ * sugerencia: la próxima gana a una pasada; entre próximas, la más cercana; entre pasadas, la más reciente.
+ */
+export function studyBooking(taskId: number | string, events: AgendaEvent[], week: number | undefined, now: number): StudyBooking | null {
+  const s = SUGGESTIONS.find((x) => x.taskId !== undefined && String(x.taskId) === String(taskId));
+  if (!s) return null;
+  let best: { ev: AgendaEvent; at: Date; upcoming: boolean } | null = null;
+  if (week !== undefined) {
+    for (const ev of Array.isArray(events) ? events : []) {
+      if (!ev || typeof ev !== "object") continue;
+      const at = parseEventDate(ev);
+      if (!at || !s.covers(ev, at, week, now)) continue;
+      const upcoming = !isPastEvent(ev, at, now);
+      const better =
+        !best ||
+        (upcoming && !best.upcoming) ||
+        (upcoming === best.upcoming && (upcoming ? at.getTime() < best.at.getTime() : at.getTime() > best.at.getTime()));
+      if (better) best = { ev, at, upcoming };
+    }
+  }
+  return {
+    id: s.id,
+    name: s.title,
+    preset: { title: s.eventTitle, type: s.type },
+    event: best?.ev ?? null,
+    at: best?.at ?? null,
+    upcoming: best?.upcoming ?? false,
+  };
+}
+
+/** La tarea es un estudio que se agenda desde «Lo que toca esta semana» (morfológica, glucosa, Tdap, SGB). */
+export function isStudyTask(taskId: number | string): boolean {
+  return SUGGESTIONS.some((s) => s.taskId !== undefined && String(s.taskId) === String(taskId));
+}
+
+// Descartes de sugerencias, solo en este teléfono: «No hace falta cita» en la Guía y la X de la Agenda escriben
+// en la misma lista, así que un estudio descartado en un sitio tampoco se ofrece en el otro.
+const suggestionDismissKey = (pregnancyId?: string) => `pandajr_agenda_sugerencias_${pregnancyId || "local"}`;
+
+export function useDismissedSuggestions(pregnancyId?: string): Set<string> {
+  const raw = useLocalStorageValue(suggestionDismissKey(pregnancyId));
+  return useMemo(() => new Set(parseStringArray(raw)), [raw]);
+}
+
+/** Descarta (o vuelve a ofrecer) una sugerencia en este teléfono. Memoria local, no Firebase. */
+export function setSuggestionDismissed(pregnancyId: string | undefined, id: string, dismissed: boolean): void {
+  const key = suggestionDismissKey(pregnancyId);
+  const current = parseStringArray(readLS(key));
+  const next = dismissed ? (current.includes(id) ? current : [...current, id].slice(-50)) : current.filter((x) => x !== id);
+  writeLS(key, JSON.stringify(next));
+}
 
 // =====================================================================================
 // Agenda
@@ -1444,7 +1527,17 @@ type AgendaViewProps = {
   /** No se pudo leer la agenda compartida (sin permisos o error del listener). */
   loadError?: boolean;
   onRetryLoad?: () => void;
+  /** Lleva a «Lo que toca esta semana» en la Guía (la lista única; aquí no se repite). */
+  onOpenWeekList?: () => void;
+  /** «Agendar» desde la Guía: abre «Nueva cita» con el estudio ya escrito, sin cambiar de pestaña. */
+  ref?: Ref<AgendaHandle>;
 };
+
+export type AgendaHandle = { openNew: (preset?: { title: string; type: AgendaEventType }) => void };
+
+/** «A», «A y B», «A, B y C». */
+const joinEs = (items: string[]) =>
+  items.length <= 1 ? items.join("") : `${items.slice(0, -1).join(", ")} y ${items[items.length - 1]}`;
 
 type DatedEvent = { ev: AgendaEvent; date: Date | null; key: string };
 
@@ -1459,6 +1552,8 @@ export function AgendaView({
   loading = false,
   loadError = false,
   onRetryLoad,
+  onOpenWeekList,
+  ref,
 }: AgendaViewProps) {
   const pregnancyId = profile.pregnancyId;
   const now = useNow();
@@ -1500,7 +1595,7 @@ export function AgendaView({
   const [showPast, setShowPast] = useState(false);
 
   // --- Sugerencias por semana (descartes recordados en este teléfono) ---
-  const dismissKey = `pandajr_agenda_sugerencias_${pregnancyId || "local"}`;
+  const dismissKey = suggestionDismissKey(pregnancyId);
   const dismissedRaw = useLocalStorageValue(dismissKey);
   const [sessionDismissed, setSessionDismissed] = useState<string[]>([]);
   const dismissed = useMemo(
@@ -1510,11 +1605,21 @@ export function AgendaView({
 
   const suggestions = useMemo(() => {
     if (cw === undefined) return [];
-    return SUGGESTIONS.filter((s) => cw >= s.showFrom && cw <= s.showTo)
+    // Los estudios que ya son tareas viven en «Lo que toca esta semana» (Guía) desde que abre su ventana: aquí
+    // no se repiten. La semana anterior, cuando aún no están en esa lista, se anticipan para poder agendar.
+    return SUGGESTIONS.filter((s) => {
+      if (cw < s.showFrom || cw > s.showTo) return false;
+      const task = s.taskId !== undefined ? getTask(s.taskId) : undefined;
+      return !task || cw < taskWindow(task).from;
+    })
       .map((s) => ({ ...s, id: s.weekly ? `${s.id}-${cw}` : s.id }))
       .filter((s) => !dismissed.has(s.id))
       .filter((s) => !events.some((ev) => ev && s.covers(ev, parseEventDate(ev), cw, now)));
   }, [cw, events, dismissed, now]);
+
+  // Lo que queda por agendar de «Lo que toca esta semana» (lo publica la Guía; vacío mientras no lo sabe).
+  const loQueToca = useLoQueToca();
+  const toSchedule = loQueToca.known ? loQueToca.toSchedule : [];
 
   const dismissSuggestion = (id: string) => {
     setSessionDismissed((prev) => (prev.includes(id) ? prev : [...prev, id]));
@@ -1574,6 +1679,8 @@ export function AgendaView({
       preset ? { ...EMPTY_FORM, title: preset.title, type: preset.type, typeTouched: true } : EMPTY_FORM,
       null
     );
+  // La hoja va en un portal: se abre también sobre la Guía, y al guardar se vuelve a la misma fila.
+  useImperativeHandle(ref, () => ({ openNew }));
 
   const openEdit = (ev: AgendaEvent) => {
     const d = parseEventDate(ev);
@@ -1800,8 +1907,23 @@ export function AgendaView({
           )}
         </section>
 
+        {/* «Lo que toca esta semana» vive en la Guía, con su casilla, su dueño y «Agendar» (una sola lista): la
+            Agenda lleva a ella y nombra lo que queda por agendar, sin repetirlo. */}
+        {!loading && !loadError && cw !== undefined && onOpenWeekList && (
+          <ListGroup edges>
+            <ListRow
+              leading={<ListChecks size={20} strokeWidth={1.75} />}
+              title="Lo que toca esta semana"
+              meta={toSchedule.length > 0 ? `Por agendar: ${joinEs(toSchedule)}` : "Misiones, estudios y tareas de la semana, en la Guía."}
+              onClick={onOpenWeekList}
+              trailing="chevron"
+            />
+          </ListGroup>
+        )}
+
         {/* Sugerencias según la semana (no mientras la agenda compartida no ha cargado:
-            ofrecería agendar algo que quizá ya está agendado) */}
+            ofrecería agendar algo que quizá ya está agendado). Solo las citas que no son tareas de la Guía:
+            el tamizaje del primer trimestre y el control semanal desde la 36. */}
         {loading || loadError ? null : cw === undefined ? (
           <p className="text-meta text-ink-muted">
             {/* Semana confirmada pero menor de 4: pedir que la confirme sería un callejón sin salida. */}

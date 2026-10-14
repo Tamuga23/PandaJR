@@ -50,7 +50,7 @@ Todo esto se apoya en contenido clínico alineado con guías públicas (ACOG, se
   - Guía semanal: tamaño, hito, una misión accionable por rol y una para los dos («Juntos esta semana»).
   - Checklists por trimestre.
   - Estado de ánimo de la mamá, abrazos en las dos direcciones y «Avisos» con lo que hace la pareja.
-  - Agenda médica con sugerencias según la semana y preparación de cita compartida.
+  - Agenda médica con preparación de cita compartida. Los estudios por agendar viven en «Lo que toca esta semana» (Guía), con su botón «Agendar»; la Agenda lleva a esa lista y solo sugiere las citas que no son tareas (tamizaje del primer trimestre, control semanal desde la 36) y, la semana antes de su ventana, los estudios que aún no están en la lista.
   - SOS de síntomas.
   - Contador de patadas y contador de contracciones. El de contracciones lleva la «Guía del acompañante» (antes de salir, durante, entre contracciones y cuándo llamar): abierta para el copiloto y plegada para la mamá. La misión del papá de la semana 37 lleva directo a ella.
   - Diario, votador de nombres, maleta, plan de parto, presupuesto, lecturas, audios y PandaStory compartible.

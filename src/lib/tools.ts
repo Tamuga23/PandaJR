@@ -69,7 +69,7 @@ export function missionLink(text: string | undefined | null): GuiaLinkTarget | n
 }
 
 /**
- * Lo que toca esta semana (2–3 herramientas). La herramienta que pide la misión de quien lee va primero;
+ * Las herramientas a mano esta semana en «Juntos» (2–3; lo que toca vive en la Guía). La que pide la misión de quien lee va primero;
  * luego, según la semana: los nombres y el presupuesto al principio, patadas desde la 28, maleta y plan
  * de parto de la 32 a la 35, contracciones desde la 36. Sin semana conocida: lo que se usa en pareja.
  */
