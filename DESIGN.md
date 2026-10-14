@@ -359,6 +359,11 @@ La estructura de toda la app. Se lee en secciones con título y listas con divis
 - **«Síntomas» de la cabecera es una hoja** (`SintomasSheet`) sobre la pestaña actual. También se abre así desde PandaIA y desde cualquier `openTool("sos")`. Al cerrarla vuelves al mismo punto y el foco regresa al botón. En «Juntos», la fila SOS sigue abriendo la herramienta en su sitio.
 - **El error de PandaIA es sereno:** un fallo de red no es una alarma. Muestra «No pude responder ahora.» con icono neutro, «Reintentar» sin tono de peligro y, en el último fallo, el enlace «¿Es urgente? Ver Síntomas». El botón grande de Emergencias queda para la tarjeta del detector local, que funciona sin IA ni red. El chat se desplaza solo dentro de su sección (nunca con `scrollIntoView`), así la cabecera de PandaIA no se esconde.
 
+### Modo parto (`ModoParto` en `HerramientasModule.tsx`)
+- **La pantalla del día del parto**, para los dos y cada uno en su voz: el cronómetro (con la regla que aplica y las llamadas a un toque, y sus alertas), la respiración guiada (`BreathingPacer`) y la guía del acompañante. A mano desde la semana 36: primera fila de «Para el parto» en «Hoy» y primera de «A mano esta semana» en Juntos; antes, en «Preparación». Las misiones que nombran el cronómetro o la guía del acompañante llevan aquí desde la 36 (`laborTarget`).
+- **Respirar juntos:** un círculo `sage` que crece al inhalar (4 s) y se encoge al exhalar (6 s), con la palabra y la cuenta en Alegreya; arranca y se detiene con su botón. El lector oye una frase al empezar, no la cuenta. Con movimiento reducido el círculo no escala. En esta pantalla, el descanso entre contracciones no repite la frase de respirar.
+- **Pantalla encendida** (`useWakeLock`) mientras está abierta y a la vista: al pasar a otra pestaña se suelta, y al volver se pide de nuevo. La línea que lo dice solo aparece si el teléfono lo concedió.
+
 ### Hojas y diálogos (`useModalDialog` + `ModalPortal`)
 - **Visual:** `surface-raised`, borde `line`, radio 24px, sombra de hoja o de diálogo; en móvil las hojas suben desde abajo, en `sm+` se centran.
 - **Movimiento:** al abrirse, el velo se funde (240ms) y la hoja sube desde el borde de la pantalla (420ms, `ease-out-expo`); desde `sm` se asienta 24px, como un diálogo. El diálogo centrado se funde y crece desde 0.96 (320ms). La sombra decide cuál es cuál (`shadow-sheet` / `shadow-dialog`). Al cerrar se van al instante. Es CSS (`@starting-style` sobre `[data-modal-layer]` en `globals.css`): sin soporte, aparecen quietos.
@@ -386,7 +391,7 @@ La firma del sistema. SVG paramétrico y determinista (viewBox 120; la variació
 ### Movimiento (`src/lib/motion.ts`)
 La app se siente viva porque responde, no porque se decore.
 
-**The Just-Happened Rule.** Solo se mueve lo que acaba de pasar: un toque, un cambio de estado, algo que llega de la pareja. Nada anima al cargar ni al cambiar de pestaña, nada late en bucle (salvo «cargando» y «PandaIA está respondiendo…») y la ruta de urgencia aparece al instante.
+**The Just-Happened Rule.** Solo se mueve lo que acaba de pasar: un toque, un cambio de estado, algo que llega de la pareja. Nada anima al cargar ni al cambiar de pestaña, nada late en bucle (salvo «cargando», «PandaIA está respondiendo…» y la respiración guiada del modo parto, que inicia y detiene la persona y que, con movimiento reducido, no escala) y la ruta de urgencia aparece al instante.
 
 - **Curva:** `ease-out-expo` (`cubic-bezier(0.16, 1, 0.3, 1)`), la de la planta. Es token y utilidad en `globals.css` y `EASE_OUT_EXPO` en JS. Salir es más rápido que entrar: hojas, diálogos y toast se van al instante.
 - **Dos momentos de autor:**

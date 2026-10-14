@@ -131,7 +131,7 @@ import {
 } from "@/components/GuiaBlocks";
 import { publishDiscuss, requestOpenDiscuss } from "@/lib/guiaDiscuss";
 import { publishLoQueToca, requestOpenLoQueToca } from "@/lib/loQueToca";
-import { missionLink, type GuiaLinkTarget } from "@/lib/tools";
+import { laborTarget, missionLink, type GuiaLinkTarget } from "@/lib/tools";
 import { getWeek } from "@/lib/weeks";
 import { GrowingPlant } from "@/components/GrowingPlant";
 import { Wordmark } from "@/components/Wordmark";
@@ -3643,8 +3643,9 @@ function GuiaPapaView({
     if (realWeek === undefined) return [];
     const info = getWeek(realWeek);
     const mineText = reader === "mama" ? info.forMom : info.forDad;
-    const mineLink = missionLink(mineText);
-    const togetherLinkTarget = missionLink(info.together);
+    // Desde la 36, el cronómetro que nombra la misión vive en el modo parto (laborTarget).
+    const mineLink = laborTarget(missionLink(mineText), realWeek);
+    const togetherLinkTarget = laborTarget(missionLink(info.together), realWeek);
     // Con un estudio pendiente en la lista, «Abrir la Agenda» de la misión no se repite: su fila trae «Agendar»
     // (o su cita), y la Agenda ya no lo sugiere. Así no hay ida y vuelta Guía → Agenda → Guía.
     const studyPending = todayRows.some(r => !r.completed && isStudyTask(r.task.id));
@@ -3668,7 +3669,7 @@ function GuiaPapaView({
     target === "agenda"
       ? onGoToAgenda()
       : target === "acompanante"
-        ? onOpenTool("contracciones", "guia-acompanante")
+        ? onOpenTool("modoparto", "guia-acompanante")
         : onOpenTool(target);
 
   // --- Checklists completos por trimestre ---

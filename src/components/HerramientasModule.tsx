@@ -58,9 +58,11 @@ import {
   Activity, AlertTriangle, ArrowDown, ArrowLeft, ArrowRight, Baby, CalendarClock, Camera, Check, CheckCircle, CheckCircle2,
   ChevronDown, ChevronRight, ChevronUp, CircleAlert, ClipboardList, Clock, CloudOff, Edit3, FileText, Flame, HeartHandshake,
   Heart, HeartPulse, ImagePlus, Info, Leaf, LoaderCircle, Minus, Moon, Music, Package, Pencil, Phone, PhoneCall, Play,
-  Plus, Printer, RefreshCw, RotateCcw, Send, Share2, Siren, Sparkles, Square, Tag, Timer, Trash2, Undo2, Users, Utensils,
+  Plus, Printer, RefreshCw, RotateCcw, Send, Share2, Siren, Sparkles, Square, Sun, Tag, Timer, Trash2, Undo2, Users, Utensils,
   Wallet, Wand2, Waves, Wind, X,
 } from "lucide-react";
+import { BreathingPacer } from "@/components/BreathingPacer";
+import { useWakeLock } from "@/lib/useWakeLock";
 
 
 export interface UserProfile {
@@ -749,7 +751,7 @@ const MODAL_TOOLS = ["presupuesto", "story", "reproductor"];
 
 /** Herramientas que HerramientasView puede abrir por `openRequest`. */
 const OPENABLE_TOOLS = [
-  "sos", "contracciones", "patadas", "diario", "maleta", "nombres", "parto", "lecturas", "presupuesto", "story", "reproductor",
+  "sos", "contracciones", "patadas", "diario", "maleta", "nombres", "parto", "modoparto", "lecturas", "presupuesto", "story", "reproductor",
 ];
 
 // `tips`/`alarm` hablan a la mamá; `tipsPartner`/`alarmPartner` dicen lo mismo al papá.
@@ -1954,6 +1956,8 @@ export function HerramientasView({ showToast, profile, openRequest, active = tru
     { id: "diario", desc: "Recuerdos del embarazo", icon: <FileText size={20} strokeWidth={1.75} />, group: "pareja" },
     { id: "maleta", desc: "Para el hospital", icon: <Package size={20} strokeWidth={1.75} />, group: "preparacion" },
     { id: "parto", desc: "Preferencias para el hospital", icon: <ClipboardList size={20} strokeWidth={1.75} />, group: "preparacion" },
+    // A mano desde la semana 36 (weekTools); antes, en «Preparación», para conocerlo y practicar la respiración.
+    { id: "modoparto", desc: "Cronómetro, llamadas y respiración", icon: <HeartHandshake size={20} strokeWidth={1.75} />, group: "preparacion" },
     { id: "patadas", desc: "Conteo desde la semana 28", icon: <Baby size={20} strokeWidth={1.75} />, group: "contadores" },
     { id: "contracciones", desc: "Frecuencia y duración", icon: <Timer size={20} strokeWidth={1.75} />, group: "contadores" },
     { id: "reproductor", desc: "Música para relajarte", icon: <Music size={20} strokeWidth={1.75} />, group: "calma" },
@@ -2008,6 +2012,7 @@ export function HerramientasView({ showToast, profile, openRequest, active = tru
           {activeTool === 'sos' && <SOSSintomas profile={profile} onOpenTool={jumpToTool} />}
           {activeTool === 'patadas' && <ContadorPatadas showToast={showToast} profile={profile} />}
           {activeTool === 'contracciones' && <ContadorContracciones showToast={showToast} profile={profile} onOpenTool={jumpToTool} />}
+          {activeTool === 'modoparto' && <ModoParto showToast={showToast} profile={profile} onOpenTool={jumpToTool} active={active} />}
           {activeTool === 'nombres' && <VotadorNombres showToast={showToast} />}
           {activeTool === 'parto' && <PlanParto profile={profile} showToast={showToast} />}
           {activeTool === 'lecturas' && <LecturasView profile={profile} />}
@@ -3106,11 +3111,20 @@ export function ContadorContracciones({
   showToast,
   profile,
   onOpenTool,
+  lead,
+  pacer,
 }: {
   showToast: ShowToast;
   profile?: UserProfile;
   /** Otra herramienta de «Juntos» desde aquí (la Maleta, desde la guía del acompañante). */
   onOpenTool?: (tool: ToolId) => void;
+  /** Modo parto: una línea arriba de todo (p. ej., que la pantalla se queda encendida). */
+  lead?: React.ReactNode;
+  /**
+   * Modo parto: la respiración guiada, justo después de la regla y las llamadas. Con ella, el descanso entre
+   * contracciones no repite la frase de respirar.
+   */
+  pacer?: React.ReactNode;
 }) {
   const week = knownWeek(profile);
   const me = useMe();
@@ -3242,6 +3256,7 @@ export function ContadorContracciones({
 
   return (
     <div className="mx-auto flex w-full max-w-lg flex-col gap-6 py-2">
+      {lead}
 
       {/* Alerta: 4 o más contracciones en 1 hora antes de la semana 37 (posible parto pretérmino desde
           la 20; antes, contracciones o cólicos regulares) */}
@@ -3381,6 +3396,8 @@ export function ContadorContracciones({
         </QuickCallBlock>
       )}
 
+      {pacer}
+
       {/* DESCANSO Y RESPIRACIÓN ENTRE CONTRACCIONES (una caja en lavado sage, quieta) */}
       {!isRecording && history.length > 0 && (
         <div className="rounded-2xl bg-sage-wash p-5">
@@ -3392,12 +3409,17 @@ export function ContadorContracciones({
           </div>
 
           <div className="flex flex-col items-center py-4 text-center">
-            <span className="grid h-16 w-16 place-items-center rounded-full border-2 border-sage-ink/40 text-sage-ink" aria-hidden="true">
-              <Wind size={28} strokeWidth={1.75} />
-            </span>
-            <p className="mt-3 text-body font-bold text-ink">
-              {isPapa ? "Respiren juntos: inhalen lento en 4 s… exhalen suave en 6 s" : "Inhala lento en 4 s… exhala suave en 6 s"}
-            </p>
+            {/* En el modo parto la respiración guiada va justo arriba: aquí no se repite. */}
+            {!pacer && (
+              <>
+                <span className="grid h-16 w-16 place-items-center rounded-full border-2 border-sage-ink/40 text-sage-ink" aria-hidden="true">
+                  <Wind size={28} strokeWidth={1.75} />
+                </span>
+                <p className="mt-3 text-body font-bold text-ink">
+                  {isPapa ? "Respiren juntos: inhalen lento en 4 s… exhalen suave en 6 s" : "Inhala lento en 4 s… exhala suave en 6 s"}
+                </p>
+              </>
+            )}
             <p className="mt-0.5 max-w-xs text-meta text-ink-muted">
               {isPapa ? `Recuérdale a ${her} soltar la mandíbula y los hombros: la ayuda a relajarse entre contracciones.` : "Suelta la mandíbula y los hombros: ayuda a relajarte entre contracciones."}
             </p>
@@ -3508,6 +3530,46 @@ export function ContadorContracciones({
 
       {history.length > 0 && companionGuide}
     </div>
+  );
+}
+
+/**
+ * «Modo parto» (crítica 2026-10-13: «¿qué pantalla existe solo para Luis el día del parto?»). La pantalla
+ * del día del parto, para los dos y cada uno en su voz: el cronómetro con la regla que aplica y las llamadas
+ * a un toque, la respiración guiada entre contracciones y la guía del acompañante, sin salir de aquí. A mano
+ * desde la semana 36 (Guía y «Juntos»). Mientras está abierta, la pantalla se queda encendida.
+ */
+function ModoParto({
+  showToast,
+  profile,
+  onOpenTool,
+  active,
+}: {
+  showToast: ShowToast;
+  profile?: UserProfile;
+  onOpenTool?: (tool: ToolId) => void;
+  /** La pestaña está a la vista: si se pasa a otra, la pantalla vuelve a apagarse sola. */
+  active: boolean;
+}) {
+  const me = useMe();
+  const { isPapa, her } = companionVoice(me);
+  const wake = useWakeLock(active);
+  return (
+    <ContadorContracciones
+      showToast={showToast}
+      profile={profile}
+      onOpenTool={onOpenTool}
+      lead={
+        // Solo si el teléfono lo concedió: nunca se afirma lo que no pasa.
+        wake === "on" ? (
+          <p className="flex items-center gap-2 text-micro font-medium text-ink-subtle">
+            <Sun size={14} strokeWidth={1.75} className="shrink-0" aria-hidden="true" />
+            La pantalla se queda encendida mientras el modo parto esté abierto.
+          </p>
+        ) : undefined
+      }
+      pacer={<BreathingPacer together={isPapa} her={her} />}
+    />
   );
 }
 

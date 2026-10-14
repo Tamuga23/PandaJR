@@ -18,10 +18,10 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  HeartHandshake,
   ListChecks,
   Luggage,
   Stethoscope,
-  Timer,
   X,
 } from "lucide-react";
 import { AuthorChip } from "@/components/AuthorChip";
@@ -31,7 +31,7 @@ import { GrowingPlant } from "@/components/GrowingPlant";
 import { ModalPortal } from "@/components/ModalPortal";
 import { CheckGlyph } from "@/components/ui/CheckGlyph";
 import { ListGroup, ListRow, RowButton } from "@/components/ui/List";
-import { LINK_LABEL, missionLink, type GuiaLinkTarget, type ToolId } from "@/lib/tools";
+import { LINK_LABEL, laborTarget, missionLink, type GuiaLinkTarget, type ToolId } from "@/lib/tools";
 import { Z_CLASS } from "@/lib/layers";
 import { useModalDialog } from "@/lib/useModalDialog";
 import { useOpenDiscussRequest } from "@/lib/guiaDiscuss";
@@ -467,9 +467,9 @@ function WeekHeart({
   const info = getWeek(week);
   const isMama = reader === "mama";
   const mission = isMama ? info.forMom : info.forDad;
-  const link = onOpenLink ? missionLink(mission) : null;
+  const link = onOpenLink ? laborTarget(missionLink(mission), week) : null;
   // La misión de los dos: su botón solo si lleva a otro sitio que el de la misión propia (sin repetir).
-  const togetherLink = onOpenLink ? missionLink(info.together) : null;
+  const togetherLink = onOpenLink ? laborTarget(missionLink(info.together), week) : null;
   return (
     <>
       <p className="mt-4 font-display text-subtitle font-normal text-pretty text-ink">{info.milestone}</p>
@@ -730,7 +730,7 @@ export function LaborReadyBlock({
   const { lead, detail } = laborReadyParts(weeks, reader, partnerName, dateInDoubt);
   return (
     // Solo el criterio y las llamadas: así la planta, la semana y el inicio de «Hoy» caben en la primera
-    // pantalla (390×844). Cronometrar y la maleta viven en «Hoy» («Para el parto»); las señales de alarma,
+    // pantalla (390×844). El modo parto y la maleta viven en «Hoy» («Para el parto»); las señales de alarma,
     // en «Síntomas» de la cabecera. Orden: en qué punto están → llamar → cuándo llamar. Llamar no espera a
     // leer: con zoom al 200 % (195px) Emergencias sigue en la primera pantalla. ≥1280px: texto a la
     // izquierda y llamadas a la derecha (el DOM conserva el orden de lectura).
@@ -971,7 +971,7 @@ export function TodayBlock({
   onOpenPrep: () => void;
   onGoToAgenda: () => void;
   sinceLastVisit: SinceLastVisit;
-  /** Desde la semana 36 (semana conocida): «Para el parto», con el cronómetro y la maleta a mano. */
+  /** Desde la semana 36 (semana conocida): «Para el parto», con el modo parto y la maleta a mano. */
   onOpenTool?: (tool: GuiaTool) => void;
   /** Fila «Todas las tareas» al final de «Hoy» (abre la hoja con los trimestres). */
   allTasks?: AllTasksEntry;
@@ -1057,11 +1057,12 @@ export function TodayBlock({
         <div className="mt-6">
           <GroupHeading title="Para el parto" />
           <ListGroup className="mt-1">
+            {/* El día del parto en una pantalla (cronómetro, llamadas, respiración y la guía del acompañante). */}
             <ListRow
-              leading={<Timer {...ICON} />}
-              title="Cronometrar contracciones"
-              meta="Frecuencia, duración y cuándo llamar"
-              onClick={() => onOpenTool("contracciones")}
+              leading={<HeartHandshake {...ICON} />}
+              title="Modo parto"
+              meta="Cronómetro, llamadas y respiración en una pantalla"
+              onClick={() => onOpenTool("modoparto")}
               trailing="chevron"
             />
             <ListRow

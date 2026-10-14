@@ -3,11 +3,22 @@
  * Puro (sin React ni Firebase): lo usan la Guía (botón bajo la misión) y el índice de «Juntos».
  */
 
-export type ToolId = "sos" | "contracciones" | "patadas" | "maleta" | "parto" | "nombres" | "presupuesto" | "diario" | "reproductor" | "story";
+export type ToolId =
+  | "sos"
+  | "contracciones"
+  | "patadas"
+  | "maleta"
+  | "parto"
+  | "modoparto"
+  | "nombres"
+  | "presupuesto"
+  | "diario"
+  | "reproductor"
+  | "story";
 
 /**
  * Destino de un enlace desde la Guía: una herramienta, la pestaña Agenda o la «Guía del acompañante»
- * (dentro de Contracciones: abre el contador directamente en esa sección).
+ * (dentro del modo parto, con el cronómetro: abre directamente en esa sección).
  */
 export type GuiaLinkTarget = ToolId | "agenda" | "acompanante";
 
@@ -17,6 +28,7 @@ export const TOOL_LABEL: Record<ToolId, string> = {
   patadas: "Patadas",
   maleta: "Maleta",
   parto: "Plan de parto",
+  modoparto: "Modo parto",
   nombres: "Nombres",
   presupuesto: "Presupuesto",
   diario: "Diario",
@@ -31,6 +43,7 @@ export const LINK_LABEL: Record<GuiaLinkTarget, string> = {
   patadas: "Abrir el contador de patadas",
   maleta: "Abrir la Maleta",
   parto: "Abrir el Plan de parto",
+  modoparto: "Abrir el modo parto",
   nombres: "Abrir Nombres",
   presupuesto: "Abrir el Presupuesto",
   diario: "Abrir el Diario",
@@ -69,16 +82,24 @@ export function missionLink(text: string | undefined | null): GuiaLinkTarget | n
 }
 
 /**
+ * Desde la semana 36 el cronómetro vive en el modo parto (con las llamadas, la respiración y la guía del
+ * acompañante): la misión que nombra el contador lleva ahí. Antes, al contador de Contracciones.
+ */
+export function laborTarget(target: GuiaLinkTarget | null, week: number | undefined): GuiaLinkTarget | null {
+  return target === "contracciones" && week !== undefined && week >= 36 ? "modoparto" : target;
+}
+
+/**
  * Las herramientas a mano esta semana en «Juntos» (2–3; lo que toca vive en la Guía). La que pide la misión de quien lee va primero;
  * luego, según la semana: los nombres y el presupuesto al principio, patadas desde la 28, maleta y plan
- * de parto de la 32 a la 35, contracciones desde la 36. Sin semana conocida: lo que se usa en pareja.
+ * de parto de la 32 a la 35, el modo parto desde la 36. Sin semana conocida: lo que se usa en pareja.
  */
 export function weekTools(week: number | undefined, missionText?: string | null): ToolId[] {
   const base: ToolId[] =
     week === undefined
       ? ["nombres", "presupuesto", "diario"]
       : week >= 36
-        ? ["contracciones", "maleta", "parto"]
+        ? ["modoparto", "maleta", "parto"]
         : week >= 32
           ? ["maleta", "parto", "patadas"]
           : week >= 28
@@ -86,8 +107,13 @@ export function weekTools(week: number | undefined, missionText?: string | null)
             : week >= 4
               ? ["nombres", "presupuesto", "story"]
               : ["nombres", "presupuesto", "diario"];
-  const fromMission = missionLink(missionText);
+  // La guía del acompañante vive en el modo parto (con el cronómetro); antes de la 36, el contador basta.
+  const fromMission = laborTarget(missionLink(missionText), week);
   const first: ToolId[] =
-    fromMission === "acompanante" ? ["contracciones"] : fromMission && fromMission !== "agenda" && fromMission !== "sos" ? [fromMission] : [];
+    fromMission === "acompanante"
+      ? ["modoparto"]
+      : fromMission && fromMission !== "agenda" && fromMission !== "sos"
+        ? [fromMission]
+        : [];
   return [...first, ...base.filter((t) => !first.includes(t))].slice(0, 3);
 }
