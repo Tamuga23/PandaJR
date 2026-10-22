@@ -13,7 +13,6 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  BookOpen,
   CalendarClock,
   CalendarPlus,
   ChevronDown,
@@ -31,6 +30,7 @@ import { formatDateLong } from "@/components/DatingPicker";
 import { GrowingPlant } from "@/components/GrowingPlant";
 import { ModalPortal } from "@/components/ModalPortal";
 import { CheckGlyph } from "@/components/ui/CheckGlyph";
+import { ReadingRow } from "@/components/ReadingRow";
 import { ListGroup, ListRow, RowButton } from "@/components/ui/List";
 import { LINK_LABEL, laborTarget, missionLink, type GuiaLinkTarget, type ToolId } from "@/lib/tools";
 import { Z_CLASS } from "@/lib/layers";
@@ -886,8 +886,19 @@ export type AllTasksEntry = {
   syncBadge?: React.ReactNode;
 };
 
-/** El artículo de «Para leer esta semana» (fuente y «Para ti» / «Para los dos» ya escritos). */
-export type TodayReading = { title: string; source: string; url: string; forLabel: string };
+/**
+ * Un artículo de «Esta semana» para «Para leer esta semana» (fuente y «Para ti» / «Para los dos» ya escritos).
+ * `read`: si quien lee lo marcó (undefined = aún no se sabe). `partnerLabel`: «Ana lo leyó».
+ */
+export type TodayReading = {
+  id: string;
+  title: string;
+  source: string;
+  url: string;
+  forLabel: string;
+  read: boolean | undefined;
+  partnerLabel?: string;
+};
 
 /** "3 de 21 hechas" (sin conteo mientras carga). */
 export function allTasksProgress(done: number, total: number, loaded: boolean): string | null {
@@ -960,7 +971,8 @@ export function TodayBlock({
   onBook,
   onOpenBooking,
   onSkipBooking,
-  reading,
+  readings = [],
+  onToggleRead,
   onOpenReadings,
 }: {
   weekKnown: boolean;
@@ -994,12 +1006,28 @@ export function TodayBlock({
   onOpenBooking?: (row: TaskRowModel) => void;
   /** «No hace falta cita» de un estudio (solo en este teléfono). */
   onSkipBooking?: (row: TaskRowModel) => void;
-  /** «Para leer esta semana»: el artículo de la semana para quien lee o para los dos (src/lib/lecturas.ts). */
-  reading?: TodayReading;
+  /** «Esta semana» de Lecturas (para quien lee o para los dos, src/lib/lecturas.ts): se muestra uno. */
+  readings?: TodayReading[];
+  /** La casilla «Leído» de la fila. */
+  onToggleRead?: (id: string) => void;
   /** «Todas las lecturas»: la biblioteca en Juntos. */
   onOpenReadings?: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+
+  // Una lectura a la vista: la primera sin leer de «Esta semana», fijada mientras no cambie la lista. Marcarla
+  // no la quita de su sitio (ni se pierde el foco); al volver a abrir la app sale la siguiente, y leídas todas
+  // el grupo no aparece. Sin el dato de lo leído, la primera, con el hueco de la casilla.
+  const readingsKey = readings.map((r) => r.id).join(",");
+  const readingsKnown = readings.length > 0 && readings.every((r) => r.read !== undefined);
+  const [readingPin, setReadingPin] = useState<{ key: string; id: string | null } | null>(null);
+  let pinnedReading = readingPin && readingPin.key === readingsKey ? readingPin.id : undefined;
+  if (pinnedReading === undefined && readingsKnown) {
+    pinnedReading = readings.find((r) => !r.read)?.id ?? null;
+    setReadingPin({ key: readingsKey, id: pinnedReading });
+  }
+  const reading =
+    pinnedReading === undefined ? readings[0] : pinnedReading === null ? undefined : readings.find((r) => r.id === pinnedReading);
   const todayText = new Intl.DateTimeFormat("es", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
 
   // Juntos y la Agenda llevan aquí (la lista no se repite allá): llega desplegada, a la vista y con el foco
@@ -1239,18 +1267,13 @@ export function TodayBlock({
         <div className="mt-6">
           <GroupHeading title="Para leer esta semana" />
           <ListGroup className="mt-1">
-            <ListRow
+            <ReadingRow
+              title={reading.title}
               href={reading.url}
-              external
-              leading={<BookOpen {...ICON} />}
-              title={
-                <>
-                  {reading.title}
-                  <span className="sr-only"> (se abre en otra pestaña)</span>
-                </>
-              }
-              meta={`${reading.source} · ${reading.forLabel}`}
-              trailing="external"
+              facts={[reading.source, reading.forLabel, ...(reading.partnerLabel ? [reading.partnerLabel] : [])]}
+              read={reading.read}
+              disabled={!onToggleRead}
+              onToggleRead={() => onToggleRead?.(reading.id)}
             />
           </ListGroup>
           {onOpenReadings && (

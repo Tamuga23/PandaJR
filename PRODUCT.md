@@ -55,7 +55,7 @@ Todo esto se apoya en contenido clínico alineado con guías públicas (ACOG, se
   - Contador de patadas y contador de contracciones. El de contracciones lleva la «Guía del acompañante» (antes de salir, durante, entre contracciones y cuándo llamar): abierta para el copiloto y plegada para la mamá. La misión del papá de la semana 37 lleva directo a ella, dentro del modo parto.
   - Modo parto (desde la semana 36): la pantalla del día del parto, con el cronómetro, las llamadas, la respiración guiada, la maleta de quien lee y la guía del acompañante; si el teléfono lo permite, la pantalla se queda encendida mientras está a la vista. En la Maleta, el copiloto ve «Para papá» primero.
   - Diario, votador de nombres, maleta, plan de parto, presupuesto, lecturas, audios y PandaStory compartible.
-  - Lecturas: artículos en español de fuentes públicas de salud (MedlinePlus, la Academia Americana de Pediatría y la FDA) según la semana, y libros publicados en español por trimestre, cada uno para la mamá, el papá o los dos. «Hoy» muestra el de la semana y la biblioteca vive en Juntos. Nadie del área de salud revisó la selección: la app no la presenta como recomendada por médicos. Los enlaces se leyeron uno por uno en octubre de 2026, y ninguno contradice las reglas de la app (contenido y criterios en `src/lib/lecturas.ts`).
+  - Lecturas: artículos en español de fuentes públicas de salud (MedlinePlus, la Academia Americana de Pediatría y la FDA) según la semana, y libros publicados en español por trimestre, cada uno para la mamá, el papá o los dos. «Hoy» muestra el de la semana, el primero sin leer, y la biblioteca vive en Juntos. Cada uno marca «Leído» en lo suyo: con vínculo lo ven los dos («Ana lo leyó») y sin vínculo queda en este teléfono. Nadie del área de salud revisó la selección: la app no la presenta como recomendada por médicos. Los enlaces se leyeron uno por uno en octubre de 2026, y ninguno contradice las reglas de la app (contenido y criterios en `src/lib/lecturas.ts`).
   - PandaIA.
 - **Alcance gestacional: semanas 1–42.** Decisión confirmada el 2026-09-26: se amplía de 1–40 para incluir el postérmino (41–42). Implementación pendiente.
 - **Capa de urgencia determinista:**
@@ -138,6 +138,7 @@ Todo esto se apoya en contenido clínico alineado con guías públicas (ACOG, se
   - `events`, `kick_sessions`, `contractions` y `budget` (`items`, más el `cap` del presupuesto).
   - `checklist_progress` (`items` y `meta` con autor).
   - `prep_{eventId}` y `care_team`.
+  - `readings` (`read.{lecturaId}.{uid}` con `at`, `name` y `role`): lo leído de cada uno, por ítem y por persona (`setReadingRead`).
 - Subcolecciones: `baby_names/{n-slug}` (votos por uid), `nudges`, `journal` y `status_logs`.
 - Invitaciones en `invite_codes/{code}`.
 - Toda la API está en `src/lib/firebase/pairing.ts`:

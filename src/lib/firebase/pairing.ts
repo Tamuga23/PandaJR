@@ -1709,6 +1709,71 @@ export function listenToChecklistProgress(
 }
 
 // =====================================================================================
+// Lecturas leídas (cada uno las suyas)
+// Ruta: shared_data/readings → { read: { [readingId]: { [uid]: { at, name, role } } }, updatedAt }
+// Cada persona marca lo que leyó; la pareja lo ve con su nombre. Solo desde manejadores de eventos.
+// =====================================================================================
+
+export type ReadingMark = { at?: Date; name?: string; role?: MemberRole };
+/** Por lectura (id de src/lib/lecturas.ts), quién la leyó: { [readingId]: { [uid]: marca } }. */
+export type ReadingReads = Record<string, Record<string, ReadingMark>>;
+
+/**
+ * Marca (o desmarca) una lectura como leída por `by.uid`, sin tocar las demás ni las marcas de la pareja.
+ * Firestore la encola si no hay red.
+ */
+export async function setReadingRead(
+  pregnancyId: string,
+  readingId: string,
+  by: { uid: string; name?: string; role?: MemberRole },
+  read: boolean
+): Promise<void> {
+  const k = String(readingId);
+  if (!k || !by?.uid) throw new TypeError("readingId o uid vacío");
+  await setDoc(
+    sharedRef(pregnancyId, "readings"),
+    {
+      read: { [k]: { [by.uid]: read ? stripUndefined({ at: serverTimestamp(), name: cleanText(by.name, 60), role: by.role }) : deleteField() } },
+      updatedAt: serverTimestamp(),
+    },
+    { mergeFields: [new FieldPath("read", k, by.uid), "updatedAt"] }
+  );
+}
+
+/** Llama siempre (sin documento → {}). Descarta lo que no tiene forma de marca. */
+export function listenToReadings(
+  pregnancyId: string,
+  callback: (reads: ReadingReads, meta: SharedDocMeta) => void,
+  onError?: ErrorCallback
+) {
+  return listenSharedDoc(
+    pregnancyId,
+    "readings",
+    (data, meta) => {
+      const reads: ReadingReads = {};
+      const raw = data?.read;
+      if (isPlainObject(raw)) {
+        for (const [id, byUid] of Object.entries(raw)) {
+          if (!isPlainObject(byUid) || id.length > 80) continue;
+          const marks: Record<string, ReadingMark> = {};
+          for (const [uid, m] of Object.entries(byUid)) {
+            if (!isPlainObject(m)) continue;
+            marks[uid] = stripUndefined({
+              at: toDate(m.at) ?? undefined,
+              name: cleanText(m.name, 60),
+              role: m.role === "mama" || m.role === "papa" ? m.role : undefined,
+            });
+          }
+          if (Object.keys(marks).length) reads[id] = marks;
+        }
+      }
+      callback(reads, meta);
+    },
+    onError
+  );
+}
+
+// =====================================================================================
 // Preparación de cita por ítem
 // Ruta: shared_data/prep_{eventId} → { items: { [texto]: bool }, questions: { [texto]: bool }, updatedAt }
 // =====================================================================================

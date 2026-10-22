@@ -131,7 +131,8 @@ import {
 } from "@/components/GuiaBlocks";
 import { publishDiscuss, requestOpenDiscuss } from "@/lib/guiaDiscuss";
 import { publishLoQueToca, requestOpenLoQueToca } from "@/lib/loQueToca";
-import { readingForLabel, weekReading } from "@/lib/lecturas";
+import { readingForLabel, weekReadings } from "@/lib/lecturas";
+import { useReadings } from "@/lib/useReadings";
 import { laborTarget, missionLink, type GuiaLinkTarget } from "@/lib/tools";
 import { getWeek } from "@/lib/weeks";
 import { GrowingPlant } from "@/components/GrowingPlant";
@@ -3687,11 +3688,31 @@ function GuiaPapaView({
   const doneCount = allRows.filter(r => r.completed).length;
   const loadingText = isOffline() ? "Sin conexión: no podemos mostrar el progreso compartido ahora." : "Cargando el progreso compartido…";
   const laborReady = ga.source !== "unknown" && typeof ga.weeks === "number" && ga.weeks >= 36;
-  // «Para leer esta semana» (semana real): el artículo que toca a quien lee o a los dos; sin semana, nada.
-  const weekArticle = weekReading(realWeek, reader);
-  const todayReading = weekArticle
-    ? { title: weekArticle.title, source: weekArticle.source, url: weekArticle.url, forLabel: readingForLabel(weekArticle.for, reader, partnerName) }
-    : undefined;
+  // «Para leer esta semana» (semana real): «Esta semana» de Lecturas con lo que ya leyó quien lee; TodayBlock
+  // muestra la primera sin leer. Sin semana, nada. «Leído» se guarda como en Lecturas (useReadings).
+  const readings = useReadings({
+    pid: pid || undefined,
+    myUid: partner.myUid,
+    name: profile.name,
+    role: reader,
+    onWriteError: (id, retry) => {
+      const title = weekReadings(realWeek, reader).find((a) => a.id === id)?.title ?? "la lectura";
+      showToast(`No pudimos guardar «${title}» como leído.`, retry, "Reintentar");
+    },
+  });
+  const todayReadings = weekReadings(realWeek, reader).map((a) => {
+    const mark = readings.partnerRead(a.id);
+    const who = mark ? mark.name?.trim() || partnerLabel : null;
+    return {
+      id: a.id,
+      title: a.title,
+      source: a.source,
+      url: a.url,
+      forLabel: readingForLabel(a.for, reader, partnerName),
+      read: readings.readByMe(a.id),
+      partnerLabel: who ? `${who.charAt(0).toLocaleUpperCase("es")}${who.slice(1)} lo leyó` : undefined,
+    };
+  });
   // «Todas las tareas» (los tres trimestres) se abre en su propia hoja: en la Guía ninguna tarea se
   // repite (antes el trimestre actual, desplegado, volvía a listar las mismas tareas de «Hoy»).
   const [allTasksOpen, setAllTasksOpen] = useState(false);
@@ -3777,7 +3798,8 @@ function GuiaPapaView({
             onOpen: () => setAllTasksOpen(true),
             syncBadge: checklistBadge,
           }}
-          reading={todayReading}
+          readings={todayReadings}
+          onToggleRead={readings.toggle}
           onOpenReadings={() => onOpenTool("lecturas")}
         />
 

@@ -29,6 +29,8 @@ import {
   deleteJournalEntry,
   listenToGoBag,
   toggleGoBagItem,
+  listenToReadings,
+  type ReadingReads,
   type BabyName,
   logActivity,
   type ActivityKind,
@@ -54,9 +56,11 @@ import { StoryBackdrop } from "@/components/StoryBackdrop";
 import { PANDA_MARK_SRC } from "@/components/PandaMark";
 import { TOOL_LABEL, weekTools, type ToolId } from "@/lib/tools";
 import {
-  READINGS_CHECKED, articleWeeks, articlesOfTrimester, booksOfTrimester, readingForLabel, weekReadings,
+  ARTICLES, BOOKS, READINGS_CHECKED, articleWeeks, articlesOfTrimester, booksOfTrimester, readingForLabel, weekReadings,
   type Article, type Book, type ReadingFor, type ReadingRole,
 } from "@/lib/lecturas";
+import { readLocalReadings, useReadings } from "@/lib/useReadings";
+import { ReadingRow } from "@/components/ReadingRow";
 import { ListGroup, ListRow, RowButton, Section, SectionAction } from "@/components/ui/List";
 import {
   Activity, AlertTriangle, ArrowDown, ArrowLeft, ArrowRight, Baby, BookOpen, CalendarClock, Camera, Check, CheckCircle, CheckCircle2,
@@ -1763,9 +1767,9 @@ function readingWeek(profile?: UserProfile): number | undefined {
 
 const TRIMESTER_ORDINAL = { 1: "1.er", 2: "2.º", 3: "3.er" } as const;
 
-/** Tramo, fuente y para quién: la línea pequeña bajo cada lectura. */
-function ReadingFacts({ parts }: { parts: string[] }) {
-  return <span className="mt-1 block text-micro font-medium text-ink-subtle">{parts.join(" · ")}</span>;
+/** Título de un artículo o libro por su id (para el aviso si «Leído» no se guardó). */
+function readingTitle(id: string): string {
+  return [...ARTICLES, ...BOOKS].find((r) => r.id === id)?.title ?? "la lectura";
 }
 
 export function LecturasView({ profile }: { profile?: UserProfile; onClose?: () => void; showToast?: ShowToast }) {
@@ -1785,40 +1789,45 @@ export function LecturasView({ profile }: { profile?: UserProfile; onClose?: () 
   const books = booksOfTrimester(selectedTri);
   const forLabel = (f: ReadingFor) => readingForLabel(f, reader, partnerName);
 
+  // «Leído»: cada uno lo suyo; con vínculo, la pareja ve el de quien lo leyó (Parte 2).
+  const pid = profile?.pregnancyId || undefined;
+  const { retryState, fail, clearRetry } = useRetry();
+  const readings = useReadings({
+    pid,
+    myUid: me.myUid,
+    name: profile?.name,
+    role: reader,
+    onWriteError: (id, retry) => fail(`No se guardó «${readingTitle(id)}» como leído.`, retry),
+  });
+  /** «Ana lo leyó» (su nombre, el de la pareja o su rol). */
+  const partnerFact = (id: string): string[] => {
+    const mark = readings.partnerRead(id);
+    if (!mark) return [];
+    const who = mark.name?.trim() || partnerName || (reader === "mama" ? "Papá" : "Mamá");
+    return [`${who} lo leyó`];
+  };
+
   const articleRow = (a: Article) => (
-    <ListRow
+    <ReadingRow
       key={a.id}
+      title={a.title}
       href={a.url}
-      external
-      weight="medium"
-      title={
-        <>
-          {a.title}
-          <span className="sr-only"> (se abre en otra pestaña)</span>
-        </>
-      }
-      meta={
-        <>
-          {a.why}
-          <ReadingFacts parts={[a.source, articleWeeks(a), forLabel(a.for)]} />
-        </>
-      }
-      trailing="external"
+      why={a.why}
+      facts={[a.source, articleWeeks(a), forLabel(a.for), ...partnerFact(a.id)]}
+      read={readings.readByMe(a.id)}
+      onToggleRead={() => readings.toggle(a.id)}
     />
   );
 
   // Sin enlace de compra: el libro se busca en la librería o la biblioteca.
   const bookRow = (b: Book) => (
-    <ListRow
+    <ReadingRow
       key={b.id}
-      weight="medium"
       title={b.title}
-      meta={
-        <>
-          {b.why}
-          <ReadingFacts parts={[b.author, b.edition, forLabel(b.for)]} />
-        </>
-      }
+      why={b.why}
+      facts={[b.author, b.edition, forLabel(b.for), ...partnerFact(b.id)]}
+      read={readings.readByMe(b.id)}
+      onToggleRead={() => readings.toggle(b.id)}
     />
   );
 
@@ -1829,6 +1838,20 @@ export function LecturasView({ profile }: { profile?: UserProfile; onClose?: () 
         Artículos de fuentes públicas de salud (MedlinePlus, la Academia Americana de Pediatría y la FDA) y libros en español.{" "}
         {reader === "papa" ? "No reemplazan lo que les diga su obstetra." : "No reemplazan lo que te diga tu obstetra."}
       </p>
+
+      {/* Dónde vive lo marcado como leído: solo aquí o compartido con la pareja (y, sin el dato, no se afirma). */}
+      <div className="flex flex-col gap-3">
+        <SyncBadge waiting={!readings.loaded} />
+        <RetryNotice state={retryState} onDismiss={clearRetry} />
+        {!readings.loaded &&
+          (readings.failed ? (
+            <LoadErrorNotice what="lo que ya leyeron" onRetry={readings.retryLoad} />
+          ) : (
+            <p className="text-meta text-ink-muted" aria-live="polite">
+              {online ? "Cargando lo que ya leyeron…" : "Sin conexión: todavía no podemos mostrar qué leyeron."}
+            </p>
+          ))}
+      </div>
 
       {!online && (
         <p role="status" className="flex items-start gap-2 text-meta text-ink-muted">
@@ -1905,9 +1928,11 @@ type StatusData = {
   kicksLoaded: boolean;
   contraction: ContractionItem | null;
   contractionsLoaded: boolean;
+  /** Lecturas leídas: con vínculo, por uid; sin vínculo, las de este teléfono. null = aún no se sabe. */
+  reads: ReadingReads | null;
 };
 
-const EMPTY_STATUS: StatusData = { bag: null, planMarked: null, names: null, budget: null, cap: null, journal: null, kick: null, kicksLoaded: false, contraction: null, contractionsLoaded: false };
+const EMPTY_STATUS: StatusData = { bag: null, planMarked: null, names: null, budget: null, cap: null, journal: null, kick: null, kicksLoaded: false, contraction: null, contractionsLoaded: false, reads: null };
 
 const GOBAG_TOTAL = Object.values(GOBAG_ITEMS).reduce((n, list) => n + list.length, 0);
 const GOBAG_IDS = new Set(Object.values(GOBAG_ITEMS).flat().map((i) => i.id));
@@ -1957,6 +1982,7 @@ function useToolStatuses(profile: UserProfile | undefined, active: boolean): Par
       listenToKickSessions(pid, (items, meta) => { if (meta.fromCache && !meta.exists) return; patch({ kick: sanitizeKickSessions(asArray(items))[0] ?? null, kicksLoaded: true }); }, () => undefined),
       listenToContractions(pid, (items, meta) => { if (meta.fromCache && !meta.exists) return; patch({ contraction: sanitizeContractions(asArray(items))[0] ?? null, contractionsLoaded: true }); }, () => undefined),
       listenToBabyNamesV2(pid, (names) => patch({ names }), () => undefined),
+      listenToReadings(pid, (reads, meta) => { if (meta.fromCache && !meta.exists) return; patch({ reads }); }, () => undefined),
     ];
     return () => offs.forEach((off) => off());
   }, [pid, active]);
@@ -1983,6 +2009,8 @@ function useToolStatuses(profile: UserProfile | undefined, active: boolean): Par
       kicksLoaded: true,
       contraction: contractions[0] ?? null,
       contractionsLoaded: true,
+      // Sin vínculo no hay uid: las de este teléfono van bajo la clave "local".
+      reads: Object.fromEntries(Object.keys(readLocalReadings()).map((id) => [id, { local: {} }])),
     };
   }
 
@@ -2046,10 +2074,21 @@ function useToolStatuses(profile: UserProfile | undefined, active: boolean): Par
     // El modo parto lleva el cronómetro: su fila dice cuándo fue la última (sin ninguna, su descripción).
     if (data.contraction) out.modoparto = `Última contracción ${rel(data.contraction.start)}`;
   }
-  // Los mismos de «Esta semana» en Lecturas (para quien lee o para los dos); sin semana, su descripción.
+  // Los mismos de «Esta semana» en Lecturas (para quien lee o para los dos), y cuántos ya leyó quien lee;
+  // sin el dato de lo leído, solo cuántos son (nunca «sin leer» sin saberlo). Sin semana, su descripción.
   const reader: ReadingRole = me.role === "papa" ? "papa" : "mama";
-  const toRead = weekReadings(readingWeek(profile), reader).length;
-  if (toRead > 0) out.lecturas = toRead === 1 ? "1 artículo para esta semana" : `${toRead} artículos para esta semana`;
+  const thisWeek = weekReadings(readingWeek(profile), reader);
+  const meKey = pid ? me.myUid : "local";
+  const done = data.reads && meKey ? thisWeek.filter((a) => !!data.reads?.[a.id]?.[meKey]).length : 0;
+  if (thisWeek.length > 0) {
+    const n = thisWeek.length;
+    out.lecturas =
+      done === n
+        ? n === 1 ? "Leíste el de esta semana" : `Leíste los ${n} de esta semana`
+        : done > 0
+          ? `${done} de ${n} leídos esta semana`
+          : n === 1 ? "1 artículo para esta semana" : `${n} artículos para esta semana`;
+  }
   return out;
 }
 
