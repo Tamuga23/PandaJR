@@ -13,6 +13,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
+  BookOpen,
   CalendarClock,
   CalendarPlus,
   ChevronDown,
@@ -885,6 +886,9 @@ export type AllTasksEntry = {
   syncBadge?: React.ReactNode;
 };
 
+/** El artículo de «Para leer esta semana» (fuente y «Para ti» / «Para los dos» ya escritos). */
+export type TodayReading = { title: string; source: string; url: string; forLabel: string };
+
 /** "3 de 21 hechas" (sin conteo mientras carga). */
 export function allTasksProgress(done: number, total: number, loaded: boolean): string | null {
   if (!loaded) return null;
@@ -956,6 +960,8 @@ export function TodayBlock({
   onBook,
   onOpenBooking,
   onSkipBooking,
+  reading,
+  onOpenReadings,
 }: {
   weekKnown: boolean;
   reader: Role;
@@ -988,6 +994,10 @@ export function TodayBlock({
   onOpenBooking?: (row: TaskRowModel) => void;
   /** «No hace falta cita» de un estudio (solo en este teléfono). */
   onSkipBooking?: (row: TaskRowModel) => void;
+  /** «Para leer esta semana»: el artículo de la semana para quien lee o para los dos (src/lib/lecturas.ts). */
+  reading?: TodayReading;
+  /** «Todas las lecturas»: la biblioteca en Juntos. */
+  onOpenReadings?: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const todayText = new Intl.DateTimeFormat("es", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
@@ -1222,6 +1232,33 @@ export function TodayBlock({
             trailing="chevron"
           />
         </ListGroup>
+      )}
+
+      {/* Una lectura, no otra lista: el artículo de la semana sale de la app; el resto vive en Juntos › Lecturas. */}
+      {reading && (
+        <div className="mt-6">
+          <GroupHeading title="Para leer esta semana" />
+          <ListGroup className="mt-1">
+            <ListRow
+              href={reading.url}
+              external
+              leading={<BookOpen {...ICON} />}
+              title={
+                <>
+                  {reading.title}
+                  <span className="sr-only"> (se abre en otra pestaña)</span>
+                </>
+              }
+              meta={`${reading.source} · ${reading.forLabel}`}
+              trailing="external"
+            />
+          </ListGroup>
+          {onOpenReadings && (
+            <button type="button" onClick={onOpenReadings} className={`-mx-2 mt-1 ${TEXT_ACTION}`}>
+              Todas las lecturas
+            </button>
+          )}
+        </div>
       )}
     </section>
   );

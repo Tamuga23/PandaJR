@@ -131,6 +131,7 @@ import {
 } from "@/components/GuiaBlocks";
 import { publishDiscuss, requestOpenDiscuss } from "@/lib/guiaDiscuss";
 import { publishLoQueToca, requestOpenLoQueToca } from "@/lib/loQueToca";
+import { readingForLabel, weekReading } from "@/lib/lecturas";
 import { laborTarget, missionLink, type GuiaLinkTarget } from "@/lib/tools";
 import { getWeek } from "@/lib/weeks";
 import { GrowingPlant } from "@/components/GrowingPlant";
@@ -3686,6 +3687,11 @@ function GuiaPapaView({
   const doneCount = allRows.filter(r => r.completed).length;
   const loadingText = isOffline() ? "Sin conexión: no podemos mostrar el progreso compartido ahora." : "Cargando el progreso compartido…";
   const laborReady = ga.source !== "unknown" && typeof ga.weeks === "number" && ga.weeks >= 36;
+  // «Para leer esta semana» (semana real): el artículo que toca a quien lee o a los dos; sin semana, nada.
+  const weekArticle = weekReading(realWeek, reader);
+  const todayReading = weekArticle
+    ? { title: weekArticle.title, source: weekArticle.source, url: weekArticle.url, forLabel: readingForLabel(weekArticle.for, reader, partnerName) }
+    : undefined;
   // «Todas las tareas» (los tres trimestres) se abre en su propia hoja: en la Guía ninguna tarea se
   // repite (antes el trimestre actual, desplegado, volvía a listar las mismas tareas de «Hoy»).
   const [allTasksOpen, setAllTasksOpen] = useState(false);
@@ -3771,6 +3777,8 @@ function GuiaPapaView({
             onOpen: () => setAllTasksOpen(true),
             syncBadge: checklistBadge,
           }}
+          reading={todayReading}
+          onOpenReadings={() => onOpenTool("lecturas")}
         />
 
         <MomStatusCard

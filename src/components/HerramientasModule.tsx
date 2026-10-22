@@ -4,7 +4,7 @@ import React, { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallba
 import { createPortal } from "react-dom";
 import { toPng } from "html-to-image";
 import { getWeekData } from "./weekData";
-import { getWeek } from "@/lib/weeks";
+import { getWeek, trimesterOfWeek } from "@/lib/weeks";
 import { usePandaStore } from "@/store/usePandaStore";
 import {
   listenToKickSessions,
@@ -53,9 +53,13 @@ import { GrowingPlant } from "@/components/GrowingPlant";
 import { StoryBackdrop } from "@/components/StoryBackdrop";
 import { PANDA_MARK_SRC } from "@/components/PandaMark";
 import { TOOL_LABEL, weekTools, type ToolId } from "@/lib/tools";
+import {
+  READINGS_CHECKED, articleWeeks, articlesOfTrimester, booksOfTrimester, readingForLabel, weekReadings,
+  type Article, type Book, type ReadingFor, type ReadingRole,
+} from "@/lib/lecturas";
 import { ListGroup, ListRow, RowButton, Section, SectionAction } from "@/components/ui/List";
 import {
-  Activity, AlertTriangle, ArrowDown, ArrowLeft, ArrowRight, Baby, CalendarClock, Camera, Check, CheckCircle, CheckCircle2,
+  Activity, AlertTriangle, ArrowDown, ArrowLeft, ArrowRight, Baby, BookOpen, CalendarClock, Camera, Check, CheckCircle, CheckCircle2,
   ChevronDown, ChevronRight, ChevronUp, CircleAlert, ClipboardList, Clock, CloudOff, Edit3, FileText, Flame, HeartHandshake,
   Heart, HeartPulse, ImagePlus, Info, Leaf, LoaderCircle, Minus, Moon, Music, Package, Pencil, Phone, PhoneCall, Play,
   Plus, Printer, RefreshCw, RotateCcw, Send, Share2, Siren, Sparkles, Square, Sun, Tag, Timer, Trash2, Undo2, Users, Utensils,
@@ -1741,63 +1745,142 @@ function TuMaleta({ profile, isPapa }: { profile?: UserProfile; isPapa: boolean 
 }
 
 
-const LECTURAS: Record<1 | 2 | 3, { title: string; desc: string; type: string }[]> = {
-  1: [
-    { title: "Náuseas del primer trimestre", desc: "Qué ayuda con las náuseas y la hidratación en las primeras semanas.", type: "Guía" },
-    { title: "El ácido fólico y el tubo neural", desc: "Por qué este suplemento es clave en el primer trimestre.", type: "Nutrición" },
-    { title: "Cómo y cuándo dar la noticia", desc: "Ideas para contarlo a la familia, a tus amistades y en el trabajo.", type: "Guía" },
-  ],
-  2: [
-    { title: "Omega-3 (DHA) y desarrollo cerebral", desc: "El pescado bajo en mercurio y otras fuentes en el segundo trimestre.", type: "Nutrición" },
-    { title: "Conectar con tu bebé", desc: "Su oído se desarrolla: cómo sus voces forman parte de su día.", type: "Guía" },
-    { title: "Preparar el cuarto sin riesgos", desc: "Qué evitar al pintar o armar muebles nuevos.", type: "Guía" },
-  ],
-  3: [
-    { title: "Entender las contracciones", desc: "Contracciones de práctica y trabajo de parto: la regla 5-1-1.", type: "Guía" },
-    { title: "Masaje perineal", desc: "Cómo preparar el periné antes de un parto vaginal.", type: "Guía" },
-    { title: "El posparto", desc: "Salud mental, sueño y cómo papá puede encargarse de la casa.", type: "Guía" },
-  ],
-};
+// =====================================================================================
+// Lecturas: artículos según la semana y libros por trimestre (el contenido y sus criterios, en
+// src/lib/lecturas.ts). «Hoy» muestra el de la semana; aquí está todo, por trimestre.
+// =====================================================================================
+
+/**
+ * La semana para las lecturas: la confirmada, también la 1–3 (knownWeek empieza en la 4 porque es la de
+ * las reglas clínicas; el ácido fólico de la semana 1 no es una regla clínica).
+ */
+function readingWeek(profile?: UserProfile): number | undefined {
+  const clinical = knownWeek(profile);
+  if (clinical !== undefined) return clinical;
+  if (!profile || profile.weekUnknown || typeof profile.week !== "number" || !Number.isFinite(profile.week)) return undefined;
+  return profile.week >= 1 && profile.week < 4 ? Math.floor(profile.week) : undefined;
+}
+
+const TRIMESTER_ORDINAL = { 1: "1.er", 2: "2.º", 3: "3.er" } as const;
+
+/** Tramo, fuente y para quién: la línea pequeña bajo cada lectura. */
+function ReadingFacts({ parts }: { parts: string[] }) {
+  return <span className="mt-1 block text-micro font-medium text-ink-subtle">{parts.join(" · ")}</span>;
+}
 
 export function LecturasView({ profile }: { profile?: UserProfile; onClose?: () => void; showToast?: ShowToast }) {
-  const week = knownWeek(profile);
-  const currentTrimester: 1 | 2 | 3 | undefined = typeof week === "number" ? (week <= 13 ? 1 : week <= 27 ? 2 : 3) : undefined;
+  const me = useMe();
+  const online = useOnline();
+  const reader: ReadingRole = profile?.role === "papa" ? "papa" : "mama";
+  const partnerName = me.partner.partnerName?.trim() || undefined;
+  const week = readingWeek(profile);
+  const currentTrimester = week !== undefined ? trimesterOfWeek(week) : undefined;
   const [selectedTri, setSelectedTri] = useState<1 | 2 | 3>(currentTrimester ?? 1);
+
+  // «Esta semana» solo en el trimestre en curso (lo de quien lee o de los dos, con el de «Hoy» primero). Lo
+  // demás del trimestre va debajo, sin repetir: primero lo que vale ahora o viene, al final lo que ya pasó.
+  const thisWeek = selectedTri === currentTrimester ? weekReadings(week, reader) : [];
+  const shown = new Set(thisWeek.map((a) => a.id));
+  const articles = articlesOfTrimester(selectedTri, week).filter((a) => !shown.has(a.id));
+  const books = booksOfTrimester(selectedTri);
+  const forLabel = (f: ReadingFor) => readingForLabel(f, reader, partnerName);
+
+  const articleRow = (a: Article) => (
+    <ListRow
+      key={a.id}
+      href={a.url}
+      external
+      weight="medium"
+      title={
+        <>
+          {a.title}
+          <span className="sr-only"> (se abre en otra pestaña)</span>
+        </>
+      }
+      meta={
+        <>
+          {a.why}
+          <ReadingFacts parts={[a.source, articleWeeks(a), forLabel(a.for)]} />
+        </>
+      }
+      trailing="external"
+    />
+  );
+
+  // Sin enlace de compra: el libro se busca en la librería o la biblioteca.
+  const bookRow = (b: Book) => (
+    <ListRow
+      key={b.id}
+      weight="medium"
+      title={b.title}
+      meta={
+        <>
+          {b.why}
+          <ReadingFacts parts={[b.author, b.edition, forLabel(b.for)]} />
+        </>
+      }
+    />
+  );
 
   return (
     <div className="mx-auto flex w-full max-w-lg flex-col gap-5 pb-12">
+      {/* Lo que es verdad: fuentes públicas y nadie del área de salud revisó la selección. */}
       <p className="text-meta text-ink-muted">
-        {profile?.role === "papa"
-          ? "Estas lecturas aún no están disponibles. Mientras tanto, ante cualquier duda, consulten con su obstetra."
-          : "Estas lecturas aún no están disponibles. Mientras tanto, ante cualquier duda, consulta a tu obstetra."}
+        Artículos de fuentes públicas de salud (MedlinePlus, la Academia Americana de Pediatría y la FDA) y libros en español.{" "}
+        {reader === "papa" ? "No reemplazan lo que les diga su obstetra." : "No reemplazan lo que te diga tu obstetra."}
       </p>
 
+      {!online && (
+        <p role="status" className="flex items-start gap-2 text-meta text-ink-muted">
+          <CloudOff size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+          Sin conexión: los artículos se abren cuando vuelva la señal.
+        </p>
+      )}
+
+      {/* Con zoom al 200 % (menos de 360px) «Trimestre 3» no cabe: el ordinal basta a la vista; el lector oye «trimestre». */}
       <div className={segTrack} role="group" aria-label="Trimestre">
         {([1, 2, 3] as const).map((t) => (
           <button key={t} type="button" aria-pressed={selectedTri === t} onClick={() => setSelectedTri(t)} className={segButton(selectedTri === t)}>
-            Trimestre {t}
+            <span className="max-[359px]:hidden">Trimestre {t}</span>
+            <span className="hidden max-[359px]:inline">
+              {TRIMESTER_ORDINAL[t]}
+              <span className="sr-only"> trimestre</span>
+            </span>
             {currentTrimester === t && <span className="sr-only"> (trimestre actual)</span>}
           </button>
         ))}
       </div>
 
-      <ListGroup>
-        {LECTURAS[selectedTri].map((art) => (
-          <ListRow
-            key={art.title}
-            title={art.title}
-            meta={
-              <>
-                {art.desc}
-                <span className="mt-1 flex items-center gap-1.5 text-micro font-medium text-ink-subtle">
-                  <Clock size={13} aria-hidden="true" />
-                  {art.type} · Próximamente
-                </span>
-              </>
+      <div className="mt-3 flex flex-col gap-8">
+        {thisWeek.length > 0 && (
+          <Section as="h3" size="md" title="Esta semana" description={`Semana ${week}`}>
+            <ListGroup>{thisWeek.map(articleRow)}</ListGroup>
+          </Section>
+        )}
+
+        {articles.length > 0 && (
+          <Section
+            as="h3"
+            size="md"
+            title={thisWeek.length > 0 ? "Otros artículos del trimestre" : "Artículos del trimestre"}
+            description={
+              week === undefined
+                ? reader === "papa"
+                  ? "Cuando confirmen la fecha, aquí verás cuáles tocan esta semana."
+                  : "Cuando confirmes tu fecha, aquí verás cuáles tocan esta semana."
+                : undefined
             }
-          />
-        ))}
-      </ListGroup>
+          >
+            <ListGroup>{articles.map(articleRow)}</ListGroup>
+          </Section>
+        )}
+
+        <Section as="h3" size="md" title="Libros del trimestre" description="Búscalos en tu librería o biblioteca.">
+          <ListGroup>{books.map(bookRow)}</ListGroup>
+        </Section>
+
+        <p className="text-micro font-medium text-ink-subtle">Enlaces revisados en {READINGS_CHECKED}.</p>
+      </div>
     </div>
   );
 }
@@ -1963,6 +2046,10 @@ function useToolStatuses(profile: UserProfile | undefined, active: boolean): Par
     // El modo parto lleva el cronómetro: su fila dice cuándo fue la última (sin ninguna, su descripción).
     if (data.contraction) out.modoparto = `Última contracción ${rel(data.contraction.start)}`;
   }
+  // Los mismos de «Esta semana» en Lecturas (para quien lee o para los dos); sin semana, su descripción.
+  const reader: ReadingRole = me.role === "papa" ? "papa" : "mama";
+  const toRead = weekReadings(readingWeek(profile), reader).length;
+  if (toRead > 0) out.lecturas = toRead === 1 ? "1 artículo para esta semana" : `${toRead} artículos para esta semana`;
   return out;
 }
 
@@ -2052,6 +2139,7 @@ export function HerramientasView({ showToast, profile, openRequest, active = tru
     { id: "parto", desc: "Preferencias para el hospital", icon: <ClipboardList size={20} strokeWidth={1.75} />, group: "preparacion" },
     // A mano desde la semana 36 (weekTools); antes, en «Preparación», para conocerlo y practicar la respiración.
     { id: "modoparto", desc: "Cronómetro, llamadas, respiración y tu maleta", icon: <HeartHandshake size={20} strokeWidth={1.75} />, group: "preparacion" },
+    { id: "lecturas", desc: "Artículos de la semana y libros del trimestre", icon: <BookOpen size={20} strokeWidth={1.75} />, group: "preparacion" },
     { id: "patadas", desc: "Conteo desde la semana 28", icon: <Baby size={20} strokeWidth={1.75} />, group: "contadores" },
     { id: "contracciones", desc: "Frecuencia y duración", icon: <Timer size={20} strokeWidth={1.75} />, group: "contadores" },
     { id: "reproductor", desc: "Música para relajarte", icon: <Music size={20} strokeWidth={1.75} />, group: "calma" },

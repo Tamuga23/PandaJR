@@ -10,6 +10,7 @@ export type ToolId =
   | "maleta"
   | "parto"
   | "modoparto"
+  | "lecturas"
   | "nombres"
   | "presupuesto"
   | "diario"
@@ -29,6 +30,7 @@ export const TOOL_LABEL: Record<ToolId, string> = {
   maleta: "Maleta",
   parto: "Plan de parto",
   modoparto: "Modo parto",
+  lecturas: "Lecturas",
   nombres: "Nombres",
   presupuesto: "Presupuesto",
   diario: "Diario",
@@ -44,6 +46,7 @@ export const LINK_LABEL: Record<GuiaLinkTarget, string> = {
   maleta: "Abrir la Maleta",
   parto: "Abrir el Plan de parto",
   modoparto: "Abrir el modo parto",
+  lecturas: "Abrir Lecturas",
   nombres: "Abrir Nombres",
   presupuesto: "Abrir el Presupuesto",
   diario: "Abrir el Diario",
