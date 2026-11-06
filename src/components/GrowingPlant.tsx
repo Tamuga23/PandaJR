@@ -324,12 +324,15 @@ export function GrowingPlant({
   animate = true,
   className,
   title,
+  soil = true,
 }: {
   week: number | undefined;
   size?: number;
   animate?: boolean;
   className?: string;
   title?: string;
+  /** false: sin su montículo de tierra (PandaStory pone una sola línea de tierra bajo toda la tira). */
+  soil?: boolean;
 }) {
   const known = typeof week === "number" && Number.isFinite(week);
   const w = known ? Math.min(WEEK_MAX, Math.max(WEEK_MIN, Math.round(week as number))) : 5;
@@ -411,7 +414,7 @@ export function GrowingPlant({
       {...(decorative ? { "aria-hidden": true, focusable: false } : { role: "img", "aria-label": label })}
       data-week={known ? w : undefined}
     >
-      <Soil paint={paint} />
+      {soil && <Soil paint={paint} />}
       {geo.seed && <Seed variant={geo.seed} paint={paint} />}
 
       {/* Hojas bajo el tallo: el trazo del tallo queda continuo sobre los nudos. */}

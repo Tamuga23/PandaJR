@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
-import { toPng } from "html-to-image";
+import { getFontEmbedCSS, toCanvas } from "html-to-image";
 import { getWeekData } from "./weekData";
 import { getWeek, trimesterOfWeek } from "@/lib/weeks";
 import { usePandaStore } from "@/store/usePandaStore";
@@ -41,7 +41,7 @@ import { formatDateShort, formatMoney, formatRelative, repairMojibake, toDateSaf
 import { LEGACY_SEED_NAMES, isLegacySeedKickSession, isLegacySeedNameItem, linkedFromLocalKey, localToSharedFlag } from "@/lib/seeds";
 import { AuthorChip } from "@/components/AuthorChip";
 import { CoupleMark, type Seat } from "@/components/CoupleMark";
-import { EASE_OUT_EXPO, canAnimate, playEmbrace, prefersReducedMotion } from "@/lib/motion";
+import { EASE_OUT_EXPO, canAnimate, playEmbrace, playOnce, prefersReducedMotion } from "@/lib/motion";
 import { CheckGlyph } from "@/components/ui/CheckGlyph";
 import { SyncBadge, useOnline, usePartner } from "@/components/SyncBadge";
 import { CallActions, CrisisLineAction, EmergencyCallLink } from "@/components/CallActions";
@@ -51,9 +51,9 @@ import { signCopy } from "@/lib/urgencyCopy";
 import { ModalPortal } from "@/components/ModalPortal";
 import { useModalDialog } from "@/lib/useModalDialog";
 import { Z_CLASS } from "@/lib/layers";
-import { GrowingPlant } from "@/components/GrowingPlant";
-import { StoryBackdrop } from "@/components/StoryBackdrop";
-import { PANDA_MARK_SRC } from "@/components/PandaMark";
+import { PandaStoryCard, STORY_H, STORY_W, type StoryCardModel } from "@/components/PandaStoryCard";
+import { coupleLine, countdownText, lowerFirst, measuresPhrase, sizePhrase, storyFacts, type StoryComposition, type StoryPerson } from "@/lib/story";
+import { addDays, PREGNANCY_DAYS, resolveGestationalAge, type DueDateSource, type GestationalAgeState } from "@/lib/pregnancy";
 import { TOOL_LABEL, weekTools, type ToolId } from "@/lib/tools";
 import {
   ARTICLES, BOOKS, READINGS_CHECKED, articleWeeks, articlesOfTrimester, booksOfTrimester, readingForLabel, weekReadings,
@@ -65,9 +65,9 @@ import { ListGroup, ListRow, RowButton, Section, SectionAction } from "@/compone
 import {
   Activity, AlertTriangle, ArrowDown, ArrowLeft, ArrowRight, Baby, BookOpen, CalendarClock, Camera, Check, CheckCircle, CheckCircle2,
   ChevronDown, ChevronRight, ChevronUp, CircleAlert, ClipboardList, Clock, CloudOff, Edit3, FileText, Flame, HeartHandshake,
-  Heart, HeartPulse, ImagePlus, Info, Leaf, LoaderCircle, Minus, Moon, Music, Package, Pencil, Phone, PhoneCall, Play,
+  Heart, HeartPulse, ImageIcon, ImagePlus, Info, Leaf, LoaderCircle, Minus, Moon, Music, Package, Pencil, Phone, PhoneCall, Play,
   Plus, Printer, RefreshCw, RotateCcw, Send, Share2, Siren, Sparkles, Square, Sun, Tag, Timer, Trash2, Undo2, Users, Utensils,
-  Wallet, Wand2, Waves, Wind, X,
+  Wallet, Waves, Wind, X,
 } from "lucide-react";
 import { BreathingPacer } from "@/components/BreathingPacer";
 import { useWakeLock } from "@/lib/useWakeLock";
@@ -84,6 +84,9 @@ export interface UserProfile {
   pregnancyId?: string;
   inviteCode?: string;
     comparisonTheme?: "frutas" | "geek";
+  /** Fecha probable ("aaaa-mm-dd", manda sobre week) y de dónde salió (la tarjeta cuenta los días con ella). */
+  dueDate?: string;
+  dueDateSource?: DueDateSource;
 }
 
 
@@ -2092,7 +2095,7 @@ function useToolStatuses(profile: UserProfile | undefined, active: boolean): Par
   return out;
 }
 
-export function HerramientasView({ showToast, profile, openRequest, active = true, onRequestLink, onOpenWeekList }: { showToast: ShowToast, profile?: UserProfile, openRequest?: { tool: string; nonce: number; section?: string }; /** La pestaña está a la vista (el índice solo escucha datos entonces). */ active?: boolean; /** Abre la vinculación (botón de la cabecera cuando este teléfono no está vinculado). */ onRequestLink?: () => void; /** Lleva a «Lo que toca esta semana» en la Guía (la lista única; aquí no se repite). */ onOpenWeekList?: () => void }) {
+export function HerramientasView({ showToast, profile, openRequest, active = true, onRequestLink, onOpenWeekList, ga, dueDateNeedsReview }: { showToast: ShowToast, profile?: UserProfile, openRequest?: { tool: string; nonce: number; section?: string }; /** La pestaña está a la vista (el índice solo escucha datos entonces). */ active?: boolean; /** Abre la vinculación (botón de la cabecera cuando este teléfono no está vinculado). */ onRequestLink?: () => void; /** Lleva a «Lo que toca esta semana» en la Guía (la lista única; aquí no se repite). */ onOpenWeekList?: () => void; /** La edad gestacional de la app (PandaStory cuenta los días con ella). */ ga?: GestationalAgeState; /** La fecha probable compartida quedó fuera de rango. */ dueDateNeedsReview?: boolean }) {
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const toolHeadingRef = useRef<HTMLHeadingElement>(null);
   const focusedRequestRef = useRef<number | null>(null);
@@ -2238,7 +2241,21 @@ export function HerramientasView({ showToast, profile, openRequest, active = tru
           {activeTool === 'parto' && <PlanParto profile={profile} showToast={showToast} />}
           {activeTool === 'lecturas' && <LecturasView profile={profile} />}
           {activeTool === 'presupuesto' && <CalculadoraPresupuesto profile={profile} onClose={closeTool} showToast={showToast} />}
-          {activeTool === 'story' && <PandaStoryGenerator profile={profile} onClose={closeTool} />}
+          {activeTool === 'story' && (
+            <PandaStoryGenerator
+              profile={profile}
+              onClose={closeTool}
+              ga={ga}
+              dueDateNeedsReview={dueDateNeedsReview}
+              people={{
+                pid: hubMe.pid || undefined,
+                removed: hubMe.partner.removed,
+                memberCount: hubMe.members.length,
+                partnerName: hubMe.partner.partnerName,
+                partnerRole: hubMe.partner.partnerRole,
+              }}
+            />
+          )}
           {activeTool === 'reproductor' && <ReproductorView onClose={closeTool} />}
 
         </div>
@@ -5792,26 +5809,10 @@ export function CalculadoraPresupuesto({ onClose, showToast }: { profile?: UserP
   );
 }
 
-// --- PANDA STORY: tarjeta 9:16 para compartir la semana ---
+// --- PANDA STORY: la tira de crecimiento para historias (la tarjeta vive en PandaStoryCard; lo que puede
+// decir, en src/lib/story.ts) ---
 
-const STORY_HITOS: [number, string][] = [
-  [6, "Su corazón empieza a formarse"],
-  [9, "Su corazón ya late"],
-  [13, "Ya tiene deditos en manos y pies"],
-  [17, "Sus movimientos son cada vez más coordinados"],
-  [22, "Sus movimientos se sienten cada vez más"],
-  [26, "Ya puede oír sonidos y voces"],
-  [30, "Abre y cierra sus ojitos"],
-  [34, "Sus pulmones siguen madurando"],
-  [37, "Reconoce voces familiares"],
-];
-
-function storyMilestone(week: number): string {
-  for (const [limit, text] of STORY_HITOS) if (week <= limit) return text;
-  return "Casi listo para conocer el mundo";
-}
-
-// Emoji al final del texto de tamaño ("Mazorca de maíz 🌽"): se separa para ilustrar la tarjeta.
+// Emoji al final del texto de tamaño ("Mazorca de maíz 🌽"): la tarjeta lleva solo las palabras.
 const TRAILING_EMOJI = new RegExp("^(.*?)\\s*((?:\\p{Extended_Pictographic}|\\uFE0F|\\u200D)+)\\s*$", "u");
 
 function splitSize(size: string): { label: string; emoji: string } {
@@ -5820,79 +5821,7 @@ function splitSize(size: string): { label: string; emoji: string } {
 }
 
 /**
- * Estilos de la tarjeta compartible (fase 6). La tarjeta se exporta como PNG y debe verse igual con la
- * app en claro o en oscuro, así que cada estilo fija sus propios tokens (valores canónicos de DESIGN.md)
- * como variables CSS en la raíz de la tarjeta: text-ink, la planta (sage-ink, sage, terracotta…) y los
- * acentos (--story-accent, --story-accent-2, --story-rule) se resuelven dentro de ella.
- * Contraste de texto sobre cada suelo ≥4.5:1 (acentos ≥4.8:1).
- */
-const LIGHT_PLANT = { "--sage-ink": "#44695a", "--sage": "#6c9a84", "--terracotta": "#e07a64", "--terracotta-ink": "#a54833" };
-const STORY_STYLES = [
-  {
-    id: "botanico",
-    name: "Botánico",
-    swatch: "radial-gradient(circle at 50% 45%, #fffefb 0 34%, #6c9a84 36% 40%, #e5eee8 42%)",
-    vars: {
-      ...LIGHT_PLANT,
-      "--ground": "#e5eee8", // sage-wash
-      "--ink": "#2d2a26",
-      "--ink-muted": "#5c554d",
-      "--story-accent": "#44695a", // sage-ink
-      "--story-accent-2": "#a54833", // terracotta-ink
-      "--story-rule": "rgb(68 105 90 / 0.28)",
-    },
-  },
-  {
-    id: "nocturno",
-    name: "Nocturno",
-    swatch: "radial-gradient(circle at 50% 50%, #3a334b 0 38%, #181520 41%)",
-    vars: {
-      "--sage-ink": "#89bca0",
-      "--sage": "#619b7e",
-      "--terracotta": "#d16e5a",
-      "--terracotta-ink": "#eb9279",
-      "--ground": "#181520", // obsidiana violeta
-      "--ink": "#eae6e1",
-      "--ink-muted": "#cbc5d2",
-      "--story-accent": "#eb9279", // terracotta-ink (oscuro)
-      "--story-accent-2": "#89bca0", // sage-ink (oscuro)
-      "--story-rule": "rgb(234 230 225 / 0.2)",
-      // El azul carbón de la mascota se perdería en la noche: un halo fino en tinta clara la recorta.
-      "--story-mark-filter": "drop-shadow(0 0 0.35cqw rgb(234 230 225 / 0.6))",
-    },
-  },
-  {
-    id: "amanecer",
-    name: "Amanecer",
-    swatch: "linear-gradient(#f6e6df 0 34%, #e07a64 34% 56%, #faf9f5 56%)",
-    vars: {
-      ...LIGHT_PLANT,
-      "--ground": "#f6e6df", // terracotta-wash
-      "--ink": "#2d2a26",
-      "--ink-muted": "#5c554d",
-      "--story-accent": "#8f3c2a", // terracotta-ink-hover
-      "--story-accent-2": "#44695a",
-      "--story-rule": "rgb(165 72 51 / 0.25)",
-    },
-  },
-  {
-    id: "limpio",
-    name: "Limpio",
-    swatch: "repeating-linear-gradient(0deg, #faf9f5 0 3px, #e8e2d7 3px 4px)",
-    vars: {
-      ...LIGHT_PLANT,
-      "--ground": "#faf9f5", // alabastro
-      "--ink": "#2d2a26",
-      "--ink-muted": "#5c554d",
-      "--story-accent": "#2d2a26",
-      "--story-accent-2": "#5c554d",
-      "--story-rule": "#d8d0c1", // line-strong
-    },
-  },
-] as const;
-
-/**
- * Foto elegida → cuadrado centrado (la tarjeta la muestra en un círculo), JPEG de ≤1080 px, como data: URL.
+ * Foto elegida → cuadrado centrado (la tarjeta la muestra en un marco cuadrado), JPEG de ≤1080 px, como data: URL.
  * Respeta la orientación EXIF. Al ser ya cuadrada no depende de object-fit, que WebKit dibuja mal al exportar.
  */
 async function photoToDataUrl(file: File, maxEdge = 1080): Promise<string> {
@@ -5927,23 +5856,80 @@ function isWebKitBrowser(): boolean {
   return iOS || (/Safari\//.test(ua) && !/Chrome\/|Chromium\/|Android/.test(ua));
 }
 
-export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfile; onClose: () => void }) {
-  const week = knownWeek(profile);
-  const earlyWeek = !!profile && !profile.weekUnknown && typeof profile.week === "number" && profile.week >= 1 && profile.week < 4;
-  const [activeStyleId, setActiveStyleId] = useState<(typeof STORY_STYLES)[number]["id"]>("botanico");
-  const style = STORY_STYLES.find((s) => s.id === activeStyleId) ?? STORY_STYLES[0];
+/**
+ * Con vínculo, la pareja tal como la elige usePartner (la misma de la cabecera de Juntos: quien se unió más
+ * recientemente y no es este teléfono). La tarjeta no abre listeners.
+ */
+export type StoryPeople = { pid?: string; removed?: boolean; memberCount: number; partnerName?: string; partnerRole?: "mama" | "papa" };
 
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+const STORY_COMPOSITIONS: readonly { id: StoryComposition; name: string }[] = [
+  { id: "semana", name: "La semana" },
+  { id: "foto", name: "Con foto" },
+  { id: "cuenta", name: "Cuenta regresiva" },
+];
+
+/**
+ * La letra de la tarjeta, incrustada en el PNG: Alegreya presente y TODAS sus fuentes como data:. Cuando una
+ * descarga falla, html-to-image deja la URL original sin avisar (embed-resources.js), y esa letra saldría en
+ * Georgia en el PNG.
+ */
+function fontCssLooksComplete(css: string): boolean {
+  return /Alegreya/.test(css) && /url\(\s*["']?data:/.test(css) && !/url\(\s*(?:["'](?!data:)|(?!["']|data:))/.test(css);
+}
+
+const STORY_DATE = new Intl.DateTimeFormat("es", { day: "numeric", month: "long", year: "numeric" });
+
+export function PandaStoryGenerator({
+  profile,
+  onClose,
+  ga,
+  dueDateNeedsReview = false,
+  people,
+}: {
+  profile?: UserProfile;
+  onClose: () => void;
+  /** La edad gestacional de la app (page.tsx); sin ella, se calcula del perfil. */
+  ga?: GestationalAgeState;
+  dueDateNeedsReview?: boolean;
+  people?: StoryPeople;
+}) {
+  // La semana, la cuenta regresiva y la fecha impresa salen del mismo reloj: el día para el que se calculó `ga`
+  // (page.tsx la recalcula a medianoche y al volver a la app). Sin `ga`, el día en que se abrió el diálogo.
+  const [openedAt] = useState(() => new Date());
+  const gaNow = ga ?? resolveGestationalAge(profile, openedAt);
+  const facts = storyFacts(gaNow, dueDateNeedsReview);
+  const week = facts.gate === "ok" ? facts.week : undefined;
+  const countdown = facts.gate === "ok" ? facts.countdown : undefined;
+  const asOf =
+    gaNow.source === "dueDate" && gaNow.dueDate && typeof gaNow.totalDays === "number"
+      ? addDays(gaNow.dueDate, gaNow.totalDays - PREGNANCY_DAYS)
+      : openedAt;
+
+  const [composition, setComposition] = useState<StoryComposition>("semana");
+  const [notice, setNotice] = useState<string | null>(null);
+  const [showNames, setShowNames] = useState(true);
   const [customImage, setCustomImage] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [image, setImage] = useState<{ blob: Blob; url: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [scale, setScale] = useState(0.25);
   const storyRef = useRef<HTMLDivElement>(null);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const fontCssRef = useRef<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const createRef = useRef<HTMLButtonElement>(null);
   const shareRef = useRef<HTMLButtonElement>(null);
   // Crear y Editar reemplazan los botones: el foco pasa a la acción siguiente en vez de perderse.
   const focusAfterRef = useRef<"share" | "create" | null>(null);
+  // Si el diálogo se cierra a mitad de la exportación, la imagen que llega tarde no crea una URL que nadie libera.
+  const aliveRef = useRef(true);
+  useEffect(() => {
+    aliveRef.current = true;
+    return () => {
+      aliveRef.current = false;
+    };
+  }, []);
 
   // Diálogo modal: Escape, foco inicial en "Cerrar", trampa de Tab, fondo inerte y scroll bloqueado.
   const { dialogProps } = useModalDialog({ open: true, onClose, initialFocusRef: closeRef, labelledBy: "panda-story-titulo" });
@@ -5953,14 +5939,77 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
     if (!want) return;
     focusAfterRef.current = null;
     (want === "share" ? shareRef : createRef).current?.focus();
-  }, [imageUrl]);
+  }, [image]);
 
-  const weekData = typeof week === "number" ? getWeekData(week, profile?.comparisonTheme ?? "frutas") : null;
+  // La imagen creada vive como URL de objeto: se libera al cambiarla o al cerrar.
+  useEffect(() => () => { if (image) URL.revokeObjectURL(image.url); }, [image]);
+
+  // La tarjeta se maqueta a 1080×1920; la vista previa la escala al ancho de su caja (zoom incluido).
+  const hasCard = week !== undefined;
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => setScale(el.clientWidth / STORY_W));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [hasCard]);
+
+  const countdownAvailable = !!countdown && countdown.kind !== "no";
+  const countdownReason = countdown?.kind === "no" ? countdown.reason : "";
+  // Si la cuenta deja de estar disponible con el diálogo abierto (pasó la fecha probable), se muestra «La semana».
+  const shown: StoryComposition = composition === "cuenta" && !countdownAvailable ? "semana" : composition;
+
+  // Firma de movimiento: al abrir y al cambiar de composición, las plantas brotan una tras otra (una vez; nada
+  // con movimiento reducido). html-to-image copia el estilo calculado, que incluye el de Web Animations: antes de
+  // cada pasada de la exportación se terminan, así el PNG sale con la tira completa.
+  useEffect(() => {
+    const node = storyRef.current;
+    if (!node || image) return;
+    node.querySelectorAll("[data-story-plant]").forEach((el, i) =>
+      playOnce(el, [{ opacity: 0, transform: "translateY(1.8cqw)" }, { opacity: 1, transform: "none" }], {
+        duration: 560,
+        delay: 140 + i * 90,
+        easing: EASE_OUT_EXPO,
+        fill: "backwards",
+      })
+    );
+  }, [shown, hasCard, image]);
+
+  // Los nombres: solo los reales (nada de «Invitado» ni de un rol) y, con vínculo, el de la pareja.
+  const reader: StoryPerson = { name: profile?.name, role: profile?.role === "papa" ? "papa" : "mama" };
+  const linked = !!people?.pid && !people.removed && people.memberCount >= 2;
+  const other: StoryPerson | null = linked ? { name: people.partnerName, role: people.partnerRole ?? (reader.role === "mama" ? "papa" : "mama") } : null;
+  const couple = coupleLine(other ? [reader, other] : [reader]);
+
+  const weekData = week !== undefined ? getWeekData(week, profile?.comparisonTheme ?? "frutas") : null;
   const size = weekData ? splitSize(weekData.size) : null;
+  const needsPhoto = shown === "foto" && !customImage;
+
+  const model: StoryCardModel | null =
+    week !== undefined && weekData && size && countdown
+      ? {
+          composition: shown,
+          week,
+          couple: showNames ? couple : null,
+          size: { label: size.label, length: weekData.length, weight: weekData.weight },
+          countdown,
+          photo: customImage,
+          dateText: STORY_DATE.format(asOf),
+        }
+      : null;
+
+  const pickComposition = (id: StoryComposition) => {
+    if (isGenerating) return; // lo que se está exportando no cambia a mitad de camino
+    if (id === "cuenta" && !countdownAvailable) {
+      setNotice(countdownReason);
+      return;
+    }
+    setNotice(null);
+    setComposition(id);
+  };
 
   // La foto se guarda reducida y como data: (no blob:). En Safari una URL blob: no se puede volver a
-  // descargar al exportar (y menos con una cola ?t=…), y una foto de 12 MP dentro de la imagen exportada
-  // la hace fallar: «No se pudo crear la imagen» solo en iPhone.
+  // descargar al exportar, y una foto de 12 MP dentro de la imagen exportada la hace fallar.
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = ""; // permite elegir otra vez la misma foto
@@ -5968,65 +6017,106 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
     setError(null);
     try {
       setCustomImage(await photoToDataUrl(file));
-      setImageUrl(null);
     } catch {
       setError("No pudimos usar esa foto. Prueba con otra.");
     }
   };
 
   const generateStory = async () => {
-    if (!storyRef.current) return;
+    const node = storyRef.current;
+    if (!node || needsPhoto) return;
     setIsGenerating(true);
     setError(null);
+    // Lo que se exporta es el estado final: si alguna planta aún está brotando, termina ya (antes de cada pasada).
+    const settle = () => node.getAnimations?.({ subtree: true }).forEach((a) => a.finish());
     try {
-      // Al menos 780px de ancho (3 × 260), aunque con zoom la vista previa se estreche.
-      const pixelRatio = Math.max(3, 780 / Math.max(1, storyRef.current.offsetWidth));
-      // Sin cacheBust: todo es del mismo origen (o data:), y la cola ?t=… rompe las URL en Safari.
-      const options = { pixelRatio, cacheBust: false };
+      settle();
+      if (typeof document !== "undefined" && document.fonts?.ready) await document.fonts.ready;
+      if (!fontCssRef.current) {
+        const css = await getFontEmbedCSS(node);
+        if (!fontCssLooksComplete(css)) throw new Error("story-fonts");
+        fontCssRef.current = css;
+      }
+      // Exacto a 1080×1920 desde el nodo sin escalar (la escala vive en un ancestro): lo que se aprobó es lo que se publica.
+      const options = {
+        canvasWidth: STORY_W,
+        canvasHeight: STORY_H,
+        pixelRatio: 1,
+        cacheBust: false,
+        backgroundColor: getComputedStyle(node).getPropertyValue("--ground").trim() || undefined,
+        fontEmbedCSS: fontCssRef.current,
+      };
       // WebKit (iPhone y Safari) a veces dibuja las imágenes en blanco en la primera pasada: se calienta una vez.
-      if (isWebKitBrowser()) await toPng(storyRef.current, options).catch(() => undefined);
-      const dataUrl = await toPng(storyRef.current, options);
+      if (isWebKitBrowser()) {
+        settle();
+        const warm = await toCanvas(node, options).catch(() => null);
+        if (warm) { warm.width = 0; warm.height = 0; }
+      }
+      settle();
+      const canvas = await toCanvas(node, options);
+      if (canvas.width !== STORY_W || canvas.height !== STORY_H) throw new Error("story-size");
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
+      canvas.width = 0;
+      canvas.height = 0;
+      if (!blob) throw new Error("story-blob");
+      if (!aliveRef.current) return; // se cerró mientras se preparaba: nada que mostrar ni que liberar después
       focusAfterRef.current = "share";
-      setImageUrl(dataUrl);
+      setImage({ blob, url: URL.createObjectURL(blob) });
     } catch (err) {
       console.error("Error generating story:", err);
-      setError("No se pudo crear la imagen. Inténtalo de nuevo.");
+      setError(
+        (err as Error)?.message === "story-fonts"
+          ? "No pudimos preparar la letra de la tarjeta. Revisa tu conexión e inténtalo de nuevo."
+          : "No se pudo crear la imagen. Inténtalo de nuevo."
+      );
     } finally {
       setIsGenerating(false);
     }
   };
 
   const shareStory = async () => {
-    if (!imageUrl || typeof week !== "number") return;
+    if (!image || week === undefined) return;
     const fileName = `pandajr-semana-${week}.png`;
-    const triggerDownload = () => {
+    const download = () => {
       const a = document.createElement("a");
-      a.href = imageUrl;
+      a.href = image.url;
       a.download = fileName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
     };
-    if (!navigator.share || !navigator.canShare) {
-      triggerDownload();
+    const file = new File([image.blob], fileName, { type: "image/png" });
+    if (!navigator.share || !navigator.canShare?.({ files: [file] })) {
+      download();
       return;
     }
     try {
-      const blob = await (await fetch(imageUrl)).blob();
-      const file = new File([blob], fileName, { type: "image/png" });
-      if (navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          title: `¡Estamos en la semana ${week}!`,
-          text: size ? `¡Estamos en la semana ${week}! Nuestro bebé ya tiene el tamaño de: ${size.label.toLocaleLowerCase("es")}.` : `¡Estamos en la semana ${week}!`,
-          files: [file],
-        });
-      } else {
-        triggerDownload();
-      }
+      await navigator.share({
+        title: `¡Estamos en la semana ${week}!`,
+        text: !size
+          ? `¡Estamos en la semana ${week}!`
+          : sizePhrase(size.label).natural
+            ? `¡Estamos en la semana ${week}! Nuestro bebé ya es ${lowerFirst(sizePhrase(size.label).text)}.`
+            : `¡Estamos en la semana ${week}! Nuestro bebé ya tiene el tamaño de: ${size.label.toLocaleLowerCase("es")}.`,
+        files: [file],
+      });
     } catch (err) {
-      if ((err as { name?: string })?.name !== "AbortError") triggerDownload();
+      if ((err as { name?: string })?.name !== "AbortError") download();
     }
   };
+
+  // Lo que dice la vista previa al lector de pantalla (la tarjeta en sí es imagen).
+  const previewSummary = model
+    ? [
+        STORY_COMPOSITIONS.find((c) => c.id === shown)?.name,
+        model.couple?.line,
+        `semana ${model.week}`,
+        shown === "semana" ? `${lowerFirst(measuresPhrase(model.size.length, model.size.weight))}, ${lowerFirst(sizePhrase(model.size.label).text)}` : null,
+        shown === "foto" ? (model.photo ? "la tira termina en su foto" : "falta elegir la foto") : null,
+        shown === "cuenta" && model.countdown.kind === "dias" ? `${countdownText(model.countdown).lead} ${countdownText(model.countdown).number} para la fecha probable`.toLocaleLowerCase("es") : null,
+        shown === "cuenta" && model.countdown.kind === "hoy" ? "hoy es la fecha probable" : null,
+      ].filter(Boolean).join(", ")
+    : "";
 
   return (
     <ModalPortal>
@@ -6047,80 +6137,37 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
           </button>
         </div>
 
-        {typeof week !== "number" || !weekData || !size ? (
-          // Semana confirmada pero menor de 4: pedir que la confirme sería un callejón sin salida.
-          earlyWeek ? (
-            <div className="space-y-1.5 px-6 py-8 text-center">
-              <p className="font-display text-subtitle text-ink">La tarjeta estará disponible desde la semana 4</p>
-              <p className="text-meta text-ink-muted">
-                Muestra la semana y el tamaño del bebé, que antes de la semana 4 todavía no se puede medir.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-1.5 px-6 py-8 text-center">
-              <p className="font-display text-subtitle text-ink">Primero confirma la semana de embarazo</p>
-              <p className="text-meta text-ink-muted">
-                La tarjeta muestra la semana y el tamaño del bebé. Confirma la semana en Ajustes para crearla.
-              </p>
-            </div>
-          )
+        {!model ? (
+          <div className="space-y-1.5 px-6 py-8 text-center">
+            {facts.gate === "revisar" ? (
+              <>
+                <p className="font-display text-subtitle text-ink">Revisa la fecha en Ajustes</p>
+                <p className="text-meta text-ink-muted">La fecha probable quedó fuera de rango. Corrígela y la tarjeta mostrará la semana de verdad.</p>
+              </>
+            ) : facts.gate === "temprano" ? (
+              // Semana confirmada pero menor de 4: pedir que la confirme sería un callejón sin salida.
+              <>
+                <p className="font-display text-subtitle text-ink">La tarjeta estará disponible desde la semana 4</p>
+                <p className="text-meta text-ink-muted">Muestra la semana y el tamaño del bebé, que antes de la semana 4 todavía no se puede medir.</p>
+              </>
+            ) : (
+              <>
+                <p className="font-display text-subtitle text-ink">Primero confirma la semana de embarazo</p>
+                <p className="text-meta text-ink-muted">La tarjeta muestra la semana y el tamaño del bebé. Confirma la semana en Ajustes para crearla.</p>
+              </>
+            )}
+          </div>
         ) : (
           <div className="flex flex-1 flex-col items-center gap-5 overflow-y-auto p-5">
-            {/* Tamaños en unidades del contenedor: la tarjeta se ve igual a 260 o 300 px y al exportarla. */}
-            <div className="@container relative aspect-[9/16] w-[260px] max-w-full shrink-0 overflow-hidden rounded-[2rem] border border-line-strong sm:w-[300px]">
-              {/* isolate: el fondo ilustrado (z -10) queda sobre el suelo y bajo el texto, también en el PNG. */}
-              <div
-                ref={storyRef}
-                style={style.vars as React.CSSProperties}
-                className="absolute inset-0 isolate flex flex-col items-center bg-ground px-[7cqw] pb-[8cqw] pt-[7cqw] text-center text-ink"
-              >
-                <StoryBackdrop styleId={style.id} className="pointer-events-none absolute inset-0 -z-10 h-full w-full" />
-                {/* La marca firma la tarjeta: la mascota (el logo tal cual) junto al wordmark. */}
-                <div className="flex items-center justify-center gap-[2.2cqw]">
-                  {/* eslint-disable-next-line @next/next/no-img-element -- logo de public/: html-to-image lo incrusta en el PNG */}
-                  <img src={PANDA_MARK_SRC} alt="" aria-hidden="true" draggable={false} className="h-[11cqw] w-auto [filter:var(--story-mark-filter,none)]" />
-                  <p className="font-display text-[6.4cqw] font-extrabold leading-none tracking-[-0.01em] text-ink">
-                    Panda<span className="text-[var(--story-accent-2)]">Jr</span>
-                  </p>
-                </div>
-
-                {/* Un solo titular en dos líneas (sin antetítulo): la semana lleva el acento. */}
-                <p className="mt-[5cqw] font-display text-[11.5cqw] font-bold leading-[1.05] text-ink">
-                  ¡Estamos en la <span className="whitespace-nowrap text-[var(--story-accent)]">semana {week}!</span>
-                </p>
-
-                <div className="flex min-h-0 w-full flex-1 items-center justify-center py-[3cqw]">
-                  {customImage ? (
-                    // Círculo = contenedores redondos con la foto (ya cuadrada) dentro. Sin object-fit ni box-shadow:
-                    // WebKit los pinta mal al exportar (una media luna junto al círculo). El filete es un relleno de 1px.
-                    <span className="block rounded-full bg-[var(--story-rule)] p-px">
-                      <span className="block aspect-square w-[52cqw] overflow-hidden rounded-full border-[1.2cqw] border-[var(--ground)]">
-                        {/* eslint-disable-next-line @next/next/no-img-element -- foto local del usuario (data:) para exportar */}
-                        <img src={customImage} alt="Foto elegida para la tarjeta" className="block h-full w-full" />
-                      </span>
-                    </span>
-                  ) : (
-                    <GrowingPlant week={week} size={192} animate={false} title="" className="h-[74cqw] w-[74cqw]" />
-                  )}
-                </div>
-
-                {/* Tamaño, medidas e hito: texto entre filetes, sin caja dentro de la tarjeta. */}
-                <div className="w-full">
-                  <p className="text-[4.2cqw] font-medium text-ink-muted">Nuestro bebé es del tamaño de</p>
-                  <p className="mt-[1cqw] line-clamp-2 font-display text-[8cqw] font-bold leading-[1.1] text-ink">{size.label}</p>
-                  <p className="mt-[1.5cqw] text-[4cqw] font-bold tabular-nums text-ink-muted">
-                    {weekData.length} · {weekData.weight}
-                  </p>
-                  <div className="mx-auto mt-[4cqw] h-px w-[30cqw] bg-[var(--story-rule)]" aria-hidden="true" />
-                  <p className="mt-[4cqw] font-display text-[4.6cqw] font-bold leading-snug text-[var(--story-accent-2)]">
-                    {storyMilestone(week)}
-                  </p>
-                </div>
+            <div ref={boxRef} className="relative aspect-[9/16] w-[270px] max-w-full shrink-0 overflow-hidden rounded-[2rem] ring-1 ring-line-strong sm:w-[288px]">
+              {/* La escala vive en este ancestro, nunca en la tarjeta: la exportación lee el nodo a 1080×1920. */}
+              <div aria-hidden="true" className="absolute left-0 top-0 origin-top-left" style={{ width: STORY_W, height: STORY_H, transform: `scale(${scale})` }}>
+                <PandaStoryCard ref={storyRef} model={model} />
               </div>
-
-              {imageUrl && (
-                // eslint-disable-next-line @next/next/no-img-element -- vista previa de la imagen generada (data:)
-                <img src={imageUrl} alt={`Tarjeta de la semana ${week}`} className="absolute inset-0 z-20 h-full w-full object-cover" />
+              <p className="sr-only">Vista previa de la tarjeta: {previewSummary}.</p>
+              {image && (
+                // eslint-disable-next-line @next/next/no-img-element -- vista previa de la imagen creada (blob:)
+                <img src={image.url} alt={`Tarjeta de la semana ${model.week}, lista para compartir`} className="absolute inset-0 z-20 h-full w-full" />
               )}
             </div>
 
@@ -6129,51 +6176,78 @@ export function PandaStoryGenerator({ profile, onClose }: { profile?: UserProfil
             )}
 
             <div className="flex w-full flex-col gap-3">
-              {!imageUrl ? (
+              {!image ? (
                 <>
-                  <div className="flex w-full flex-wrap justify-center gap-2" role="group" aria-label="Estilo de la tarjeta">
-                    {STORY_STYLES.map((s) => (
-                      <button
-                        key={s.id}
-                        type="button"
-                        aria-pressed={activeStyleId === s.id}
-                        onClick={() => setActiveStyleId(s.id)}
-                        className={chip(activeStyleId === s.id)}
-                      >
-                        {/* Muestra de la escena del estilo (decorativa: el nombre ya lo dice). */}
-                        <span
-                          aria-hidden="true"
-                          className="h-4 w-4 shrink-0 rounded-full ring-1 ring-line-control"
-                          style={{ background: s.swatch }}
-                        />
-                        {s.name}
-                      </button>
-                    ))}
+                  <div className="flex w-full flex-wrap justify-center gap-2" role="group" aria-label="Qué cuenta la tarjeta">
+                    {STORY_COMPOSITIONS.map((c) => {
+                      const unavailable = c.id === "cuenta" && !countdownAvailable;
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          aria-pressed={shown === c.id}
+                          aria-disabled={unavailable || undefined}
+                          aria-describedby={unavailable ? "panda-story-cuenta-motivo" : undefined}
+                          disabled={isGenerating}
+                          onClick={() => pickComposition(c.id)}
+                          className={`${chip(shown === c.id)} ${unavailable ? "opacity-60" : ""}`}
+                        >
+                          {c.name}
+                        </button>
+                      );
+                    })}
                   </div>
-                  <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className={`w-full ${btnOutline}`}>
-                    <ImagePlus size={20} strokeWidth={1.75} className="text-ink-muted" aria-hidden="true" />
-                    {customImage ? "Cambiar la foto" : "Agregar foto o ecografía"}
-                  </button>
-                  <button ref={createRef} type="button" onClick={() => void generateStory()} disabled={isGenerating} className={`w-full min-h-[52px]! ${btnPrimary}`}>
+                  {!countdownAvailable && <p id="panda-story-cuenta-motivo" className="sr-only">{countdownReason}</p>}
+                  {notice && <p role="status" className="text-center text-meta text-ink-muted">{notice}</p>}
+
+                  {shown === "foto" && (
+                    <>
+                      <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
+                      <button type="button" disabled={isGenerating} onClick={() => fileInputRef.current?.click()} className={`w-full ${btnOutline}`}>
+                        <ImagePlus size={20} strokeWidth={1.75} className="shrink-0 text-ink-muted" aria-hidden="true" />
+                        {customImage ? "Cambiar la foto" : "Elegir foto o ecografía"}
+                      </button>
+                    </>
+                  )}
+
+                  {couple && (
+                    <ListGroup tone="inset">
+                      <ListRow title="Con sus nombres" meta={couple.line} toggle={{ checked: showNames, onChange: setShowNames, disabled: isGenerating }} />
+                    </ListGroup>
+                  )}
+
+                  <button
+                    ref={createRef}
+                    type="button"
+                    onClick={() => void generateStory()}
+                    disabled={isGenerating || needsPhoto}
+                    aria-describedby={needsPhoto ? "panda-story-falta-foto" : undefined}
+                    className={`w-full min-h-[52px]! ${btnPrimary}`}
+                  >
                     {isGenerating ? (
-                      <LoaderCircle size={20} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
+                      <LoaderCircle size={20} className="shrink-0 animate-spin motion-reduce:animate-none" aria-hidden="true" />
                     ) : (
-                      <Wand2 size={20} aria-hidden="true" />
+                      <ImageIcon size={20} className="shrink-0" aria-hidden="true" />
                     )}
-                    {isGenerating ? "Creando la tarjeta…" : "Crear tarjeta"}
+                    {/* La tarjeta ya está a la vista: el botón prepara la imagen que se comparte. */}
+                    {isGenerating ? "Preparando la imagen…" : "Preparar para compartir"}
                   </button>
+                  {needsPhoto && (
+                    <p id="panda-story-falta-foto" className="text-center text-meta text-ink-muted">
+                      Elige una foto para esta versión.
+                    </p>
+                  )}
                 </>
               ) : (
                 <div className="flex gap-2">
                   <button ref={shareRef} type="button" onClick={() => void shareStory()} className={`flex-1 min-h-[52px]! ${btnSage}`}>
-                    <Share2 size={20} aria-hidden="true" /> Compartir
+                    <Share2 size={20} className="shrink-0" aria-hidden="true" /> Compartir
                   </button>
                   <button
                     type="button"
                     onClick={() => {
                       focusAfterRef.current = "create";
-                      setImageUrl(null);
+                      setImage(null);
                     }}
                     className={`flex-1 min-h-[52px]! ${btnOutline}`}
                   >

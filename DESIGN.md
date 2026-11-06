@@ -244,7 +244,7 @@ Un solo valor canónico por token: esta tabla, el frontmatter y `src/app/globals
 - **Filetes** (`line`, `line-strong`, `line-control`): decorativos los dos primeros; `line-control` es el único borde que cumple 3:1 para controles.
 
 ### Named Rules
-**The Two Voices Rule.** Terracota es acción y alarma; sage es crecimiento y completado; amber es solo logística. Un color no cambia de oficio. Las excepciones son el color por rol: el monograma de autor (`AuthorChip`) y el onboarding (botón principal y barra de progreso según el rol elegido) usan terracota para la mamá y sage para el papá. Es una seña de identidad del producto (la pareja desde la primera pantalla) y no se extiende a otros componentes.
+**The Two Voices Rule.** Terracota es acción y alarma; sage es crecimiento y completado; amber es solo logística. Un color no cambia de oficio. Las excepciones son el color por rol: el monograma de autor (`AuthorChip`) y el onboarding (botón principal y barra de progreso según el rol elegido) usan terracota para la mamá y sage para el papá. Es una seña de identidad del producto (la pareja desde la primera pantalla) y no se extiende a otros componentes, salvo a las iniciales de la pareja en la tarjeta de PandaStory, que es esa misma seña fuera de la app.
 
 **The Ink-For-Text Rule.** Los tonos (`terracotta`, `sage`, `amber`) no llegan a 4.5:1: son relleno y decoración. Todo texto de color usa la tinta (`*-ink`); en oscuro la tinta de texto y la de relleno se separan (`--*-ink-fill`).
 
@@ -320,7 +320,7 @@ Radios suaves solo en lo que se toca; lo informativo es recto o casi recto.
 La estructura de toda la app. Se lee en secciones con título y listas con divisores.
 - **`Section`**: título Alegreya (h2 20px por defecto; h3 16px), acción opcional a la derecha (`SectionAction`: texto `terracotta-ink` 14px bold, ≥44px) y descripción en `meta`/`ink-muted`. Úsala para cada bloque con nombre ("Hoy", "Próxima cita", "Lo que toca esta semana").
 - **`ListGroup`**: un solo `<ul role="list">` de filas con divisores internos `line` que empiezan tras el icono. Tono `plain` (por defecto): sin caja, sangra hasta el gutter; `edges` añade filetes arriba y abajo. Tono `inset`: una caja `surface` con borde `line-strong` y radio 16px, para agrupar dentro de un fondo largo. Nunca dentro de otro `ListGroup` ni de una tarjeta.
-- **`ListRow`**: fila ≥48px. Interactiva como `<button>`, `<a>` (trailing `chevron` o `external`) o switch (la fila entera es `role="switch"`); estática si no, con un control al final. Icono lucide de 20px en `ink-muted` (un icono no es estado; si marca completado, lleva `sage-ink`). Tono `danger` pone título e icono en `terracotta-ink`. Hover y pressed: `surface-hover`. Foco: contorno interior de 2px `terracotta-ink`.
+- **`ListRow`**: fila ≥48px. Interactiva como `<button>`, `<a>` (trailing `chevron` o `external`) o switch (la fila entera es `role="switch"`); estática si no, con un control al final. Icono lucide de 20px en `ink-muted` (un icono no es estado; si marca completado, lleva `sage-ink`). Tono `danger` pone título e icono en `terracotta-ink`. Hover y pressed: `surface-hover`. Foco: contorno interior de 2px `terracotta-ink`. Una palabra que no cabe sola en la columna se parte en vez de salirse (`break-words`, sin guion automático); en una fila con switch muy angosta (zoom al 200 %, menos de ~196px de fila) el switch baja bajo el título en vez de apretarlo.
 - **`RowButton`**: botón compacto (≥44px, píldora, 14px bold) para el trailing de una fila estática o la acción de una sección. Con zoom al 200 % la etiqueta puede partirse: va centrada y con 8px de margen vertical. `primary` relleno `terracotta-ink`; `default` contorno `line-control`; `danger` contorno con tinta terracota y hover `terracotta-wash`.
 - **`Divider`**: filete de 1px `line`, opcionalmente desde el gutter.
 - **`BotanicalRule`**: filete `line-strong` con un ramito de dos hojas en trazo `sage-ink` 1.5px. Decorativo, cierra un bloque grande; máximo uno por pantalla, nunca entre filas.
@@ -391,9 +391,37 @@ La app cuenta lo que hace la pareja sin que haya que buscarlo.
 La firma del sistema. SVG paramétrico y determinista (viewBox 120; la variación sale de un hash de la semana en que brotó cada hoja, sin azar).
 - **Etapas:** semilla (1–2; en la 2 asoma la raíz) → brote con cotiledones (3–6) → tallo que se alarga cada semana con una hoja nueva cada 4 semanas, alternando lados, que siguen creciendo (7–35) → botón terracota que engorda (36–39) → flor abierta de cinco pétalos (40–42). Sin semana conocida: brote neutro.
 - **Trazo:** 1.5px en pantalla a cualquier tamaño en `sage-ink`; hojas con relleno `sage` al 22%; terracota (`terracotta` con contorno `terracotta-ink`) solo en botón y flor; montículo de tierra mínimo.
-- **Tamaños en uso:** 120px en el bloque de semana de la Guía, 88px en la bienvenida (sin animar), 56px en el selector de semana.
+- **Tamaños en uso:** 120px en el bloque de semana de la Guía, 88px en la bienvenida (sin animar), 56px en el selector de semana y 4.1px por unidad (caja de 492px) en la tira de PandaStory, sin su montículo (`soil={false}`): ahí la tierra es una sola línea bajo toda la tira.
 - **Animación de autor** (la otra es el abrazo de los monogramas): al avanzar de semana (no al montar ni al retroceder) el tallo se alarga, la punta sube y la hoja más joven crece desde su nudo: 600ms, `cubic-bezier(0.16, 1, 0.3, 1)`, Web Animations. Con `prefers-reduced-motion` no se anima: la planta aparece ya en su estado final (el estado por defecto es la planta completa).
 - **Accesibilidad:** `role="img"` ("Planta de la semana 24"); `title=""` la vuelve decorativa cuando el texto de al lado ya dice la semana.
+
+### Tarjeta de PandaStory (`src/components/PandaStoryCard.tsx`; fondos en `StoryBackdrop.tsx`; lo que puede decir en `src/lib/story.ts`)
+La tira de crecimiento: una imagen para historias que la pareja comparte. Es la planta de la app, semana tras semana, sobre una sola línea de tierra.
+- **Formato:** 1080×1920, exportada exacta desde el nodo sin escalar (`toCanvas` de html-to-image, `pixelRatio` 1); la vista previa la escala desde un ancestro. Antes de exportar se comprueba la letra incrustada: Alegreya presente y todas sus fuentes como `data:` (si una descarga falló, no exporta y lo dice).
+- **Franjas de Instagram:** nada de texto arriba de 270px ni debajo de 1580px; ahí solo ilustración. La raíz se rellena en px (290 arriba, 360 abajo, 86 a los lados).
+- **Tres composiciones, cada una con su suelo fijado en la raíz** (se ve igual con la app en claro u oscuro):
+  - «La semana»: sage-wash, con una luz suave detrás de la tira y frondas por los bordes.
+  - «Con foto»: alabastro liso, con dos ramitas prensadas en las franjas.
+  - «Cuenta regresiva»: obsidiana, con estrellas en puntos, Casiopea, colinas en la franja de abajo y fantasmas lavanda.
+- **La tira:**
+  - Cinco plantas del mismo tamaño, de 4 en 4 semanas, con la de hoy lo más al centro posible. La altura se lee como crecimiento, y cada paso es una hoja más.
+  - Una sola línea de tierra de borde a borde (trazo ≈6.5px, un montículo bajo cada planta), en tinta hasta hoy y en fantasma después.
+  - Las semanas que faltan son la planta típica de esa semana en el tono fantasma de la composición, sin medidas.
+  - Debajo va el número de cada semana (52px, tabular): hoy en el acento, lo pasado en `ink-muted` y lo que falta en el tono sutil.
+  - «Con foto»: las dos semanas de antes y la foto cuadrada (460px, con filete) de pie sobre la tierra en el lugar de hoy.
+  - «Cuenta regresiva»: de hoy a la 40 (botón en la 36, flor en la 40).
+- **Texto:**
+  - «Semana 24» va en Alegreya (12.5cqw; los cqw se miden sobre la caja de contenido: 1cqw = 9.08px).
+  - Las medidas van primero, «En promedio, 30 cm y 600 g», en Alegreya bold. Debajo, la comparación es una frase en Alegreya Sans `ink-muted` con su artículo, «Del tamaño de una mazorca de maíz», a 820px como máximo.
+  - La cuenta regresiva es una frase en tinta del tamaño de un titular, «Faltan 109 días / para la fecha probable», no una cifra gigante. La regla de las cifras grandes y el rechazo a la ficha fetal siguen intactos.
+  - La fecha impresa sale del mismo cálculo que la cuenta.
+- **El acento es solo de hoy:** en la tarjeta, la terracota es el «24» del título y el de la tira, más el «Jr» de la firma.
+- **Nombres:** las iniciales de la pareja con su color por rol (excepción de la Two Voices Rule); la segunda monta sobre la primera con un marco del suelo. Debajo, sus nombres, solo los reales («Ana y Luis», «Ana e Iván»). El interruptor «Con sus nombres» los quita.
+- **Firma:** PandaMark y «PandaJr» en Alegreya 800, pequeños, dentro de la zona segura.
+- **El diálogo:**
+  - Chips «Qué cuenta la tarjeta». Sin fecha probable, la cuenta queda `aria-disabled` y dice por qué.
+  - «Preparar para compartir» (icono de imagen), y después «Compartir» y «Editar».
+  - Mientras se prepara la imagen no se puede cambiar lo que se exporta.
 
 ### Movimiento (`src/lib/motion.ts`)
 La app se siente viva porque responde, no porque se decore.
@@ -414,6 +442,7 @@ La app se siente viva porque responde, no porque se decore.
   - El toast sube 12px y se funde.
   - La tarjeta del votador sale hacia su voto (me gusta a la derecha) y el nombre siguiente se asienta; sigue siendo el mismo elemento, así que el foco se queda en el botón.
   - Los mensajes nuevos de PandaIA suben 6px; el historial restaurado, los errores y la tarjeta de urgencia aparecen quietos.
+  - En PandaStory, al abrir la tarjeta y al cambiar de composición, las plantas de la tira (y la foto, al final) brotan una tras otra. Suben 1.8cqw y se funden en 560ms, con `ease-out-expo` y 90ms de escalón, una vez por planta. Responden a un toque; no son un tercer momento de autor. Antes de exportar se terminan, así el PNG sale con la tira completa.
 - **Implementación:** las entradas declarativas usan `@starting-style` y transiciones CSS; las que dependen de un evento usan Web Animations y se cancelan al desmontar. Sin librerías. El estado por defecto es el final: si una animación no corre, no falta nada.
 - **Movimiento reducido:** nada se desplaza, escala ni gira. Las hojas, los diálogos, el toast y la tarjeta del abrazo se funden en su sitio; la palomita aparece ya trazada, con su cambio de color; los monogramas ya están juntos.
 

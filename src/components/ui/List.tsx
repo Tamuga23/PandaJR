@@ -238,12 +238,16 @@ export function ListRow(props: ListRowProps) {
           {leading}
         </span>
       )}
-      <span className="pj-row-body flex min-w-0 flex-1 items-center gap-3 py-2.5 pe-[var(--gutter)]">
-        <span className="min-w-0 flex-1">
+      {/* Con switch, si la fila es muy angosta (200 % de zoom en un teléfono) el switch baja bajo el título en vez
+          de apretarlo: el título reserva 9rem y la fila se parte solo por debajo de ~196 px. */}
+      <span className={cx("pj-row-body flex min-w-0 flex-1 items-center gap-3 py-2.5 pe-[var(--gutter)]", isSwitch && "flex-wrap")}>
+        <span className={cx("min-w-0", isSwitch ? "grow basis-36" : "flex-1")}>
           <span
             id={titleId}
             className={cx(
-              "block text-body",
+              // Una palabra que no cabe sola en la columna se parte en vez de salirse (sin guion automático: en
+              // anchos normales partiría nombres y palabras que caben enteras en la línea siguiente).
+              "block text-body break-words",
               weight === "medium" ? "font-medium" : "font-bold",
               tone === "danger" ? "text-terracotta-ink" : "text-ink",
               titleClassName
@@ -252,7 +256,7 @@ export function ListRow(props: ListRowProps) {
             {title}
           </span>
           {meta && (
-            <span id={metaId} className="mt-0.5 block text-meta text-ink-muted">
+            <span id={metaId} className="mt-0.5 block text-meta text-ink-muted break-words">
               {meta}
             </span>
           )}

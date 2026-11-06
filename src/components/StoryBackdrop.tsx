@@ -1,23 +1,23 @@
 /**
- * StoryBackdrop — el fondo ilustrado de la tarjeta compartible (PandaStory).
+ * StoryBackdrop — el fondo ilustrado de la tarjeta de PandaStory (la tira de crecimiento).
  *
- * Cuatro escenas del mismo jardín, dibujadas con el vocabulario de GrowingPlant (trazo fino de sage-ink,
- * rellenos tenues, terracota solo de acento) y con los valores canónicos de DESIGN.md:
- *   botanico  invernadero: frondas desde los bordes, halo de luz y anillo punteado de espécimen
- *   nocturno  jardín de noche: luna llena detrás de la planta, estrellas, colinas y luciérnagas
- *   amanecer  el sol sale justo en la tierra de la planta, rayos, nubes de línea y flores silvestres
- *   limpio    herbario: papel cuadriculado, doble filete, ramitas prensadas con cinta y una corona
+ * Tres escenas, una por composición, con el vocabulario de GrowingPlant (trazo fino de sage-ink, rellenos
+ * tenues, terracota solo de acento) y los valores canónicos de DESIGN.md:
+ *   semana  invernadero: luz suave detrás de la tira, frondas que suben por los bordes
+ *   foto    alabastro liso (la foto manda) y dos ramitas prensadas en las franjas
+ *   cuenta  noche: estrellas en puntos y Casiopea arriba, un halo lavanda detrás de la tira y colinas abajo
  *
- * Composición sobre un lienzo de 90×160 (la tarjeta es 9:16): wordmark ~y 6–11, titular ~14–37, planta
- * ~39–105 (tierra en ~94), texto ~107–153. Lo ilustrado vive en los bordes y detrás de la planta; las
- * franjas de texto quedan limpias o sobre tintes claros (contraste ≥4.5:1 medido para cada texto).
+ * Lienzo de 90×160 (la tarjeta es 9:16; 1 unidad = 12 px a 1080×1920). Lo que tapa Instagram —arriba hasta
+ * y≈22.5 (270 px) y abajo desde y≈131.7 (1580 px)— solo lleva ilustración; la columna del texto (x≈7–83)
+ * queda limpia entre y≈24 y y≈130. La tira cruza de borde a borde con su línea de tierra entre y≈90 («La semana»)
+ * y y≈109 («Con foto»); la luz y el halo se centran en ella.
  *
  * SVG determinista y en línea (sin imágenes externas): html-to-image lo exporta tal cual al PNG.
  * Decorativo: aria-hidden.
  */
 import type { ReactNode } from "react";
 
-export type StoryStyleId = "botanico" | "nocturno" | "amanecer" | "limpio";
+export type StoryStyleId = "semana" | "foto" | "cuenta";
 
 const r = (v: number) => Math.round(v * 100) / 100;
 type Pt = readonly [number, number];
@@ -73,18 +73,6 @@ function Frond({
   );
 }
 
-/** Destello de cuatro puntas (estrella dibujada, no un glifo). */
-function Sparkle({ x, y, s, color, opacity }: { x: number; y: number; s: number; color: string; opacity: number }) {
-  const k = s * 0.22;
-  return (
-    <path
-      d={`M${r(x)} ${r(y - s)}L${r(x + k)} ${r(y - k)}L${r(x + s)} ${r(y)}L${r(x + k)} ${r(y + k)}L${r(x)} ${r(y + s)}L${r(x - k)} ${r(y + k)}L${r(x - s)} ${r(y)}L${r(x - k)} ${r(y - k)}Z`}
-      fill={color}
-      fillOpacity={opacity}
-    />
-  );
-}
-
 /** Mechón de pasto: hojas finas que salen de un punto. */
 function Tuft({ x, y, h, color, opacity, sw, lean = 0 }: { x: number; y: number; h: number; color: string; opacity: number; sw: number; lean?: number }) {
   const blades = [-14, -5, 4, 12].map((a, i) => {
@@ -99,225 +87,107 @@ function Tuft({ x, y, h, color, opacity, sw, lean = 0 }: { x: number; y: number;
   return <g>{blades}</g>;
 }
 
-/** Flor silvestre: tallo, dos hojas y un botón. */
-function Wildflower({ x, y, h, lean, stem, bud, leafInk, sw }: { x: number; y: number; h: number; lean: number; stem: string; bud: string; leafInk: Ink; sw: number }) {
-  const tx = x + lean;
-  const ty = y - h;
-  return (
-    <g>
-      <path d={`M${x} ${y}Q${r(x + lean * 0.2)} ${r(y - h * 0.55)} ${r(tx)} ${r(ty)}`} fill="none" stroke={stem} strokeOpacity={0.55} strokeWidth={sw} strokeLinecap="round" />
-      <Leaf x={x + lean * 0.12} y={y - h * 0.32} len={h * 0.3} rot={-40 + lean * 2} ink={leafInk} wide={0.32} rib={false} />
-      <Leaf x={x + lean * 0.22} y={y - h * 0.5} len={h * 0.24} rot={-150 + lean * 2} ink={leafInk} wide={0.32} rib={false} />
-      <circle cx={r(tx)} cy={r(ty)} r={h * 0.075} fill={bud} fillOpacity={0.75} />
-      <circle cx={r(tx)} cy={r(ty)} r={h * 0.13} fill="none" stroke={bud} strokeOpacity={0.35} strokeWidth={sw * 0.8} />
-    </g>
-  );
-}
-
 /* --------------------------------- Escenas --------------------------------- */
 
-function Botanico() {
-  const frond: Ink = { fill: "#6c9a84", fillOpacity: 0.2, stroke: "#44695a", strokeOpacity: 0.55, sw: 0.42 };
-  const soft: Ink = { fill: "#6c9a84", fillOpacity: 0.14, stroke: "#44695a", strokeOpacity: 0.4, sw: 0.38 };
+/** «La semana»: invernadero. Luz detrás de la tira; frondas por los bordes, fuera de la columna del texto. */
+function Semana() {
+  const frond: Ink = { fill: "#6c9a84", fillOpacity: 0.2, stroke: "#44695a", strokeOpacity: 0.5, sw: 0.4 };
+  const soft: Ink = { fill: "#6c9a84", fillOpacity: 0.14, stroke: "#44695a", strokeOpacity: 0.38, sw: 0.36 };
   return (
     <>
       <defs>
-        <linearGradient id="ps-bot-bg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#ebf2ee" />
+        <linearGradient id="ps-sem-bg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#edf3ef" />
           <stop offset="1" stopColor="#dce8e0" />
         </linearGradient>
-        <radialGradient id="ps-bot-glow" cx="45" cy="72" r="38" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#f7fbf8" stopOpacity="1" />
-          <stop offset="0.7" stopColor="#f2f7f3" stopOpacity="0.55" />
-          <stop offset="1" stopColor="#f2f7f3" stopOpacity="0" />
+        <radialGradient id="ps-sem-glow" cx="45" cy="79" r="44" gradientTransform="matrix(1 0 0 0.62 0 30.02)" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#f8fbf9" stopOpacity="1" />
+          <stop offset="0.65" stopColor="#f3f7f4" stopOpacity="0.5" />
+          <stop offset="1" stopColor="#f3f7f4" stopOpacity="0" />
         </radialGradient>
       </defs>
-      <rect width="90" height="160" fill="url(#ps-bot-bg)" />
-      <circle cx="45" cy="72" r="38" fill="url(#ps-bot-glow)" />
-      {/* Anillo de espécimen: punteado alrededor de la planta. */}
-      <circle cx="45" cy="72" r="34.5" fill="none" stroke="#44695a" strokeOpacity="0.28" strokeWidth="0.45" strokeDasharray="0.01 1.6" strokeLinecap="round" />
-      <circle cx="45" cy="72" r="36.8" fill="none" stroke="#44695a" strokeOpacity="0.12" strokeWidth="0.3" />
-      {/* Frondas que suben por los bordes. */}
-      <Frond p0={[-5, 104]} c={[4, 70]} p1={[15, 44]} count={9} leafLen={10} ink={frond} paired spread={58} />
-      <Frond p0={[95, 110]} c={[86, 78]} p1={[76, 54]} count={8} leafLen={9.5} ink={frond} paired spread={58} />
-      {/* Hojas anchas en las esquinas de abajo, fuera del texto. */}
-      {[[-3, 163, -62, 15], [-3, 163, -38, 13], [-2, 162, -84, 12]].map(([x, y, rot, len]) => (
+      <rect width="90" height="160" fill="url(#ps-sem-bg)" />
+      <rect width="90" height="160" fill="url(#ps-sem-glow)" />
+      {/* Frondas que suben desde la franja de abajo por los bordes. */}
+      <Frond p0={[-4, 166]} c={[2, 136]} p1={[6, 104]} count={9} leafLen={8.5} ink={frond} paired spread={58} />
+      <Frond p0={[94, 166]} c={[88, 138]} p1={[84, 108]} count={8} leafLen={8} ink={frond} paired spread={58} />
+      {[[-3, 163, -58, 14], [-2, 163, -34, 12]].map(([x, y, rot, len]) => (
         <Leaf key={`bl${rot}`} x={x} y={y} len={len} rot={rot} ink={soft} wide={0.34} />
       ))}
-      {[[93, 163, -118, 15], [93, 163, -142, 13], [92, 162, -96, 12]].map(([x, y, rot, len]) => (
+      {[[93, 163, -122, 14], [92, 163, -146, 12]].map(([x, y, rot, len]) => (
         <Leaf key={`br${rot}`} x={x} y={y} len={len} rot={rot} ink={soft} wide={0.34} />
       ))}
-      {/* Ramitas en las esquinas de arriba, junto a la marca. */}
-      <Frond p0={[-2, 2]} c={[6, 4]} p1={[12, 13]} count={4} leafLen={5} ink={soft} spread={60} />
-      <Frond p0={[92, 3]} c={[84, 5]} p1={[78, 13]} count={4} leafLen={5} ink={soft} spread={60} />
-      {/* Semillas y polen. */}
-      {[[9, 40, 0.55], [81, 38, 0.5], [6, 118, 0.5], [85, 124, 0.55], [20, 104, 0.4], [70, 102, 0.4], [14, 30, 0.35], [77, 46, 0.35]].map(([x, y, rad]) => (
+      {/* Ramitas en la franja de arriba. */}
+      <Frond p0={[-2, 2]} c={[8, 5]} p1={[16, 16]} count={5} leafLen={5.2} ink={soft} spread={60} />
+      <Frond p0={[92, 3]} c={[82, 6]} p1={[74, 17]} count={5} leafLen={5.2} ink={soft} spread={60} />
+      {/* Semillas sueltas en los márgenes. */}
+      {[[4, 44, 0.5], [86, 40, 0.5], [3, 92, 0.45], [87, 88, 0.45], [12, 22, 0.35], [78, 24, 0.35]].map(([x, y, rad]) => (
         <ellipse key={`s${x}${y}`} cx={x} cy={y} rx={rad} ry={rad * 0.7} fill="#44695a" fillOpacity="0.3" />
       ))}
     </>
   );
 }
 
-const NIGHT_STARS: readonly (readonly [number, number, number, number])[] = [
-  [8, 9, 1.3, 0.85], [20, 4, 0.5, 0.6], [79, 7, 1.1, 0.8], [86, 18, 0.45, 0.6], [5, 24, 0.45, 0.55],
-  [84, 40, 1.4, 0.75], [7, 52, 0.9, 0.7], [12, 74, 0.45, 0.5], [81, 64, 0.5, 0.55], [86, 92, 0.85, 0.6],
-  [4, 96, 0.4, 0.5], [30, 44, 0.35, 0.45], [62, 42, 0.4, 0.5], [70, 12, 0.35, 0.5], [36, 9, 0.35, 0.45],
-  [52, 5, 0.6, 0.7], [16, 60, 0.35, 0.45], [76, 84, 0.35, 0.45], [2, 40, 0.35, 0.4], [89, 52, 0.35, 0.45],
+/** «Con foto»: alabastro liso (la foto es la protagonista) con dos ramitas prensadas en las franjas. */
+function Foto() {
+  const pressed: Ink = { fill: "#6c9a84", fillOpacity: 0.12, stroke: "#5c554d", strokeOpacity: 0.45, sw: 0.3 };
+  return (
+    <>
+      <rect width="90" height="160" fill="#faf9f5" />
+      <Frond p0={[9, 19]} c={[16, 11]} p1={[27, 9]} count={6} leafLen={4.6} ink={pressed} spread={52} />
+      <Frond p0={[81, 141]} c={[74, 149]} p1={[63, 151]} count={6} leafLen={4.6} ink={pressed} spread={52} />
+    </>
+  );
+}
+
+type Star = readonly [x: number, y: number, size: number, opacity: number];
+
+/** Casiopea: la «W» del cielo del norte, entera dentro de la franja de arriba (la une un punteado tenue). */
+const CASSIOPEIA: readonly Star[] = [[63, 10, 0.45, 0.6], [68.5, 15.5, 0.5, 0.65], [74, 11, 0.55, 0.7], [79.5, 16.5, 0.45, 0.6], [85, 8.5, 1, 0.8]];
+
+const NIGHT_STARS: readonly Star[] = [
+  [8, 8, 1.3, 0.85], [20, 4, 0.5, 0.6], [5, 21, 0.45, 0.55], [52, 5, 0.6, 0.7], [36, 10, 0.35, 0.45],
+  [28, 18, 0.35, 0.4], [55, 20, 0.3, 0.4], ...CASSIOPEIA,
+  [3, 52, 0.4, 0.45], [87, 48, 0.9, 0.6], [4, 104, 0.4, 0.45], [86, 98, 0.35, 0.45],
 ];
 
-function Nocturno() {
+/** «Cuenta regresiva»: noche. Estrellas arriba, halo lavanda detrás de la tira, colinas en la franja de abajo. */
+function Cuenta() {
   const blade = "#619b7e";
   return (
     <>
       <defs>
-        <linearGradient id="ps-noc-bg" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id="ps-cue-bg" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#100d16" />
           <stop offset="0.55" stopColor="#181520" />
           <stop offset="1" stopColor="#1d1827" />
         </linearGradient>
-        <radialGradient id="ps-noc-halo" cx="45" cy="70" r="44" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#4a4160" stopOpacity="0.55" />
-          <stop offset="0.6" stopColor="#3a334b" stopOpacity="0.22" />
+        <radialGradient id="ps-cue-halo" cx="45" cy="83" r="46" gradientTransform="matrix(1 0 0 0.6 0 33.2)" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#4a4160" stopOpacity="0.5" />
+          <stop offset="0.6" stopColor="#3a334b" stopOpacity="0.2" />
           <stop offset="1" stopColor="#3a334b" stopOpacity="0" />
         </radialGradient>
-        <radialGradient id="ps-noc-moon" cx="40" cy="62" r="30" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#3a334b" />
-          <stop offset="1" stopColor="#2d273a" />
-        </radialGradient>
-        <radialGradient id="ps-noc-fly" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stopColor="#eb9279" stopOpacity="0.45" />
-          <stop offset="1" stopColor="#eb9279" stopOpacity="0" />
-        </radialGradient>
       </defs>
-      <rect width="90" height="160" fill="url(#ps-noc-bg)" />
-      {NIGHT_STARS.map(([x, y, s, o]) =>
-        s >= 0.8 ? <Sparkle key={`${x}-${y}`} x={x} y={y} s={s} color="#eae6e1" opacity={o} /> : <circle key={`${x}-${y}`} cx={x} cy={y} r={s * 0.6} fill="#cbc5d2" fillOpacity={o} />
-      )}
-      {/* Una constelación discreta arriba a la derecha. */}
-      <path d="M79 7L86 18L84 40" fill="none" stroke="#cbc5d2" strokeOpacity="0.16" strokeWidth="0.25" strokeDasharray="0.8 0.9" />
-      {/* Luna llena detrás de la planta. */}
-      <circle cx="45" cy="70" r="44" fill="url(#ps-noc-halo)" />
-      <circle cx="45" cy="70" r="26" fill="url(#ps-noc-moon)" />
-      <circle cx="45" cy="70" r="26" fill="none" stroke="#cbc5d2" strokeOpacity="0.16" strokeWidth="0.35" />
-      {[[34, 60, 3.2], [56, 80, 4], [57, 58, 2], [37, 83, 1.6], [48, 52, 1.2], [28, 74, 1.4]].map(([x, y, rad]) => (
-        <circle key={`c${x}${y}`} cx={x} cy={y} r={rad} fill="#221d2d" fillOpacity="0.55" />
+      <rect width="90" height="160" fill="url(#ps-cue-bg)" />
+      {/* Estrellas como puntos (las brillantes, algo más grandes y claras): nada de destellos de cuatro puntas. */}
+      {NIGHT_STARS.map(([x, y, s, o]) => (
+        <circle key={`${x}-${y}`} cx={x} cy={y} r={s >= 0.8 ? s * 0.42 : s * 0.6} fill={s >= 0.8 ? "#eae6e1" : "#cbc5d2"} fillOpacity={o} />
       ))}
-      {/* Colinas en dos capas. */}
-      <path d="M0 116C18 106 33 110 48 115C63 120 77 108 90 111L90 160L0 160Z" fill="#221d2d" />
-      <path d="M0 131C17 123 33 127 51 133C67 138 80 127 90 129L90 160L0 160Z" fill="#1a1724" />
-      <path d="M0 116C18 106 33 110 48 115C63 120 77 108 90 111" fill="none" stroke="#4a4160" strokeOpacity="0.6" strokeWidth="0.3" />
-      {/* Pasto y flores en las orillas. */}
-      <Tuft x={6} y={113} h={5} color={blade} opacity={0.6} sw={0.35} lean={-4} />
-      <Tuft x={13} y={110} h={3.6} color={blade} opacity={0.5} sw={0.32} lean={6} />
-      <Tuft x={81} y={111} h={4.6} color={blade} opacity={0.6} sw={0.35} lean={4} />
-      <Tuft x={87} y={110.5} h={3.2} color={blade} opacity={0.5} sw={0.32} />
-      <Tuft x={4} y={130} h={4.2} color={blade} opacity={0.45} sw={0.32} />
-      <Tuft x={86} y={128} h={4.2} color={blade} opacity={0.45} sw={0.32} lean={-6} />
-      {/* Luciérnagas: luz cálida, terracota de noche. */}
-      {[[12, 98, 1], [21, 88, 0.8], [77, 94, 1], [70, 106, 0.75], [84, 80, 0.85], [8, 84, 0.7]].map(([x, y, s]) => (
-        <g key={`f${x}${y}`}>
-          <circle cx={x} cy={y} r={3.2 * s} fill="url(#ps-noc-fly)" />
-          <circle cx={x} cy={y} r={0.55 * s} fill="#eb9279" fillOpacity="0.95" />
-        </g>
-      ))}
+      <path d={`M${CASSIOPEIA.map(([x, y]) => `${x} ${y}`).join("L")}`} fill="none" stroke="#cbc5d2" strokeOpacity="0.16" strokeWidth="0.25" strokeDasharray="0.8 0.9" />
+      <rect width="90" height="160" fill="url(#ps-cue-halo)" />
+      {/* Colinas en la franja de abajo. */}
+      <path d="M0 136C18 129 33 132 48 136C63 140 77 131 90 133L90 160L0 160Z" fill="#221d2d" />
+      <path d="M0 147C17 141 33 144 51 148C67 152 80 144 90 146L90 160L0 160Z" fill="#1a1724" />
+      <path d="M0 136C18 129 33 132 48 136C63 140 77 131 90 133" fill="none" stroke="#4a4160" strokeOpacity="0.6" strokeWidth="0.3" />
+      <Tuft x={6} y={134} h={4.6} color={blade} opacity={0.55} sw={0.34} lean={-4} />
+      <Tuft x={14} y={131.5} h={3.4} color={blade} opacity={0.45} sw={0.3} lean={6} />
+      <Tuft x={80} y={132.5} h={4.4} color={blade} opacity={0.55} sw={0.34} lean={4} />
+      <Tuft x={87} y={132} h={3} color={blade} opacity={0.45} sw={0.3} />
     </>
   );
 }
 
-function Amanecer() {
-  const leafInk: Ink = { fill: "#6c9a84", fillOpacity: 0.22, stroke: "#44695a", strokeOpacity: 0.5, sw: 0.32 };
-  const cloud = "#a54833";
-  return (
-    <>
-      <defs>
-        <linearGradient id="ps-ama-sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#f3dbd1" />
-          <stop offset="0.6" stopColor="#f9ebe5" />
-          <stop offset="1" stopColor="#fbf1ec" />
-        </linearGradient>
-        <radialGradient id="ps-ama-sun" cx="45" cy="95" r="30" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#f6d2c3" />
-          <stop offset="1" stopColor="#f1c3b1" />
-        </radialGradient>
-        <clipPath id="ps-ama-horizon">
-          <rect x="0" y="0" width="90" height="95.5" />
-        </clipPath>
-      </defs>
-      <rect width="90" height="160" fill="url(#ps-ama-sky)" />
-      {/* El sol sale en la tierra de la planta; arcos de luz por encima del horizonte. */}
-      <g clipPath="url(#ps-ama-horizon)">
-        {[[34, 0.26, ""], [40, 0.2, "0.01 1.5"], [47, 0.16, ""], [55, 0.12, "0.01 1.8"]].map(([rad, op, dash]) => (
-          <circle key={`ray${rad}`} cx="45" cy="95" r={rad as number} fill="none" stroke="#e07a64" strokeOpacity={op as number} strokeWidth="0.45" strokeDasharray={(dash as string) || undefined} strokeLinecap="round" />
-        ))}
-        <circle cx="45" cy="95" r="28" fill="url(#ps-ama-sun)" />
-        <circle cx="45" cy="95" r="28" fill="none" stroke="#e07a64" strokeOpacity="0.35" strokeWidth="0.4" />
-      </g>
-      {/* Nubes de línea en los bordes. */}
-      <path d="M-2 26C2 21 7 21 9 24C11 20 17 20 18 25C21 24 23 27 21 29L-2 29" fill="#fbf1ec" fillOpacity="0.85" stroke={cloud} strokeOpacity="0.22" strokeWidth="0.35" strokeLinejoin="round" />
-      <path d="M92 44C88 39 83 39 81 42C79 38 73 38 72 43C69 42 67 45 69 47L92 47" fill="#fbf1ec" fillOpacity="0.85" stroke={cloud} strokeOpacity="0.22" strokeWidth="0.35" strokeLinejoin="round" />
-      {/* Colinas: la de atrás en el horizonte; la de delante, bruma clara bajo el texto. */}
-      <path d="M0 99C16 93 30 95 45 97C60 99 74 92 90 96L90 160L0 160Z" fill="#f3dcd1" />
-      <path d="M0 99C16 93 30 95 45 97C60 99 74 92 90 96" fill="none" stroke="#e07a64" strokeOpacity="0.3" strokeWidth="0.35" />
-      <path d="M0 121C20 113 40 117 56 123C70 128 82 119 90 120L90 160L0 160Z" fill="#f8e9e2" />
-      {/* Flores silvestres y pasto en las esquinas. */}
-      <Wildflower x={5} y={160} h={20} lean={2} stem="#44695a" bud="#e07a64" leafInk={leafInk} sw={0.35} />
-      <Wildflower x={11} y={161} h={14} lean={-2} stem="#44695a" bud="#a54833" leafInk={leafInk} sw={0.33} />
-      <Wildflower x={84} y={160} h={19} lean={-2} stem="#44695a" bud="#e07a64" leafInk={leafInk} sw={0.35} />
-      <Tuft x={78} y={160} h={6} color="#44695a" opacity={0.45} sw={0.32} lean={-4} />
-      <Tuft x={17} y={160} h={5} color="#44695a" opacity={0.45} sw={0.32} lean={4} />
-      <Tuft x={7} y={98} h={3.4} color="#44695a" opacity={0.4} sw={0.3} />
-      <Tuft x={83} y={97} h={3.4} color="#44695a" opacity={0.4} sw={0.3} lean={-4} />
-    </>
-  );
-}
-
-function Limpio() {
-  const pressed: Ink = { fill: "#6c9a84", fillOpacity: 0.1, stroke: "#5c554d", strokeOpacity: 0.5, sw: 0.32 };
-  const wreathInk: Ink = { fill: "#6c9a84", fillOpacity: 0.12, stroke: "#44695a", strokeOpacity: 0.5, sw: 0.32 };
-  // Corona abierta arriba: dos ramas que suben desde la tierra de la planta.
-  const wreath: ReactNode[] = [];
-  const R = 33;
-  for (const side of [1, -1] as const) {
-    for (let i = 0; i < 9; i++) {
-      const a = ((100 - i * 17) * Math.PI) / 180; // de abajo (90°) hacia arriba
-      const ang = side === 1 ? a : Math.PI - a;
-      const x = 45 + R * Math.cos(ang);
-      const y = 72 + R * Math.sin(ang);
-      const tangent = (ang * 180) / Math.PI + (side === 1 ? -90 : 90);
-      wreath.push(<Leaf key={`w${side}${i}`} x={x} y={y} len={4.6 - i * 0.18} rot={tangent + (i % 2 === 0 ? 34 : -34) * side} ink={wreathInk} wide={0.36} rib={false} />);
-    }
-  }
-  const tape = (x: number, y: number, rot: number) => (
-    <rect x={-4} y={-1.3} width={8} height={2.6} rx={0.3} transform={`translate(${x} ${y}) rotate(${rot})`} fill="#f3efe7" fillOpacity="0.92" stroke="#d8d0c1" strokeWidth="0.2" />
-  );
-  return (
-    <>
-      <defs>
-        <pattern id="ps-lim-grid" width="5" height="5" patternUnits="userSpaceOnUse">
-          <path d="M5 0L0 0L0 5" fill="none" stroke="#e8e2d7" strokeWidth="0.18" />
-        </pattern>
-      </defs>
-      <rect width="90" height="160" fill="#faf9f5" />
-      <rect width="90" height="160" fill="url(#ps-lim-grid)" opacity="0.8" />
-      {/* Doble filete de lámina de herbario. */}
-      <rect x="3" y="3" width="84" height="154" rx="3.5" fill="none" stroke="#d8d0c1" strokeWidth="0.45" />
-      <rect x="4.7" y="4.7" width="80.6" height="150.6" rx="2.2" fill="none" stroke="#d8d0c1" strokeWidth="0.2" />
-      {/* Corona alrededor de la planta. */}
-      {/* Rama derecha: de abajo (100°) por la derecha hasta arriba (−36°), ángulo decreciente → sweep 0.
-          Rama izquierda: de abajo (80°) por la izquierda hasta 216°, ángulo creciente → sweep 1. */}
-      <path d={`M${r(45 + R * Math.cos((100 * Math.PI) / 180))} ${r(72 + R * Math.sin((100 * Math.PI) / 180))}A${R} ${R} 0 0 0 ${r(45 + R * Math.cos((-36 * Math.PI) / 180))} ${r(72 + R * Math.sin((-36 * Math.PI) / 180))}`} fill="none" stroke="#44695a" strokeOpacity="0.35" strokeWidth="0.3" />
-      <path d={`M${r(45 + R * Math.cos((80 * Math.PI) / 180))} ${r(72 + R * Math.sin((80 * Math.PI) / 180))}A${R} ${R} 0 0 1 ${r(45 + R * Math.cos((216 * Math.PI) / 180))} ${r(72 + R * Math.sin((216 * Math.PI) / 180))}`} fill="none" stroke="#44695a" strokeOpacity="0.35" strokeWidth="0.3" />
-      {wreath}
-      {/* Ramitas prensadas, sujetas con cinta, a los lados. */}
-      <Frond p0={[6, 100]} c={[5, 80]} p1={[10, 60]} count={6} leafLen={6} ink={pressed} spread={50} />
-      {tape(7, 92, -18)}
-      <Frond p0={[84, 64]} c={[86, 84]} p1={[81, 104]} count={6} leafLen={6} ink={pressed} spread={50} />
-      {tape(83, 72, 14)}
-    </>
-  );
-}
-
-const SCENES: Record<StoryStyleId, () => ReactNode> = { botanico: Botanico, nocturno: Nocturno, amanecer: Amanecer, limpio: Limpio };
+const SCENES: Record<StoryStyleId, () => ReactNode> = { semana: Semana, foto: Foto, cuenta: Cuenta };
 
 export function StoryBackdrop({ styleId, className = "" }: { styleId: StoryStyleId; className?: string }) {
   const Scene = SCENES[styleId];
